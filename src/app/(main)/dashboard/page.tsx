@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import Link from "next/link";
+import { StripeConnectButton } from "@/components/dashboard/stripe-connect-button";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -83,6 +84,13 @@ export default async function DashboardPage() {
               </span>
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Stripe Connect for creators */}
+      {isCreator && hasCreatorProfile && (
+        <div className="mt-6">
+          <StripeConnectButton />
         </div>
       )}
 

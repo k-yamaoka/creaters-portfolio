@@ -177,6 +177,7 @@ export default async function OrderDetailPage({
               orderId={order.id}
               currentStatus={order.status}
               isCreator={isCreator}
+              hasStripeKey={!!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
             />
           )}
         </div>

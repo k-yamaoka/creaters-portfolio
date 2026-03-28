@@ -9,7 +9,9 @@
       "Bash(git push:*)",
       "Bash(vercel deploy:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(grep ApiVersion /Users/yamaokakoushi/creaters-portfolio/node_modules/stripe/types/2025*.d.ts)",
+      "Bash(grep ApiVersion /Users/yamaokakoushi/creaters-portfolio/node_modules/stripe/types/*.d.ts)"
     ]
   }
 }
