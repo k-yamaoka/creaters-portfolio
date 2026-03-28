@@ -5,7 +5,9 @@
       "Bash(npm --version)",
       "Bash(source ~/.zshrc)",
       "Bash(npx next:*)",
-      "Bash(curl -s http://localhost:3000/creators/c0000000-0000-0000-0000-000000000001)"
+      "Bash(curl -s http://localhost:3000/creators/c0000000-0000-0000-0000-000000000001)",
+      "Bash(git push:*)",
+      "Bash(vercel deploy:*)"
     ]
   }
 }

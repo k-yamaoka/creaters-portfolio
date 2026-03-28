@@ -131,13 +131,34 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   if (!user) return null;
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
 
-  if (!profile) return null;
+  // If profile doesn't exist (trigger may have failed), create it
+  if (!profile) {
+    const role = (user.user_metadata?.role as "creator" | "client") || "client";
+    const display_name =
+      (user.user_metadata?.display_name as string) ||
+      user.email?.split("@")[0] ||
+      "ユーザー";
+
+    const { data: newProfile, error } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        email: user.email || "",
+        display_name,
+        role,
+      })
+      .select()
+      .single();
+
+    if (error || !newProfile) return null;
+    profile = newProfile;
+  }
 
   let creator_profile = undefined;
   if (profile.role === "creator") {
