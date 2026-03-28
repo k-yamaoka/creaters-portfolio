@@ -1,11 +1,30 @@
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import Link from "next/link";
 import { StripeConnectButton } from "@/components/dashboard/stripe-connect-button";
 
 export default async function DashboardPage() {
+  // Debug: check auth directly
+  const supabase = await createClient();
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+
+  if (!authUser) {
+    console.error("Dashboard auth error:", authError);
+    redirect("/login");
+  }
+
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) {
+    // Don't redirect, show debug info
+    return (
+      <div className="rounded-2xl bg-red-50 p-6">
+        <h2 className="text-lg font-bold text-red-700">プロフィール取得エラー</h2>
+        <p className="mt-2 text-sm text-red-600">認証済み (ID: {authUser.id}) ですが、プロフィールが取得できません。</p>
+        <p className="mt-1 text-sm text-red-600">Email: {authUser.email}</p>
+      </div>
+    );
+  }
 
   const isCreator = user.role === "creator";
   const isAdmin = user.role === "admin";
