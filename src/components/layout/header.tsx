@@ -2,9 +2,35 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-export function Header() {
+type User = {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    display_name?: string;
+    role?: string;
+  };
+} | null;
+
+export function Header({ user }: { user?: User }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUserMenuOpen(false);
+    router.push("/");
+    router.refresh();
+  };
+
+  const displayName =
+    user?.user_metadata?.display_name ||
+    user?.email?.split("@")[0] ||
+    "ユーザー";
 
   return (
     <header className="fixed left-0 right-0 top-0 z-50 bg-white">
@@ -44,12 +70,77 @@ export function Header() {
 
         {/* Right: Auth */}
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="/login" className="btn-white h-10 text-sm">
-            ログイン
-          </Link>
-          <Link href="/register" className="btn-primary h-10 px-6 text-sm">
-            新規登録
-          </Link>
+          {user ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 rounded-pill border border-[#E0E0E0] px-4 py-2 text-sm font-medium text-[#4F4F4F] transition-colors hover:border-[#BDBDBD] hover:bg-[#F8F8F8]"
+              >
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
+                  {displayName.charAt(0)}
+                </div>
+                <span className="max-w-[120px] truncate">{displayName}</span>
+                <svg
+                  className={`h-4 w-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </button>
+
+              {userMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl bg-white py-2 shadow-lg ring-1 ring-black/5">
+                    <div className="border-b border-[#F2F2F2] px-4 py-2">
+                      <p className="text-xs text-[#828282]">{user.email}</p>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="block px-4 py-2.5 text-sm text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      ダッシュボード
+                    </Link>
+                    <Link
+                      href="/settings"
+                      className="block px-4 py-2.5 text-sm text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                      onClick={() => setUserMenuOpen(false)}
+                    >
+                      設定
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full border-t border-[#F2F2F2] px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50"
+                    >
+                      ログアウト
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <>
+              <Link href="/login" className="btn-white h-10 text-sm">
+                ログイン
+              </Link>
+              <Link href="/register" className="btn-primary h-10 px-6 text-sm">
+                新規登録
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile menu button */}
@@ -108,12 +199,47 @@ export function Header() {
               企業の方へ
             </Link>
             <div className="mt-6 flex flex-col gap-3 pt-6">
-              <Link href="/login" className="btn-white justify-center">
-                ログイン
-              </Link>
-              <Link href="/register" className="btn-primary justify-center">
-                新規登録
-              </Link>
+              {user ? (
+                <>
+                  <div className="mb-2 text-sm text-[#828282]">
+                    {displayName} でログイン中
+                  </div>
+                  <Link
+                    href="/dashboard"
+                    className="btn-primary justify-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    ダッシュボード
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="btn-white justify-center text-red-500"
+                  >
+                    ログアウト
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="btn-white justify-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    ログイン
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="btn-primary justify-center"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    新規登録
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GENRES } from "@/lib/mock-data";
+import { GENRES } from "@/lib/constants";
 import type { CreatorSearchFilters } from "@/types/database";
 
 type SearchFiltersProps = {
