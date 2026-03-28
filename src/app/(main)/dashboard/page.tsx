@@ -8,6 +8,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
 
   const isCreator = user.role === "creator";
+  const isAdmin = user.role === "admin";
   const hasCreatorProfile = !!user.creator_profile;
   const hasClientProfile = !!user.client_profile;
 
@@ -16,7 +17,25 @@ export default async function DashboardPage() {
       <h1 className="text-2xl font-bold text-[#222]">ダッシュボード</h1>
       <p className="mt-2 text-sm text-[#828282]">
         ようこそ、{user.display_name}さん
+        {isAdmin && (
+          <span className="ml-2 rounded bg-red-100 px-2 py-0.5 text-[11px] font-bold text-red-700">
+            管理者
+          </span>
+        )}
       </p>
+
+      {/* Admin quick link */}
+      {isAdmin && (
+        <div className="mt-6 rounded-2xl border-2 border-primary-200 bg-primary-50 p-6">
+          <h2 className="text-lg font-bold text-[#222]">管理画面</h2>
+          <p className="mt-1 text-sm text-[#828282]">
+            ユーザー管理・取引管理・売上サマリーにアクセスできます
+          </p>
+          <Link href="/admin" className="btn-primary mt-4 inline-block text-sm">
+            管理画面を開く
+          </Link>
+        </div>
+      )}
 
       {/* Creator: prompt to create profile */}
       {isCreator && !hasCreatorProfile && (
