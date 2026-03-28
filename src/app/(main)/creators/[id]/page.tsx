@@ -333,24 +333,24 @@ export default async function CreatorDetailPage({
                     ))}
                   </ul>
 
-                  <button
-                    type="button"
+                  <Link
+                    href={`/dashboard/messages/${creator.user_id}`}
                     className="btn-primary mt-6 w-full text-sm"
                   >
                     このプランで相談する
-                  </button>
+                  </Link>
                 </div>
               ))}
             </div>
 
             {/* Contact button */}
             <div className="mt-6">
-              <button
-                type="button"
+              <Link
+                href={`/dashboard/messages/${creator.user_id}`}
                 className="btn-secondary w-full text-sm"
               >
                 メッセージを送る
-              </button>
+              </Link>
             </div>
           </div>
         </div>
