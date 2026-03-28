@@ -121,6 +121,12 @@ export type CurrentUser = {
     rating: number;
     review_count: number;
   };
+  client_profile?: {
+    id: string;
+    company_name: string | null;
+    company_url: string | null;
+    industry: string | null;
+  };
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -161,6 +167,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   }
 
   let creator_profile = undefined;
+  let client_profile = undefined;
+
   if (profile.role === "creator") {
     const { data } = await supabase
       .from("creator_profiles")
@@ -168,6 +176,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
       .eq("user_id", user.id)
       .single();
     creator_profile = data ?? undefined;
+  } else if (profile.role === "client") {
+    const { data } = await supabase
+      .from("client_profiles")
+      .select("id, company_name, company_url, industry")
+      .eq("user_id", user.id)
+      .single();
+    client_profile = data ?? undefined;
   }
 
   return {
@@ -178,5 +193,6 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     avatar_url: profile.avatar_url,
     is_verified: profile.is_verified,
     creator_profile,
+    client_profile,
   };
 }

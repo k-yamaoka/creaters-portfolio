@@ -74,3 +74,62 @@ export async function updateProfile(formData: FormData) {
 
   redirect("/dashboard");
 }
+
+export async function updateClientProfile(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) redirect("/login");
+
+  const display_name = formData.get("display_name") as string;
+  const company_name = formData.get("company_name") as string;
+  const company_url = formData.get("company_url") as string;
+  const industry = formData.get("industry") as string;
+
+  // Update profile (display_name)
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .update({ display_name })
+    .eq("id", user.id);
+
+  if (profileError) {
+    return { error: "プロフィールの更新に失敗しました" };
+  }
+
+  // Check if client_profile exists
+  const { data: existing } = await supabase
+    .from("client_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  const clientData = {
+    company_name: company_name || null,
+    company_url: company_url || null,
+    industry: industry || null,
+  };
+
+  if (existing) {
+    const { error } = await supabase
+      .from("client_profiles")
+      .update(clientData)
+      .eq("user_id", user.id);
+
+    if (error) {
+      return { error: "企業情報の更新に失敗しました" };
+    }
+  } else {
+    const { error } = await supabase.from("client_profiles").insert({
+      user_id: user.id,
+      ...clientData,
+    });
+
+    if (error) {
+      return { error: "企業情報の作成に失敗しました" };
+    }
+  }
+
+  redirect("/dashboard");
+}
