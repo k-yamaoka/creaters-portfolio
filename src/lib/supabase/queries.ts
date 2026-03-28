@@ -103,3 +103,59 @@ export async function getCreatorById(
 
   return data as unknown as CreatorWithRelations;
 }
+
+export type CurrentUser = {
+  id: string;
+  email: string;
+  role: "creator" | "client" | "admin";
+  display_name: string;
+  avatar_url: string | null;
+  is_verified: boolean;
+  creator_profile?: {
+    id: string;
+    bio: string;
+    skills: string[];
+    genres: string[];
+    location: string | null;
+    years_of_experience: number;
+    rating: number;
+    review_count: number;
+  };
+};
+
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) return null;
+
+  let creator_profile = undefined;
+  if (profile.role === "creator") {
+    const { data } = await supabase
+      .from("creator_profiles")
+      .select("id, bio, skills, genres, location, years_of_experience, rating, review_count")
+      .eq("user_id", user.id)
+      .single();
+    creator_profile = data ?? undefined;
+  }
+
+  return {
+    id: user.id,
+    email: profile.email,
+    role: profile.role,
+    display_name: profile.display_name,
+    avatar_url: profile.avatar_url,
+    is_verified: profile.is_verified,
+    creator_profile,
+  };
+}

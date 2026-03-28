@@ -3,7 +3,9 @@
     "allow": [
       "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm)",
       "Bash(npm --version)",
-      "Bash(source ~/.zshrc)"
+      "Bash(source ~/.zshrc)",
+      "Bash(npx next:*)",
+      "Bash(curl -s http://localhost:3000/creators/c0000000-0000-0000-0000-000000000001)"
     ]
   }
 }
