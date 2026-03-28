@@ -334,10 +334,10 @@ export default async function CreatorDetailPage({
                   </ul>
 
                   <Link
-                    href={`/dashboard/messages/${creator.user_id}`}
+                    href={`/dashboard/orders/new?creator_id=${creator.id}&package_id=${pkg.id}`}
                     className="btn-primary mt-6 w-full text-sm"
                   >
-                    このプランで相談する
+                    このプランで依頼する
                   </Link>
                 </div>
               ))}
