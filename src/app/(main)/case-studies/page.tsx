@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     "CreatorsHubを活用した企業の映像制作成功事例をご紹介します。",
 };
 
+export const revalidate = 3600;
+
 const CASES = [
   {
     title: "新商品のプロモーション動画で売上130%達成",

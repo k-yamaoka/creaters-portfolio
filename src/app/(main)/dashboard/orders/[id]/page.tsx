@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { OrderActions } from "./order-actions";
+import { ReviewForm } from "./review-form";
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   inquiry: { label: "相談中", color: "bg-blue-100 text-blue-700" },
@@ -58,6 +59,17 @@ export default async function OrderDetailPage({
     .single();
 
   if (!order) notFound();
+
+  // Check if review exists
+  let hasReview = false;
+  if (order.status === "completed") {
+    const { data: review } = await supabase
+      .from("reviews")
+      .select("id")
+      .eq("order_id", id)
+      .single();
+    hasReview = !!review;
+  }
 
   const isCreator = user.role === "creator";
   const creatorData = order.creator as unknown as {
@@ -179,6 +191,21 @@ export default async function OrderDetailPage({
               isCreator={isCreator}
               hasStripeKey={!!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
             />
+          )}
+
+          {/* Review form - show for client on completed orders without review */}
+          {order.status === "completed" && !isCreator && !hasReview && (
+            <ReviewForm
+              orderId={order.id}
+              creatorId={creatorData.id}
+              clientId={clientData.id}
+            />
+          )}
+
+          {order.status === "completed" && hasReview && (
+            <div className="rounded-2xl bg-green-50 p-6 text-center">
+              <p className="text-sm font-bold text-green-700">レビュー投稿済み</p>
+            </div>
           )}
         </div>
 

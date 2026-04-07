@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     "企業が掲載した映像制作の募集案件から、あなたに合った仕事を見つけましょう。",
 };
 
+export const revalidate = 60;
+
 export default async function JobsPage() {
   const supabase = await createClient();
 

@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   description: "CreatorsHub運営会社の情報。",
 };
 
+export const revalidate = 3600;
+
 export default function CompanyPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">

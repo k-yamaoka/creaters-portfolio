@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: "CreatorsHubのよくある質問と使い方ガイド。",
 };
 
+export const revalidate = 3600;
+
 const CATEGORIES = [
   {
     title: "はじめての方へ",

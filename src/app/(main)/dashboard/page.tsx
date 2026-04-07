@@ -1,7 +1,14 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import Link from "next/link";
-import { StripeConnectButton } from "@/components/dashboard/stripe-connect-button";
+import dynamic from "next/dynamic";
+
+const StripeConnectButton = dynamic(
+  () =>
+    import("@/components/dashboard/stripe-connect-button").then(
+      (m) => m.StripeConnectButton
+    )
+);
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();

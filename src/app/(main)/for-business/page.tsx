@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     "制作会社を通さず、実力あるフリーランスクリエイターに直接依頼。コスト削減とスピードアップを実現。",
 };
 
+export const revalidate = 3600;
+
 export default function ForBusinessPage() {
   return (
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">

@@ -1,6 +1,12 @@
 "use client";
 
-import { VideoPreviewCard } from "./video-preview-card";
+import dynamic from "next/dynamic";
+
+const VideoPreviewCard = dynamic(
+  () =>
+    import("./video-preview-card").then((m) => m.VideoPreviewCard),
+  { ssr: false }
+);
 
 type PortfolioItem = {
   id: string;

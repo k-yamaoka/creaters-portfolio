@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     "CreatorsHubの料金体系。企業は完全無料、クリエイターは取引成立時のみ15%の手数料。",
 };
 
+export const revalidate = 3600;
+
 export default function PricingPage() {
   return (
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">

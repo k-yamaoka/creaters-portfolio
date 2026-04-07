@@ -1,6 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { InfiniteSlider } from "@/components/home/infinite-slider";
+import dynamic from "next/dynamic";
+
+const InfiniteSlider = dynamic(
+  () =>
+    import("@/components/home/infinite-slider").then((m) => m.InfiniteSlider),
+  { loading: () => <div className="h-[220px] bg-[#F8F8F8]" /> }
+);
 
 export default function HomePage() {
   return (

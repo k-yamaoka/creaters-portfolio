@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     "CreatorsHubで活動するクリエイター向けのガイドライン。",
 };
 
+export const revalidate = 3600;
+
 export default function CreatorGuidePage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">

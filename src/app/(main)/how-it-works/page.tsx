@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     "CreatorsHubの使い方。企業もクリエイターも3ステップで映像制作を始められます。",
 };
 
+export const revalidate = 3600;
+
 export default function HowItWorksPage() {
   return (
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">

@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { updateOrderStatus } from "../actions";
-import { PaymentButton } from "./payment-button";
+
+const PaymentButton = dynamic(
+  () => import("./payment-button").then((m) => m.PaymentButton),
+  { ssr: false }
+);
 
 type Props = {
   orderId: string;

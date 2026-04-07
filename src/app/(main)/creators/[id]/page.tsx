@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getCreatorById } from "@/lib/supabase/queries";
+import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/utils";
 import { PortfolioGrid } from "@/components/portfolio/portfolio-grid";
+import { ReviewList } from "@/components/reviews/review-list";
 
 export default async function CreatorDetailPage({
   params,
@@ -16,6 +18,21 @@ export default async function CreatorDetailPage({
   if (!creator) {
     notFound();
   }
+
+  // Fetch reviews
+  const supabase = await createClient();
+  const { data: reviews } = await supabase
+    .from("reviews")
+    .select(
+      `
+      id, rating, comment, created_at,
+      client:client_profiles!reviews_client_id_fkey (
+        profiles!client_profiles_user_id_fkey ( display_name )
+      )
+    `
+    )
+    .eq("creator_id", creator.id)
+    .order("created_at", { ascending: false });
 
   const displayName = creator.profiles.display_name;
   const avatarUrl = creator.profiles.avatar_url;
@@ -181,6 +198,14 @@ export default async function CreatorDetailPage({
               <PortfolioGrid items={creator.portfolio_items} />
             </div>
           )}
+
+          {/* Reviews */}
+          <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+            <h2 className="mb-6 text-lg font-bold text-[#222]">
+              レビュー（{reviews?.length ?? 0}件）
+            </h2>
+            <ReviewList reviews={(reviews ?? []) as unknown as { id: string; rating: number; comment: string; created_at: string; client: { profiles: { display_name: string } } }[]} />
+          </div>
         </div>
 
         {/* Right Column: Packages */}
