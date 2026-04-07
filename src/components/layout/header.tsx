@@ -54,16 +54,16 @@ export function Header({ user }: { user?: User }) {
               クリエイターを探す
             </Link>
             <Link
+              href="/jobs"
+              className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
+            >
+              案件を探す
+            </Link>
+            <Link
               href="/how-it-works"
               className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
             >
               使い方
-            </Link>
-            <Link
-              href="/for-business"
-              className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
-            >
-              企業の方へ
             </Link>
           </nav>
         </div>
@@ -185,18 +185,18 @@ export function Header({ user }: { user?: User }) {
               クリエイターを探す
             </Link>
             <Link
+              href="/jobs"
+              className="block py-3 text-2xl font-black text-[#222]"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              案件を探す
+            </Link>
+            <Link
               href="/how-it-works"
               className="block py-3 text-2xl font-black text-[#222]"
               onClick={() => setMobileMenuOpen(false)}
             >
               使い方
-            </Link>
-            <Link
-              href="/for-business"
-              className="block py-3 text-2xl font-black text-[#222]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              企業の方へ
             </Link>
             <div className="mt-6 flex flex-col gap-3 pt-6">
               {user ? (
