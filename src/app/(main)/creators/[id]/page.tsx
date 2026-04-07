@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCreatorById } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
+import { PortfolioGrid } from "@/components/portfolio/portfolio-grid";
 
 export default async function CreatorDetailPage({
   params,
@@ -177,75 +178,7 @@ export default async function CreatorDetailPage({
               <h2 className="mb-6 text-lg font-bold text-[#222]">
                 ポートフォリオ
               </h2>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                {creator.portfolio_items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="group overflow-hidden rounded-xl"
-                  >
-                    {/* Thumbnail */}
-                    <div className="relative aspect-video overflow-hidden rounded-xl bg-[#F2F2F2]">
-                      {item.thumbnail_url ? (
-                        <Image
-                          src={item.thumbnail_url}
-                          alt={item.title}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="(max-width: 640px) 100vw, 50vw"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center text-[#BDBDBD]">
-                          <svg
-                            className="h-12 w-12"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1}
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                      {/* Play overlay */}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
-                        <div className="scale-0 rounded-full bg-white/90 p-3 shadow-lg transition-transform duration-300 group-hover:scale-100">
-                          <svg
-                            className="h-5 w-5 text-primary-500"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path d="M8 5v14l11-7z" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-3">
-                      <h3 className="text-sm font-bold text-[#222]">
-                        {item.title}
-                      </h3>
-                      <p className="mt-1 text-xs text-[#828282]">
-                        {item.description}
-                      </p>
-                      {item.tags.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {item.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#828282]"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <PortfolioGrid items={creator.portfolio_items} />
             </div>
           )}
         </div>

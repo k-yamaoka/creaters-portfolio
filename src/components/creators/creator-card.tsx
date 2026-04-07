@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
+import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 
 type CreatorCardProps = {
@@ -13,7 +14,7 @@ export function CreatorCard({ creator }: CreatorCardProps) {
     activePackages.length > 0
       ? Math.min(...activePackages.map((p) => p.price))
       : null;
-  const thumbnail = creator.portfolio_items[0]?.thumbnail_url;
+  const firstPortfolio = creator.portfolio_items[0];
   const displayName = creator.profiles.display_name;
   const isVerified = creator.profiles.is_verified;
   const avatarUrl = creator.profiles.avatar_url;
@@ -23,18 +24,19 @@ export function CreatorCard({ creator }: CreatorCardProps) {
       href={`/creators/${creator.id}`}
       className="group overflow-hidden rounded-[15px] bg-white shadow-card transition-all duration-300 hover:shadow-card-hover"
     >
-      {/* Thumbnail */}
-      <div className="relative aspect-video overflow-hidden bg-[#F2F2F2]">
-        {thumbnail ? (
-          <Image
-            src={thumbnail}
-            alt={creator.portfolio_items[0]?.title || "ポートフォリオ"}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+      {/* Thumbnail with video preview on hover */}
+      <div className="relative aspect-video">
+        {firstPortfolio ? (
+          <VideoPreviewCard
+            thumbnailUrl={firstPortfolio.thumbnail_url}
+            videoUrl={firstPortfolio.video_url}
+            videoPlatform={firstPortfolio.video_platform}
+            alt={firstPortfolio.title || "ポートフォリオ"}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="h-full w-full"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-[#BDBDBD]">
+          <div className="flex h-full items-center justify-center bg-[#F2F2F2] text-[#BDBDBD]">
             <svg
               className="h-12 w-12"
               fill="none"
@@ -50,21 +52,9 @@ export function CreatorCard({ creator }: CreatorCardProps) {
             </svg>
           </div>
         )}
-        {/* Play icon overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
-          <div className="scale-0 rounded-full bg-white/90 p-3.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
-            <svg
-              className="h-5 w-5 text-primary-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
-        </div>
         {/* Verified badge */}
         {isVerified && (
-          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-pill bg-primary-500 px-2.5 py-1 text-[11px] font-bold text-white">
+          <div className="absolute left-3 top-3 z-20 flex items-center gap-1 rounded-pill bg-primary-500 px-2.5 py-1 text-[11px] font-bold text-white">
             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
               <path
                 fillRule="evenodd"
