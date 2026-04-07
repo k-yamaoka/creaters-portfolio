@@ -35,6 +35,15 @@ const config: Config = {
         "card-hover": "0 4px 16px rgba(0,0,0,0.12)",
         "btn-hover": "0 5px 5px rgba(0,0,0,0.1)",
       },
+      keyframes: {
+        scroll: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        scroll: "scroll 30s linear infinite",
+      },
     },
   },
   plugins: [require("@tailwindcss/forms")],
