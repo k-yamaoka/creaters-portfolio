@@ -125,7 +125,7 @@ export function VideoPreviewCard({
           playsInline
           preload="metadata"
           onLoadedData={() => setMediaLoaded(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
             isHovering && mediaLoaded ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -135,7 +135,7 @@ export function VideoPreviewCard({
       {!isMP4 && isHovering && embedUrl && (
         <iframe
           src={embedUrl}
-          className="absolute inset-0 h-full w-full border-0"
+          className="pointer-events-none absolute inset-0 h-full w-full border-0"
           allow="autoplay; encrypted-media"
           onLoad={() => setMediaLoaded(true)}
         />
