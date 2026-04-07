@@ -129,12 +129,15 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
                 サムネイルURL
+                <span className="ml-2 text-xs font-normal text-[#BDBDBD]">
+                  未入力の場合、動画から自動取得します
+                </span>
               </label>
               <input
                 name="thumbnail_url"
                 type="url"
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="https://..."
+                placeholder="空欄で自動取得（YouTube/Vimeo対応）"
               />
             </div>
 

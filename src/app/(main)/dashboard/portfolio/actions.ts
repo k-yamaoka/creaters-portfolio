@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAutoThumbnail, getVimeoThumbnail } from "@/lib/video-thumbnail";
 
 export async function addPortfolioItem(formData: FormData) {
   const supabase = await createClient();
@@ -32,13 +33,22 @@ export async function addPortfolioItem(formData: FormData) {
     .map((t) => t.trim())
     .filter(Boolean);
 
+  // Auto-generate thumbnail if not provided
+  let finalThumbnail = thumbnail_url || null;
+  if (!finalThumbnail) {
+    finalThumbnail = getAutoThumbnail(video_url, video_platform);
+  }
+  if (!finalThumbnail && video_platform === "vimeo") {
+    finalThumbnail = await getVimeoThumbnail(video_url);
+  }
+
   const { error } = await supabase.from("portfolio_items").insert({
     creator_id: creator.id,
     title,
     description,
     video_url,
     video_platform,
-    thumbnail_url: thumbnail_url || null,
+    thumbnail_url: finalThumbnail,
     genre: genre || null,
     tags,
   });
