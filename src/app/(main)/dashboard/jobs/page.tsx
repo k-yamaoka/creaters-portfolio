@@ -82,9 +82,10 @@ export default async function DashboardJobsPage() {
                 color: "bg-gray-100 text-gray-500",
               };
               return (
-                <div
+                <Link
                   key={job.id}
-                  className="rounded-2xl bg-white p-5 shadow-card"
+                  href={`/dashboard/jobs/${job.id}`}
+                  className="block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div>
@@ -126,7 +127,7 @@ export default async function DashboardJobsPage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
