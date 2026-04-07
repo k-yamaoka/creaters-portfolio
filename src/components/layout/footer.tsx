@@ -35,7 +35,7 @@ export function Footer() {
             <h3 className="text-base font-medium text-[#212121]">クリエイター向け</h3>
             <ul className="mt-8 space-y-3.5">
               <li>
-                <Link href="/register/creator" className="text-[13px] text-[#212121] hover:underline">
+                <Link href="/register" className="text-[13px] text-[#212121] hover:underline">
                   クリエイター登録
                 </Link>
               </li>
@@ -98,7 +98,7 @@ export function Footer() {
             <span className="text-lg font-bold text-[#222]">CreatorsHub</span>
           </Link>
           <p className="text-[13px] text-[#212121]">
-            &copy; 2025 CreatorsHub. All rights reserved.
+            &copy; 2026 CreatorsHub. All rights reserved.
           </p>
         </div>
       </div>
