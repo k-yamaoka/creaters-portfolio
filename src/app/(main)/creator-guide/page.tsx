@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "クリエイターガイドライン",
+  description:
+    "CreatorsHubで活動するクリエイター向けのガイドライン。",
+};
 
 export default function CreatorGuidePage() {
   return (

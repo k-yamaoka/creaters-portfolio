@@ -1,3 +1,11 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "プライバシーポリシー",
+  description:
+    "CreatorsHubのプライバシーポリシー。個人情報の取扱いについて。",
+};
+
 export default function PrivacyPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">

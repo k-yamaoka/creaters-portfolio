@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "料金体系",
+  description:
+    "CreatorsHubの料金体系。企業は完全無料、クリエイターは取引成立時のみ15%の手数料。",
+};
 
 export default function PricingPage() {
   return (

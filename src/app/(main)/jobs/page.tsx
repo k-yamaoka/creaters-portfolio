@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { JobsPageClient } from "./jobs-client";
+
+export const metadata: Metadata = {
+  title: "案件を探す",
+  description:
+    "企業が掲載した映像制作の募集案件から、あなたに合った仕事を見つけましょう。",
+};
 
 export default async function JobsPage() {
   const supabase = await createClient();

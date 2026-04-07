@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "利用規約",
+  description: "CreatorsHubの利用規約。",
+};
+
 export default function TermsPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">

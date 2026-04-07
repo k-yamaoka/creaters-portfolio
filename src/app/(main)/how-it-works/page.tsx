@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "使い方",
+  description:
+    "CreatorsHubの使い方。企業もクリエイターも3ステップで映像制作を始められます。",
+};
 
 export default function HowItWorksPage() {
   return (

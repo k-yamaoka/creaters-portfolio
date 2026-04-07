@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "企業の方へ",
+  description:
+    "制作会社を通さず、実力あるフリーランスクリエイターに直接依頼。コスト削減とスピードアップを実現。",
+};
 
 export default function ForBusinessPage() {
   return (

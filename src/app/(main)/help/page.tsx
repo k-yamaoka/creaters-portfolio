@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "ヘルプセンター",
+  description: "CreatorsHubのよくある質問と使い方ガイド。",
+};
 
 const CATEGORIES = [
   {

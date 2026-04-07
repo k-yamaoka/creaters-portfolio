@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "導入事例",
+  description:
+    "CreatorsHubを活用した企業の映像制作成功事例をご紹介します。",
+};
 
 const CASES = [
   {

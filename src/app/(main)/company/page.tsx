@@ -1,3 +1,10 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "運営会社",
+  description: "CreatorsHub運営会社の情報。",
+};
+
 export default function CompanyPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">
