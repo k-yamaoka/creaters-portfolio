@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { CreatorCard } from "@/components/creators/creator-card";
+import { PortfolioThumbnailGrid } from "@/components/creators/portfolio-thumbnail-grid";
 import { SearchFilters } from "@/components/creators/search-filters";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
@@ -92,7 +92,7 @@ export function CreatorsPageClient({
             クリエイターを探す
           </h1>
           <p className="mt-3 text-base text-[#828282]">
-            あなたのプロジェクトに最適な映像クリエイターを見つけましょう
+            サムネイルをクリックしてクリエイターの詳細を確認
           </p>
         </div>
         {/* Mobile filter toggle */}
@@ -180,11 +180,7 @@ export function CreatorsPageClient({
         {/* Creator Grid */}
         <div className="min-w-0 flex-1">
           {filteredCreators.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredCreators.map((creator) => (
-                <CreatorCard key={creator.id} creator={creator} />
-              ))}
-            </div>
+            <PortfolioThumbnailGrid creators={filteredCreators} />
           ) : (
             <div className="mt-20 text-center">
               <svg
