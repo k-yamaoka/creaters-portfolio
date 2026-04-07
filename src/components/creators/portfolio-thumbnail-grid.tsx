@@ -3,17 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import dynamic from "next/dynamic";
+import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import { formatPrice } from "@/lib/utils";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
-
-const VideoPreviewCard = dynamic(
-  () =>
-    import("@/components/portfolio/video-preview-card").then(
-      (m) => m.VideoPreviewCard
-    ),
-  { ssr: false }
-);
 
 type PortfolioEntry = {
   portfolio: CreatorWithRelations["portfolio_items"][0];
@@ -37,51 +29,23 @@ export function PortfolioThumbnailGrid({
       {/* Thumbnail grid - compact, many items */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
         {allPortfolios.map(({ portfolio, creator }) => (
-          <button
+          <div
             key={portfolio.id}
-            type="button"
+            className="group relative aspect-video cursor-pointer overflow-hidden rounded-xl shadow-card transition-all duration-300 hover:shadow-card-hover hover:ring-2 hover:ring-primary-500/40"
             onClick={() => setSelected({ portfolio, creator })}
-            className="group relative aspect-video overflow-hidden rounded-xl bg-[#F2F2F2] text-left shadow-card transition-all duration-300 hover:shadow-card-hover hover:ring-2 hover:ring-primary-500/40"
           >
-            {portfolio.thumbnail_url ? (
-              <Image
-                src={portfolio.thumbnail_url}
-                alt={portfolio.title}
-                fill
-                className="object-cover transition-transform duration-500 group-hover:scale-110"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-[#BDBDBD]">
-                <svg
-                  className="h-8 w-8"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
-                  />
-                </svg>
-              </div>
-            )}
-            {/* Hover overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/30">
-              <div className="scale-0 rounded-full bg-white/90 p-2.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
-                <svg
-                  className="h-5 w-5 text-primary-500"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            </div>
+            {/* Video preview on hover */}
+            <VideoPreviewCard
+              thumbnailUrl={portfolio.thumbnail_url}
+              videoUrl={portfolio.video_url}
+              videoPlatform={portfolio.video_platform}
+              alt={portfolio.title}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="h-full w-full"
+              showPlayIcon={false}
+            />
             {/* Bottom gradient with title */}
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2.5 pt-8">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2.5 pt-8">
               <p className="truncate text-xs font-bold text-white">
                 {portfolio.title}
               </p>
@@ -91,7 +55,7 @@ export function PortfolioThumbnailGrid({
             </div>
             {/* Verified badge */}
             {creator.profiles.is_verified && (
-              <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500">
+              <div className="pointer-events-none absolute right-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-primary-500">
                 <svg
                   className="h-3 w-3 text-white"
                   fill="currentColor"
@@ -105,7 +69,7 @@ export function PortfolioThumbnailGrid({
                 </svg>
               </div>
             )}
-          </button>
+          </div>
         ))}
       </div>
 
