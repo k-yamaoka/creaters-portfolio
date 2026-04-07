@@ -14,10 +14,31 @@ type User = {
   };
 } | null;
 
-export function Header({ user }: { user?: User }) {
+type Notification = {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  is_read: boolean;
+  created_at: string;
+};
+
+export function Header({
+  user,
+  unreadCount = 0,
+  notifications = [],
+}: {
+  user?: User;
+  unreadCount?: number;
+  notifications?: Notification[];
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const router = useRouter();
+
+  const unreadNotifs = notifications.filter((n) => !n.is_read).length;
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -71,10 +92,90 @@ export function Header({ user }: { user?: User }) {
         {/* Right: Auth */}
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
+            <>
+              {/* Message icon with badge */}
+              <Link
+                href="/dashboard/messages"
+                className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#4F4F4F] transition-colors hover:bg-[#F2F2F2]"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"
+                  />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Link>
+              {/* Notification bell */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); }}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#4F4F4F] transition-colors hover:bg-[#F2F2F2]"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                  </svg>
+                  {unreadNotifs > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                      {unreadNotifs > 99 ? "99+" : unreadNotifs}
+                    </span>
+                  )}
+                </button>
+                {notifOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                    <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl bg-white py-2 shadow-lg ring-1 ring-black/5">
+                      <div className="border-b border-[#F2F2F2] px-4 py-2">
+                        <p className="text-sm font-bold text-[#222]">通知</p>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center text-sm text-[#BDBDBD]">
+                            通知はありません
+                          </div>
+                        ) : (
+                          notifications.slice(0, 10).map((n) => (
+                            <Link
+                              key={n.id}
+                              href={n.link || "/dashboard"}
+                              onClick={() => setNotifOpen(false)}
+                              className={`block px-4 py-3 transition-colors hover:bg-[#F8F8F8] ${!n.is_read ? "bg-primary-50/50" : ""}`}
+                            >
+                              <p className={`text-sm ${!n.is_read ? "font-bold text-[#222]" : "text-[#4F4F4F]"}`}>
+                                {n.title}
+                              </p>
+                              {n.body && (
+                                <p className="mt-0.5 truncate text-xs text-[#828282]">
+                                  {n.body}
+                                </p>
+                              )}
+                              <p className="mt-1 text-[10px] text-[#BDBDBD]">
+                                {new Date(n.created_at).toLocaleDateString("ja-JP", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                              </p>
+                            </Link>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
                 className="flex items-center gap-2 rounded-pill border border-[#E0E0E0] px-4 py-2 text-sm font-medium text-[#4F4F4F] transition-colors hover:border-[#BDBDBD] hover:bg-[#F8F8F8]"
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
@@ -131,6 +232,7 @@ export function Header({ user }: { user?: User }) {
                 </>
               )}
             </div>
+            </>
           ) : (
             <>
               <Link href="/login" className="btn-white h-10 text-sm">
