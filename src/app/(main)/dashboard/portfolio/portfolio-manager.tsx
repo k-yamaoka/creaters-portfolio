@@ -22,15 +22,50 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploadMode, setUploadMode] = useState<"url" | "file">("url");
+  const [uploading, setUploading] = useState(false);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+
+  const handleFileUpload = async (file: File) => {
+    setUploading(true);
+    setError(null);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload/video", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setUploadedUrl(data.url);
+      }
+    } catch {
+      setError("アップロードに失敗しました");
+    }
+    setUploading(false);
+  };
 
   const handleAdd = async (formData: FormData) => {
     setSaving(true);
     setError(null);
+
+    // If file upload mode, set the uploaded URL
+    if (uploadMode === "file" && uploadedUrl) {
+      formData.set("video_url", uploadedUrl);
+      formData.set("video_platform", "mp4");
+    }
+
     const result = await addPortfolioItem(formData);
     if (result?.error) {
       setError(result.error);
     } else {
       setShowForm(false);
+      setUploadedUrl(null);
+      setUploadMode("url");
     }
     setSaving(false);
   };
@@ -97,34 +132,130 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               />
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  動画URL *
-                </label>
-                <input
-                  name="video_url"
-                  type="url"
-                  required
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  placeholder="https://youtube.com/watch?v=..."
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  プラットフォーム *
-                </label>
-                <select
-                  name="video_platform"
-                  required
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                >
-                  <option value="youtube">YouTube</option>
-                  <option value="vimeo">Vimeo</option>
-                  <option value="other">その他</option>
-                </select>
-              </div>
+            {/* Upload mode tabs */}
+            <div className="flex gap-2 rounded-lg bg-[#F2F2F2] p-1">
+              <button
+                type="button"
+                onClick={() => setUploadMode("url")}
+                className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                  uploadMode === "url"
+                    ? "bg-white text-[#222] shadow-sm"
+                    : "text-[#828282]"
+                }`}
+              >
+                URL入力（YouTube/Vimeo）
+              </button>
+              <button
+                type="button"
+                onClick={() => setUploadMode("file")}
+                className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                  uploadMode === "file"
+                    ? "bg-white text-[#222] shadow-sm"
+                    : "text-[#828282]"
+                }`}
+              >
+                MP4ファイルをアップロード
+              </button>
             </div>
+
+            {uploadMode === "url" ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                    動画URL *
+                  </label>
+                  <input
+                    name="video_url"
+                    type="url"
+                    required={uploadMode === "url"}
+                    className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                    プラットフォーム *
+                  </label>
+                  <select
+                    name="video_platform"
+                    required={uploadMode === "url"}
+                    className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  >
+                    <option value="youtube">YouTube</option>
+                    <option value="vimeo">Vimeo</option>
+                    <option value="other">その他</option>
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                  動画ファイル *
+                  <span className="ml-2 text-xs font-normal text-[#BDBDBD]">
+                    MP4/WebM/MOV（最大100MB）
+                  </span>
+                </label>
+                {uploadedUrl ? (
+                  <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
+                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                    </svg>
+                    <span className="text-sm text-green-700">アップロード完了</span>
+                    <button
+                      type="button"
+                      onClick={() => setUploadedUrl(null)}
+                      className="ml-auto text-xs text-[#828282] hover:text-red-500"
+                    >
+                      取り消し
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm,video/quicktime"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file);
+                      }}
+                      disabled={uploading}
+                      className="hidden"
+                      id="video-file-input"
+                    />
+                    <label
+                      htmlFor="video-file-input"
+                      className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-8 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${
+                        uploading ? "pointer-events-none opacity-50" : ""
+                      }`}
+                    >
+                      {uploading ? (
+                        <>
+                          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
+                          <span className="text-sm text-[#828282]">
+                            アップロード中...
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="h-8 w-8 text-[#BDBDBD]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                          </svg>
+                          <span className="text-sm font-medium text-[#4F4F4F]">
+                            クリックしてファイルを選択
+                          </span>
+                          <span className="text-xs text-[#BDBDBD]">
+                            または、ドラッグ&ドロップ
+                          </span>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                )}
+                {/* Hidden fields for file upload */}
+                <input type="hidden" name="video_url" value={uploadedUrl || ""} />
+                <input type="hidden" name="video_platform" value="mp4" />
+              </div>
+            )}
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">

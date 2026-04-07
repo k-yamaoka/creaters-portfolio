@@ -15,7 +15,6 @@ type VideoPreviewCardProps = {
 
 function getEmbedUrl(videoUrl: string, platform: string): string | null {
   if (platform === "youtube") {
-    // Extract YouTube video ID from various URL formats
     const match = videoUrl.match(
       /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
     );
@@ -34,6 +33,14 @@ function getEmbedUrl(videoUrl: string, platform: string): string | null {
   return null;
 }
 
+function isDirectVideo(platform: string): boolean {
+  return platform === "mp4" || platform === "direct" || platform === "other";
+}
+
+function isVideoFileUrl(url: string): boolean {
+  return /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
+}
+
 export function VideoPreviewCard({
   thumbnailUrl,
   videoUrl,
@@ -44,15 +51,19 @@ export function VideoPreviewCard({
   showPlayIcon = true,
 }: VideoPreviewCardProps) {
   const [isHovering, setIsHovering] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [mediaLoaded, setMediaLoaded] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const embedUrl = getEmbedUrl(videoUrl, videoPlatform);
+  const isMP4 = isDirectVideo(videoPlatform) || isVideoFileUrl(videoUrl);
 
   const handleMouseEnter = () => {
-    // Delay to avoid triggering on quick mouse passes
     timeoutRef.current = setTimeout(() => {
       setIsHovering(true);
+      if (isMP4 && videoRef.current) {
+        videoRef.current.play().catch(() => {});
+      }
     }, 300);
   };
 
@@ -62,7 +73,11 @@ export function VideoPreviewCard({
       timeoutRef.current = null;
     }
     setIsHovering(false);
-    setIframeLoaded(false);
+    setMediaLoaded(false);
+    if (isMP4 && videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
   };
 
   return (
@@ -78,7 +93,7 @@ export function VideoPreviewCard({
           alt={alt}
           fill
           className={`object-cover transition-all duration-500 ${
-            isHovering && iframeLoaded ? "opacity-0" : "opacity-100"
+            isHovering && mediaLoaded ? "opacity-0" : "opacity-100"
           }`}
           sizes={sizes}
         />
@@ -100,18 +115,34 @@ export function VideoPreviewCard({
         </div>
       )}
 
-      {/* Video iframe (loads on hover) */}
-      {isHovering && embedUrl && (
+      {/* MP4/direct video (preloaded, plays on hover) */}
+      {isMP4 && (
+        <video
+          ref={videoRef}
+          src={videoUrl}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onLoadedData={() => setMediaLoaded(true)}
+          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+            isHovering && mediaLoaded ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      )}
+
+      {/* iframe for YouTube/Vimeo (loads on hover) */}
+      {!isMP4 && isHovering && embedUrl && (
         <iframe
           src={embedUrl}
           className="absolute inset-0 h-full w-full border-0"
           allow="autoplay; encrypted-media"
-          onLoad={() => setIframeLoaded(true)}
+          onLoad={() => setMediaLoaded(true)}
         />
       )}
 
-      {/* Play icon overlay (hidden when video is playing) */}
-      {showPlayIcon && !(isHovering && iframeLoaded) && (
+      {/* Play icon overlay */}
+      {showPlayIcon && !(isHovering && mediaLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
           <div className="scale-0 rounded-full bg-white/90 p-3.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
             <svg
@@ -125,8 +156,8 @@ export function VideoPreviewCard({
         </div>
       )}
 
-      {/* Loading indicator when iframe is loading */}
-      {isHovering && embedUrl && !iframeLoaded && (
+      {/* Loading indicator */}
+      {isHovering && (embedUrl || isMP4) && !mediaLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         </div>
