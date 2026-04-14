@@ -12,7 +12,32 @@
       "Bash(git commit:*)",
       "Bash(grep ApiVersion /Users/yamaokakoushi/creaters-portfolio/node_modules/stripe/types/2025*.d.ts)",
       "Bash(grep ApiVersion /Users/yamaokakoushi/creaters-portfolio/node_modules/stripe/types/*.d.ts)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(wc -l /Users/yamaokakoushi/creaters-portfolio/src/app/api/**/*.ts)",
+      "Bash(npx tsc:*)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pkill -f \"next-server\")",
+      "Bash(npm run:*)",
+      "Bash(curl -s http://localhost:3000/creators)",
+      "Bash(curl -sI https://creaters-portfolio.vercel.app/)",
+      "Bash(vercel whoami:*)",
+      "Bash(vercel ls:*)",
+      "Bash(vercel:*)",
+      "Bash(curl -s https://creaters-portfolio.vercel.app/creators)",
+      "Bash(curl -s https://creaters-portfolio.vercel.app/login)",
+      "Bash(curl -s \"https://creaters-portfolio.vercel.app/_next/static/chunks/app/\\(auth\\)/login/page-e03a69c58f0ce948.js\")",
+      "Bash(curl -s https://creaters-portfolio.vercel.app/jobs)",
+      "Bash(curl -s 'https://creaters-portfolio.vercel.app/jobs')",
+      "Bash(grep -oE '\"description\":\"[^\"]{0,200}')",
+      "Bash(grep -oE 'description[^}]{0,300}')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://creaters-portfolio.vercel.app/privacy)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" https://creaters-portfolio.vercel.app/terms)",
+      "Bash(printf 'dmVyPTIwMjUwNyZpZD1GSjdRTDA0N2lIJmhhc2g9WkdWaE16UXpZelk0TjJFNE9UY3paUQ')",
+      "Bash(printf 'https://creaters-portfolio.vercel.app')",
+      "Bash(printf 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1eHd2aWtpc3p2b2J4YWR5ZGF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY2MTAwMCwiZXhwIjoyMDkwMjM3MDAwfQ.H4Klnt4smBRwyuR3PTmu9_dI3ptyGrUuPJNKnLflhjE')",
+      "WebFetch(domain:developer.yahoo.co.jp)",
+      "Bash(printf '2009799090')",
+      "Bash(printf '55adcf4fb3774864211db1697ea0195f')"
     ]
   }
 }
