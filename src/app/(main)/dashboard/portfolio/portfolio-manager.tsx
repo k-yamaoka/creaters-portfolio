@@ -22,41 +22,18 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [uploadMode, setUploadMode] = useState<"url" | "file">("url");
-  const [uploading, setUploading] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
-
-  const handleFileUpload = async (file: File) => {
-    setUploading(true);
-    setError(null);
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch("/api/upload/video", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setUploadedUrl(data.url);
-      }
-    } catch {
-      setError("アップロードに失敗しました");
-    }
-    setUploading(false);
-  };
 
   const handleAdd = async (formData: FormData) => {
     setSaving(true);
     setError(null);
 
-    // If file upload mode, set the uploaded URL
-    if (uploadMode === "file" && uploadedUrl) {
-      formData.set("video_url", uploadedUrl);
-      formData.set("video_platform", "mp4");
+    const videoUrl = formData.get("video_url") as string;
+
+    // Validate URL format
+    if (!videoUrl || (!videoUrl.includes("youtube.com") && !videoUrl.includes("youtu.be") && !videoUrl.includes("vimeo.com") && !videoUrl.includes("tiktok.com") && !videoUrl.includes("instagram.com"))) {
+      setError("YouTube、Vimeo、TikTok、InstagramのURLを入力してください");
+      setSaving(false);
+      return;
     }
 
     const result = await addPortfolioItem(formData);
@@ -64,8 +41,6 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setError(result.error);
     } else {
       setShowForm(false);
-      setUploadedUrl(null);
-      setUploadMode("url");
     }
     setSaving(false);
   };
@@ -132,130 +107,49 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               />
             </div>
 
-            {/* Upload mode tabs */}
-            <div className="flex gap-2 rounded-lg bg-[#F2F2F2] p-1">
-              <button
-                type="button"
-                onClick={() => setUploadMode("url")}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                  uploadMode === "url"
-                    ? "bg-white text-[#222] shadow-sm"
-                    : "text-[#828282]"
-                }`}
-              >
-                URL入力（YouTube/Vimeo）
-              </button>
-              <button
-                type="button"
-                onClick={() => setUploadMode("file")}
-                className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-                  uploadMode === "file"
-                    ? "bg-white text-[#222] shadow-sm"
-                    : "text-[#828282]"
-                }`}
-              >
-                MP4ファイルをアップロード
-              </button>
+            {/* URL input only - no file upload */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-start gap-2">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+                <p className="text-xs text-blue-700">
+                  著作権保護のため、動画ファイルの直接アップロードには対応していません。YouTube、Vimeo、TikTok、Instagramの埋め込みURLを入力してください。
+                </p>
+              </div>
             </div>
 
-            {uploadMode === "url" ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                    動画URL *
-                  </label>
-                  <input
-                    name="video_url"
-                    type="url"
-                    required={uploadMode === "url"}
-                    className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                    placeholder="https://youtube.com/watch?v=..."
-                  />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                    プラットフォーム *
-                  </label>
-                  <select
-                    name="video_platform"
-                    required={uploadMode === "url"}
-                    className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  >
-                    <option value="youtube">YouTube</option>
-                    <option value="vimeo">Vimeo</option>
-                    <option value="other">その他</option>
-                  </select>
-                </div>
-              </div>
-            ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  動画ファイル *
-                  <span className="ml-2 text-xs font-normal text-[#BDBDBD]">
-                    MP4/WebM/MOV（最大100MB）
-                  </span>
+                  動画URL *
                 </label>
-                {uploadedUrl ? (
-                  <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
-                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                    <span className="text-sm text-green-700">アップロード完了</span>
-                    <button
-                      type="button"
-                      onClick={() => setUploadedUrl(null)}
-                      className="ml-auto text-xs text-[#828282] hover:text-red-500"
-                    >
-                      取り消し
-                    </button>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="video/mp4,video/webm,video/quicktime"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file);
-                      }}
-                      disabled={uploading}
-                      className="hidden"
-                      id="video-file-input"
-                    />
-                    <label
-                      htmlFor="video-file-input"
-                      className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-8 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${
-                        uploading ? "pointer-events-none opacity-50" : ""
-                      }`}
-                    >
-                      {uploading ? (
-                        <>
-                          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
-                          <span className="text-sm text-[#828282]">
-                            アップロード中...
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="h-8 w-8 text-[#BDBDBD]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                          </svg>
-                          <span className="text-sm font-medium text-[#4F4F4F]">
-                            クリックしてファイルを選択
-                          </span>
-                          <span className="text-xs text-[#BDBDBD]">
-                            または、ドラッグ&ドロップ
-                          </span>
-                        </>
-                      )}
-                    </label>
-                  </div>
-                )}
-                {/* Hidden fields for file upload */}
-                <input type="hidden" name="video_url" value={uploadedUrl || ""} />
-                <input type="hidden" name="video_platform" value="mp4" />
+                <input
+                  name="video_url"
+                  type="url"
+                  required
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+                <p className="mt-1 text-xs text-[#BDBDBD]">
+                  YouTube / Vimeo / TikTok / Instagram
+                </p>
               </div>
-            )}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                  プラットフォーム *
+                </label>
+                <select
+                  name="video_platform"
+                  required
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                >
+                  <option value="youtube">YouTube</option>
+                  <option value="vimeo">Vimeo</option>
+                  <option value="other">その他（TikTok/Instagram等）</option>
+                </select>
+              </div>
+            </div>
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
@@ -378,6 +272,10 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                     </svg>
                   </div>
                 )}
+                {/* Platform badge */}
+                <div className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
+                  {item.video_platform === "youtube" ? "YouTube" : item.video_platform === "vimeo" ? "Vimeo" : "Other"}
+                </div>
               </div>
               <div className="p-4">
                 <h3 className="font-bold text-[#222]">{item.title}</h3>
