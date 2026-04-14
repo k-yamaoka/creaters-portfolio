@@ -22,6 +22,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPlatform, setSelectedPlatform] = useState("youtube");
 
   const handleAdd = async (formData: FormData) => {
     setSaving(true);
@@ -142,6 +143,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 <select
                   name="video_platform"
                   required
+                  value={selectedPlatform}
+                  onChange={(e) => setSelectedPlatform(e.target.value)}
                   className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 >
                   <option value="youtube">YouTube</option>
@@ -157,15 +160,28 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
                 サムネイルURL
-                <span className="ml-2 text-xs font-normal text-[#BDBDBD]">
-                  未入力の場合、動画から自動取得します
-                </span>
+                {selectedPlatform === "instagram" ? (
+                  <span className="ml-2 text-xs font-normal text-red-500">
+                    * Instagramは必須
+                  </span>
+                ) : (
+                  <span className="ml-2 text-xs font-normal text-[#BDBDBD]">
+                    {selectedPlatform === "tiktok"
+                      ? "未入力の場合、TikTok APIから自動取得を試みます"
+                      : "未入力の場合、動画から自動取得します"}
+                  </span>
+                )}
               </label>
               <input
                 name="thumbnail_url"
                 type="url"
+                required={selectedPlatform === "instagram"}
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="空欄で自動取得（YouTube/Vimeo対応）"
+                placeholder={
+                  selectedPlatform === "instagram"
+                    ? "Instagramの投稿画像URLを入力"
+                    : "空欄で自動取得（YouTube/Vimeo/TikTok対応）"
+                }
               />
             </div>
 

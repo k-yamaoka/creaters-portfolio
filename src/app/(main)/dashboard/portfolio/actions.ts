@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getAutoThumbnail, getVimeoThumbnail } from "@/lib/video-thumbnail";
+import { getAutoThumbnail, getVimeoThumbnail, getTikTokThumbnail } from "@/lib/video-thumbnail";
 
 export async function addPortfolioItem(formData: FormData) {
   const supabase = await createClient();
@@ -40,6 +40,13 @@ export async function addPortfolioItem(formData: FormData) {
   }
   if (!finalThumbnail && video_platform === "vimeo") {
     finalThumbnail = await getVimeoThumbnail(video_url);
+  }
+  if (!finalThumbnail && video_platform === "tiktok") {
+    finalThumbnail = await getTikTokThumbnail(video_url);
+  }
+  // Instagram requires manual thumbnail - validate
+  if (!finalThumbnail && video_platform === "instagram") {
+    return { error: "Instagramの動画はサムネイルURLの入力が必須です" };
   }
 
   const { error } = await supabase.from("portfolio_items").insert({

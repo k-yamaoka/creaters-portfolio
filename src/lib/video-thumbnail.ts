@@ -1,25 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * YouTube/Vimeoの動画URLからサムネイルURLを自動取得
+ * YouTube/YouTube Shortsの動画URLからサムネイルURLを自動取得
  */
 export function getAutoThumbnail(
   videoUrl: string,
   platform: string
 ): string | null {
-  if (platform === "youtube") {
+  if (platform === "youtube" || platform === "youtube_short") {
     const match = videoUrl.match(
       /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
     );
     if (match) {
-      // maxresdefault > hqdefault > mqdefault
       return `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg`;
     }
   }
 
   if (platform === "vimeo") {
-    // Vimeo requires API call, return null for now
-    // Will be resolved via oEmbed API
     return null;
   }
 
@@ -27,7 +24,7 @@ export function getAutoThumbnail(
 }
 
 /**
- * Vimeo oEmbed APIからサムネイルを取得（サーバーサイド）
+ * Vimeo oEmbed APIからサムネイルを取得
  */
 export async function getVimeoThumbnail(
   videoUrl: string
@@ -51,7 +48,28 @@ export async function getVimeoThumbnail(
 }
 
 /**
- * サムネイルがnullのポートフォリオを一括修正（サーバーサイド）
+ * TikTok oEmbed APIからサムネイルを取得
+ */
+export async function getTikTokThumbnail(
+  videoUrl: string
+): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`,
+      { next: { revalidate: 86400 } }
+    );
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    return data.thumbnail_url || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * サムネイルがnullのポートフォリオを一括修正
  */
 export async function fixMissingThumbnails(): Promise<number> {
   try {
@@ -70,6 +88,10 @@ export async function fixMissingThumbnails(): Promise<number> {
 
       if (!thumbnail && item.video_platform === "vimeo") {
         thumbnail = await getVimeoThumbnail(item.video_url);
+      }
+
+      if (!thumbnail && item.video_platform === "tiktok") {
+        thumbnail = await getTikTokThumbnail(item.video_url);
       }
 
       if (thumbnail) {
