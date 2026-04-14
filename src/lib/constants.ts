@@ -9,7 +9,7 @@ export const GENRES = [
   "ミュージックビデオ",
   "ショーリール",
   "プロフィールムービー",
-  "VR・360°動画",
+  "VR ・ 360°動画",
 ] as const;
 
 export const PLATFORMS = [
