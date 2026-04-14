@@ -145,8 +145,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 >
                   <option value="youtube">YouTube</option>
+                  <option value="youtube_short">YouTube ショート（縦型）</option>
                   <option value="vimeo">Vimeo</option>
-                  <option value="other">その他（TikTok/Instagram等）</option>
+                  <option value="tiktok">TikTok（縦型）</option>
+                  <option value="instagram">Instagram（縦型）</option>
+                  <option value="other">その他</option>
                 </select>
               </div>
             </div>
@@ -274,7 +277,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 )}
                 {/* Platform badge */}
                 <div className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
-                  {item.video_platform === "youtube" ? "YouTube" : item.video_platform === "vimeo" ? "Vimeo" : "Other"}
+                  {item.video_platform === "youtube" ? "YouTube" : item.video_platform === "youtube_short" ? "Short" : item.video_platform === "vimeo" ? "Vimeo" : item.video_platform === "tiktok" ? "TikTok" : item.video_platform === "instagram" ? "Insta" : "Other"}
                 </div>
               </div>
               <div className="p-4">
