@@ -37,7 +37,24 @@ export function PortfolioThumbnailGrid({
 }: {
   creators: CreatorWithRelations[];
 }) {
-  const [activeTab, setActiveTab] = useState<PlatformTab>("all");
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<PlatformTab>>(new Set());
+
+  const togglePlatform = (tab: PlatformTab) => {
+    setSelectedPlatforms((prev) => {
+      const next = new Set(prev);
+      if (tab === "all") {
+        return new Set(); // Clear all = show all
+      }
+      if (next.has(tab)) {
+        next.delete(tab);
+      } else {
+        next.add(tab);
+      }
+      return next;
+    });
+  };
+
+  const isAllSelected = selectedPlatforms.size === 0;
 
   const allPortfolios: PortfolioEntry[] = useMemo(
     () =>
@@ -62,10 +79,14 @@ export function PortfolioThumbnailGrid({
 
   const filtered = useMemo(
     () =>
-      allPortfolios.filter(({ portfolio }) =>
-        matchPlatform(portfolio.video_platform, portfolio.video_url, activeTab)
-      ),
-    [allPortfolios, activeTab]
+      isAllSelected
+        ? allPortfolios
+        : allPortfolios.filter(({ portfolio }) =>
+            Array.from(selectedPlatforms).some((tab) =>
+              matchPlatform(portfolio.video_platform, portfolio.video_url, tab)
+            )
+          ),
+    [allPortfolios, selectedPlatforms, isAllSelected]
   );
 
   const horizontalItems = filtered.filter(
@@ -77,17 +98,17 @@ export function PortfolioThumbnailGrid({
 
   return (
     <div className="space-y-6">
-      {/* Platform tabs */}
+      {/* Platform tabs (multiple selection) */}
       <div className="flex flex-wrap gap-2">
         {PLATFORM_TABS.map((tab) => {
           const count = counts[tab.value];
           if (tab.value !== "all" && count === 0) return null;
-          const isActive = activeTab === tab.value;
+          const isActive = tab.value === "all" ? isAllSelected : selectedPlatforms.has(tab.value);
           return (
             <button
               key={tab.value}
               type="button"
-              onClick={() => setActiveTab(tab.value)}
+              onClick={() => togglePlatform(tab.value)}
               className={`flex items-center gap-1.5 rounded-pill border px-4 py-2 text-sm font-medium transition-all ${
                 isActive
                   ? "border-primary-500 bg-primary-500 text-white"
@@ -152,7 +173,7 @@ export function PortfolioThumbnailGrid({
       {/* Vertical videos */}
       {verticalItems.length > 0 && (
         <div>
-          {horizontalItems.length > 0 && activeTab === "all" && (
+          {horizontalItems.length > 0 && isAllSelected && (
             <div className="mb-4 flex items-center gap-2">
               <div className="h-px flex-1 bg-[#E0E0E0]" />
               <span className="text-xs font-bold text-[#828282]">ショート動画</span>
