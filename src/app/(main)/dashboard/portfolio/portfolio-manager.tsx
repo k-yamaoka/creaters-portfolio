@@ -23,6 +23,31 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState("youtube");
+  const [thumbnailMode, setThumbnailMode] = useState<"auto" | "url" | "upload">("auto");
+  const [uploadingThumb, setUploadingThumb] = useState(false);
+  const [uploadedThumbUrl, setUploadedThumbUrl] = useState<string | null>(null);
+
+  const handleThumbUpload = async (file: File) => {
+    setUploadingThumb(true);
+    setError(null);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/upload/thumbnail", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setUploadedThumbUrl(data.url);
+      }
+    } catch {
+      setError("サムネイルのアップロードに失敗しました");
+    }
+    setUploadingThumb(false);
+  };
 
   const handleAdd = async (formData: FormData) => {
     setSaving(true);
@@ -37,11 +62,18 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       return;
     }
 
+    // Set uploaded thumbnail URL if upload mode
+    if (thumbnailMode === "upload" && uploadedThumbUrl) {
+      formData.set("thumbnail_url", uploadedThumbUrl);
+    }
+
     const result = await addPortfolioItem(formData);
     if (result?.error) {
       setError(result.error);
     } else {
       setShowForm(false);
+      setUploadedThumbUrl(null);
+      setThumbnailMode("auto");
     }
     setSaving(false);
   };
@@ -157,32 +189,99 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               </div>
             </div>
 
+            {/* Thumbnail section */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                サムネイルURL
-                {selectedPlatform === "instagram" ? (
-                  <span className="ml-2 text-xs font-normal text-red-500">
-                    * Instagramは必須
-                  </span>
+              <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+                サムネイル
+                {selectedPlatform === "instagram" || selectedPlatform === "tiktok" ? (
+                  <span className="ml-2 text-xs font-normal text-red-500">* TikTok/Instagramは画像アップロード推奨</span>
                 ) : (
-                  <span className="ml-2 text-xs font-normal text-[#BDBDBD]">
-                    {selectedPlatform === "tiktok"
-                      ? "未入力の場合、TikTok APIから自動取得を試みます"
-                      : "未入力の場合、動画から自動取得します"}
-                  </span>
+                  <span className="ml-2 text-xs font-normal text-[#BDBDBD]">YouTube/Vimeoは自動取得可</span>
                 )}
               </label>
-              <input
-                name="thumbnail_url"
-                type="url"
-                required={selectedPlatform === "instagram"}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder={
-                  selectedPlatform === "instagram"
-                    ? "Instagramの投稿画像URLを入力"
-                    : "空欄で自動取得（YouTube/Vimeo/TikTok対応）"
-                }
-              />
+
+              {/* Thumbnail mode tabs */}
+              <div className="mb-3 flex gap-1 rounded-lg bg-[#F2F2F2] p-1">
+                <button type="button" onClick={() => setThumbnailMode("auto")}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${thumbnailMode === "auto" ? "bg-white text-[#222] shadow-sm" : "text-[#828282]"}`}>
+                  自動取得
+                </button>
+                <button type="button" onClick={() => setThumbnailMode("upload")}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${thumbnailMode === "upload" ? "bg-white text-[#222] shadow-sm" : "text-[#828282]"}`}>
+                  画像アップロード
+                </button>
+                <button type="button" onClick={() => setThumbnailMode("url")}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${thumbnailMode === "url" ? "bg-white text-[#222] shadow-sm" : "text-[#828282]"}`}>
+                  URL入力
+                </button>
+              </div>
+
+              {thumbnailMode === "auto" && (
+                <div className="rounded-lg border border-[#E0E0E0] bg-[#F8F8F8] px-4 py-3 text-sm text-[#828282]">
+                  YouTube / Vimeo / TikTok は動画から自動取得します
+                  <input type="hidden" name="thumbnail_url" value="" />
+                </div>
+              )}
+
+              {thumbnailMode === "url" && (
+                <input
+                  name="thumbnail_url"
+                  type="url"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder="サムネイル画像のURLを入力"
+                />
+              )}
+
+              {thumbnailMode === "upload" && (
+                <div>
+                  {uploadedThumbUrl ? (
+                    <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
+                      <img src={uploadedThumbUrl} alt="サムネイル" className="h-16 w-16 rounded object-cover" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-700">アップロード完了</p>
+                      </div>
+                      <button type="button" onClick={() => setUploadedThumbUrl(null)}
+                        className="text-xs text-[#828282] hover:text-red-500">
+                        取り消し
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleThumbUpload(file);
+                        }}
+                        disabled={uploadingThumb}
+                        className="hidden"
+                        id="thumb-file-input"
+                      />
+                      <label
+                        htmlFor="thumb-file-input"
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-6 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${uploadingThumb ? "pointer-events-none opacity-50" : ""}`}
+                      >
+                        {uploadingThumb ? (
+                          <>
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
+                            <span className="text-xs text-[#828282]">アップロード中...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="h-6 w-6 text-[#BDBDBD]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                            </svg>
+                            <span className="text-xs font-medium text-[#4F4F4F]">クリックして画像を選択</span>
+                            <span className="text-[10px] text-[#BDBDBD]">JPG / PNG / WebP（5MB以下）</span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
+                  <input type="hidden" name="thumbnail_url" value={uploadedThumbUrl || ""} />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

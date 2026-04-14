@@ -40,7 +40,8 @@
       "Bash(printf '55adcf4fb3774864211db1697ea0195f')",
       "WebSearch",
       "WebFetch(domain:youtube.fandom.com)",
-      "WebFetch(domain:www.exonia.com)"
+      "WebFetch(domain:www.exonia.com)",
+      "WebFetch(domain:en.wikipedia.org)"
     ]
   }
 }
