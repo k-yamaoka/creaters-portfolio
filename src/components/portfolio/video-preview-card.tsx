@@ -77,6 +77,7 @@ export function VideoPreviewCard({
   const embedUrl = getEmbedUrl(videoUrl, videoPlatform);
   const isMP4 = isDirectVideo(videoPlatform) || isVideoFileUrl(videoUrl);
   const isVerticalVideo = isVertical(videoPlatform, videoUrl);
+  const isExternalOnly = videoPlatform === "tiktok" || videoPlatform === "instagram";
 
   const handleMouseEnter = () => {
     timeoutRef.current = setTimeout(() => {
@@ -169,8 +170,33 @@ export function VideoPreviewCard({
         </>
       )}
 
+      {/* External platform hover overlay (TikTok/Instagram) */}
+      {isExternalOnly && isHovering && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50">
+          <a
+            href={videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="pointer-events-auto flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-[#222] shadow-lg transition-transform hover:scale-105"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {videoPlatform === "tiktok" ? (
+              <>
+                <span className="text-lg">♪</span>
+                TikTokで見る
+              </>
+            ) : (
+              <>
+                <span className="text-lg">📷</span>
+                Instagramで見る
+              </>
+            )}
+          </a>
+        </div>
+      )}
+
       {/* Play icon overlay */}
-      {showPlayIcon && !(isHovering && mediaLoaded) && (
+      {showPlayIcon && !isExternalOnly && !(isHovering && mediaLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
           <div className="scale-0 rounded-full bg-white/90 p-3.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
             <svg
@@ -185,7 +211,7 @@ export function VideoPreviewCard({
       )}
 
       {/* Loading indicator */}
-      {isHovering && (embedUrl || isMP4) && !mediaLoaded && (
+      {isHovering && !isExternalOnly && (embedUrl || isMP4) && !mediaLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         </div>

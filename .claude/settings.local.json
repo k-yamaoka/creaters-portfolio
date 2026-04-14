@@ -37,7 +37,10 @@
       "Bash(printf 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1eHd2aWtpc3p2b2J4YWR5ZGF5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDY2MTAwMCwiZXhwIjoyMDkwMjM3MDAwfQ.H4Klnt4smBRwyuR3PTmu9_dI3ptyGrUuPJNKnLflhjE')",
       "WebFetch(domain:developer.yahoo.co.jp)",
       "Bash(printf '2009799090')",
-      "Bash(printf '55adcf4fb3774864211db1697ea0195f')"
+      "Bash(printf '55adcf4fb3774864211db1697ea0195f')",
+      "WebSearch",
+      "WebFetch(domain:youtube.fandom.com)",
+      "WebFetch(domain:www.exonia.com)"
     ]
   }
 }
