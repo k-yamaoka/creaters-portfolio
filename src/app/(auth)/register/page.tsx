@@ -218,15 +218,14 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => {
-                alert("Yahoo! JAPAN IDログインは現在準備中です");
+                window.location.href = "/api/auth/line";
               }}
-              className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm font-medium text-[#4F4F4F] transition-colors hover:bg-[#F8F8F8]"
+              className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#06C755] bg-[#06C755] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#05b14c]"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
-                <rect fill="#FF0033" width="24" height="24" rx="4" />
-                <text x="4" y="18" fill="white" fontSize="16" fontWeight="bold" fontFamily="Arial">Y!</text>
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 5.64 2 10.14c0 4.05 3.6 7.44 8.46 8.08.33.07.78.22.89.5.1.26.07.66.03.92l-.14.87c-.04.26-.2 1.02.89.56.64-.27 3.44-2.03 4.7-3.47C19.53 15.6 22 13.05 22 10.14 22 5.64 17.52 2 12 2zm-3.32 10.87H6.7a.47.47 0 01-.47-.47V8.03c0-.26.21-.47.47-.47s.47.21.47.47v3.9h1.51c.26 0 .47.21.47.47s-.21.47-.47.47zm1.67-.47a.47.47 0 01-.94 0V8.03a.47.47 0 01.94 0v4.37zm4.03 0a.47.47 0 01-.33.45.47.47 0 01-.52-.17l-2.13-2.9v2.62a.47.47 0 01-.94 0V8.03a.47.47 0 01.33-.45.47.47 0 01.52.17l2.13 2.9V8.03a.47.47 0 01.94 0v4.37zm3.12-3.43a.47.47 0 010 .94h-1.51v.78h1.51a.47.47 0 010 .94h-1.51v.78h1.51a.47.47 0 010 .94h-1.98a.47.47 0 01-.47-.47V8.03c0-.26.21-.47.47-.47h1.98a.47.47 0 010 .94h-1.51v.78h1.51z" />
               </svg>
-              Yahoo! JAPAN IDで登録
+              LINEで登録
             </button>
           </div>
 
