@@ -14,7 +14,7 @@ type VideoPreviewCardProps = {
 };
 
 function getEmbedUrl(videoUrl: string, platform: string): string | null {
-  if (platform === "youtube") {
+  if (platform === "youtube" || platform === "youtube_short") {
     const match = videoUrl.match(
       /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
     );
@@ -27,6 +27,14 @@ function getEmbedUrl(videoUrl: string, platform: string): string | null {
     const match = videoUrl.match(/vimeo\.com\/(\d+)/);
     if (match) {
       return `https://player.vimeo.com/video/${match[1]}?autoplay=1&muted=1&loop=1&background=1`;
+    }
+  }
+
+  // TikTok embed
+  if (platform === "tiktok") {
+    const match = videoUrl.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+    if (match) {
+      return `https://www.tiktok.com/embed/v2/${match[1]}?autoplay=1`;
     }
   }
 
