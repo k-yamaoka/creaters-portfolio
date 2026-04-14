@@ -475,7 +475,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                           {clientName}
                         </p>
                         <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[#4F4F4F]">
-                          {job.description}
+                          {job.description.replace(/\\n/g, "\n")}
                         </p>
                         {/* Genre tags */}
                         <div className="mt-3 flex flex-wrap gap-1.5">
