@@ -17,16 +17,10 @@ export async function GET() {
   const nonce = crypto.randomBytes(16).toString("hex");
   const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL || "https://creaters-portfolio.vercel.app"}/api/auth/yahoo/callback`;
 
-  // Ensure proper Base64 padding for client_id
-  let paddedClientId = clientId;
-  const mod = paddedClientId.length % 4;
-  if (mod === 2) paddedClientId += "==";
-  else if (mod === 3) paddedClientId += "=";
-
   const params = new URLSearchParams({
     response_type: "code",
-    client_id: paddedClientId,
-    redirect_uri: redirectUri,
+    client_id: clientId.trim(),
+    redirect_uri: redirectUri.trim(),
     scope: "openid profile email",
     state,
     nonce,
