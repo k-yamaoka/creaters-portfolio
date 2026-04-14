@@ -35,6 +35,7 @@ export async function createJob(formData: FormData) {
   const genres = formData.getAll("genres") as string[];
   const budget_min = formData.get("budget_min") as string;
   const budget_max = formData.get("budget_max") as string;
+  const unit_price = formData.get("unit_price") as string;
   const deadline = formData.get("deadline") as string;
   const delivery_deadline = formData.get("delivery_deadline") as string;
 
@@ -45,6 +46,7 @@ export async function createJob(formData: FormData) {
     genres,
     budget_min: budget_min ? parseInt(budget_min) : null,
     budget_max: budget_max ? parseInt(budget_max) : null,
+    unit_price: unit_price ? parseInt(unit_price) : null,
     deadline: deadline || null,
     delivery_deadline: delivery_deadline || null,
     status: "open",

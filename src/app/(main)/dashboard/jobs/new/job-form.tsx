@@ -50,8 +50,9 @@ export function JobForm() {
               name="title"
               type="text"
               required
+              maxLength={50}
               className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="例: 新商品のプロモーション動画制作"
+              placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
             />
           </div>
 
@@ -165,6 +166,27 @@ export function JobForm() {
                 placeholder="500000"
               />
             </div>
+          </div>
+
+          <div>
+            <label
+              htmlFor="unit_price"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              1本あたりの単価（円） *
+            </label>
+            <input
+              id="unit_price"
+              name="unit_price"
+              type="number"
+              min={0}
+              required
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              placeholder="50000"
+            />
+            <p className="mt-1 text-xs text-[#828282]">
+              動画1本あたりの概算単価を入力してください
+            </p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

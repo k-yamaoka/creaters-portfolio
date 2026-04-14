@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { RATING_LEVELS } from "@/lib/constants";
 
 export function ReviewForm({
   orderId,
@@ -11,13 +12,17 @@ export function ReviewForm({
   creatorId: string;
   clientId: string;
 }) {
-  const [rating, setRating] = useState(5);
-  const [hoverRating, setHoverRating] = useState(0);
+  const [rating, setRating] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
+    if (!rating) {
+      setError("評価を選択してください");
+      return;
+    }
+
     setSaving(true);
     setError(null);
 
@@ -73,37 +78,33 @@ export function ReviewForm({
         </div>
       )}
 
-      {/* Star rating */}
+      {/* 3-level emoji rating */}
       <div className="mt-4">
-        <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+        <label className="mb-3 block text-sm font-medium text-[#4F4F4F]">
           評価 *
         </label>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
+        <div className="flex gap-3">
+          {RATING_LEVELS.map((level) => (
             <button
-              key={star}
+              key={level.value}
               type="button"
-              onClick={() => setRating(star)}
-              onMouseEnter={() => setHoverRating(star)}
-              onMouseLeave={() => setHoverRating(0)}
-              className="p-0.5"
+              onClick={() => setRating(level.value)}
+              className={`flex flex-1 flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
+                rating === level.value
+                  ? "border-primary-500 bg-primary-50"
+                  : "border-[#E0E0E0] hover:border-[#BDBDBD]"
+              }`}
             >
-              <svg
-                className={`h-8 w-8 transition-colors ${
-                  star <= (hoverRating || rating)
-                    ? "text-[#FFB74D]"
-                    : "text-[#E0E0E0]"
+              <span className="text-3xl">{level.emoji}</span>
+              <span
+                className={`text-sm font-medium ${
+                  rating === level.value ? "text-primary-500" : "text-[#4F4F4F]"
                 }`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
               >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
+                {level.label}
+              </span>
             </button>
           ))}
-          <span className="ml-2 self-center text-sm font-bold text-[#222]">
-            {rating}.0
-          </span>
         </div>
       </div>
 
@@ -122,7 +123,7 @@ export function ReviewForm({
 
       <button
         type="submit"
-        disabled={saving}
+        disabled={saving || !rating}
         className="btn-primary mt-4 w-full text-sm disabled:opacity-50"
       >
         {saving ? "投稿中..." : "レビューを投稿する"}

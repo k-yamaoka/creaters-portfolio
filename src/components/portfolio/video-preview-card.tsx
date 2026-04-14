@@ -19,7 +19,7 @@ function getEmbedUrl(videoUrl: string, platform: string): string | null {
       /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
     );
     if (match) {
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${match[1]}&modestbranding=1&showinfo=0&rel=0`;
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${match[1]}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`;
     }
   }
 
@@ -133,12 +133,16 @@ export function VideoPreviewCard({
 
       {/* iframe for YouTube/Vimeo (loads on hover) */}
       {!isMP4 && isHovering && embedUrl && (
-        <iframe
-          src={embedUrl}
-          className="pointer-events-none absolute inset-0 h-full w-full border-0"
-          allow="autoplay; encrypted-media"
-          onLoad={() => setMediaLoaded(true)}
-        />
+        <>
+          <iframe
+            src={embedUrl}
+            className="pointer-events-none absolute inset-0 h-full w-full border-0"
+            allow="autoplay; encrypted-media"
+            onLoad={() => setMediaLoaded(true)}
+          />
+          {/* Transparent overlay to hide YouTube title/controls on hover */}
+          <div className="pointer-events-none absolute inset-0 z-10" />
+        </>
       )}
 
       {/* Play icon overlay */}

@@ -75,8 +75,17 @@ export type Message = {
 export type CreatorSearchFilters = {
   keyword?: string;
   genres?: string[];
+  platforms?: string[];
   budgetMin?: number;
   budgetMax?: number;
   deliveryDays?: number;
-  sortBy?: "rating" | "price_low" | "price_high" | "newest";
+  sortBy?: "recommended" | "rating" | "price_low" | "price_high";
+};
+
+export type JobSearchFilters = {
+  keyword?: string;
+  genres?: string[];
+  platforms?: string[];
+  statusFilter?: "all" | "open";
+  sortBy?: "newest" | "popular" | "price_high" | "deadline";
 };

@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
   const { orderId, creatorId, clientId, rating, comment } =
     await request.json();
 
-  if (!rating || rating < 1 || rating > 5) {
+  if (!rating || rating < 1 || rating > 3) {
     return NextResponse.json(
-      { error: "評価は1〜5で入力してください" },
+      { error: "評価は1〜3で入力してください" },
       { status: 400 }
     );
   }

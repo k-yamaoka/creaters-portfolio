@@ -80,6 +80,14 @@ export function Header({
             >
               案件を探す
             </Link>
+            {user && (
+              <Link
+                href="/dashboard"
+                className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
+              >
+                マイページ
+              </Link>
+            )}
             <Link
               href="/how-it-works"
               className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
@@ -293,6 +301,15 @@ export function Header({
             >
               案件を探す
             </Link>
+            {user && (
+              <Link
+                href="/dashboard"
+                className="block py-3 text-2xl font-black text-[#222]"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                マイページ
+              </Link>
+            )}
             <Link
               href="/how-it-works"
               className="block py-3 text-2xl font-black text-[#222]"

@@ -70,7 +70,7 @@ export default async function JobDetailPage({
           <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-[#222] sm:text-3xl">
+                <h1 className="truncate text-2xl font-bold text-[#222] sm:text-3xl" title={job.title}>
                   {job.title}
                 </h1>
                 <p className="mt-2 text-sm text-[#828282]">
@@ -109,6 +109,16 @@ export default async function JobDetailPage({
               ))}
             </div>
 
+            {/* Unit price */}
+            {job.unit_price && (
+              <div className="mt-4 rounded-lg bg-[#F8F8F8] px-4 py-3">
+                <p className="text-xs text-[#828282]">動画1本あたりの単価（概算）</p>
+                <p className="mt-1 text-lg font-bold text-[#222]">
+                  {formatPrice(job.unit_price)}
+                </p>
+              </div>
+            )}
+
             {/* Meta */}
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#828282]">
               {job.deadline && (
@@ -134,7 +144,7 @@ export default async function JobDetailPage({
           <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
             <h2 className="mb-4 text-lg font-bold text-[#222]">案件詳細</h2>
             <div className="whitespace-pre-wrap text-sm leading-relaxed text-[#4F4F4F]">
-              {job.description}
+              {job.description.replace(/\\n/g, "\n")}
             </div>
           </div>
         </div>
@@ -214,12 +224,6 @@ export default async function JobDetailPage({
                   企業サイト
                 </a>
               )}
-              <Link
-                href={`/dashboard/messages/${clientData.user_id}`}
-                className="btn-secondary mt-4 w-full text-sm"
-              >
-                メッセージを送る
-              </Link>
             </div>
 
             {/* Stats */}

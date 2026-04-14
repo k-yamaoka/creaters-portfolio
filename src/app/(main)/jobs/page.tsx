@@ -25,7 +25,7 @@ export default async function JobsPage() {
       )
     `
     )
-    .eq("status", "open")
+    .in("status", ["open", "closed"])
     .order("created_at", { ascending: false });
 
   return <JobsPageClient jobs={jobs ?? []} />;

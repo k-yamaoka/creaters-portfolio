@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { PortfolioThumbnailGrid } from "@/components/creators/portfolio-thumbnail-grid";
-import { SearchFilters } from "@/components/creators/search-filters";
+import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
 
@@ -12,7 +12,7 @@ export function CreatorsPageClient({
   creators: CreatorWithRelations[];
 }) {
   const [filters, setFilters] = useState<CreatorSearchFilters>({
-    sortBy: "rating",
+    sortBy: "recommended",
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -38,22 +38,27 @@ export function CreatorsPageClient({
       );
     }
 
-    // Budget filter
-    if (filters.budgetMin !== undefined || filters.budgetMax !== undefined) {
-      result = result.filter((c) => {
-        const activePackages = c.service_packages.filter((p) => p.is_active);
-        if (activePackages.length === 0) return false;
-        const lowestPrice = Math.min(...activePackages.map((p) => p.price));
-        if (filters.budgetMin !== undefined && lowestPrice < filters.budgetMin)
-          return false;
-        if (filters.budgetMax !== undefined && lowestPrice > filters.budgetMax)
-          return false;
-        return true;
-      });
+    // Platform filter (match against genres/skills as proxy since creators don't have a platforms field yet)
+    if (filters.platforms && filters.platforms.length > 0) {
+      result = result.filter((c) =>
+        filters.platforms!.some(
+          (p) =>
+            c.genres.some((g) => g.toLowerCase().includes(p.toLowerCase())) ||
+            c.skills.some((s) => s.toLowerCase().includes(p.toLowerCase()))
+        )
+      );
     }
 
     // Sort
     switch (filters.sortBy) {
+      case "recommended":
+        // Default: combination of rating and review count
+        result.sort(
+          (a, b) =>
+            b.rating * 0.7 + b.review_count * 0.3 -
+            (a.rating * 0.7 + a.review_count * 0.3)
+        );
+        break;
       case "rating":
         result.sort((a, b) => b.rating - a.rating);
         break;
@@ -69,13 +74,6 @@ export function CreatorsPageClient({
           (a, b) =>
             Math.min(...b.service_packages.map((p) => p.price)) -
             Math.min(...a.service_packages.map((p) => p.price))
-        );
-        break;
-      case "newest":
-        result.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() -
-            new Date(a.created_at).getTime()
         );
         break;
     }
@@ -118,9 +116,16 @@ export function CreatorsPageClient({
         </button>
       </div>
 
+      {/* Top search bar: keyword + sort */}
+      <SearchTopBar
+        filters={filters}
+        onFilterChange={setFilters}
+        resultCount={filteredCreators.length}
+      />
+
       {/* 2-column layout: Sidebar + Content */}
       <div className="flex gap-8">
-        {/* Sidebar filters - Desktop */}
+        {/* Sidebar filters - Desktop (genres + platforms only) */}
         <div className="hidden lg:block">
           <SearchFilters
             filters={filters}
@@ -204,7 +209,7 @@ export function CreatorsPageClient({
               </p>
               <button
                 type="button"
-                onClick={() => setFilters({ sortBy: "rating" })}
+                onClick={() => setFilters({ sortBy: "recommended" })}
                 className="btn-primary mt-6"
               >
                 フィルターをクリア

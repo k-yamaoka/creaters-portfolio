@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GENRES } from "@/lib/constants";
+import { GENRES, PLATFORMS } from "@/lib/constants";
 import type { CreatorSearchFilters } from "@/types/database";
 
 type SearchFiltersProps = {
@@ -10,21 +10,77 @@ type SearchFiltersProps = {
   resultCount: number;
 };
 
-const BUDGET_OPTIONS = [
-  { label: "指定なし", min: undefined, max: undefined },
-  { label: "〜3万円", min: 0, max: 30000 },
-  { label: "3万〜10万円", min: 30000, max: 100000 },
-  { label: "10万〜30万円", min: 100000, max: 300000 },
-  { label: "30万〜50万円", min: 300000, max: 500000 },
-  { label: "50万円〜", min: 500000, max: undefined },
+const SORT_OPTIONS = [
+  { value: "recommended" as const, label: "おすすめ" },
+  { value: "rating" as const, label: "評価が高い" },
+  { value: "price_low" as const, label: "金額が安い" },
+  { value: "price_high" as const, label: "金額が高い" },
 ];
 
-const SORT_OPTIONS = [
-  { value: "rating" as const, label: "評価が高い順" },
-  { value: "price_low" as const, label: "価格が安い順" },
-  { value: "price_high" as const, label: "価格が高い順" },
-  { value: "newest" as const, label: "新着順" },
-];
+export function SearchTopBar({
+  filters,
+  onFilterChange,
+  resultCount,
+}: SearchFiltersProps) {
+  const updateFilter = (update: Partial<CreatorSearchFilters>) => {
+    onFilterChange({ ...filters, ...update });
+  };
+
+  return (
+    <div className="mb-6 flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-card sm:flex-row sm:items-center">
+      {/* Keyword search */}
+      <div className="relative flex-1">
+        <svg
+          className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#BDBDBD]"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+          />
+        </svg>
+        <input
+          type="text"
+          placeholder="キーワードで検索"
+          value={filters.keyword || ""}
+          onChange={(e) =>
+            updateFilter({ keyword: e.target.value || undefined })
+          }
+          className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+        />
+      </div>
+
+      {/* Sort */}
+      <div className="flex items-center gap-3">
+        <label className="shrink-0 text-xs font-bold text-[#828282]">並び順</label>
+        <select
+          value={filters.sortBy || "recommended"}
+          onChange={(e) =>
+            updateFilter({
+              sortBy: e.target.value as CreatorSearchFilters["sortBy"],
+            })
+          }
+          className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+        >
+          {SORT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Result count */}
+      <p className="shrink-0 text-sm text-[#828282]">
+        <span className="font-bold text-[#222]">{resultCount}</span> 件
+      </p>
+    </div>
+  );
+}
 
 export function SearchFilters({
   filters,
@@ -32,7 +88,7 @@ export function SearchFilters({
   resultCount,
 }: SearchFiltersProps) {
   const [genreOpen, setGenreOpen] = useState(true);
-  const [budgetOpen, setBudgetOpen] = useState(true);
+  const [platformOpen, setPlatformOpen] = useState(true);
 
   const updateFilter = (update: Partial<CreatorSearchFilters>) => {
     onFilterChange({ ...filters, ...update });
@@ -46,69 +102,26 @@ export function SearchFilters({
     updateFilter({ genres: updated.length > 0 ? updated : undefined });
   };
 
+  const togglePlatform = (platform: string) => {
+    const current = filters.platforms || [];
+    const updated = current.includes(platform)
+      ? current.filter((p) => p !== platform)
+      : [...current, platform];
+    updateFilter({ platforms: updated.length > 0 ? updated : undefined });
+  };
+
   const clearFilters = () => {
-    onFilterChange({ sortBy: "rating" });
+    onFilterChange({ sortBy: "recommended" });
   };
 
   const hasActiveFilters =
     filters.keyword ||
     (filters.genres && filters.genres.length > 0) ||
-    filters.budgetMin !== undefined ||
-    filters.budgetMax !== undefined;
+    (filters.platforms && filters.platforms.length > 0);
 
   return (
     <aside className="w-full shrink-0 lg:w-[260px]">
       <div className="sticky top-24 space-y-6">
-        {/* Search */}
-        <div className="rounded-2xl bg-white p-5 shadow-card">
-          <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#BDBDBD]"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="キーワードで検索"
-              value={filters.keyword || ""}
-              onChange={(e) =>
-                updateFilter({ keyword: e.target.value || undefined })
-              }
-              className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-            />
-          </div>
-        </div>
-
-        {/* Sort */}
-        <div className="rounded-2xl bg-white p-5 shadow-card">
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-[#828282]">
-            並び順
-          </h3>
-          <select
-            value={filters.sortBy || "rating"}
-            onChange={(e) =>
-              updateFilter({
-                sortBy: e.target.value as CreatorSearchFilters["sortBy"],
-              })
-            }
-            className="w-full rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-          >
-            {SORT_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Genre Tags */}
         <div className="rounded-2xl bg-white p-5 shadow-card">
           <button
@@ -156,18 +169,18 @@ export function SearchFilters({
           )}
         </div>
 
-        {/* Budget */}
+        {/* Platform */}
         <div className="rounded-2xl bg-white p-5 shadow-card">
           <button
             type="button"
-            onClick={() => setBudgetOpen(!budgetOpen)}
+            onClick={() => setPlatformOpen(!platformOpen)}
             className="flex w-full items-center justify-between"
           >
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
-              予算
+              プラットフォーム
             </h3>
             <svg
-              className={`h-4 w-4 text-[#BDBDBD] transition-transform ${budgetOpen ? "rotate-180" : ""}`}
+              className={`h-4 w-4 text-[#BDBDBD] transition-transform ${platformOpen ? "rotate-180" : ""}`}
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={2}
@@ -180,29 +193,22 @@ export function SearchFilters({
               />
             </svg>
           </button>
-          {budgetOpen && (
-            <div className="mt-3 space-y-1">
-              {BUDGET_OPTIONS.map((option) => {
-                const isActive =
-                  filters.budgetMin === option.min &&
-                  filters.budgetMax === option.max;
+          {platformOpen && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {PLATFORMS.map((platform) => {
+                const isActive = filters.platforms?.includes(platform);
                 return (
                   <button
-                    key={option.label}
+                    key={platform}
                     type="button"
-                    onClick={() =>
-                      updateFilter({
-                        budgetMin: option.min,
-                        budgetMax: option.max,
-                      })
-                    }
-                    className={`block w-full rounded-lg px-3 py-2 text-left text-sm transition-colors ${
+                    onClick={() => togglePlatform(platform)}
+                    className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive
-                        ? "bg-primary-50 font-bold text-primary-500"
-                        : "text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                        ? "border-primary-500 bg-primary-500 text-white"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
                     }`}
                   >
-                    {option.label}
+                    {platform}
                   </button>
                 );
               })}
