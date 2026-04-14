@@ -29,7 +29,31 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // If user is logged in but has no role, redirect to role selection
+  // Skip for API routes, auth routes, select-role page, and static assets
+  const pathname = request.nextUrl.pathname;
+  const skipPaths = ["/select-role", "/api/", "/auth/", "/login", "/register", "/_next/", "/favicon.ico"];
+  const shouldSkip = skipPaths.some((p) => pathname.startsWith(p));
+
+  if (user && !shouldSkip) {
+    const role = user.user_metadata?.role;
+    if (!role) {
+      // Check if profile exists with a role
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile || !profile.role) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/select-role";
+        return NextResponse.redirect(url);
+      }
+    }
+  }
 
   return supabaseResponse;
 }
