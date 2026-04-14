@@ -218,7 +218,7 @@ export default function RegisterPage() {
             <button
               type="button"
               onClick={() => {
-                window.location.href = "/api/auth/yahoo";
+                alert("Yahoo! JAPAN IDログインは現在準備中です");
               }}
               className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm font-medium text-[#4F4F4F] transition-colors hover:bg-[#F8F8F8]"
             >
