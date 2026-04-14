@@ -49,6 +49,17 @@ function isVideoFileUrl(url: string): boolean {
   return /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
 }
 
+function isVertical(platform: string, url: string): boolean {
+  return (
+    platform === "youtube_short" ||
+    platform === "tiktok" ||
+    platform === "instagram" ||
+    url.includes("youtube.com/shorts/") ||
+    url.includes("tiktok.com") ||
+    url.includes("instagram.com/reel")
+  );
+}
+
 export function VideoPreviewCard({
   thumbnailUrl,
   videoUrl,
@@ -65,6 +76,7 @@ export function VideoPreviewCard({
 
   const embedUrl = getEmbedUrl(videoUrl, videoPlatform);
   const isMP4 = isDirectVideo(videoPlatform) || isVideoFileUrl(videoUrl);
+  const isVerticalVideo = isVertical(videoPlatform, videoUrl);
 
   const handleMouseEnter = () => {
     timeoutRef.current = setTimeout(() => {
@@ -139,12 +151,16 @@ export function VideoPreviewCard({
         />
       )}
 
-      {/* iframe for YouTube/Vimeo (loads on hover) */}
+      {/* iframe for YouTube/Vimeo/TikTok (loads on hover) */}
       {!isMP4 && isHovering && embedUrl && (
         <>
           <iframe
             src={embedUrl}
-            className="pointer-events-none absolute inset-0 h-full w-full border-0"
+            className={`pointer-events-none absolute border-0 ${
+              isVerticalVideo
+                ? "inset-0 h-full w-full scale-[2.5] origin-center"
+                : "inset-0 h-full w-full"
+            }`}
             allow="autoplay; encrypted-media"
             onLoad={() => setMediaLoaded(true)}
           />
