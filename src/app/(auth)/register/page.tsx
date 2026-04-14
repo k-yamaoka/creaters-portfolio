@@ -217,12 +217,8 @@ export default function RegisterPage() {
 
             <button
               type="button"
-              onClick={async () => {
-                const supabase = createClient();
-                await supabase.auth.signInWithOAuth({
-                  provider: "yahoo" as any,
-                  options: { redirectTo: `${window.location.origin}/auth/callback` },
-                });
+              onClick={() => {
+                window.location.href = "/api/auth/yahoo";
               }}
               className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm font-medium text-[#4F4F4F] transition-colors hover:bg-[#F8F8F8]"
             >
