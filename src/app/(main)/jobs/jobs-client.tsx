@@ -460,62 +460,82 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                       ? "昨日"
                       : `${daysAgo}日前`;
 
+                const isOpen = job.status === "open";
+                const deadlineSoon = job.deadline && (new Date(job.deadline).getTime() - Date.now()) < 7 * 24 * 60 * 60 * 1000 && (new Date(job.deadline).getTime() - Date.now()) > 0;
+
                 return (
                   <Link
                     key={job.id}
                     href={`/jobs/${job.id}`}
-                    className="block rounded-2xl bg-white p-6 shadow-card transition-shadow hover:shadow-card-hover"
+                    className="group block overflow-hidden rounded-2xl bg-white shadow-card transition-shadow hover:shadow-card-hover"
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <h2 className="text-lg font-bold text-[#222]">
-                          {job.title}
-                        </h2>
-                        <p className="mt-1 text-sm text-[#828282]">
-                          {clientName}
-                        </p>
-                        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[#4F4F4F]">
-                          {job.description.replace(/\\n/g, "\n")}
-                        </p>
-                        {/* Genre tags */}
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          {job.genres.slice(0, 4).map((genre) => (
-                            <span
-                              key={genre}
-                              className="rounded-pill bg-primary-50 px-2.5 py-0.5 text-[11px] font-bold text-primary-500"
-                            >
-                              {genre}
-                            </span>
-                          ))}
-                          {job.genres.length > 4 && (
-                            <span className="text-[11px] text-[#BDBDBD]">
-                              +{job.genres.length - 4}
-                            </span>
-                          )}
+                    {/* Status bar */}
+                    <div className={`px-6 py-2 text-xs font-bold ${isOpen ? "bg-green-50 text-green-600" : "bg-[#F2F2F2] text-[#828282]"}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block h-2 w-2 rounded-full ${isOpen ? "bg-green-500" : "bg-[#BDBDBD]"}`} />
+                          {isOpen ? "募集中" : "募集終了"}
+                        </div>
+                        <span>{timeLabel}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+                          <h2 className="text-lg font-bold text-[#222] group-hover:text-primary-500 transition-colors">
+                            {job.title}
+                          </h2>
+                          <p className="mt-1 text-sm text-[#828282]">
+                            {clientName}
+                          </p>
+                          <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[#4F4F4F]">
+                            {job.description.replace(/\\n/g, "\n")}
+                          </p>
+                          {/* Genre tags */}
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {job.genres.slice(0, 4).map((genre) => (
+                              <span
+                                key={genre}
+                                className="rounded-pill bg-primary-50 px-2.5 py-0.5 text-[11px] font-bold text-primary-500"
+                              >
+                                {genre}
+                              </span>
+                            ))}
+                            {job.genres.length > 4 && (
+                              <span className="text-[11px] text-[#BDBDBD]">
+                                +{job.genres.length - 4}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="shrink-0 text-right">
+
+                      {/* Bottom stats */}
+                      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[#F2F2F2] pt-4">
                         {(job.budget_min || job.budget_max) && (
-                          <p className="text-lg font-bold text-primary-500">
+                          <div className="flex items-center gap-1.5 rounded-lg bg-primary-50 px-3 py-1.5 text-sm font-bold text-primary-500">
                             {job.budget_min && job.budget_max
                               ? `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
                               : job.budget_max
                                 ? `〜${formatPrice(job.budget_max)}`
                                 : `${formatPrice(job.budget_min!)}〜`}
-                          </p>
+                          </div>
                         )}
-                        <p className="mt-1 text-xs text-[#BDBDBD]">
-                          {timeLabel}
-                        </p>
                         {job.deadline && (
-                          <p className="mt-1 text-xs text-[#828282]">
-                            締切:{" "}
-                            {new Date(job.deadline).toLocaleDateString("ja-JP")}
-                          </p>
+                          <div className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs ${deadlineSoon ? "bg-red-50 font-bold text-red-500" : "bg-[#F8F8F8] text-[#828282]"}`}>
+                            <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                            締切 {new Date(job.deadline).toLocaleDateString("ja-JP")}
+                          </div>
                         )}
-                        <p className="mt-2 text-xs text-[#828282]">
+                        <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-xs text-[#828282]">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                          </svg>
                           応募 {job.application_count}件
-                        </p>
+                        </div>
                       </div>
                     </div>
                   </Link>
