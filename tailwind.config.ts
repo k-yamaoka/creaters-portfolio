@@ -54,10 +54,15 @@ const config: Config = {
           "0%": { transform: "translateX(0)" },
           "100%": { transform: "translateX(-50%)" },
         },
+        "toast-in": {
+          "0%": { transform: "translateX(20px)", opacity: "0" },
+          "100%": { transform: "translateX(0)", opacity: "1" },
+        },
       },
       animation: {
         scroll: "scroll 30s linear infinite",
         marquee: "marquee 40s linear infinite",
+        "toast-in": "toast-in 220ms ease-out",
       },
       letterSpacing: {
         "tightest-x": "-0.04em",

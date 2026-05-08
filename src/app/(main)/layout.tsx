@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { MessageNotifier } from "@/components/shared/message-notifier";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function MainLayout({
@@ -52,6 +53,7 @@ export default async function MainLayout({
       />
       <main className="flex-1 pt-20">{children}</main>
       <Footer />
+      {user && <MessageNotifier userId={user.id} />}
     </div>
   );
 }
