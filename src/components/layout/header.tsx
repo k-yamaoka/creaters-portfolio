@@ -54,43 +54,46 @@ export function Header({
     "ユーザー";
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 bg-white">
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-ink/10 bg-paper/85 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-container items-center justify-between px-6 lg:px-[6.25rem]">
         {/* Left: Logo + Nav */}
-        <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-sm font-black text-white">
-              C
-            </div>
-            <span className="text-xl font-bold text-[#222]">
-              CreatorsHub
+        <div className="flex items-center gap-12">
+          <Link href="/" className="group/logo flex items-baseline gap-2">
+            <span className="font-display text-2xl font-medium leading-none tracking-tightest-x text-ink">
+              Creators
+            </span>
+            <span className="font-display text-2xl font-medium leading-none tracking-tightest-x text-primary-500">
+              .
+            </span>
+            <span className="font-display text-[11px] font-medium uppercase tracking-[0.3em] text-ink-muted transition-colors group-hover/logo:text-ink">
+              hub
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-8 md:flex">
+          <nav className="hidden items-center gap-7 md:flex">
             <Link
               href="/creators"
-              className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
+              className="relative text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
             >
-              クリエイターを探す
+              クリエイター
             </Link>
             <Link
               href="/jobs"
-              className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
+              className="text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
             >
-              案件を探す
+              案件
             </Link>
             {user && (
               <Link
                 href="/dashboard"
-                className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
+                className="text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
               >
                 マイページ
               </Link>
             )}
             <Link
               href="/how-it-works"
-              className="text-[15px] font-medium text-[#4F4F4F] transition-colors hover:text-primary-500"
+              className="text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
             >
               使い方
             </Link>
@@ -98,13 +101,13 @@ export function Header({
         </div>
 
         {/* Right: Auth */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-2 md:flex">
           {user ? (
             <>
               {/* Message icon with badge */}
               <Link
                 href="/dashboard/messages"
-                className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#4F4F4F] transition-colors hover:bg-[#F2F2F2]"
+                className="relative flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-primary-500"
               >
                 <svg
                   className="h-5 w-5"
@@ -120,7 +123,7 @@ export function Header({
                   />
                 </svg>
                 {unreadCount > 0 && (
-                  <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center bg-primary-500 px-1 text-[10px] font-bold text-white">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -130,13 +133,13 @@ export function Header({
                 <button
                   type="button"
                   onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); }}
-                  className="relative flex h-10 w-10 items-center justify-center rounded-full text-[#4F4F4F] transition-colors hover:bg-[#F2F2F2]"
+                  className="relative flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-primary-500"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                   </svg>
                   {unreadNotifs > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center bg-primary-500 px-1 text-[10px] font-bold text-white">
                       {unreadNotifs > 99 ? "99+" : unreadNotifs}
                     </span>
                   )}
@@ -144,13 +147,13 @@ export function Header({
                 {notifOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                    <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl bg-white py-2 shadow-lg ring-1 ring-black/5">
-                      <div className="border-b border-[#F2F2F2] px-4 py-2">
-                        <p className="text-sm font-bold text-[#222]">通知</p>
+                    <div className="absolute right-0 top-full z-50 mt-3 w-80 border border-ink bg-paper py-2 shadow-[6px_6px_0_0_rgba(26,26,26,1)]">
+                      <div className="border-b border-ink/15 px-4 py-2">
+                        <p className="font-display text-sm font-medium text-ink">通知</p>
                       </div>
                       <div className="max-h-80 overflow-y-auto">
                         {notifications.length === 0 ? (
-                          <div className="px-4 py-8 text-center text-sm text-[#BDBDBD]">
+                          <div className="px-4 py-8 text-center text-sm text-ink-soft">
                             通知はありません
                           </div>
                         ) : (
@@ -159,17 +162,17 @@ export function Header({
                               key={n.id}
                               href={n.link || "/dashboard"}
                               onClick={() => setNotifOpen(false)}
-                              className={`block px-4 py-3 transition-colors hover:bg-[#F8F8F8] ${!n.is_read ? "bg-primary-50/50" : ""}`}
+                              className={`block border-b border-ink/10 px-4 py-3 transition-colors last:border-0 hover:bg-paper-deep ${!n.is_read ? "bg-primary-50" : ""}`}
                             >
-                              <p className={`text-sm ${!n.is_read ? "font-bold text-[#222]" : "text-[#4F4F4F]"}`}>
+                              <p className={`text-sm ${!n.is_read ? "font-bold text-ink" : "text-ink-muted"}`}>
                                 {n.title}
                               </p>
                               {n.body && (
-                                <p className="mt-0.5 truncate text-xs text-[#828282]">
+                                <p className="mt-0.5 truncate text-xs text-ink-muted">
                                   {n.body}
                                 </p>
                               )}
-                              <p className="mt-1 text-[10px] text-[#BDBDBD]">
+                              <p className="mt-1 text-[10px] text-ink-soft">
                                 {new Date(n.created_at).toLocaleDateString("ja-JP", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                               </p>
                             </Link>
@@ -180,18 +183,19 @@ export function Header({
                   </>
                 )}
               </div>
-            <div className="relative">
+            <div className="relative ml-1">
               <button
                 type="button"
                 onClick={() => { setUserMenuOpen(!userMenuOpen); setNotifOpen(false); }}
-                className="flex items-center gap-2 rounded-pill border border-[#E0E0E0] px-4 py-2 text-sm font-medium text-[#4F4F4F] transition-colors hover:border-[#BDBDBD] hover:bg-[#F8F8F8]"
+                className="flex items-center gap-2 border border-ink/30 px-3 py-2 text-sm font-medium text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper"
+                style={{ borderRadius: "2px" }}
               >
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-xs font-bold text-primary-600">
-                  {displayName.charAt(0)}
+                <div className="flex h-6 w-6 items-center justify-center bg-primary-500 font-display text-xs font-medium text-white">
+                  {displayName.charAt(0).toUpperCase()}
                 </div>
                 <span className="max-w-[120px] truncate">{displayName}</span>
                 <svg
-                  className={`h-4 w-4 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                  className={`h-3.5 w-3.5 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={2}
@@ -211,20 +215,20 @@ export function Header({
                     className="fixed inset-0 z-40"
                     onClick={() => setUserMenuOpen(false)}
                   />
-                  <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-xl bg-white py-2 shadow-lg ring-1 ring-black/5">
-                    <div className="border-b border-[#F2F2F2] px-4 py-2">
-                      <p className="text-xs text-[#828282]">{user.email}</p>
+                  <div className="absolute right-0 top-full z-50 mt-3 w-52 border border-ink bg-paper py-2 shadow-[6px_6px_0_0_rgba(26,26,26,1)]">
+                    <div className="border-b border-ink/15 px-4 py-2">
+                      <p className="text-xs text-ink-muted">{user.email}</p>
                     </div>
                     <Link
                       href="/dashboard"
-                      className="block px-4 py-2.5 text-sm text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                      className="block px-4 py-2.5 text-sm text-ink transition-colors hover:bg-paper-deep"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       ダッシュボード
                     </Link>
                     <Link
                       href="/settings"
-                      className="block px-4 py-2.5 text-sm text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                      className="block px-4 py-2.5 text-sm text-ink transition-colors hover:bg-paper-deep"
                       onClick={() => setUserMenuOpen(false)}
                     >
                       設定
@@ -232,7 +236,7 @@ export function Header({
                     <button
                       type="button"
                       onClick={handleLogout}
-                      className="w-full border-t border-[#F2F2F2] px-4 py-2.5 text-left text-sm text-red-500 hover:bg-red-50"
+                      className="w-full border-t border-ink/15 px-4 py-2.5 text-left text-sm text-primary-600 transition-colors hover:bg-primary-50"
                     >
                       ログアウト
                     </button>
@@ -243,11 +247,19 @@ export function Header({
             </>
           ) : (
             <>
-              <Link href="/login" className="btn-white h-10 text-sm">
+              <Link
+                href="/login"
+                className="px-4 py-2 text-sm font-medium text-ink transition-colors hover:text-primary-500"
+              >
                 ログイン
               </Link>
-              <Link href="/register" className="btn-primary h-10 px-6 text-sm">
+              <Link
+                href="/register"
+                className="inline-flex items-center gap-1.5 bg-ink px-5 py-2.5 text-sm font-bold text-paper transition-colors hover:bg-primary-500"
+                style={{ borderRadius: "2px" }}
+              >
                 新規登録
+                <span aria-hidden>→</span>
               </Link>
             </>
           )}
@@ -256,11 +268,12 @@ export function Header({
         {/* Mobile menu button */}
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#BDBDBD] md:hidden"
+          className="flex h-10 w-10 items-center justify-center border border-ink md:hidden"
+          style={{ borderRadius: "2px" }}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           <svg
-            className="h-5 w-5 text-[#4F4F4F]"
+            className="h-5 w-5 text-ink"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2}
@@ -285,42 +298,46 @@ export function Header({
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 top-[70px] bg-white shadow-lg md:hidden">
-          <div className="space-y-1 px-6 py-6">
+        <div className="fixed inset-x-0 top-[80px] border-t border-ink/10 bg-paper md:hidden">
+          <div className="space-y-0 px-6 py-6">
             <Link
               href="/creators"
-              className="block py-3 text-2xl font-black text-[#222]"
+              className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
               onClick={() => setMobileMenuOpen(false)}
             >
-              クリエイターを探す
+              クリエイター
+              <span className="text-primary-500">→</span>
             </Link>
             <Link
               href="/jobs"
-              className="block py-3 text-2xl font-black text-[#222]"
+              className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
               onClick={() => setMobileMenuOpen(false)}
             >
-              案件を探す
+              案件
+              <span className="text-primary-500">→</span>
             </Link>
             {user && (
               <Link
                 href="/dashboard"
-                className="block py-3 text-2xl font-black text-[#222]"
+                className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 マイページ
+                <span className="text-primary-500">→</span>
               </Link>
             )}
             <Link
               href="/how-it-works"
-              className="block py-3 text-2xl font-black text-[#222]"
+              className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
               onClick={() => setMobileMenuOpen(false)}
             >
               使い方
+              <span className="text-primary-500">→</span>
             </Link>
-            <div className="mt-6 flex flex-col gap-3 pt-6">
+            <div className="mt-6 flex flex-col gap-3 pt-2">
               {user ? (
                 <>
-                  <div className="mb-2 text-sm text-[#828282]">
+                  <div className="mb-2 text-sm text-ink-muted">
                     {displayName} でログイン中
                   </div>
                   <Link
@@ -336,7 +353,7 @@ export function Header({
                       handleLogout();
                       setMobileMenuOpen(false);
                     }}
-                    className="btn-white justify-center text-red-500"
+                    className="btn-white justify-center text-primary-600"
                   >
                     ログアウト
                   </button>

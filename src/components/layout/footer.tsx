@@ -2,103 +2,124 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="mt-12 bg-[#F8F8F8]">
-      {/* Divider */}
-      <div className="mx-auto max-w-container px-6 lg:px-[6.25rem]">
-        <div className="h-px bg-[#F2F2F2]" />
-      </div>
+    <footer className="mt-24 border-t border-ink/15 bg-paper">
+      <div className="mx-auto max-w-container px-6 py-20 lg:px-[6.25rem]">
+        {/* Editorial mast */}
+        <div className="grid gap-12 lg:grid-cols-[1.2fr_2fr] lg:gap-16">
+          <div>
+            <Link href="/" className="flex items-baseline gap-2">
+              <span className="font-display text-3xl font-medium leading-none tracking-tightest-x text-ink">
+                Creators
+              </span>
+              <span className="font-display text-3xl font-medium leading-none tracking-tightest-x text-primary-500">
+                .
+              </span>
+              <span className="font-display text-xs font-medium uppercase tracking-[0.3em] text-ink-muted">
+                hub
+              </span>
+            </Link>
+            <p className="mt-6 max-w-sm text-sm leading-[1.9] text-ink-muted">
+              映像クリエイターとビジネスを直接つなぐマッチングプラットフォーム。
+              <br />
+              スカウトと公募、ふたつの方法で。
+            </p>
+          </div>
 
-      <div className="mx-auto max-w-container px-6 pb-16 pt-10 lg:px-[6.25rem]">
-        {/* Navigation Columns */}
-        <div className="grid grid-cols-2 gap-x-9 gap-y-10 md:grid-cols-4">
-          <div>
-            <h3 className="text-base font-medium text-[#212121]">サービス</h3>
-            <ul className="mt-8 space-y-3.5">
-              <li>
-                <Link href="/creators" className="text-[13px] text-[#212121] hover:underline">
-                  クリエイターを探す
-                </Link>
-              </li>
-              <li>
-                <Link href="/how-it-works" className="text-[13px] text-[#212121] hover:underline">
-                  使い方
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="text-[13px] text-[#212121] hover:underline">
-                  料金体系
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-base font-medium text-[#212121]">クリエイター向け</h3>
-            <ul className="mt-8 space-y-3.5">
-              <li>
-                <Link href="/register" className="text-[13px] text-[#212121] hover:underline">
-                  クリエイター登録
-                </Link>
-              </li>
-              <li>
-                <Link href="/creator-guide" className="text-[13px] text-[#212121] hover:underline">
-                  ガイドライン
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-base font-medium text-[#212121]">企業・法人向け</h3>
-            <ul className="mt-8 space-y-3.5">
-              <li>
-                <Link href="/for-business" className="text-[13px] text-[#212121] hover:underline">
-                  法人プラン
-                </Link>
-              </li>
-              <li>
-                <Link href="/case-studies" className="text-[13px] text-[#212121] hover:underline">
-                  導入事例
-                </Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="text-base font-medium text-[#212121]">サポート</h3>
-            <ul className="mt-8 space-y-3.5">
-              <li>
-                <Link href="/help" className="text-[13px] text-[#212121] hover:underline">
-                  ヘルプセンター
-                </Link>
-              </li>
-              <li>
-                <Link href="/terms" className="text-[13px] text-[#212121] hover:underline">
-                  利用規約
-                </Link>
-              </li>
-              <li>
-                <Link href="/privacy" className="text-[13px] text-[#212121] hover:underline">
-                  プライバシーポリシー
-                </Link>
-              </li>
-              <li>
-                <Link href="/company" className="text-[13px] text-[#212121] hover:underline">
-                  運営会社
-                </Link>
-              </li>
-            </ul>
+          {/* Navigation Columns */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-soft">
+                Service
+              </h3>
+              <ul className="mt-5 space-y-3">
+                <li>
+                  <Link href="/creators" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    クリエイター
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/how-it-works" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    使い方
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/pricing" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    料金
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-soft">
+                Creator
+              </h3>
+              <ul className="mt-5 space-y-3">
+                <li>
+                  <Link href="/register" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    クリエイター登録
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/creator-guide" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    ガイドライン
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-soft">
+                Business
+              </h3>
+              <ul className="mt-5 space-y-3">
+                <li>
+                  <Link href="/for-business" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    法人プラン
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/case-studies" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    導入事例
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-soft">
+                Support
+              </h3>
+              <ul className="mt-5 space-y-3">
+                <li>
+                  <Link href="/help" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    ヘルプ
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    利用規約
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    プライバシー
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/company" className="text-sm text-ink transition-colors hover:text-primary-500">
+                    運営会社
+                  </Link>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-500 text-sm font-black text-white">
-              C
-            </div>
-            <span className="text-lg font-bold text-[#222]">CreatorsHub</span>
-          </Link>
-          <p className="text-[13px] text-[#212121]">
-            &copy; 2026 CreatorsHub. All rights reserved.
+        {/* Bottom bar */}
+        <div className="mt-16 flex flex-col items-start justify-between gap-3 border-t border-ink/15 pt-6 sm:flex-row sm:items-center">
+          <p className="text-xs tracking-wider text-ink-muted">
+            &copy; 2026 CreatorsHub — All rights reserved.
+          </p>
+          <p className="font-display text-xs uppercase tracking-[0.3em] text-ink-soft">
+            Made for creators, in Tokyo.
           </p>
         </div>
       </div>
