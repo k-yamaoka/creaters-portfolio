@@ -67,6 +67,29 @@ export async function createOrder(formData: FormData) {
     return { error: "注文の作成に失敗しました" };
   }
 
+  // 取引依頼を相手クリエイターへスレッドで通知（送信者=クライアントuser、受信者=クリエイターuser）
+  const { data: creatorProfile } = await supabase
+    .from("creator_profiles")
+    .select("user_id")
+    .eq("id", creator_profile_id)
+    .single();
+
+  if (creatorProfile?.user_id) {
+    const snippet = description
+      ? description.length > 140
+        ? `${description.slice(0, 140)}…`
+        : description
+      : "";
+    const messageBody = `【新規取引依頼】「${title}」\n${snippet ? `${snippet}\n` : ""}金額: ¥${totalAmount.toLocaleString()}\n詳細はこちら: /dashboard/orders/${order.id}`;
+
+    await supabase.from("messages").insert({
+      order_id: order.id,
+      sender_id: user.id,
+      receiver_id: creatorProfile.user_id,
+      content: messageBody,
+    });
+  }
+
   redirect(`/dashboard/orders/${order.id}`);
 }
 
