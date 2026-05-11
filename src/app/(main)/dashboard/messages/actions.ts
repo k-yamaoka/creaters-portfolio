@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sendExternalNotification } from "@/lib/notify-external";
 
 export async function sendMessage(formData: FormData) {
   const supabase = await createClient();
@@ -24,6 +25,25 @@ export async function sendMessage(formData: FormData) {
 
   if (error) {
     return { error: "メッセージの送信に失敗しました" };
+  }
+
+  // メール通知 (best-effort、失敗しても返却は成功扱い)
+  if (receiver_id !== user.id) {
+    const { data: senderProfile } = await supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("id", user.id)
+      .maybeSingle();
+    const senderName = senderProfile?.display_name ?? "ユーザー";
+    const snippet = content.length > 280 ? `${content.slice(0, 280)}…` : content;
+
+    await sendExternalNotification({
+      userId: receiver_id,
+      kind: "message",
+      subject: `${senderName} さんから新着メッセージ`,
+      body: snippet,
+      link: `/dashboard/messages/${user.id}`,
+    });
   }
 
   revalidatePath(`/dashboard/messages/${receiver_id}`);
