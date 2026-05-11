@@ -135,6 +135,7 @@ export default async function ConversationPage({
         initialMessages={messages ?? []}
         currentUserId={me.id}
         partnerId={partnerId}
+        senderRole={me.role}
       />
     </div>
   );

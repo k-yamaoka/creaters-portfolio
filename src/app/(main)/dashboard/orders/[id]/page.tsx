@@ -290,6 +290,7 @@ export default async function OrderDetailPage({
           initialMessages={threadMessages ?? []}
           currentUserId={user.id}
           partnerId={partnerUserId}
+          senderRole={user.role}
           compact
         />
       </div>

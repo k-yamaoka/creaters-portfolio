@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sendMessage, markAsRead } from "../actions";
 import { createClient } from "@/lib/supabase/client";
+import { templatesFor, type MessageTemplate } from "@/lib/message-templates";
 
 export type Message = {
   id: string;
@@ -19,6 +20,8 @@ type Props = {
   partnerId: string;
   /** 高さの抑制（order詳細埋め込み等） */
   compact?: boolean;
+  /** 自分のロール（テンプレート出し分け） */
+  senderRole?: "creator" | "client" | "admin";
 };
 
 const NEAR_BOTTOM_PX = 120;
@@ -28,11 +31,15 @@ export function MessageThread({
   currentUserId,
   partnerId,
   compact = false,
+  senderRole,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [sending, setSending] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
+
+  const templates = useMemo(() => templatesFor(senderRole), [senderRole]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -40,6 +47,20 @@ export function MessageThread({
   const initialScrollDone = useRef(false);
   const sentByMeFlag = useRef(false);
   const composingRef = useRef(false);
+
+  const insertTemplate = (t: MessageTemplate) => {
+    setInput(t.body);
+    setTemplatesOpen(false);
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        el.style.height = "auto";
+        el.style.height = Math.min(el.scrollHeight, 240) + "px";
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    });
+  };
 
   // 初期マウント時: アニメ無しで最下部にジャンプ
   useEffect(() => {
@@ -231,12 +252,87 @@ export function MessageThread({
       </div>
 
       {/* 入力 */}
-      <div className="border-t border-ink/10 pt-4">
+      <div className="relative border-t border-ink/10 pt-4">
         {error && (
           <p className="mb-2 text-xs text-red-500" role="alert">
             {error}
           </p>
         )}
+
+        {/* テンプレポップオーバー */}
+        {templatesOpen && (
+          <>
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setTemplatesOpen(false)}
+            />
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-[360px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-ink bg-white shadow-[6px_6px_0_0_rgba(26,26,26,1)]">
+              <div className="border-b border-ink/15 px-4 py-2">
+                <p className="font-display text-sm font-medium text-ink">
+                  返信テンプレート
+                </p>
+                <p className="text-[10px] text-ink-soft">
+                  {senderRole === "client"
+                    ? "企業向け定型文"
+                    : "クリエイター向け定型文"}
+                </p>
+              </div>
+              <div className="max-h-72 overflow-y-auto">
+                {templates.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => insertTemplate(t)}
+                    className="block w-full border-b border-ink/10 px-4 py-3 text-left transition-colors last:border-0 hover:bg-paper-deep"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="rounded bg-ink/5 px-1.5 py-0.5 text-[10px] font-bold text-ink-muted">
+                        {t.category}
+                      </span>
+                      <span className="text-sm font-medium text-ink">
+                        {t.title}
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">
+                      {t.body.split("\n")[0]}
+                    </p>
+                  </button>
+                ))}
+              </div>
+              <div className="border-t border-ink/15 px-4 py-2 text-[10px] text-ink-soft">
+                クリックすると入力欄に挿入されます ({"{}"} 内は編集して送信)
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="mb-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setTemplatesOpen((v) => !v)}
+            className={`inline-flex items-center gap-1.5 rounded-md border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors ${
+              templatesOpen
+                ? "bg-ink text-paper"
+                : "bg-white text-ink hover:border-ink hover:bg-paper-deep"
+            }`}
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"
+              />
+            </svg>
+            返信テンプレ
+          </button>
+        </div>
+
         <div className="flex items-end gap-3">
           <textarea
             ref={textareaRef}
