@@ -4,10 +4,25 @@ import { useState } from "react";
 import { createJob } from "./actions";
 import { GENRES } from "@/lib/constants";
 
+function calcCount(budget: string, unit: string): number | null {
+  const b = Number(budget);
+  const u = Number(unit);
+  if (!Number.isFinite(b) || !Number.isFinite(u) || b <= 0 || u <= 0) {
+    return null;
+  }
+  return Math.floor(b / u);
+}
+
 export function JobForm() {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [budgetMin, setBudgetMin] = useState("");
+  const [budgetMax, setBudgetMax] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+
+  const minCount = calcCount(budgetMin, unitPrice);
+  const maxCount = calcCount(budgetMax, unitPrice);
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
@@ -146,9 +161,16 @@ export function JobForm() {
                 name="budget_min"
                 type="number"
                 min={0}
+                value={budgetMin}
+                onChange={(e) => setBudgetMin(e.target.value)}
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 placeholder="100000"
               />
+              {minCount !== null && (
+                <p className="mt-1 text-xs text-primary-600">
+                  約 {minCount.toLocaleString()} 本
+                </p>
+              )}
             </div>
             <div>
               <label
@@ -162,9 +184,16 @@ export function JobForm() {
                 name="budget_max"
                 type="number"
                 min={0}
+                value={budgetMax}
+                onChange={(e) => setBudgetMax(e.target.value)}
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 placeholder="500000"
               />
+              {maxCount !== null && (
+                <p className="mt-1 text-xs text-primary-600">
+                  約 {maxCount.toLocaleString()} 本
+                </p>
+              )}
             </div>
           </div>
 
@@ -181,6 +210,8 @@ export function JobForm() {
               type="number"
               min={0}
               required
+              value={unitPrice}
+              onChange={(e) => setUnitPrice(e.target.value)}
               className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               placeholder="50000"
             />
@@ -188,6 +219,22 @@ export function JobForm() {
               動画1本あたりの概算単価を入力してください
             </p>
           </div>
+
+          {(minCount !== null || maxCount !== null) && (
+            <div className="rounded-lg bg-primary-50 px-4 py-3">
+              <p className="text-xs text-[#828282]">想定本数（自動計算）</p>
+              <p className="mt-1 text-base font-bold text-primary-600">
+                {minCount !== null && maxCount !== null
+                  ? `${minCount.toLocaleString()} 本 〜 ${maxCount.toLocaleString()} 本`
+                  : minCount !== null
+                    ? `${minCount.toLocaleString()} 本〜`
+                    : `〜 ${maxCount!.toLocaleString()} 本`}
+              </p>
+              <p className="mt-1 text-[11px] text-[#828282]">
+                見積もり ÷ 1本単価 で自動算出
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
