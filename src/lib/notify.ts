@@ -1,4 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
+import {
+  sendExternalNotification,
+  type ExternalNotificationKind,
+} from "@/lib/notify-external";
 
 type NotificationType =
   | "message"
@@ -34,6 +38,17 @@ export async function createNotification(opts: {
   });
   if (error) {
     console.error("createNotification failed", error);
+  }
+
+  // 外部チャネル(メール / LINE)へも best-effort で配信
+  if (opts.type !== "message") {
+    await sendExternalNotification({
+      userId: opts.userId,
+      kind: opts.type as ExternalNotificationKind,
+      subject: opts.title,
+      body: opts.body ?? "",
+      link: opts.link,
+    });
   }
 }
 

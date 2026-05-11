@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { createNotification, sendSystemMessage } from "@/lib/notify";
 
 export async function createOrder(formData: FormData) {
   const supabase = await createClient();
@@ -82,11 +83,18 @@ export async function createOrder(formData: FormData) {
       : "";
     const messageBody = `【新規取引依頼】「${title}」\n${snippet ? `${snippet}\n` : ""}金額: ¥${totalAmount.toLocaleString()}\n詳細はこちら: /dashboard/orders/${order.id}`;
 
-    await supabase.from("messages").insert({
-      order_id: order.id,
-      sender_id: user.id,
-      receiver_id: creatorProfile.user_id,
+    await sendSystemMessage({
+      senderUserId: user.id,
+      receiverUserId: creatorProfile.user_id,
       content: messageBody,
+      orderId: order.id,
+    });
+    await createNotification({
+      userId: creatorProfile.user_id,
+      type: "scout",
+      title: `新規取引依頼: 「${title}」`,
+      body: snippet,
+      link: `/dashboard/orders/${order.id}`,
     });
   }
 
