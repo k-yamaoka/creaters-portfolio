@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function ApplyButton({
   jobId,
@@ -12,7 +13,7 @@ export function ApplyButton({
   const [showForm, setShowForm] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setSending(true);
@@ -39,22 +40,9 @@ export function ApplyButton({
       return;
     }
 
-    setDone(true);
-    setSending(false);
+    // 親ページを再描画 → hasApplied=true で「メッセージ解放」UIが出る
+    router.refresh();
   };
-
-  if (done) {
-    return (
-      <div className="text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-          <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-          </svg>
-        </div>
-        <p className="mt-3 text-sm font-bold text-[#222]">応募しました</p>
-      </div>
-    );
-  }
 
   if (!showForm) {
     return (
