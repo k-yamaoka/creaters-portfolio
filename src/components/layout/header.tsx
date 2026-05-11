@@ -1,9 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+} from "@/lib/actions/notifications";
 
 type User = {
   id: string;
@@ -38,7 +42,26 @@ export function Header({
   const [notifOpen, setNotifOpen] = useState(false);
   const router = useRouter();
 
-  const unreadNotifs = notifications.filter((n) => !n.is_read).length;
+  const serverUnreadNotifs = notifications.filter((n) => !n.is_read).length;
+  // 開いた直後は表示用カウントを 0 にする (再フェッチを待たずバッジ即消し)
+  const [unreadOverride, setUnreadOverride] = useState<number | null>(null);
+  const unreadNotifs = unreadOverride ?? serverUnreadNotifs;
+
+  // サーバ側でカウントが変わったら override を解除
+  useEffect(() => {
+    setUnreadOverride(null);
+  }, [serverUnreadNotifs]);
+
+  const handleNotifToggle = async () => {
+    const willOpen = !notifOpen;
+    setNotifOpen(willOpen);
+    setUserMenuOpen(false);
+    if (willOpen && serverUnreadNotifs > 0) {
+      setUnreadOverride(0);
+      await markAllNotificationsAsRead();
+      router.refresh();
+    }
+  };
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -132,7 +155,7 @@ export function Header({
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => { setNotifOpen(!notifOpen); setUserMenuOpen(false); }}
+                  onClick={handleNotifToggle}
                   className="relative flex h-10 w-10 items-center justify-center text-ink transition-colors hover:text-primary-500"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -161,7 +184,12 @@ export function Header({
                             <Link
                               key={n.id}
                               href={n.link || "/dashboard"}
-                              onClick={() => setNotifOpen(false)}
+                              onClick={() => {
+                                setNotifOpen(false);
+                                if (!n.is_read) {
+                                  void markNotificationAsRead(n.id);
+                                }
+                              }}
                               className={`block border-b border-ink/10 px-4 py-3 transition-colors last:border-0 hover:bg-paper-deep ${!n.is_read ? "bg-primary-50" : ""}`}
                             >
                               <p className={`text-sm ${!n.is_read ? "font-bold text-ink" : "text-ink-muted"}`}>
