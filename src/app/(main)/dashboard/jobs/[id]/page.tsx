@@ -75,12 +75,16 @@ export default async function DashboardJobDetailPage({
           <div className="mt-2 flex flex-wrap gap-4 text-sm text-[#828282]">
             {(job.budget_min || job.budget_max) && (
               <span>
-                予算:{" "}
-                {job.budget_min && job.budget_max
-                  ? `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
-                  : job.budget_max
-                    ? `〜${formatPrice(job.budget_max)}`
-                    : `${formatPrice(job.budget_min)}〜`}
+                見積もり:{" "}
+                {job.budget_min &&
+                job.budget_max &&
+                job.budget_min === job.budget_max
+                  ? formatPrice(job.budget_min)
+                  : job.budget_min && job.budget_max
+                    ? `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
+                    : job.budget_max
+                      ? `〜${formatPrice(job.budget_max)}`
+                      : `${formatPrice(job.budget_min)}〜`}
               </span>
             )}
             {job.deadline && (

@@ -85,13 +85,17 @@ export default async function JobDetailPage({
               </div>
               {(job.budget_min || job.budget_max) && (
                 <div className="shrink-0 text-right">
-                  <p className="text-xs text-[#828282]">予算</p>
+                  <p className="text-xs text-[#828282]">見積もり</p>
                   <p className="text-xl font-bold text-primary-500">
-                    {job.budget_min && job.budget_max
-                      ? `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
-                      : job.budget_max
-                        ? `〜${formatPrice(job.budget_max)}`
-                        : `${formatPrice(job.budget_min!)}〜`}
+                    {job.budget_min &&
+                    job.budget_max &&
+                    job.budget_min === job.budget_max
+                      ? formatPrice(job.budget_min)
+                      : job.budget_min && job.budget_max
+                        ? `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
+                        : job.budget_max
+                          ? `〜${formatPrice(job.budget_max)}`
+                          : `${formatPrice(job.budget_min!)}〜`}
                   </p>
                 </div>
               )}

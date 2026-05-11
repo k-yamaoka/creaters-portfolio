@@ -3,26 +3,30 @@
 import { useState } from "react";
 import { createJob } from "./actions";
 import { GENRES } from "@/lib/constants";
+import { formatPrice } from "@/lib/utils";
 
-function calcCount(budget: string, unit: string): number | null {
-  const b = Number(budget);
-  const u = Number(unit);
-  if (!Number.isFinite(b) || !Number.isFinite(u) || b <= 0 || u <= 0) {
-    return null;
-  }
-  return Math.floor(b / u);
+function toNum(s: string): number | null {
+  const n = Number(s);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 export function JobForm() {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [budgetMin, setBudgetMin] = useState("");
-  const [budgetMax, setBudgetMax] = useState("");
   const [unitPrice, setUnitPrice] = useState("");
+  const [countMin, setCountMin] = useState("");
+  const [countMax, setCountMax] = useState("");
 
-  const minCount = calcCount(budgetMin, unitPrice);
-  const maxCount = calcCount(budgetMax, unitPrice);
+  const u = toNum(unitPrice);
+  const cMin = toNum(countMin);
+  const cMax = toNum(countMax);
+  // 上限が未入力なら下限と同じ本数として扱う
+  const effectiveMaxCount = cMax ?? cMin;
+
+  const budgetMin = u !== null && cMin !== null ? u * cMin : null;
+  const budgetMax =
+    u !== null && effectiveMaxCount !== null ? u * effectiveMaxCount : null;
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
@@ -148,55 +152,7 @@ export function JobForm() {
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-6 text-lg font-bold text-[#222]">見積もり・スケジュール</h2>
         <div className="space-y-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="budget_min"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                見積もり下限（円）
-              </label>
-              <input
-                id="budget_min"
-                name="budget_min"
-                type="number"
-                min={0}
-                value={budgetMin}
-                onChange={(e) => setBudgetMin(e.target.value)}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="100000"
-              />
-              {minCount !== null && (
-                <p className="mt-1 text-xs text-primary-600">
-                  約 {minCount.toLocaleString()} 本
-                </p>
-              )}
-            </div>
-            <div>
-              <label
-                htmlFor="budget_max"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                見積もり上限（円）
-              </label>
-              <input
-                id="budget_max"
-                name="budget_max"
-                type="number"
-                min={0}
-                value={budgetMax}
-                onChange={(e) => setBudgetMax(e.target.value)}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="500000"
-              />
-              {maxCount !== null && (
-                <p className="mt-1 text-xs text-primary-600">
-                  約 {maxCount.toLocaleString()} 本
-                </p>
-              )}
-            </div>
-          </div>
-
+          {/* 1本単価 */}
           <div>
             <label
               htmlFor="unit_price"
@@ -220,21 +176,81 @@ export function JobForm() {
             </p>
           </div>
 
-          {(minCount !== null || maxCount !== null) && (
-            <div className="rounded-lg bg-primary-50 px-4 py-3">
-              <p className="text-xs text-[#828282]">想定本数（自動計算）</p>
-              <p className="mt-1 text-base font-bold text-primary-600">
-                {minCount !== null && maxCount !== null
-                  ? `${minCount.toLocaleString()} 本 〜 ${maxCount.toLocaleString()} 本`
-                  : minCount !== null
-                    ? `${minCount.toLocaleString()} 本〜`
-                    : `〜 ${maxCount!.toLocaleString()} 本`}
+          {/* 本数 (単数 or 範囲) */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label
+                htmlFor="count_min"
+                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+              >
+                発注本数 *
+              </label>
+              <input
+                id="count_min"
+                type="number"
+                min={1}
+                required
+                value={countMin}
+                onChange={(e) => setCountMin(e.target.value)}
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="10"
+              />
+              <p className="mt-1 text-xs text-[#828282]">
+                想定発注本数（最低）
+              </p>
+            </div>
+            <div>
+              <label
+                htmlFor="count_max"
+                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+              >
+                上限本数（任意）
+              </label>
+              <input
+                id="count_max"
+                type="number"
+                min={1}
+                value={countMax}
+                onChange={(e) => setCountMax(e.target.value)}
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="未指定なら本数と同額"
+              />
+              <p className="mt-1 text-xs text-[#828282]">
+                範囲発注したい場合に指定
+              </p>
+            </div>
+          </div>
+
+          {/* 単価 × 本数 → 自動集計の見積もり */}
+          {(budgetMin !== null || budgetMax !== null) && (
+            <div className="rounded-lg bg-primary-50 px-4 py-4">
+              <p className="text-xs text-[#828282]">見積もり金額（自動集計）</p>
+              <p className="mt-1 text-lg font-bold text-primary-600">
+                {budgetMin !== null && budgetMax !== null && budgetMin === budgetMax
+                  ? formatPrice(budgetMin)
+                  : budgetMin !== null && budgetMax !== null
+                    ? `${formatPrice(budgetMin)} 〜 ${formatPrice(budgetMax)}`
+                    : budgetMin !== null
+                      ? `${formatPrice(budgetMin)}〜`
+                      : `〜 ${formatPrice(budgetMax!)}`}
               </p>
               <p className="mt-1 text-[11px] text-[#828282]">
-                見積もり ÷ 1本単価 で自動算出
+                1本単価 × 発注本数 で自動算出
               </p>
             </div>
           )}
+
+          {/* createJob actions.ts への送信用 hidden inputs */}
+          <input
+            type="hidden"
+            name="budget_min"
+            value={budgetMin !== null ? String(budgetMin) : ""}
+          />
+          <input
+            type="hidden"
+            name="budget_max"
+            value={budgetMax !== null ? String(budgetMax) : ""}
+          />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
