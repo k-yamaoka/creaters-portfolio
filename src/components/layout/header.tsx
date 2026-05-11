@@ -44,7 +44,73 @@ export function Header({
 
   // タップで消した通知 ID (楽観的に即非表示)
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
-  const visibleNotifications = notifications.filter(
+  // ローカル通知ストア (props を初期値、Realtime で追加・更新・削除)
+  const [liveNotifications, setLiveNotifications] = useState<Notification[]>(
+    notifications
+  );
+
+  // サーバから新しい props が来たら同期 (router.refresh / ページ遷移時)
+  useEffect(() => {
+    setLiveNotifications(notifications);
+  }, [notifications]);
+
+  // Realtime: notifications テーブルの INSERT/UPDATE/DELETE を購読
+  useEffect(() => {
+    if (!user?.id) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const n = payload.new as Notification;
+          setLiveNotifications((prev) =>
+            prev.some((x) => x.id === n.id) ? prev : [n, ...prev]
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const n = payload.new as Notification;
+          setLiveNotifications((prev) =>
+            prev.map((x) => (x.id === n.id ? n : x))
+          );
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const id = (payload.old as { id?: string })?.id;
+          if (!id) return;
+          setLiveNotifications((prev) => prev.filter((x) => x.id !== id));
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const visibleNotifications = liveNotifications.filter(
     (n) => !dismissedIds.has(n.id)
   );
 
@@ -55,7 +121,7 @@ export function Header({
   const [unreadOverride, setUnreadOverride] = useState<number | null>(null);
   const unreadNotifs = unreadOverride ?? serverUnreadNotifs;
 
-  // サーバ側でカウントが変わったら override を解除
+  // 未読カウントが増えたら override を解除 (新着が来たらバッジ復活)
   useEffect(() => {
     setUnreadOverride(null);
   }, [serverUnreadNotifs]);
