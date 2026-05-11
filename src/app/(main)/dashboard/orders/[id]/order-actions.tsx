@@ -59,6 +59,12 @@ const ACTION_MAP: Record<OrderStatus, StageConfig> = {
     cancelable: true,
   },
   data_sharing: {
+    // 双方どちらでも「データ共有完了 → 制作へ」を進められる
+    client: {
+      label: "データ共有を完了する → 制作へ",
+      nextStatus: "production",
+      style: "btn-primary",
+    },
     creator: {
       label: "データ受領を確認 → 制作開始",
       nextStatus: "production",
