@@ -5,6 +5,16 @@ import { formatPrice } from "@/lib/utils";
 import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 
+function formatLastUpdate(iso: string): string {
+  const d = new Date(iso);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
+}
+
 export default async function OrdersPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -18,11 +28,11 @@ export default async function OrdersPage() {
       `
       *,
       creator:creator_profiles!orders_creator_id_fkey (
-        id,
+        id, user_id,
         profiles!creator_profiles_user_id_fkey ( display_name )
       ),
       client:client_profiles!orders_client_id_fkey (
-        id,
+        id, user_id,
         profiles!client_profiles_user_id_fkey ( display_name )
       ),
       package:service_packages ( name )
@@ -38,15 +48,80 @@ export default async function OrdersPage() {
 
   const { data: orders } = await query;
 
+  // 各取引相手とのメッセージ集計（最終更新日時 + 未読件数）
+  const partnerIds = (orders ?? [])
+    .map((o) => {
+      const c = o.creator as unknown as { user_id: string };
+      const cl = o.client as unknown as { user_id: string };
+      return isCreator ? cl?.user_id : c?.user_id;
+    })
+    .filter(Boolean) as string[];
+
+  const messageStats = new Map<
+    string,
+    { lastAt: string; unread: number }
+  >();
+
+  if (partnerIds.length > 0) {
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("sender_id, receiver_id, created_at, is_read")
+      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .order("created_at", { ascending: false });
+
+    for (const m of msgs ?? []) {
+      const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+      if (!partnerIds.includes(partnerId)) continue;
+      const cur = messageStats.get(partnerId);
+      if (!cur) {
+        messageStats.set(partnerId, {
+          lastAt: m.created_at,
+          unread: m.receiver_id === user.id && !m.is_read ? 1 : 0,
+        });
+      } else {
+        if (m.created_at > cur.lastAt) cur.lastAt = m.created_at;
+        if (m.receiver_id === user.id && !m.is_read) cur.unread += 1;
+      }
+    }
+  }
+
+  // 取引にメッセージ統計をマージしてからSlack風ソート (未読 > 最終更新 > 作成日)
+  const enriched = (orders ?? [])
+    .map((o) => {
+      const c = o.creator as unknown as { user_id: string };
+      const cl = o.client as unknown as { user_id: string };
+      const partnerUserId = isCreator ? cl?.user_id : c?.user_id;
+      const stats = partnerUserId ? messageStats.get(partnerUserId) : undefined;
+      return {
+        order: o,
+        partnerUserId,
+        unread: stats?.unread ?? 0,
+        lastAt: stats?.lastAt ?? o.created_at,
+      };
+    })
+    .sort((a, b) => {
+      // 未読あり優先
+      if ((a.unread > 0) !== (b.unread > 0)) return a.unread > 0 ? -1 : 1;
+      // 次に最終更新降順
+      return b.lastAt.localeCompare(a.lastAt);
+    });
+
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#222]">取引一覧</h1>
-      <p className="mt-2 text-sm text-[#828282]">
-        {isCreator ? "受注した依頼の管理" : "依頼した取引の管理"}
-      </p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#222]">取引一覧</h1>
+          <p className="mt-2 text-sm text-[#828282]">
+            {isCreator ? "受注した依頼の管理" : "依頼した取引の管理"}
+            <span className="ml-2 text-[11px] text-[#BDBDBD]">
+              （未読 → 最終更新の新しい順で表示）
+            </span>
+          </p>
+        </div>
+      </div>
 
       <div className="mt-6">
-        {!orders || orders.length === 0 ? (
+        {enriched.length === 0 ? (
           <div className="rounded-2xl bg-white py-16 text-center shadow-card">
             <svg
               className="mx-auto h-12 w-12 text-[#E0E0E0]"
@@ -77,7 +152,7 @@ export default async function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-3">
-            {orders.map((order) => {
+            {enriched.map(({ order, unread, lastAt }) => {
               const status = getStatusMeta(order.status);
               const creatorProfiles = (order.creator as unknown as { profiles: { display_name: string } })?.profiles;
               const clientProfiles = (order.client as unknown as { profiles: { display_name: string } })?.profiles;
@@ -90,30 +165,44 @@ export default async function OrdersPage() {
                 <Link
                   key={order.id}
                   href={`/dashboard/orders/${order.id}`}
-                  className="block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+                  className={`block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${
+                    unread > 0 ? "ring-2 ring-primary-200" : ""
+                  }`}
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="truncate text-sm font-bold text-[#222]">
-                          {order.title}
-                        </h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-bold text-[#828282]">
+                          {partnerName}
+                        </span>
+                        {/* 案件名 = order.title をブロック状で表示 + 進捗tooltip */}
+                        <span
+                          className="group/title relative inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-primary-100 bg-primary-50 px-2 py-0.5 text-xs font-bold text-primary-700"
+                          title={`${status.label}: ${status.description}`}
+                        >
+                          <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z" />
+                          </svg>
+                          <span className="truncate">{order.title}</span>
+                        </span>
                         <span
                           className={`shrink-0 rounded-pill px-2.5 py-0.5 text-[11px] font-bold ${status.color}`}
                         >
                           {status.shortLabel}
                         </span>
+                        {unread > 0 && (
+                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-500 px-1.5 text-[10px] font-bold text-white">
+                            {unread > 99 ? "99+" : unread}
+                          </span>
+                        )}
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#828282]">
-                        <span>{partnerName}</span>
-                        {packageName && (
-                          <>
-                            <span className="text-[#E0E0E0]">|</span>
-                            <span>{packageName}</span>
-                          </>
-                        )}
-                        <span className="text-[#E0E0E0]">|</span>
+                        {packageName && <span>{packageName}</span>}
+                        {packageName && <span className="text-[#E0E0E0]">|</span>}
                         <span>{order.order_number}</span>
+                      </div>
+                      <div className="mt-2 text-[11px] text-[#828282]">
+                        最終更新: {formatLastUpdate(lastAt)}
                       </div>
                     </div>
                     <div className="text-right">
@@ -121,7 +210,7 @@ export default async function OrdersPage() {
                         {formatPrice(order.total_amount)}
                       </p>
                       <p className="mt-1 text-[11px] text-[#BDBDBD]">
-                        {new Date(order.created_at).toLocaleDateString("ja-JP")}
+                        作成 {new Date(order.created_at).toLocaleDateString("ja-JP")}
                       </p>
                     </div>
                   </div>

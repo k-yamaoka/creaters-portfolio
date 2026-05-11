@@ -74,7 +74,7 @@ export default async function ConversationPage({
 
       {/* Messages + Input */}
       <MessageThread
-        messages={messages ?? []}
+        initialMessages={messages ?? []}
         currentUserId={user.id}
         partnerId={partnerId}
       />

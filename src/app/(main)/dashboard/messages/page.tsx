@@ -1,25 +1,41 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/supabase/queries";
+import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 
+function formatLastUpdate(iso: string): string {
+  const d = new Date(iso);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
+}
+
 export default async function MessagesPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  // Get all messages involving the current user
+  const supabase = await createClient();
+
+  // ユーザーが関わる全メッセージを最新順で取得
   const { data: messages } = await supabase
     .from("messages")
     .select("*")
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
     .order("created_at", { ascending: false });
 
-  // Group by conversation partner
+  // パートナー単位で会話集計
   const conversations = new Map<
     string,
-    { partnerId: string; lastMessage: string; lastAt: string; unread: number }
+    {
+      partnerId: string;
+      lastMessage: string;
+      lastAt: string;
+      unread: number;
+    }
   >();
 
   for (const msg of messages ?? []) {
@@ -41,28 +57,96 @@ export default async function MessagesPage() {
     }
   }
 
-  // Get partner profiles
   const partnerIds = Array.from(conversations.keys());
-  let partners: Record<string, { display_name: string; avatar_url: string | null }> = {};
 
+  // パートナーのプロフィール
+  const partners: Record<
+    string,
+    { display_name: string; avatar_url: string | null; role: string }
+  > = {};
   if (partnerIds.length > 0) {
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, display_name, avatar_url")
+      .select("id, display_name, avatar_url, role")
       .in("id", partnerIds);
-
     for (const p of profiles ?? []) {
-      partners[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+      partners[p.id] = {
+        display_name: p.display_name,
+        avatar_url: p.avatar_url,
+        role: p.role,
+      };
     }
   }
 
-  const convList = Array.from(conversations.values());
+  // 自分が関わる取引から「相手→案件名(=order.title)+ status」を解決
+  // 自分がclient → creator_profile.user_id=partnerId
+  // 自分がcreator → client_profile.user_id=partnerId
+  const isCreator = user.role === "creator";
+  const latestOrders: Record<
+    string,
+    { id: string; title: string; status: string; updatedAt: string }
+  > = {};
+
+  if (partnerIds.length > 0) {
+    if (isCreator && user.creator_profile) {
+      const { data: rows } = await supabase
+        .from("orders")
+        .select(
+          `id, title, status, updated_at,
+           client:client_profiles!orders_client_id_fkey ( user_id )`
+        )
+        .eq("creator_id", user.creator_profile.id)
+        .order("updated_at", { ascending: false });
+      for (const o of rows ?? []) {
+        const partnerUserId = (
+          o.client as unknown as { user_id: string } | null
+        )?.user_id;
+        if (!partnerUserId || latestOrders[partnerUserId]) continue;
+        latestOrders[partnerUserId] = {
+          id: o.id,
+          title: o.title,
+          status: o.status,
+          updatedAt: o.updated_at,
+        };
+      }
+    } else if (user.client_profile) {
+      const { data: rows } = await supabase
+        .from("orders")
+        .select(
+          `id, title, status, updated_at,
+           creator:creator_profiles!orders_creator_id_fkey ( user_id )`
+        )
+        .eq("client_id", user.client_profile.id)
+        .order("updated_at", { ascending: false });
+      for (const o of rows ?? []) {
+        const partnerUserId = (
+          o.creator as unknown as { user_id: string } | null
+        )?.user_id;
+        if (!partnerUserId || latestOrders[partnerUserId]) continue;
+        latestOrders[partnerUserId] = {
+          id: o.id,
+          title: o.title,
+          status: o.status,
+          updatedAt: o.updated_at,
+        };
+      }
+    }
+  }
+
+  // Slack風ソート: 未読優先 → 最終更新降順
+  const convList = Array.from(conversations.values()).sort((a, b) => {
+    if ((a.unread > 0) !== (b.unread > 0)) return a.unread > 0 ? -1 : 1;
+    return b.lastAt.localeCompare(a.lastAt);
+  });
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-[#222]">メッセージ</h1>
       <p className="mt-2 text-sm text-[#828282]">
         クリエイター・クライアントとのやりとり
+        <span className="ml-2 text-[11px] text-[#BDBDBD]">
+          （未読 → 最終更新の新しい順で表示）
+        </span>
       </p>
 
       <div className="mt-6">
@@ -97,34 +181,46 @@ export default async function MessagesPage() {
               const partner = partners[conv.partnerId];
               const name = partner?.display_name ?? "ユーザー";
               const initial = name[0];
-              const timeStr = new Date(conv.lastAt).toLocaleDateString("ja-JP", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
+              const order = latestOrders[conv.partnerId];
+              const status = order ? getStatusMeta(order.status) : null;
 
               return (
                 <Link
                   key={conv.partnerId}
                   href={`/dashboard/messages/${conv.partnerId}`}
-                  className="flex items-center gap-4 rounded-xl bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover"
+                  className={`flex items-center gap-4 rounded-xl bg-white p-4 shadow-card transition-shadow hover:shadow-card-hover ${
+                    conv.unread > 0 ? "ring-2 ring-primary-200" : ""
+                  }`}
                 >
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-600">
                     {initial}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-sm font-bold text-[#222]">{name}</h3>
-                      <span className="text-xs text-[#BDBDBD]">{timeStr}</span>
+                      {/* 案件名ブロック + 進捗tooltip */}
+                      {order && status && (
+                        <span
+                          className="inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-primary-100 bg-primary-50 px-2 py-0.5 text-[11px] font-bold text-primary-700"
+                          title={`${status.label} - ${status.description}`}
+                        >
+                          <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z" />
+                          </svg>
+                          <span className="truncate">{order.title}</span>
+                        </span>
+                      )}
                     </div>
                     <p className="mt-0.5 truncate text-sm text-[#828282]">
                       {conv.lastMessage}
                     </p>
+                    <p className="mt-1 text-[10px] text-[#BDBDBD]">
+                      最終更新: {formatLastUpdate(conv.lastAt)}
+                    </p>
                   </div>
                   {conv.unread > 0 && (
-                    <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary-500 text-[11px] font-bold text-white">
-                      {conv.unread}
+                    <div className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-primary-500 px-1.5 text-[11px] font-bold text-white">
+                      {conv.unread > 99 ? "99+" : conv.unread}
                     </div>
                   )}
                 </Link>

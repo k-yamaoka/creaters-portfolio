@@ -6,6 +6,8 @@ import { STATUS_FLOW, STATUS_META, getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
+import { MessageThread } from "../../messages/[partnerId]/message-thread";
+import { markAsRead } from "../../messages/actions";
 
 export default async function OrderDetailPage({
   params,
@@ -77,6 +79,21 @@ export default async function OrderDetailPage({
     order.status as (typeof STATUS_FLOW)[number]
   );
   const partnerUserId = isCreator ? clientData.user_id : creatorData.user_id;
+  const partnerName = isCreator
+    ? clientData.profiles.display_name
+    : creatorData.profiles.display_name;
+
+  // 二者間の全メッセージを取得 (左メニュー「メッセージ」と完全同期)
+  const { data: threadMessages } = await supabase
+    .from("messages")
+    .select("*")
+    .or(
+      `and(sender_id.eq.${user.id},receiver_id.eq.${partnerUserId}),and(sender_id.eq.${partnerUserId},receiver_id.eq.${user.id})`
+    )
+    .order("created_at", { ascending: true });
+
+  // 既読化
+  await markAsRead(partnerUserId);
 
   return (
     <div>
@@ -233,19 +250,48 @@ export default async function OrderDetailPage({
           {/* Participants */}
           <div className="rounded-2xl bg-white p-6 shadow-card">
             <h2 className="text-sm font-bold text-[#828282]">取引相手</h2>
-            <p className="mt-2 font-bold text-[#222]">
-              {isCreator
-                ? clientData.profiles.display_name
-                : creatorData.profiles.display_name}
-            </p>
+            <p className="mt-2 font-bold text-[#222]">{partnerName}</p>
             <Link
               href={`/dashboard/messages/${partnerUserId}`}
               className="btn-secondary mt-3 w-full text-sm"
             >
-              メッセージを送る
+              フルスクリーンで開く
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* ==============================
+          下部メッセージパネル (左メニュー「メッセージ」と同期)
+          ============================== */}
+      <div className="mt-8 rounded-2xl bg-white p-6 shadow-card">
+        <div className="mb-3 flex items-center justify-between border-b border-[#F2F2F2] pb-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-600">
+              {partnerName[0]}
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#222]">
+                {partnerName} とのメッセージ
+              </h2>
+              <p className="text-xs text-[#828282]">
+                左メニューの「メッセージ」と同期されています
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/dashboard/messages/${partnerUserId}`}
+            className="text-xs font-medium text-primary-500 hover:underline"
+          >
+            別画面で開く →
+          </Link>
+        </div>
+        <MessageThread
+          initialMessages={threadMessages ?? []}
+          currentUserId={user.id}
+          partnerId={partnerUserId}
+          compact
+        />
       </div>
     </div>
   );
