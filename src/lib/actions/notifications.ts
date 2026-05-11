@@ -41,3 +41,22 @@ export async function markNotificationAsRead(id: string) {
 
   revalidatePath("/", "layout");
 }
+
+/**
+ * 通知を完全に削除する (タップでベルから消す)。
+ */
+export async function deleteNotification(id: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("notifications")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  revalidatePath("/", "layout");
+}

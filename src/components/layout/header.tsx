@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   markAllNotificationsAsRead,
-  markNotificationAsRead,
+  deleteNotification,
 } from "@/lib/actions/notifications";
 
 type User = {
@@ -42,7 +42,15 @@ export function Header({
   const [notifOpen, setNotifOpen] = useState(false);
   const router = useRouter();
 
-  const serverUnreadNotifs = notifications.filter((n) => !n.is_read).length;
+  // タップで消した通知 ID (楽観的に即非表示)
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  const visibleNotifications = notifications.filter(
+    (n) => !dismissedIds.has(n.id)
+  );
+
+  const serverUnreadNotifs = visibleNotifications.filter(
+    (n) => !n.is_read
+  ).length;
   // 開いた直後は表示用カウントを 0 にする (再フェッチを待たずバッジ即消し)
   const [unreadOverride, setUnreadOverride] = useState<number | null>(null);
   const unreadNotifs = unreadOverride ?? serverUnreadNotifs;
@@ -175,20 +183,26 @@ export function Header({
                         <p className="font-display text-sm font-medium text-ink">通知</p>
                       </div>
                       <div className="max-h-80 overflow-y-auto">
-                        {notifications.length === 0 ? (
+                        {visibleNotifications.length === 0 ? (
                           <div className="px-4 py-8 text-center text-sm text-ink-soft">
                             通知はありません
                           </div>
                         ) : (
-                          notifications.slice(0, 10).map((n) => (
+                          visibleNotifications.slice(0, 10).map((n) => (
                             <Link
                               key={n.id}
                               href={n.link || "/dashboard"}
                               onClick={() => {
                                 setNotifOpen(false);
-                                if (!n.is_read) {
-                                  void markNotificationAsRead(n.id);
-                                }
+                                // 楽観的にリストから削除 → DBからも削除
+                                setDismissedIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.add(n.id);
+                                  return next;
+                                });
+                                void deleteNotification(n.id).then(() => {
+                                  router.refresh();
+                                });
                               }}
                               className={`block border-b border-ink/10 px-4 py-3 transition-colors last:border-0 hover:bg-paper-deep ${!n.is_read ? "bg-primary-50" : ""}`}
                             >
