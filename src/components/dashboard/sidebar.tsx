@@ -84,7 +84,8 @@ const creatorLinks = [
   },
   {
     href: "/dashboard/messages",
-    label: "メッセージ",
+    label: "受信箱",
+    sub: true,
     icon: (
       <path
         strokeLinecap="round"
@@ -166,18 +167,21 @@ export function Sidebar({ role }: SidebarProps) {
               ? pathname === "/dashboard"
               : pathname.startsWith(link.href);
 
+          const isSub = "sub" in link && link.sub;
           return (
             <Link
               key={link.href}
               href={link.href}
-              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-3 rounded-xl px-4 transition-colors ${
+                isSub ? "ml-6 py-2 text-xs" : "py-3 text-sm font-medium"
+              } ${
                 isActive
                   ? "bg-primary-500 text-white"
                   : "text-[#4F4F4F] hover:bg-[#F2F2F2]"
               }`}
             >
               <svg
-                className="h-5 w-5"
+                className={isSub ? "h-4 w-4" : "h-5 w-5"}
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}

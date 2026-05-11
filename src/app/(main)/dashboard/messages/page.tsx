@@ -141,11 +141,15 @@ export default async function MessagesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#222]">メッセージ</h1>
+      <h1 className="text-2xl font-bold text-[#222]">受信箱</h1>
       <p className="mt-2 text-sm text-[#828282]">
-        クリエイター・クライアントとのやりとり
+        応募・スカウト・取引前のやり取りを含む全会話。取引中の連絡は{" "}
+        <a href="/dashboard/orders" className="text-primary-500 hover:underline">
+          取引管理
+        </a>{" "}
+        の各取引詳細でも同じ内容を閲覧・送信できます
         <span className="ml-2 text-[11px] text-[#BDBDBD]">
-          （未読 → 最終更新の新しい順で表示）
+          （未読 → 最終更新の新しい順）
         </span>
       </p>
 
