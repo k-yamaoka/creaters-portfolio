@@ -32,9 +32,11 @@ type StageConfig = {
 
 const ACTION_MAP: Record<OrderStatus, StageConfig> = {
   consultation: {
-    creator: {
-      label: "見積もりを送信",
-      nextStatus: "quoting",
+    // クリエイター側の「見積もりを送信」ボタンは廃止 (要件 #5)。
+    // 見積もり内容はメッセージで詰め、企業側が「発注に進む（契約へ）」で契約段階に進める。
+    client: {
+      label: "発注に進む（契約へ）",
+      nextStatus: "contract",
       style: "btn-primary",
     },
     cancelable: true,
@@ -49,7 +51,6 @@ const ACTION_MAP: Record<OrderStatus, StageConfig> = {
   },
   contract: {
     useStripePayment: true,
-    // Stripe未設定時のフォールバック (テスト用)
     client: {
       label: "仮払いする（テスト）",
       nextStatus: "data_sharing",
@@ -109,9 +110,7 @@ export function OrderActions({
     setLoading(true);
     setError(null);
     const result = await updateOrderStatus(orderId, nextStatus);
-    if (result?.error) {
-      setError(result.error);
-    }
+    if (result?.error) setError(result.error);
     setLoading(false);
   };
 
@@ -125,11 +124,8 @@ export function OrderActions({
         body: JSON.stringify({ orderId }),
       });
       const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-      } else {
-        window.location.reload();
-      }
+      if (data.error) setError(data.error);
+      else window.location.reload();
     } catch {
       setError("エラーが発生しました");
     }
@@ -140,32 +136,65 @@ export function OrderActions({
     setLoading(true);
     setError(null);
     const result = await updateOrderStatus(orderId, "revision");
-    if (result?.error) {
-      setError(result.error);
-    }
+    if (result?.error) setError(result.error);
     setLoading(false);
   };
 
   const handleCancel = async () => {
-    if (!confirm("この取引をキャンセルしますか？")) return;
+    if (!confirm("この案件をキャンセルしますか？")) return;
     setLoading(true);
     const result = await updateOrderStatus(orderId, "cancelled");
-    if (result?.error) {
-      setError(result.error);
-    }
+    if (result?.error) setError(result.error);
     setLoading(false);
   };
 
-  // 契約ステップでの Stripe 決済 (クライアント側)
   const showStripePayment =
     config.useStripePayment && !isCreator && hasStripeKey;
-  // 納品完了ステップでの Stripe キャプチャ (クライアント側、未確定時のみ)
   const showStripeCapture =
     config.useStripeCapture &&
     !isCreator &&
     hasStripeKey &&
     escrowStatus !== "released";
 
+  // クリエイター側: 「アクション」枠組みを廃止し、ボタンを単独で配置
+  if (isCreator) {
+    const showRevision = false; // クリエイターには修正依頼ボタン無し
+    const hasAdvance = !!action;
+    const showCancel = config.cancelable;
+    if (!hasAdvance && !showCancel && !showRevision) return null;
+
+    return (
+      <div className="space-y-3">
+        {error && (
+          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+        {action && (
+          <button
+            type="button"
+            onClick={() => handleAction(action.nextStatus)}
+            disabled={loading}
+            className={`${action.style} w-full text-sm disabled:opacity-50`}
+          >
+            {loading ? "処理中..." : action.label}
+          </button>
+        )}
+        {showCancel && (
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={loading}
+            className="block w-full rounded-pill border-2 border-red-200 bg-white px-8 py-3 text-sm font-bold text-red-500 transition-colors hover:border-red-300 hover:bg-red-50 disabled:opacity-50"
+          >
+            この案件をキャンセルする
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // クライアント側: 従来のアクションパネル
   return (
     <div className="rounded-2xl bg-white p-6 shadow-card">
       <h2 className="mb-4 text-lg font-bold text-[#222]">アクション</h2>
@@ -177,10 +206,8 @@ export function OrderActions({
       )}
 
       <div className="flex flex-wrap gap-3">
-        {/* Stripe 仮払い */}
         {showStripePayment && <PaymentButton orderId={orderId} />}
 
-        {/* Stripe キャプチャ (検収) */}
         {showStripeCapture && (
           <button
             type="button"
@@ -192,7 +219,6 @@ export function OrderActions({
           </button>
         )}
 
-        {/* 通常アクション */}
         {action && !showStripePayment && !showStripeCapture && (
           <button
             type="button"
@@ -204,8 +230,7 @@ export function OrderActions({
           </button>
         )}
 
-        {/* Stripe 未設定時の決済フォールバック */}
-        {config.useStripePayment && !isCreator && !hasStripeKey && action && (
+        {config.useStripePayment && !hasStripeKey && action && (
           <button
             type="button"
             onClick={() => handleAction(action.nextStatus)}
@@ -216,9 +241,7 @@ export function OrderActions({
           </button>
         )}
 
-        {/* Stripe 未設定時のキャプチャフォールバック */}
         {config.useStripeCapture &&
-          !isCreator &&
           !hasStripeKey &&
           escrowStatus !== "released" &&
           action && (
@@ -232,21 +255,17 @@ export function OrderActions({
             </button>
           )}
 
-        {/* 修正依頼 (クライアント、納品完了直後・検収前のみ) */}
-        {!isCreator &&
-          currentStatus === "delivered" &&
-          escrowStatus !== "released" && (
-            <button
-              type="button"
-              onClick={handleRevision}
-              disabled={loading}
-              className="btn-secondary text-sm disabled:opacity-50"
-            >
-              修正を依頼
-            </button>
-          )}
+        {currentStatus === "delivered" && escrowStatus !== "released" && (
+          <button
+            type="button"
+            onClick={handleRevision}
+            disabled={loading}
+            className="btn-secondary text-sm disabled:opacity-50"
+          >
+            修正を依頼
+          </button>
+        )}
 
-        {/* キャンセル */}
         {config.cancelable && (
           <button
             type="button"
@@ -254,7 +273,7 @@ export function OrderActions({
             disabled={loading}
             className="btn-white text-sm text-red-500 disabled:opacity-50"
           >
-            キャンセル
+            この案件をキャンセルする
           </button>
         )}
 
@@ -264,9 +283,7 @@ export function OrderActions({
           !config.cancelable &&
           currentStatus !== "delivered" && (
             <p className="text-sm text-[#828282]">
-              {isCreator
-                ? "クライアントの対応をお待ちください"
-                : "クリエイターの対応をお待ちください"}
+              クリエイターの対応をお待ちください
             </p>
           )}
       </div>

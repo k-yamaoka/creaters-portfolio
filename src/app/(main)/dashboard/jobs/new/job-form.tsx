@@ -131,7 +131,7 @@ export function JobForm() {
 
       {/* Budget & Dates */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-6 text-lg font-bold text-[#222]">予算・スケジュール</h2>
+        <h2 className="mb-6 text-lg font-bold text-[#222]">見積もり・スケジュール</h2>
         <div className="space-y-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
@@ -139,7 +139,7 @@ export function JobForm() {
                 htmlFor="budget_min"
                 className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
               >
-                予算下限（円）
+                見積もり下限（円）
               </label>
               <input
                 id="budget_min"
@@ -155,7 +155,7 @@ export function JobForm() {
                 htmlFor="budget_max"
                 className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
               >
-                予算上限（円）
+                見積もり上限（円）
               </label>
               <input
                 id="budget_max"

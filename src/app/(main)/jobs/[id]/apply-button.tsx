@@ -99,18 +99,18 @@ export function ApplyButton({
           placeholder="300000"
         />
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
           onClick={() => setShowForm(false)}
-          className="btn-white flex-1 text-sm"
+          className="text-sm text-[#828282] hover:text-[#222]"
         >
-          キャンセル
+          ← 閉じる
         </button>
         <button
           type="submit"
           disabled={sending}
-          className="btn-primary flex-1 text-sm disabled:opacity-50"
+          className="btn-primary px-10 text-sm disabled:opacity-50"
         >
           {sending ? "送信中..." : "応募する"}
         </button>

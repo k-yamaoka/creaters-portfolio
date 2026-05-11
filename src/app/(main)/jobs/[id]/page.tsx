@@ -147,61 +147,66 @@ export default async function JobDetailPage({
               {job.description.replace(/\\n/g, "\n")}
             </div>
           </div>
-        </div>
 
-        {/* Right: Actions */}
-        <div className="space-y-6">
-          <div className="sticky top-24 space-y-6">
-            {/* Apply */}
-            {isCreator && user?.creator_profile && (
-              <div className="rounded-2xl bg-white p-6 shadow-card">
-                {hasApplied ? (
-                  <div className="text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                      <svg
-                        className="h-6 w-6 text-green-600"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
-                    </div>
-                    <p className="mt-3 text-sm font-bold text-[#222]">
-                      応募済みです
-                    </p>
-                    <p className="mt-1 text-xs text-[#828282]">
-                      企業からの返答をお待ちください
-                    </p>
+          {/* Apply form (案件詳細と同じコンテンツ幅) */}
+          {isCreator && user?.creator_profile && (
+            <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+              {hasApplied ? (
+                <div className="text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                    <svg
+                      className="h-6 w-6 text-green-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="m4.5 12.75 6 6 9-13.5"
+                      />
+                    </svg>
                   </div>
-                ) : (
+                  <p className="mt-3 text-sm font-bold text-[#222]">
+                    応募済みです
+                  </p>
+                  <p className="mt-1 text-xs text-[#828282]">
+                    企業からの返答をお待ちください
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <h2 className="mb-4 text-lg font-bold text-[#222]">
+                    この案件に応募する
+                  </h2>
                   <ApplyButton
                     jobId={job.id}
                     creatorId={user.creator_profile.id}
                   />
-                )}
-              </div>
-            )}
+                </>
+              )}
+            </div>
+          )}
 
-            {!user && (
-              <div className="rounded-2xl bg-white p-6 shadow-card text-center">
-                <p className="text-sm text-[#828282]">
-                  応募するにはログインが必要です
-                </p>
-                <Link
-                  href="/login"
-                  className="btn-primary mt-4 inline-block w-full text-sm"
-                >
-                  ログイン
-                </Link>
-              </div>
-            )}
+          {!user && (
+            <div className="rounded-2xl bg-white p-6 text-center shadow-card sm:p-8">
+              <p className="text-sm text-[#828282]">
+                応募するにはログインが必要です
+              </p>
+              <Link
+                href="/login"
+                className="btn-primary mt-4 inline-block text-sm"
+              >
+                ログイン
+              </Link>
+            </div>
+          )}
+        </div>
 
+        {/* Right: Sidebar (Company + Stats) */}
+        <div className="space-y-6">
+          <div className="sticky top-24 space-y-6">
             {/* Company info */}
             <div className="rounded-2xl bg-white p-6 shadow-card">
               <h3 className="text-sm font-bold text-[#828282]">掲載企業</h3>
