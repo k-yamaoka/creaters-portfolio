@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createNotification, sendSystemMessage } from "@/lib/notify";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export async function POST(request: NextRequest) {
 
   const { jobId, creatorId, message, proposed_price } = await request.json();
 
+  // 1. 応募を登録（trigger が application_count を自動同期）
   const { error } = await supabase.from("job_applications").insert({
     job_id: jobId,
     creator_id: creatorId,
@@ -27,24 +29,43 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    return NextResponse.json(
-      { error: "応募に失敗しました" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "応募に失敗しました" }, { status: 500 });
   }
 
-  // Increment application count
+  // 2. 案件オーナー(企業)に通知 + システムメッセージ
   const { data: job } = await supabase
     .from("jobs")
-    .select("application_count")
+    .select(
+      "id, title, client:client_profiles!jobs_client_id_fkey ( user_id )"
+    )
     .eq("id", jobId)
     .single();
 
-  if (job) {
-    await supabase
-      .from("jobs")
-      .update({ application_count: (job.application_count || 0) + 1 })
-      .eq("id", jobId);
+  const clientUserId =
+    (job?.client as unknown as { user_id: string } | null)?.user_id ?? null;
+
+  if (clientUserId && job) {
+    const proposed = proposed_price
+      ? `\n提案金額: ¥${Number(proposed_price).toLocaleString()}`
+      : "";
+    const snippet = (message || "")
+      .replace(/\s+/g, " ")
+      .slice(0, 140);
+    const body = `【新規応募】「${job.title}」に応募が届きました。${proposed}\n\n${snippet}${snippet.length === 140 ? "…" : ""}`;
+
+    await sendSystemMessage({
+      senderUserId: user.id,
+      receiverUserId: clientUserId,
+      content: body,
+    });
+
+    await createNotification({
+      userId: clientUserId,
+      type: "job_application",
+      title: `「${job.title}」に新規応募`,
+      body: snippet,
+      link: `/dashboard/jobs/${jobId}`,
+    });
   }
 
   return NextResponse.json({ success: true });

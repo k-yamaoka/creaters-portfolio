@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 
 type Application = {
@@ -14,6 +15,7 @@ type Application = {
   created_at: string;
   creator: {
     id: string;
+    user_id: string;
     bio: string;
     rating: number;
     review_count: number;
@@ -40,15 +42,39 @@ export function ApplicationList({
   jobId: string;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const handleAction = async (applicationId: string, newStatus: string) => {
+    if (newStatus === "accepted") {
+      if (
+        !confirm(
+          "このクリエイターを採用しますか?\n他の応募者は自動的に「不採用」となり、案件は締切られて取引(相談中)が自動生成されます。"
+        )
+      )
+        return;
+    } else if (newStatus === "rejected") {
+      if (!confirm("このクリエイターを不採用にしますか?")) return;
+    }
     setLoading(applicationId);
-    await fetch("/api/jobs/applications/update", {
+    setError(null);
+    const res = await fetch("/api/jobs/applications/update", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ applicationId, status: newStatus, jobId }),
     });
-    window.location.reload();
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      setError(data.error ?? "更新に失敗しました");
+      setLoading(null);
+      return;
+    }
+    if (newStatus === "accepted" && data.orderId) {
+      router.push(`/dashboard/orders/${data.orderId}`);
+      return;
+    }
+    router.refresh();
+    setLoading(null);
   };
 
   if (applications.length === 0) {
@@ -61,6 +87,11 @@ export function ApplicationList({
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
       {applications.map((app) => {
         const creator = app.creator;
         const profile = creator?.profiles;
@@ -70,20 +101,17 @@ export function ApplicationList({
           label: app.status,
           color: "bg-gray-100 text-gray-500",
         };
+        const isPending = app.status === "pending";
+        const isLoading = loading === app.id;
 
         return (
-          <div
-            key={app.id}
-            className="rounded-2xl bg-white p-6 shadow-card"
-          >
+          <div key={app.id} className="rounded-2xl bg-white p-6 shadow-card">
             <div className="flex items-start gap-4">
-              {/* Avatar */}
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-600">
                 {initial}
               </div>
 
               <div className="min-w-0 flex-1">
-                {/* Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Link
@@ -103,7 +131,6 @@ export function ApplicationList({
                   </span>
                 </div>
 
-                {/* Creator meta */}
                 <div className="mt-1 flex flex-wrap gap-3 text-xs text-[#828282]">
                   {creator.location && <span>{creator.location}</span>}
                   <span>経験{creator.years_of_experience}年</span>
@@ -112,7 +139,6 @@ export function ApplicationList({
                   </span>
                 </div>
 
-                {/* Proposed price */}
                 {app.proposed_price && (
                   <p className="mt-2 text-sm">
                     <span className="text-[#828282]">提案金額: </span>
@@ -122,38 +148,45 @@ export function ApplicationList({
                   </p>
                 )}
 
-                {/* Message */}
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[#4F4F4F]">
                   {app.message}
                 </p>
 
-                {/* Actions */}
-                {app.status === "pending" && (
-                  <div className="mt-4 flex gap-3">
+                {/* 4ボタン: 採用 / 不採用 / メッセージ / プロフィール */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {isPending && (
                     <button
                       type="button"
                       onClick={() => handleAction(app.id, "accepted")}
-                      disabled={loading === app.id}
+                      disabled={isLoading}
                       className="btn-primary text-xs disabled:opacity-50"
                     >
-                      {loading === app.id ? "処理中..." : "採用する"}
+                      {isLoading ? "処理中..." : "採用する"}
                     </button>
+                  )}
+                  {isPending && (
                     <button
                       type="button"
                       onClick={() => handleAction(app.id, "rejected")}
-                      disabled={loading === app.id}
-                      className="btn-white text-xs text-[#828282] disabled:opacity-50"
+                      disabled={isLoading}
+                      className="btn-white text-xs text-red-500 disabled:opacity-50"
                     >
                       不採用
                     </button>
-                    <Link
-                      href={`/dashboard/messages/${creator.profiles ? (creator as unknown as { profiles: { display_name: string }; user_id?: string }).user_id ?? creator.id : creator.id}`}
-                      className="btn-white text-xs"
-                    >
-                      メッセージ
-                    </Link>
-                  </div>
-                )}
+                  )}
+                  <Link
+                    href={`/dashboard/messages/${creator.user_id}`}
+                    className="btn-white text-xs"
+                  >
+                    メッセージ
+                  </Link>
+                  <Link
+                    href={`/creators/${creator.id}`}
+                    className="btn-white text-xs"
+                  >
+                    プロフィール
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

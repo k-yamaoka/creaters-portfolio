@@ -25,14 +25,14 @@ export default async function DashboardJobDetailPage({
 
   if (!job) notFound();
 
-  // Get applications with creator info
+  // Get applications with creator info (user_id を含めてメッセージ画面リンク用に)
   const { data: applications } = await supabase
     .from("job_applications")
     .select(
       `
       *,
       creator:creator_profiles!job_applications_creator_id_fkey (
-        id, bio, rating, review_count, location, years_of_experience,
+        id, user_id, bio, rating, review_count, location, years_of_experience,
         profiles!creator_profiles_user_id_fkey ( display_name, avatar_url )
       )
     `
