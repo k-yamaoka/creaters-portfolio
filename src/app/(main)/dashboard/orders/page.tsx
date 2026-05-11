@@ -2,19 +2,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
+import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  inquiry: { label: "相談中", color: "bg-blue-100 text-blue-700" },
-  quoted: { label: "見積済", color: "bg-purple-100 text-purple-700" },
-  accepted: { label: "受注済", color: "bg-indigo-100 text-indigo-700" },
-  paid: { label: "仮払済", color: "bg-yellow-100 text-yellow-700" },
-  in_progress: { label: "制作中", color: "bg-orange-100 text-orange-700" },
-  delivered: { label: "納品済", color: "bg-teal-100 text-teal-700" },
-  revision: { label: "修正中", color: "bg-pink-100 text-pink-700" },
-  completed: { label: "完了", color: "bg-green-100 text-green-700" },
-  cancelled: { label: "キャンセル", color: "bg-gray-100 text-gray-500" },
-};
 
 export default async function OrdersPage() {
   const user = await getCurrentUser();
@@ -89,10 +78,7 @@ export default async function OrdersPage() {
         ) : (
           <div className="space-y-3">
             {orders.map((order) => {
-              const status = STATUS_LABELS[order.status] ?? {
-                label: order.status,
-                color: "bg-gray-100 text-gray-500",
-              };
+              const status = getStatusMeta(order.status);
               const creatorProfiles = (order.creator as unknown as { profiles: { display_name: string } })?.profiles;
               const clientProfiles = (order.client as unknown as { profiles: { display_name: string } })?.profiles;
               const partnerName = isCreator
@@ -115,7 +101,7 @@ export default async function OrdersPage() {
                         <span
                           className={`shrink-0 rounded-pill px-2.5 py-0.5 text-[11px] font-bold ${status.color}`}
                         >
-                          {status.label}
+                          {status.shortLabel}
                         </span>
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#828282]">

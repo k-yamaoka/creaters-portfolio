@@ -3,6 +3,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { updateOrderStatus } from "../actions";
+import type { OrderStatus } from "@/lib/order-status";
 
 const PaymentButton = dynamic(
   () => import("./payment-button").then((m) => m.PaymentButton),
@@ -12,69 +13,64 @@ const PaymentButton = dynamic(
 type Props = {
   orderId: string;
   currentStatus: string;
+  escrowStatus?: string | null;
   isCreator: boolean;
   hasStripeKey: boolean;
 };
 
-// Define which actions are available for each status and role
-const ACTION_MAP: Record<
-  string,
-  {
-    creator?: { label: string; nextStatus: string; style: string };
-    client?: { label: string; nextStatus: string; style: string };
-    cancelable?: boolean;
-    useStripePayment?: boolean;
-    useStripeCapture?: boolean;
-  }
-> = {
-  inquiry: {
+type Action = { label: string; nextStatus: OrderStatus; style: string };
+
+type StageConfig = {
+  creator?: Action;
+  client?: Action;
+  cancelable?: boolean;
+  /** 契約後の Stripe 決済が必要 */
+  useStripePayment?: boolean;
+  /** 検収時の Stripe キャプチャ */
+  useStripeCapture?: boolean;
+};
+
+const ACTION_MAP: Record<OrderStatus, StageConfig> = {
+  consultation: {
     creator: {
       label: "見積もりを送信",
-      nextStatus: "quoted",
+      nextStatus: "quoting",
       style: "btn-primary",
     },
     cancelable: true,
   },
-  quoted: {
+  quoting: {
     client: {
-      label: "見積もりを承認",
-      nextStatus: "accepted",
+      label: "見積もりを承認（契約へ進む）",
+      nextStatus: "contract",
       style: "btn-primary",
     },
     cancelable: true,
   },
-  accepted: {
+  contract: {
     useStripePayment: true,
-    // Fallback if Stripe is not configured
+    // Stripe未設定時のフォールバック (テスト用)
     client: {
       label: "仮払いする（テスト）",
-      nextStatus: "paid",
+      nextStatus: "data_sharing",
       style: "btn-primary",
     },
     cancelable: true,
   },
-  paid: {
+  data_sharing: {
     creator: {
-      label: "制作を開始",
-      nextStatus: "in_progress",
+      label: "データ受領を確認 → 制作開始",
+      nextStatus: "production",
       style: "btn-primary",
     },
+    cancelable: true,
   },
-  in_progress: {
+  production: {
     creator: {
       label: "納品する",
       nextStatus: "delivered",
       style: "btn-primary",
     },
-  },
-  delivered: {
-    useStripeCapture: true,
-    client: {
-      label: "検収完了",
-      nextStatus: "completed",
-      style: "btn-primary",
-    },
-    creator: undefined,
   },
   revision: {
     creator: {
@@ -83,18 +79,28 @@ const ACTION_MAP: Record<
       style: "btn-primary",
     },
   },
+  delivered: {
+    useStripeCapture: true,
+    client: {
+      label: "検収完了（決済確定）",
+      nextStatus: "delivered",
+      style: "btn-primary",
+    },
+  },
+  cancelled: {},
 };
 
 export function OrderActions({
   orderId,
   currentStatus,
+  escrowStatus,
   isCreator,
   hasStripeKey,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const config = ACTION_MAP[currentStatus];
+  const config = ACTION_MAP[currentStatus as OrderStatus];
   if (!config) return null;
 
   const action = isCreator ? config.creator : config.client;
@@ -150,12 +156,15 @@ export function OrderActions({
     setLoading(false);
   };
 
-  // Show Stripe payment for accepted orders (client side)
+  // 契約ステップでの Stripe 決済 (クライアント側)
   const showStripePayment =
     config.useStripePayment && !isCreator && hasStripeKey;
-  // Show Stripe capture for delivered orders (client side)
+  // 納品完了ステップでの Stripe キャプチャ (クライアント側、未確定時のみ)
   const showStripeCapture =
-    config.useStripeCapture && !isCreator && hasStripeKey;
+    config.useStripeCapture &&
+    !isCreator &&
+    hasStripeKey &&
+    escrowStatus !== "released";
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-card">
@@ -168,10 +177,10 @@ export function OrderActions({
       )}
 
       <div className="flex flex-wrap gap-3">
-        {/* Stripe payment button for escrow */}
+        {/* Stripe 仮払い */}
         {showStripePayment && <PaymentButton orderId={orderId} />}
 
-        {/* Stripe capture for completion */}
+        {/* Stripe キャプチャ (検収) */}
         {showStripeCapture && (
           <button
             type="button"
@@ -183,7 +192,7 @@ export function OrderActions({
           </button>
         )}
 
-        {/* Regular actions (fallback or non-payment actions) */}
+        {/* 通常アクション */}
         {action && !showStripePayment && !showStripeCapture && (
           <button
             type="button"
@@ -195,7 +204,7 @@ export function OrderActions({
           </button>
         )}
 
-        {/* Fallback: non-Stripe payment */}
+        {/* Stripe 未設定時の決済フォールバック */}
         {config.useStripePayment && !isCreator && !hasStripeKey && action && (
           <button
             type="button"
@@ -207,31 +216,37 @@ export function OrderActions({
           </button>
         )}
 
-        {/* Fallback: non-Stripe capture */}
-        {config.useStripeCapture && !isCreator && !hasStripeKey && action && (
-          <button
-            type="button"
-            onClick={() => handleAction(action.nextStatus)}
-            disabled={loading}
-            className={`${action.style} text-sm disabled:opacity-50`}
-          >
-            {loading ? "処理中..." : action.label}
-          </button>
-        )}
+        {/* Stripe 未設定時のキャプチャフォールバック */}
+        {config.useStripeCapture &&
+          !isCreator &&
+          !hasStripeKey &&
+          escrowStatus !== "released" &&
+          action && (
+            <button
+              type="button"
+              onClick={() => handleAction(action.nextStatus)}
+              disabled={loading}
+              className={`${action.style} text-sm disabled:opacity-50`}
+            >
+              {loading ? "処理中..." : action.label}
+            </button>
+          )}
 
-        {/* Revision request (client only, when delivered) */}
-        {!isCreator && currentStatus === "delivered" && (
-          <button
-            type="button"
-            onClick={handleRevision}
-            disabled={loading}
-            className="btn-secondary text-sm disabled:opacity-50"
-          >
-            修正を依頼
-          </button>
-        )}
+        {/* 修正依頼 (クライアント、納品完了直後・検収前のみ) */}
+        {!isCreator &&
+          currentStatus === "delivered" &&
+          escrowStatus !== "released" && (
+            <button
+              type="button"
+              onClick={handleRevision}
+              disabled={loading}
+              className="btn-secondary text-sm disabled:opacity-50"
+            >
+              修正を依頼
+            </button>
+          )}
 
-        {/* Cancel */}
+        {/* キャンセル */}
         {config.cancelable && (
           <button
             type="button"

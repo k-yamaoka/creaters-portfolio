@@ -2,31 +2,10 @@ import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
+import { STATUS_FLOW, STATUS_META, getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  inquiry: { label: "相談中", color: "bg-blue-100 text-blue-700" },
-  quoted: { label: "見積済", color: "bg-purple-100 text-purple-700" },
-  accepted: { label: "受注済", color: "bg-indigo-100 text-indigo-700" },
-  paid: { label: "仮払済", color: "bg-yellow-100 text-yellow-700" },
-  in_progress: { label: "制作中", color: "bg-orange-100 text-orange-700" },
-  delivered: { label: "納品済", color: "bg-teal-100 text-teal-700" },
-  revision: { label: "修正依頼", color: "bg-pink-100 text-pink-700" },
-  completed: { label: "完了", color: "bg-green-100 text-green-700" },
-  cancelled: { label: "キャンセル", color: "bg-gray-100 text-gray-500" },
-};
-
-const STATUS_FLOW = [
-  "inquiry",
-  "quoted",
-  "accepted",
-  "paid",
-  "in_progress",
-  "delivered",
-  "completed",
-];
 
 export default async function OrderDetailPage({
   params,
@@ -60,9 +39,11 @@ export default async function OrderDetailPage({
 
   if (!order) notFound();
 
-  // Check if review exists
+  // 検収完了 (= delivered + escrow released) でレビュー対象
+  const isFullyCompleted =
+    order.status === "delivered" && order.escrow_status === "released";
   let hasReview = false;
-  if (order.status === "completed") {
+  if (isFullyCompleted) {
     const { data: review } = await supabase
       .from("reviews")
       .select("id")
@@ -91,12 +72,10 @@ export default async function OrderDetailPage({
     features: string[];
   } | null;
 
-  const status = STATUS_LABELS[order.status] ?? {
-    label: order.status,
-    color: "bg-gray-100 text-gray-500",
-  };
-
-  const currentStepIndex = STATUS_FLOW.indexOf(order.status);
+  const status = getStatusMeta(order.status);
+  const currentStepIndex = STATUS_FLOW.indexOf(
+    order.status as (typeof STATUS_FLOW)[number]
+  );
   const partnerUserId = isCreator ? clientData.user_id : creatorData.user_id;
 
   return (
@@ -117,7 +96,7 @@ export default async function OrderDetailPage({
             <span
               className={`rounded-pill px-3 py-1 text-xs font-bold ${status.color}`}
             >
-              {status.label}
+              {status.shortLabel}
             </span>
             <span>{order.order_number}</span>
             <span>
@@ -131,7 +110,7 @@ export default async function OrderDetailPage({
       <div className="mt-6 rounded-2xl bg-white p-6 shadow-card">
         <div className="flex items-center justify-between">
           {STATUS_FLOW.map((step, i) => {
-            const stepInfo = STATUS_LABELS[step];
+            const stepInfo = STATUS_META[step];
             const isCompleted = i <= currentStepIndex;
             const isCurrent = step === order.status;
 
@@ -139,6 +118,7 @@ export default async function OrderDetailPage({
               <div key={step} className="flex flex-1 items-center">
                 <div className="flex flex-col items-center">
                   <div
+                    title={stepInfo.description}
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
                       isCurrent
                         ? "bg-primary-500 text-white"
@@ -156,7 +136,7 @@ export default async function OrderDetailPage({
                     )}
                   </div>
                   <span className="mt-1 hidden text-[10px] text-[#828282] sm:block">
-                    {stepInfo.label}
+                    {stepInfo.shortLabel}
                   </span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
@@ -184,17 +164,18 @@ export default async function OrderDetailPage({
           </div>
 
           {/* Actions */}
-          {order.status !== "completed" && order.status !== "cancelled" && (
+          {order.status !== "cancelled" && !isFullyCompleted && (
             <OrderActions
               orderId={order.id}
               currentStatus={order.status}
+              escrowStatus={order.escrow_status}
               isCreator={isCreator}
               hasStripeKey={!!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
             />
           )}
 
-          {/* Review form - show for client on completed orders without review */}
-          {order.status === "completed" && !isCreator && !hasReview && (
+          {/* レビュー投稿フォーム - 検収完了かつレビュー未投稿のクライアントのみ */}
+          {isFullyCompleted && !isCreator && !hasReview && (
             <ReviewForm
               orderId={order.id}
               creatorId={creatorData.id}
@@ -202,7 +183,7 @@ export default async function OrderDetailPage({
             />
           )}
 
-          {order.status === "completed" && hasReview && (
+          {isFullyCompleted && hasReview && (
             <div className="rounded-2xl bg-green-50 p-6 text-center">
               <p className="text-sm font-bold text-green-700">レビュー投稿済み</p>
             </div>

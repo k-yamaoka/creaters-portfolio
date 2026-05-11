@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
-// Confirm payment and update order status to "paid"
+// Confirm payment: contract → data_sharing (escrow held)
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   const { error } = await supabase
     .from("orders")
     .update({
-      status: "paid",
+      status: "data_sharing",
       escrow_status: "held",
     })
     .eq("id", orderId);

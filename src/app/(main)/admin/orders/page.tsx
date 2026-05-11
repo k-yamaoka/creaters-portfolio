@@ -1,18 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/utils";
+import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
-
-const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-  inquiry: { label: "相談中", color: "bg-blue-100 text-blue-700" },
-  quoted: { label: "見積済", color: "bg-purple-100 text-purple-700" },
-  accepted: { label: "受注済", color: "bg-indigo-100 text-indigo-700" },
-  paid: { label: "仮払済", color: "bg-yellow-100 text-yellow-700" },
-  in_progress: { label: "制作中", color: "bg-orange-100 text-orange-700" },
-  delivered: { label: "納品済", color: "bg-teal-100 text-teal-700" },
-  revision: { label: "修正中", color: "bg-pink-100 text-pink-700" },
-  completed: { label: "完了", color: "bg-green-100 text-green-700" },
-  cancelled: { label: "キャンセル", color: "bg-gray-100 text-gray-500" },
-};
 
 export default async function AdminOrdersPage() {
   const supabase = await createClient();
@@ -95,10 +84,7 @@ export default async function AdminOrdersPage() {
           </thead>
           <tbody>
             {(orders ?? []).map((order) => {
-              const status = STATUS_LABELS[order.status] ?? {
-                label: order.status,
-                color: "bg-gray-100 text-gray-500",
-              };
+              const status = getStatusMeta(order.status);
               const creatorName =
                 (
                   order.creator as unknown as {
@@ -138,7 +124,7 @@ export default async function AdminOrdersPage() {
                     <span
                       className={`rounded-pill px-2.5 py-0.5 text-[11px] font-bold ${status.color}`}
                     >
-                      {status.label}
+                      {status.shortLabel}
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right text-sm font-bold text-[#222]">

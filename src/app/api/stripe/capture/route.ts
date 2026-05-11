@@ -42,11 +42,10 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Update order to completed
+  // 検収完了: status は delivered のまま、escrow を released に
   const { error } = await supabase
     .from("orders")
     .update({
-      status: "completed",
       escrow_status: "released",
       completed_at: new Date().toISOString(),
     })

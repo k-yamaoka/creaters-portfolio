@@ -48,16 +48,17 @@ export type Order = {
   creator_id: string;
   package_id: string;
   status:
-    | "pending"
-    | "accepted"
-    | "in_progress"
-    | "delivered"
+    | "consultation"
+    | "quoting"
+    | "contract"
+    | "data_sharing"
+    | "production"
     | "revision"
-    | "completed"
+    | "delivered"
     | "cancelled";
   total_amount: number;
   platform_fee: number;
-  escrow_status: "held" | "released" | "refunded";
+  escrow_status: "pending" | "held" | "released" | "refunded";
   created_at: string;
   updated_at: string;
 };

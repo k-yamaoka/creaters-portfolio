@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  if (order.status !== "accepted") {
+  if (order.status !== "contract") {
     return NextResponse.json(
-      { error: "Order must be in accepted status" },
+      { error: "Order must be in contract status" },
       { status: 400 }
     );
   }

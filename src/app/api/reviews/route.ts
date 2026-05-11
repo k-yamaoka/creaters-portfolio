@@ -21,14 +21,18 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Check order is completed
+  // 納品完了 + 検収済み(escrow released) のみレビュー可
   const { data: order } = await supabase
     .from("orders")
-    .select("status")
+    .select("status, escrow_status")
     .eq("id", orderId)
     .single();
 
-  if (!order || order.status !== "completed") {
+  if (
+    !order ||
+    order.status !== "delivered" ||
+    order.escrow_status !== "released"
+  ) {
     return NextResponse.json(
       { error: "完了済みの取引のみレビューできます" },
       { status: 400 }

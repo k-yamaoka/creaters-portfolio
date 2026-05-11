@@ -22,13 +22,19 @@ export default async function AdminDashboardPage() {
   // Order stats
   const { data: orders } = await supabase
     .from("orders")
-    .select("total_amount, platform_fee, status");
+    .select("total_amount, platform_fee, status, escrow_status");
 
   const totalOrders = orders?.length ?? 0;
-  const completedOrders = orders?.filter((o) => o.status === "completed") ?? [];
+  // 「完了」= 納品完了 + 検収済み(escrow released)
+  const completedOrders =
+    orders?.filter(
+      (o) => o.status === "delivered" && o.escrow_status === "released"
+    ) ?? [];
   const activeOrders =
     orders?.filter(
-      (o) => !["completed", "cancelled"].includes(o.status)
+      (o) =>
+        o.status !== "cancelled" &&
+        !(o.status === "delivered" && o.escrow_status === "released")
     ) ?? [];
 
   const gmv = completedOrders.reduce((sum, o) => sum + o.total_amount, 0);

@@ -58,7 +58,7 @@ export async function createOrder(formData: FormData) {
       total_amount: totalAmount,
       platform_fee: platformFee,
       creator_payout: creatorPayout,
-      status: "inquiry",
+      status: "consultation",
     })
     .select("id")
     .single();
@@ -104,10 +104,8 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 
   if (newStatus === "delivered") {
     updateData.delivered_at = new Date().toISOString();
-  } else if (newStatus === "completed") {
-    updateData.completed_at = new Date().toISOString();
-    updateData.escrow_status = "released";
-  } else if (newStatus === "paid") {
+  } else if (newStatus === "data_sharing") {
+    // 契約後のテスト用フォールバック: Stripeなしで data_sharing に進めた場合は escrow held に
     updateData.escrow_status = "held";
   } else if (newStatus === "cancelled") {
     updateData.escrow_status = "refunded";
