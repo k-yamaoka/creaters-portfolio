@@ -86,21 +86,31 @@ export function MessageThread({
 
   const mergeMessage = useCallback((incoming: Message) => {
     setMessages((prev) => {
-      // 同 ID は無視
+      // 既に同 ID が存在する場合は無視 (自分送信は sendMessage の戻り値で先に差し替え済み)
       if (prev.some((m) => m.id === incoming.id)) return prev;
-      // 楽観挿入(temp) と内容一致するものを差し替え
-      const tempMatchIdx = prev.findIndex(
-        (m) =>
-          m.id.startsWith("temp-") &&
-          m.sender_id === incoming.sender_id &&
-          m.content === incoming.content
-      );
-      if (tempMatchIdx >= 0) {
-        const next = [...prev];
-        next[tempMatchIdx] = incoming;
-        return next;
-      }
       return [...prev, incoming].sort((a, b) =>
+        a.created_at.localeCompare(b.created_at)
+      );
+    });
+  }, []);
+
+  const replaceTemp = useCallback((tempId: string, real: Message) => {
+    setMessages((prev) => {
+      const idx = prev.findIndex((m) => m.id === tempId);
+      if (idx === -1) {
+        // temp が見つからない (realtime が先着) → ID 重複なら何もしない、無ければ追加
+        if (prev.some((m) => m.id === real.id)) return prev;
+        return [...prev, real].sort((a, b) =>
+          a.created_at.localeCompare(b.created_at)
+        );
+      }
+      // 既に realtime で real が入っていたら temp だけ消す
+      const realAlreadyIn = prev.some(
+        (m, i) => i !== idx && m.id === real.id
+      );
+      const next = prev.filter((_, i) => i !== idx);
+      if (!realAlreadyIn) next.push(real);
+      return next.sort((a, b) =>
         a.created_at.localeCompare(b.created_at)
       );
     });
@@ -173,10 +183,19 @@ export function MessageThread({
     fd.set("content", text);
     const result = await sendMessage(fd);
 
-    if (result?.error) {
+    if ("error" in result) {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setInput(text);
       setError(result.error);
+    } else {
+      replaceTemp(tempId, {
+        id: result.message.id,
+        sender_id: result.message.sender_id,
+        receiver_id: result.message.receiver_id,
+        content: result.message.content,
+        created_at: result.message.created_at,
+        is_read: result.message.is_read,
+      });
     }
     setSending(false);
     textareaRef.current?.focus();

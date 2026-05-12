@@ -1,11 +1,21 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { sendExternalNotification } from "@/lib/notify-external";
 
-export async function sendMessage(formData: FormData) {
+export type SentMessage = {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+};
+
+export async function sendMessage(
+  formData: FormData
+): Promise<{ message: SentMessage } | { error: string }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -17,13 +27,17 @@ export async function sendMessage(formData: FormData) {
 
   if (!content) return { error: "メッセージを入力してください" };
 
-  const { error } = await supabase.from("messages").insert({
-    sender_id: user.id,
-    receiver_id,
-    content,
-  });
+  const { data: inserted, error } = await supabase
+    .from("messages")
+    .insert({
+      sender_id: user.id,
+      receiver_id,
+      content,
+    })
+    .select("id, sender_id, receiver_id, content, created_at, is_read")
+    .single();
 
-  if (error) {
+  if (error || !inserted) {
     return { error: "メッセージの送信に失敗しました" };
   }
 
@@ -46,8 +60,7 @@ export async function sendMessage(formData: FormData) {
     });
   }
 
-  revalidatePath(`/dashboard/messages/${receiver_id}`);
-  return { success: true };
+  return { message: inserted as SentMessage };
 }
 
 export async function markAsRead(senderId: string) {
