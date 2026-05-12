@@ -26,6 +26,30 @@ export async function sendMessage(
   const content = (formData.get("content") as string).trim();
 
   if (!content) return { error: "メッセージを入力してください" };
+  if (!receiver_id || receiver_id === user.id) {
+    return { error: "送信先が正しくありません" };
+  }
+
+  // ロール制限: creator ↔ client のみ許可 (admin は全方向許可)
+  const { data: roles } = await supabase
+    .from("profiles")
+    .select("id, role")
+    .in("id", [user.id, receiver_id]);
+
+  const senderRole = roles?.find((r) => r.id === user.id)?.role;
+  const receiverRole = roles?.find((r) => r.id === receiver_id)?.role;
+
+  if (!senderRole || !receiverRole) {
+    return { error: "送信先が正しくありません" };
+  }
+  const isAllowedPair =
+    senderRole === "admin" ||
+    receiverRole === "admin" ||
+    (senderRole === "creator" && receiverRole === "client") ||
+    (senderRole === "client" && receiverRole === "creator");
+  if (!isAllowedPair) {
+    return { error: "この相手にはメッセージを送信できません" };
+  }
 
   const { data: inserted, error } = await supabase
     .from("messages")

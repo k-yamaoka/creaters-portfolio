@@ -21,6 +21,23 @@ export default async function CreatorDetailPage({
 
   // Fetch reviews
   const supabase = await createClient();
+
+  // 閲覧者のロール (メッセージ送信ボタンの表示制御に使用)
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser();
+  let viewerRole: string | null = null;
+  if (viewer) {
+    const { data: viewerProfile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", viewer.id)
+      .maybeSingle();
+    viewerRole = (viewerProfile?.role as string | undefined) ?? null;
+  }
+  // creator ↔ client のみメッセージ可。同ロール (creator → creator) は送信ボタンを出さない
+  const canMessageCreator = viewerRole === "client" || viewerRole === "admin";
+
   const { data: reviews } = await supabase
     .from("reviews")
     .select(
@@ -243,15 +260,17 @@ export default async function CreatorDetailPage({
               ))}
             </div>
 
-            {/* Contact button */}
-            <div className="mt-6">
-              <Link
-                href={`/dashboard/messages/${creator.user_id}`}
-                className="btn-secondary w-full text-sm"
-              >
-                メッセージを送る
-              </Link>
-            </div>
+            {/* Contact button (企業ユーザーのみ表示) */}
+            {canMessageCreator && (
+              <div className="mt-6">
+                <Link
+                  href={`/dashboard/messages/${creator.user_id}`}
+                  className="btn-secondary w-full text-sm"
+                >
+                  メッセージを送る
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

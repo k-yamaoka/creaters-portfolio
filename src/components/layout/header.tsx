@@ -28,15 +28,28 @@ type Notification = {
   created_at: string;
 };
 
+type Role = "creator" | "client" | "admin" | null;
+
 export function Header({
   user,
   unreadCount = 0,
   notifications = [],
+  role = null,
 }: {
   user?: User;
   unreadCount?: number;
   notifications?: Notification[];
+  role?: Role;
 }) {
+  const isCreator = role === "creator";
+  const isClient = role === "client";
+  const isAdmin = role === "admin";
+  // ゲスト or admin はクリエイター一覧を表示、client もクリエイターを探したい
+  const showCreatorsLink = !user || isClient || isAdmin;
+  // ゲスト or creator は案件一覧を表示、client は発注側なので非表示
+  const showJobsLink = !user || isCreator || isAdmin;
+  // client には「案件を発注する」CTA を表示
+  const showPostJobCta = isClient;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -168,18 +181,22 @@ export function Header({
           </Link>
 
           <nav className="hidden items-center gap-7 md:flex">
-            <Link
-              href="/creators"
-              className="relative text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
-            >
-              クリエイター
-            </Link>
-            <Link
-              href="/jobs"
-              className="text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
-            >
-              案件
-            </Link>
+            {showCreatorsLink && (
+              <Link
+                href="/creators"
+                className="relative text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
+              >
+                クリエイターを探す
+              </Link>
+            )}
+            {showJobsLink && (
+              <Link
+                href="/jobs"
+                className="text-[13px] font-medium tracking-wide text-ink transition-colors hover:text-primary-500"
+              >
+                案件を探す
+              </Link>
+            )}
             {user && (
               <Link
                 href="/dashboard"
@@ -201,6 +218,16 @@ export function Header({
         <div className="hidden items-center gap-2 md:flex">
           {user ? (
             <>
+              {showPostJobCta && (
+                <Link
+                  href="/dashboard/jobs/new"
+                  className="mr-2 inline-flex items-center gap-1.5 bg-primary-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-primary-600"
+                  style={{ borderRadius: "2px" }}
+                >
+                  案件を発注する
+                  <span aria-hidden>→</span>
+                </Link>
+              )}
               {/* Message icon with badge */}
               <Link
                 href="/dashboard/messages"
@@ -408,22 +435,36 @@ export function Header({
       {mobileMenuOpen && (
         <div className="fixed inset-x-0 top-[80px] border-t border-ink/10 bg-paper md:hidden">
           <div className="space-y-0 px-6 py-6">
-            <Link
-              href="/creators"
-              className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              クリエイター
-              <span className="text-primary-500">→</span>
-            </Link>
-            <Link
-              href="/jobs"
-              className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              案件
-              <span className="text-primary-500">→</span>
-            </Link>
+            {showCreatorsLink && (
+              <Link
+                href="/creators"
+                className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                クリエイターを探す
+                <span className="text-primary-500">→</span>
+              </Link>
+            )}
+            {showJobsLink && (
+              <Link
+                href="/jobs"
+                className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-ink"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                案件を探す
+                <span className="text-primary-500">→</span>
+              </Link>
+            )}
+            {showPostJobCta && (
+              <Link
+                href="/dashboard/jobs/new"
+                className="flex items-center justify-between border-b border-ink/15 py-4 font-display text-2xl font-medium tracking-tightest-x text-primary-500"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                案件を発注する
+                <span>→</span>
+              </Link>
+            )}
             {user && (
               <Link
                 href="/dashboard"

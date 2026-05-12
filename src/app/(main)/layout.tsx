@@ -13,9 +13,10 @@ export default async function MainLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Get unread message count and notifications
+  // Get unread message count, notifications, and role
   let unreadCount = 0;
   let notifications: { id: string; type: string; title: string; body: string | null; link: string | null; is_read: boolean; created_at: string }[] = [];
+  let role: "creator" | "client" | "admin" | null = null;
   if (user) {
     const { count } = await supabase
       .from("messages")
@@ -31,6 +32,14 @@ export default async function MainLayout({
       .order("created_at", { ascending: false })
       .limit(20);
     notifications = notifs ?? [];
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    const r = profile?.role as string | undefined;
+    role = r === "creator" || r === "client" || r === "admin" ? r : null;
   }
 
   return (
@@ -50,6 +59,7 @@ export default async function MainLayout({
         }
         unreadCount={unreadCount}
         notifications={notifications}
+        role={role}
       />
       <main className="flex-1 pt-20">{children}</main>
       <Footer />
