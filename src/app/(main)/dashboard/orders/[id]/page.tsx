@@ -8,6 +8,10 @@ import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
 import { MessageThread } from "../../messages/[partnerId]/message-thread";
 import { markAsRead } from "../../messages/actions";
+import {
+  EditingRequirements,
+  type EditingRequirementsData,
+} from "@/components/shared/editing-requirements";
 
 export default async function OrderDetailPage({
   params,
@@ -179,6 +183,30 @@ export default async function OrderDetailPage({
               {order.description || "詳細なし"}
             </p>
           </div>
+
+          {/* 編集要件 */}
+          <EditingRequirements
+            data={{
+              footage_minutes: order.footage_minutes ?? null,
+              finish_duration_unit: (order.finish_duration_unit as
+                | "sec"
+                | "min"
+                | null) ?? null,
+              finish_duration_min: order.finish_duration_min ?? null,
+              finish_duration_max: order.finish_duration_max ?? null,
+              count_min: order.count_min ?? null,
+              count_max: order.count_max ?? null,
+              work_types: order.work_types ?? [],
+              revision_count: order.revision_count ?? null,
+              software_options: order.software_options ?? [],
+              delivery_formats: order.delivery_formats ?? [],
+              delivery_days: order.delivery_days ?? null,
+              reference_url: order.reference_url ?? null,
+              is_recurring: !!order.is_recurring,
+              monthly_count: order.monthly_count ?? null,
+              client_type: order.client_type ?? null,
+            } satisfies EditingRequirementsData}
+          />
 
           {/* Actions */}
           {order.status !== "cancelled" && !isFullyCompleted && (
