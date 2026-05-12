@@ -39,6 +39,21 @@ export async function createJob(formData: FormData) {
   const deadline = formData.get("deadline") as string;
   const delivery_deadline = formData.get("delivery_deadline") as string;
 
+  // 編集要件
+  const footage_minutes = formData.get("footage_minutes") as string;
+  const finish_duration_unit = formData.get("finish_duration_unit") as string;
+  const finish_duration_min = formData.get("finish_duration_min") as string;
+  const finish_duration_max = formData.get("finish_duration_max") as string;
+  const work_types = formData.getAll("work_types") as string[];
+  const revision_count = formData.get("revision_count") as string;
+  const software_options = formData.getAll("software_options") as string[];
+  const delivery_formats = formData.getAll("delivery_formats") as string[];
+  const delivery_days = formData.get("delivery_days") as string;
+  const reference_url = formData.get("reference_url") as string;
+  const is_recurring = !!formData.get("is_recurring");
+  const monthly_count = formData.get("monthly_count") as string;
+  const client_type = formData.get("client_type") as string;
+
   const { error } = await supabase.from("jobs").insert({
     client_id: clientProfile.id,
     title,
@@ -50,6 +65,19 @@ export async function createJob(formData: FormData) {
     deadline: deadline || null,
     delivery_deadline: delivery_deadline || null,
     status: "open",
+    footage_minutes: footage_minutes ? parseInt(footage_minutes) : null,
+    finish_duration_unit: finish_duration_unit || null,
+    finish_duration_min: finish_duration_min ? Number(finish_duration_min) : null,
+    finish_duration_max: finish_duration_max ? Number(finish_duration_max) : null,
+    work_types,
+    revision_count: revision_count ? parseInt(revision_count) : null,
+    software_options,
+    delivery_formats,
+    delivery_days: delivery_days ? parseInt(delivery_days) : null,
+    reference_url: reference_url || null,
+    is_recurring,
+    monthly_count: is_recurring && monthly_count ? parseInt(monthly_count) : null,
+    client_type: client_type || null,
   });
 
   if (error) {

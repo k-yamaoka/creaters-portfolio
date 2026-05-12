@@ -5,6 +5,52 @@ import Link from "next/link";
 import { markAsRead } from "../actions";
 import { MessageThread } from "./message-thread";
 import { ApplicationActions } from "@/components/messages/application-actions";
+import {
+  EditingRequirementsCollapsible,
+  type EditingRequirementsData,
+} from "@/components/shared/editing-requirements";
+
+type JobRequirementsRow = {
+  id: string;
+  title: string;
+  footage_minutes: number | null;
+  finish_duration_unit: string | null;
+  finish_duration_min: number | null;
+  finish_duration_max: number | null;
+  work_types: string[] | null;
+  revision_count: number | null;
+  software_options: string[] | null;
+  delivery_formats: string[] | null;
+  delivery_days: number | null;
+  reference_url: string | null;
+  is_recurring: boolean | null;
+  monthly_count: number | null;
+  client_type: string | null;
+};
+
+const JOB_REQUIREMENT_FIELDS =
+  "id, title, footage_minutes, finish_duration_unit, finish_duration_min, finish_duration_max, work_types, revision_count, software_options, delivery_formats, delivery_days, reference_url, is_recurring, monthly_count, client_type";
+
+function toRequirementsData(job: JobRequirementsRow): EditingRequirementsData {
+  return {
+    footage_minutes: job.footage_minutes ?? null,
+    finish_duration_unit:
+      job.finish_duration_unit === "sec" || job.finish_duration_unit === "min"
+        ? job.finish_duration_unit
+        : null,
+    finish_duration_min: job.finish_duration_min ?? null,
+    finish_duration_max: job.finish_duration_max ?? null,
+    work_types: job.work_types ?? [],
+    revision_count: job.revision_count ?? null,
+    software_options: job.software_options ?? [],
+    delivery_formats: job.delivery_formats ?? [],
+    delivery_days: job.delivery_days ?? null,
+    reference_url: job.reference_url ?? null,
+    is_recurring: !!job.is_recurring,
+    monthly_count: job.monthly_count ?? null,
+    client_type: job.client_type ?? null,
+  };
+}
 
 export default async function ConversationPage({
   params,
@@ -35,6 +81,45 @@ export default async function ConversationPage({
     .order("created_at", { ascending: true });
 
   await markAsRead(partnerId);
+
+  // 両者間の最新応募 (pending/accepted) を引いて、その案件の編集要件を表示
+  let contextJob: JobRequirementsRow | null = null;
+  {
+    // クライアント側 user_id / クリエイター側 user_id を相手と自分から特定する
+    const clientUserId = me.role === "client" ? me.id : partnerId;
+    const creatorUserId = me.role === "creator" ? me.id : partnerId;
+
+    const { data: cp } = await supabase
+      .from("client_profiles")
+      .select("id")
+      .eq("user_id", clientUserId)
+      .single();
+    const { data: crp } = await supabase
+      .from("creator_profiles")
+      .select("id")
+      .eq("user_id", creatorUserId)
+      .single();
+
+    if (cp && crp) {
+      const { data: app } = await supabase
+        .from("job_applications")
+        .select(
+          `id, status, created_at,
+           job:jobs!job_applications_job_id_fkey ( ${JOB_REQUIREMENT_FIELDS}, client_id )`
+        )
+        .eq("creator_id", crp.id)
+        .in("status", ["pending", "accepted"])
+        .order("created_at", { ascending: false });
+
+      const match = (app ?? []).find((a) => {
+        const j = a.job as unknown as { client_id: string } | null;
+        return j?.client_id === cp.id;
+      });
+      if (match) {
+        contextJob = match.job as unknown as JobRequirementsRow;
+      }
+    }
+  }
 
   // 自分が企業 & 相手がクリエイターのとき: 自分のジョブへの pending 応募を引く
   let pendingApplication: {
@@ -129,6 +214,17 @@ export default async function ConversationPage({
           </div>
         </div>
       </div>
+
+      {/* 取引中の編集要件 (常時表示・折りたたみ可) */}
+      {contextJob && (
+        <div className="mt-4">
+          <EditingRequirementsCollapsible
+            data={toRequirementsData(contextJob)}
+            jobTitle={contextJob.title}
+            jobHref={`/jobs/${contextJob.id}`}
+          />
+        </div>
+      )}
 
       {/* Messages + Input */}
       <MessageThread

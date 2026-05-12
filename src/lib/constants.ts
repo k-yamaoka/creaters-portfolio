@@ -37,3 +37,33 @@ export const RATING_LEVELS = [
   { value: 2, label: "普通", emoji: "😐" },
   { value: 1, label: "不満", emoji: "😢" },
 ] as const;
+
+// 編集要件フォーム用の選択肢
+export const EDIT_WORK_TYPES = [
+  "カット",
+  "テロップ",
+  "BGM",
+  "SE",
+  "カラグレ",
+  "MA",
+] as const;
+
+export const EDIT_SOFTWARE_OPTIONS = [
+  "Premiere Pro",
+  "DaVinci",
+  "AfterEffects",
+  "Final Cut",
+] as const;
+
+export const EDIT_DELIVERY_FORMATS = [
+  "MP4 1080p",
+  "4K",
+  "ProRes",
+  "プロジェクトファイル含む",
+] as const;
+
+export const CLIENT_TYPES = [
+  { value: "individual", label: "個人" },
+  { value: "sme", label: "中小企業" },
+  { value: "listed", label: "上場企業" },
+] as const;

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { createJob } from "./actions";
-import { GENRES } from "@/lib/constants";
+import {
+  GENRES,
+  EDIT_WORK_TYPES,
+  EDIT_SOFTWARE_OPTIONS,
+  EDIT_DELIVERY_FORMATS,
+  CLIENT_TYPES,
+} from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 
 function toNum(s: string): number | null {
@@ -17,6 +23,21 @@ export function JobForm() {
   const [unitPrice, setUnitPrice] = useState("");
   const [countMin, setCountMin] = useState("");
   const [countMax, setCountMax] = useState("");
+
+  // 編集要件 state
+  const [workTypes, setWorkTypes] = useState<string[]>([]);
+  const [software, setSoftware] = useState<string[]>([]);
+  const [deliveryFormats, setDeliveryFormats] = useState<string[]>([]);
+  const [finishUnit, setFinishUnit] = useState<"sec" | "min">("sec");
+  const [isRecurring, setIsRecurring] = useState(false);
+
+  const toggleIn = (
+    arr: string[],
+    setArr: (v: string[]) => void,
+    value: string
+  ) => {
+    setArr(arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value]);
+  };
 
   const u = toNum(unitPrice);
   const cMin = toNum(countMin);
@@ -38,12 +59,23 @@ export function JobForm() {
     setSaving(true);
     setError(null);
     selectedGenres.forEach((g) => formData.append("genres", g));
+    workTypes.forEach((w) => formData.append("work_types", w));
+    software.forEach((s) => formData.append("software_options", s));
+    deliveryFormats.forEach((f) => formData.append("delivery_formats", f));
+    formData.set("finish_duration_unit", finishUnit);
+    formData.set("is_recurring", isRecurring ? "1" : "");
     const result = await createJob(formData);
     if (result?.error) {
       setError(result.error);
       setSaving(false);
     }
   };
+
+  const canSubmit =
+    !saving &&
+    selectedGenres.length > 0 &&
+    workTypes.length > 0 &&
+    deliveryFormats.length > 0;
 
   return (
     <form action={handleSubmit} className="space-y-8">
@@ -145,6 +177,304 @@ export function JobForm() {
               </label>
             );
           })}
+        </div>
+      </section>
+
+      {/* 編集要件 */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <h2 className="mb-2 text-lg font-bold text-[#222]">編集要件</h2>
+        <p className="mb-6 text-sm text-[#828282]">
+          クリエイターが見積もり・応募判断に使う重要情報です。応募後もメッセージ画面に常に表示されます。
+        </p>
+        <div className="space-y-6">
+          {/* 素材時間 */}
+          <div>
+            <label
+              htmlFor="footage_minutes"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              素材時間（約◯分） *
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#828282]">約</span>
+              <input
+                id="footage_minutes"
+                name="footage_minutes"
+                type="number"
+                min={1}
+                required
+                className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="30"
+              />
+              <span className="text-sm text-[#828282]">分</span>
+            </div>
+          </div>
+
+          {/* 完成尺 */}
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="block text-sm font-medium text-[#4F4F4F]">
+                完成尺 *
+              </label>
+              <div className="flex overflow-hidden rounded-lg border border-[#E0E0E0] text-xs">
+                <button
+                  type="button"
+                  onClick={() => setFinishUnit("sec")}
+                  className={`px-3 py-1.5 ${
+                    finishUnit === "sec"
+                      ? "bg-primary-500 text-white"
+                      : "bg-white text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                  }`}
+                >
+                  秒
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFinishUnit("min")}
+                  className={`px-3 py-1.5 ${
+                    finishUnit === "min"
+                      ? "bg-primary-500 text-white"
+                      : "bg-white text-[#4F4F4F] hover:bg-[#F8F8F8]"
+                  }`}
+                >
+                  分
+                </button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                name="finish_duration_min"
+                type="number"
+                min={0}
+                step={finishUnit === "sec" ? 1 : 0.5}
+                required
+                className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder={finishUnit === "sec" ? "30" : "3"}
+              />
+              <span className="text-sm text-[#828282]">〜</span>
+              <input
+                name="finish_duration_max"
+                type="number"
+                min={0}
+                step={finishUnit === "sec" ? 1 : 0.5}
+                required
+                className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder={finishUnit === "sec" ? "60" : "5"}
+              />
+              <span className="text-sm text-[#828282]">
+                {finishUnit === "sec" ? "秒" : "分"}
+              </span>
+            </div>
+          </div>
+
+          {/* 作業 */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+              作業内容 *（複数選択可）
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EDIT_WORK_TYPES.map((w) => {
+                const isActive = workTypes.includes(w);
+                return (
+                  <button
+                    key={w}
+                    type="button"
+                    onClick={() => toggleIn(workTypes, setWorkTypes, w)}
+                    className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "border-primary-500 bg-primary-500 text-white"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                    }`}
+                  >
+                    {w}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 修正回数 */}
+          <div>
+            <label
+              htmlFor="revision_count"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              修正回数 *
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="revision_count"
+                name="revision_count"
+                type="number"
+                min={0}
+                required
+                className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="2"
+              />
+              <span className="text-sm text-[#828282]">回</span>
+            </div>
+          </div>
+
+          {/* 使用ソフト */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+              使用ソフト（任意・複数選択可）
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EDIT_SOFTWARE_OPTIONS.map((s) => {
+                const isActive = software.includes(s);
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => toggleIn(software, setSoftware, s)}
+                    className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "border-primary-500 bg-primary-500 text-white"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 納品形式 */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+              納品形式 *（複数選択可）
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EDIT_DELIVERY_FORMATS.map((f) => {
+                const isActive = deliveryFormats.includes(f);
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() =>
+                      toggleIn(deliveryFormats, setDeliveryFormats, f)
+                    }
+                    className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "border-primary-500 bg-primary-500 text-white"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 納期 (素材受け取りから) */}
+          <div>
+            <label
+              htmlFor="delivery_days"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              納期（素材受け取りから） *
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#828282]">素材受け取りから</span>
+              <input
+                id="delivery_days"
+                name="delivery_days"
+                type="number"
+                min={1}
+                required
+                className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="7"
+              />
+              <span className="text-sm text-[#828282]">日</span>
+            </div>
+          </div>
+
+          {/* 参考動画URL */}
+          <div>
+            <label
+              htmlFor="reference_url"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              参考動画URL（任意）
+            </label>
+            <input
+              id="reference_url"
+              name="reference_url"
+              type="url"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              placeholder="https://youtube.com/..."
+            />
+          </div>
+
+          {/* 月間本数トグル */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+              発注形態（任意）
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setIsRecurring(false)}
+                className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                  !isRecurring
+                    ? "border-primary-500 bg-primary-500 text-white"
+                    : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                }`}
+              >
+                単発
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsRecurring(true)}
+                className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                  isRecurring
+                    ? "border-primary-500 bg-primary-500 text-white"
+                    : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                }`}
+              >
+                継続案件
+              </button>
+            </div>
+            {isRecurring && (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-sm text-[#828282]">月</span>
+                <input
+                  name="monthly_count"
+                  type="number"
+                  min={1}
+                  className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder="4"
+                />
+                <span className="text-sm text-[#828282]">本</span>
+              </div>
+            )}
+          </div>
+
+          {/* クライアント種別 */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+              クライアント種別（任意）
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {CLIENT_TYPES.map((t) => (
+                <label
+                  key={t.value}
+                  className="flex cursor-pointer items-center gap-2 rounded-pill border border-[#E0E0E0] px-4 py-1.5 text-sm font-medium text-[#4F4F4F] hover:border-primary-500"
+                >
+                  <input
+                    type="radio"
+                    name="client_type"
+                    value={t.value}
+                    className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
+                  />
+                  {t.label}
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
@@ -289,7 +619,7 @@ export function JobForm() {
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={saving || selectedGenres.length === 0}
+          disabled={!canSubmit}
           className="btn-primary px-10 text-sm disabled:opacity-50"
         >
           {saving ? "作成中..." : "案件を掲載する"}

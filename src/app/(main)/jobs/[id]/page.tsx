@@ -4,6 +4,10 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { ApplyButton } from "./apply-button";
+import {
+  EditingRequirements,
+  type EditingRequirementsData,
+} from "@/components/shared/editing-requirements";
 
 export default async function JobDetailPage({
   params,
@@ -151,6 +155,28 @@ export default async function JobDetailPage({
               {job.description.replace(/\\n/g, "\n")}
             </div>
           </div>
+
+          {/* 編集要件 */}
+          <EditingRequirements
+            data={{
+              footage_minutes: job.footage_minutes ?? null,
+              finish_duration_unit: (job.finish_duration_unit as
+                | "sec"
+                | "min"
+                | null) ?? null,
+              finish_duration_min: job.finish_duration_min ?? null,
+              finish_duration_max: job.finish_duration_max ?? null,
+              work_types: job.work_types ?? [],
+              revision_count: job.revision_count ?? null,
+              software_options: job.software_options ?? [],
+              delivery_formats: job.delivery_formats ?? [],
+              delivery_days: job.delivery_days ?? null,
+              reference_url: job.reference_url ?? null,
+              is_recurring: !!job.is_recurring,
+              monthly_count: job.monthly_count ?? null,
+              client_type: job.client_type ?? null,
+            } satisfies EditingRequirementsData}
+          />
 
           {/* Apply form (案件詳細と同じコンテンツ幅) */}
           {isCreator && user?.creator_profile && (
