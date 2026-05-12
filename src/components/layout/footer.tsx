@@ -116,7 +116,16 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-16 flex flex-col items-start justify-between gap-3 border-t border-ink/15 pt-6 sm:flex-row sm:items-center">
           <p className="text-xs tracking-wider text-ink-muted">
-            &copy; 2026 CreatorsHub — All rights reserved.
+            &copy; 2026 CreatorsHub by{" "}
+            <a
+              href="https://comhuman-quality.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-2 hover:text-ink hover:underline"
+            >
+              Comhuman-Quality Co., Ltd.
+            </a>{" "}
+            — All rights reserved.
           </p>
           <p className="font-display text-xs uppercase tracking-[0.3em] text-ink-soft">
             Made for creators, in Tokyo.

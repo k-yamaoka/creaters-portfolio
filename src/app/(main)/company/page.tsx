@@ -16,12 +16,18 @@ export default function CompanyPage() {
         <table className="w-full">
           <tbody className="divide-y divide-[#F2F2F2]">
             {[
-              { label: "会社名", value: "CreatorsHub 運営事務局" },
-              { label: "所在地", value: "東京都渋谷区（詳細は準備中）" },
-              { label: "設立", value: "2025年" },
-              { label: "代表者", value: "（準備中）" },
-              { label: "事業内容", value: "映像クリエイターマッチングプラットフォームの企画・開発・運営" },
-              { label: "メール", value: "support@creatorshub.jp" },
+              { label: "会社名", value: "Comhuman-Quality株式会社" },
+              { label: "所在地", value: "〒150-0013 東京都渋谷区恵比寿1-15-9-403" },
+              { label: "設立", value: "2023年6月9日" },
+              { label: "代表者", value: "山岡 浩志" },
+              {
+                label: "事業内容",
+                value:
+                  "システム開発・Web制作、AI活用・開発コンサルティング、映像制作・SNS運用、映像クリエイターマッチングプラットフォーム（CreatorsHub）の運営",
+              },
+              { label: "メール", value: "info@comhuman-quality.com" },
+              { label: "電話", value: "03-6403-3319" },
+              { label: "コーポレートサイト", value: "https://comhuman-quality.com/" },
             ].map((row) => (
               <tr key={row.label}>
                 <th className="w-32 py-4 text-left text-sm font-medium text-[#828282] sm:w-40">
