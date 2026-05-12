@@ -17,6 +17,8 @@ type JobRequirementsRow = {
   finish_duration_unit: string | null;
   finish_duration_min: number | null;
   finish_duration_max: number | null;
+  count_min: number | null;
+  count_max: number | null;
   work_types: string[] | null;
   revision_count: number | null;
   software_options: string[] | null;
@@ -29,7 +31,7 @@ type JobRequirementsRow = {
 };
 
 const JOB_REQUIREMENT_FIELDS =
-  "id, title, footage_minutes, finish_duration_unit, finish_duration_min, finish_duration_max, work_types, revision_count, software_options, delivery_formats, delivery_days, reference_url, is_recurring, monthly_count, client_type";
+  "id, title, footage_minutes, finish_duration_unit, finish_duration_min, finish_duration_max, count_min, count_max, work_types, revision_count, software_options, delivery_formats, delivery_days, reference_url, is_recurring, monthly_count, client_type";
 
 function toRequirementsData(job: JobRequirementsRow): EditingRequirementsData {
   return {
@@ -40,6 +42,8 @@ function toRequirementsData(job: JobRequirementsRow): EditingRequirementsData {
         : null,
     finish_duration_min: job.finish_duration_min ?? null,
     finish_duration_max: job.finish_duration_max ?? null,
+    count_min: job.count_min ?? null,
+    count_max: job.count_max ?? null,
     work_types: job.work_types ?? [],
     revision_count: job.revision_count ?? null,
     software_options: job.software_options ?? [],

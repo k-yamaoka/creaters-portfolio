@@ -8,6 +8,8 @@ export type EditingRequirementsData = {
   finish_duration_unit: "sec" | "min" | null;
   finish_duration_min: number | null;
   finish_duration_max: number | null;
+  count_min: number | null;
+  count_max: number | null;
   work_types: string[];
   revision_count: number | null;
   software_options: string[];
@@ -30,6 +32,16 @@ function formatFinishDuration(d: EditingRequirementsData): string | null {
   return `${min ?? max}${unit}`;
 }
 
+function formatCount(d: EditingRequirementsData): string | null {
+  const min = d.count_min;
+  const max = d.count_max;
+  if (min == null && max == null) return null;
+  if (min != null && max != null) {
+    return min === max ? `${min} 本` : `${min}〜${max} 本`;
+  }
+  return `${min ?? max} 本`;
+}
+
 function clientTypeLabel(value: string | null): string | null {
   if (!value) return null;
   return CLIENT_TYPES.find((t) => t.value === value)?.label ?? null;
@@ -40,6 +52,8 @@ function hasAnyRequirement(d: EditingRequirementsData): boolean {
     d.footage_minutes != null ||
     d.finish_duration_min != null ||
     d.finish_duration_max != null ||
+    d.count_min != null ||
+    d.count_max != null ||
     d.work_types.length > 0 ||
     d.revision_count != null ||
     d.software_options.length > 0 ||
@@ -77,6 +91,7 @@ function TagList({ items }: { items: string[] }) {
 
 function RequirementBody({ d }: { d: EditingRequirementsData }) {
   const finishLabel = formatFinishDuration(d);
+  const countLabel = formatCount(d);
   const ctLabel = clientTypeLabel(d.client_type);
   return (
     <dl className="divide-y divide-[#F2F2F2]">
@@ -84,6 +99,7 @@ function RequirementBody({ d }: { d: EditingRequirementsData }) {
         <Row label="素材時間" value={`約 ${d.footage_minutes} 分`} />
       )}
       {finishLabel && <Row label="完成尺" value={finishLabel} />}
+      {countLabel && <Row label="本数" value={countLabel} />}
       {d.work_types.length > 0 && (
         <Row label="作業内容" value={<TagList items={d.work_types} />} />
       )}

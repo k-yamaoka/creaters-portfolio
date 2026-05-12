@@ -267,6 +267,41 @@ export function JobForm() {
             </div>
           </div>
 
+          {/* 本数 (発注本数の最低・上限) */}
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+              本数 *
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="count_min"
+                name="count_min"
+                type="number"
+                min={1}
+                required
+                value={countMin}
+                onChange={(e) => setCountMin(e.target.value)}
+                className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="1"
+              />
+              <span className="text-sm text-[#828282]">〜</span>
+              <input
+                id="count_max"
+                name="count_max"
+                type="number"
+                min={1}
+                value={countMax}
+                onChange={(e) => setCountMax(e.target.value)}
+                className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="未指定なら下限と同数"
+              />
+              <span className="text-sm text-[#828282]">本</span>
+            </div>
+            <p className="mt-1 text-xs text-[#828282]">
+              範囲指定したい場合は上限を入力。1本単価 × 本数で見積もりが自動算出されます
+            </p>
+          </div>
+
           {/* 作業 */}
           <div>
             <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
@@ -504,51 +539,6 @@ export function JobForm() {
             <p className="mt-1 text-xs text-[#828282]">
               動画1本あたりの概算単価を入力してください
             </p>
-          </div>
-
-          {/* 本数 (単数 or 範囲) */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="count_min"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                発注本数 *
-              </label>
-              <input
-                id="count_min"
-                type="number"
-                min={1}
-                required
-                value={countMin}
-                onChange={(e) => setCountMin(e.target.value)}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="10"
-              />
-              <p className="mt-1 text-xs text-[#828282]">
-                想定発注本数（最低）
-              </p>
-            </div>
-            <div>
-              <label
-                htmlFor="count_max"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                上限本数（任意）
-              </label>
-              <input
-                id="count_max"
-                type="number"
-                min={1}
-                value={countMax}
-                onChange={(e) => setCountMax(e.target.value)}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="未指定なら本数と同額"
-              />
-              <p className="mt-1 text-xs text-[#828282]">
-                範囲発注したい場合に指定
-              </p>
-            </div>
           </div>
 
           {/* 単価 × 本数 → 自動集計の見積もり */}

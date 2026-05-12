@@ -53,6 +53,8 @@ export async function createJob(formData: FormData) {
   const is_recurring = !!formData.get("is_recurring");
   const monthly_count = formData.get("monthly_count") as string;
   const client_type = formData.get("client_type") as string;
+  const count_min = formData.get("count_min") as string;
+  const count_max = formData.get("count_max") as string;
 
   const { error } = await supabase.from("jobs").insert({
     client_id: clientProfile.id,
@@ -78,6 +80,8 @@ export async function createJob(formData: FormData) {
     is_recurring,
     monthly_count: is_recurring && monthly_count ? parseInt(monthly_count) : null,
     client_type: client_type || null,
+    count_min: count_min ? parseInt(count_min) : null,
+    count_max: count_max ? parseInt(count_max) : null,
   });
 
   if (error) {

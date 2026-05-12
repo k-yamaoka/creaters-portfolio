@@ -166,6 +166,8 @@ export default async function JobDetailPage({
                 | null) ?? null,
               finish_duration_min: job.finish_duration_min ?? null,
               finish_duration_max: job.finish_duration_max ?? null,
+              count_min: job.count_min ?? null,
+              count_max: job.count_max ?? null,
               work_types: job.work_types ?? [],
               revision_count: job.revision_count ?? null,
               software_options: job.software_options ?? [],
