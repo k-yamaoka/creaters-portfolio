@@ -62,6 +62,9 @@ export const EDIT_SOFTWARE_OPTIONS = [
   "DaVinci",
   "AfterEffects",
   "Final Cut",
+  "Photoshop",
+  "Illustrator",
+  "特に指定なし",
 ] as const;
 
 export const EDIT_DELIVERY_FORMATS = [

@@ -461,11 +461,30 @@ export function JobForm() {
             <div className="flex flex-wrap gap-2">
               {EDIT_SOFTWARE_OPTIONS.map((s) => {
                 const isActive = software.includes(s);
+                const isNoPref = s === "特に指定なし";
+                const handleClick = () => {
+                  if (isNoPref) {
+                    // 「特に指定なし」は他選択をクリアして単独化
+                    setSoftware(isActive ? [] : [s]);
+                    if (!isActive) {
+                      setSoftwareOtherShow(false);
+                      setSoftwareOther("");
+                    }
+                  } else {
+                    // 通常選択時は「特に指定なし」を外す
+                    const cleared = software.filter((v) => v !== "特に指定なし");
+                    setSoftware(
+                      cleared.includes(s)
+                        ? cleared.filter((v) => v !== s)
+                        : [...cleared, s]
+                    );
+                  }
+                };
                 return (
                   <button
                     key={s}
                     type="button"
-                    onClick={() => toggleIn(software, setSoftware, s)}
+                    onClick={handleClick}
                     className={pillClass(isActive)}
                   >
                     {s}
@@ -474,7 +493,13 @@ export function JobForm() {
               })}
               <button
                 type="button"
-                onClick={() => setSoftwareOtherShow((v) => !v)}
+                onClick={() => {
+                  // その他入力をONにする際は「特に指定なし」を外す
+                  if (!softwareOtherShow) {
+                    setSoftware((prev) => prev.filter((v) => v !== "特に指定なし"));
+                  }
+                  setSoftwareOtherShow((v) => !v);
+                }}
                 className={pillClass(softwareOtherShow)}
               >
                 + その他
