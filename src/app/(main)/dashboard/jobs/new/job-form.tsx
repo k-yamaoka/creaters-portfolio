@@ -65,6 +65,8 @@ export function JobForm() {
   const [deliveryFormatsOther, setDeliveryFormatsOther] = useState("");
   const [clientTypeChoice, setClientTypeChoice] = useState<string>("");
   const [clientTypeOther, setClientTypeOther] = useState("");
+  const [genresOtherShow, setGenresOtherShow] = useState(false);
+  const [genresOther, setGenresOther] = useState("");
 
   const toggleIn = (
     arr: string[],
@@ -94,6 +96,9 @@ export function JobForm() {
     setError(null);
 
     selectedGenres.forEach((g) => formData.append("genres", g));
+    if (genresOtherShow && genresOther.trim()) {
+      formData.append("genres", genresOther.trim());
+    }
 
     // 作業内容
     workTypes.forEach((w) => formData.append("work_types", w));
@@ -137,9 +142,13 @@ export function JobForm() {
     deliveryFormats.length > 0 ||
     (deliveryFormatsOtherShow && deliveryFormatsOther.trim().length > 0);
 
+  const genresFilled =
+    selectedGenres.length > 0 ||
+    (genresOtherShow && genresOther.trim().length > 0);
+
   const canSubmit =
     !saving &&
-    selectedGenres.length > 0 &&
+    genresFilled &&
     workTypesFilled &&
     deliveryFormatsFilled;
 
@@ -235,6 +244,25 @@ export function JobForm() {
               </label>
             );
           })}
+        </div>
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setGenresOtherShow((v) => !v)}
+            className={pillClass(genresOtherShow)}
+          >
+            + その他
+          </button>
+          {genresOtherShow && (
+            <input
+              type="text"
+              value={genresOther}
+              onChange={(e) => setGenresOther(e.target.value)}
+              className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              placeholder="自由入力（例: 学校紹介、医療系インタビュー など）"
+              maxLength={60}
+            />
+          )}
         </div>
       </section>
 
