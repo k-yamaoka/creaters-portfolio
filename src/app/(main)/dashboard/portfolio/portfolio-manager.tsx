@@ -26,6 +26,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [thumbnailMode, setThumbnailMode] = useState<"auto" | "url" | "upload">("auto");
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [uploadedThumbUrl, setUploadedThumbUrl] = useState<string | null>(null);
+  const [hasPublishPermission, setHasPublishPermission] = useState(false);
 
   const handleThumbUpload = async (file: File) => {
     setUploadingThumb(true);
@@ -67,6 +68,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       formData.set("thumbnail_url", uploadedThumbUrl);
     }
 
+    formData.set("has_publish_permission", hasPublishPermission ? "1" : "");
+
     const result = await addPortfolioItem(formData);
     if (result?.error) {
       setError(result.error);
@@ -74,6 +77,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setShowForm(false);
       setUploadedThumbUrl(null);
       setThumbnailMode("auto");
+      setHasPublishPermission(false);
     }
     setSaving(false);
   };
@@ -315,6 +319,29 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             </div>
           </div>
 
+          {/* 掲載許諾チェック (必須) */}
+          <div className="mt-6 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-4">
+            <label className="flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                checked={hasPublishPermission}
+                onChange={(e) => setHasPublishPermission(e.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#BDBDBD] text-primary-500 focus:ring-primary-500"
+              />
+              <div className="text-sm leading-relaxed text-[#4F4F4F]">
+                <span className="font-bold text-[#222]">
+                  この作品はクライアントから掲載許諾を得ています
+                </span>
+                <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-500 align-middle">
+                  必須
+                </span>
+                <p className="mt-1 text-xs text-[#828282]">
+                  権利関係を確認し、クライアントから本作品のポートフォリオ掲載について許諾を得ていることを確認しました。
+                </p>
+              </div>
+            </label>
+          </div>
+
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
@@ -325,7 +352,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || !hasPublishPermission}
               className="btn-primary text-sm disabled:opacity-50"
             >
               {saving ? "追加中..." : "追加する"}

@@ -32,6 +32,11 @@ export async function addPortfolioItem(formData: FormData) {
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean);
+  const has_publish_permission = !!formData.get("has_publish_permission");
+
+  if (!has_publish_permission) {
+    return { error: "掲載許諾の確認にチェックしてください" };
+  }
 
   // Auto-generate thumbnail if not provided
   let finalThumbnail = thumbnail_url || null;
@@ -58,6 +63,7 @@ export async function addPortfolioItem(formData: FormData) {
     thumbnail_url: finalThumbnail,
     genre: genre || null,
     tags,
+    has_publish_permission: true,
   });
 
   if (error) {
