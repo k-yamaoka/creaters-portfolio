@@ -5,6 +5,7 @@ import { createJob } from "./actions";
 import {
   GENRES,
   EDIT_WORK_TYPES,
+  EDIT_WORK_TYPE_DESCRIPTIONS,
   EDIT_SOFTWARE_OPTIONS,
   EDIT_DELIVERY_FORMATS,
   CLIENT_TYPES,
@@ -14,6 +15,30 @@ import { formatPrice } from "@/lib/utils";
 function toNum(s: string): number | null {
   const n = Number(s);
   return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+function RequiredMark() {
+  return (
+    <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-500">
+      必須
+    </span>
+  );
+}
+
+function HelpTip({ text }: { text: string }) {
+  return (
+    <span className="group relative inline-flex">
+      <span
+        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-[#BDBDBD] text-[10px] font-bold text-[#828282]"
+        aria-label={text}
+      >
+        ?
+      </span>
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 hidden w-48 -translate-x-1/2 rounded-md bg-[#222] px-2.5 py-1.5 text-[11px] leading-relaxed text-white shadow-card group-hover:block">
+        {text}
+      </span>
+    </span>
+  );
 }
 
 export function JobForm() {
@@ -31,6 +56,16 @@ export function JobForm() {
   const [finishUnit, setFinishUnit] = useState<"sec" | "min">("sec");
   const [isRecurring, setIsRecurring] = useState(false);
 
+  // 「その他（自由入力）」用 state
+  const [workTypesOtherShow, setWorkTypesOtherShow] = useState(false);
+  const [workTypesOther, setWorkTypesOther] = useState("");
+  const [softwareOtherShow, setSoftwareOtherShow] = useState(false);
+  const [softwareOther, setSoftwareOther] = useState("");
+  const [deliveryFormatsOtherShow, setDeliveryFormatsOtherShow] = useState(false);
+  const [deliveryFormatsOther, setDeliveryFormatsOther] = useState("");
+  const [clientTypeChoice, setClientTypeChoice] = useState<string>("");
+  const [clientTypeOther, setClientTypeOther] = useState("");
+
   const toggleIn = (
     arr: string[],
     setArr: (v: string[]) => void,
@@ -42,7 +77,6 @@ export function JobForm() {
   const u = toNum(unitPrice);
   const cMin = toNum(countMin);
   const cMax = toNum(countMax);
-  // 上限が未入力なら下限と同じ本数として扱う
   const effectiveMaxCount = cMax ?? cMin;
 
   const budgetMin = u !== null && cMin !== null ? u * cMin : null;
@@ -58,12 +92,37 @@ export function JobForm() {
   const handleSubmit = async (formData: FormData) => {
     setSaving(true);
     setError(null);
+
     selectedGenres.forEach((g) => formData.append("genres", g));
+
+    // 作業内容
     workTypes.forEach((w) => formData.append("work_types", w));
+    if (workTypesOtherShow && workTypesOther.trim()) {
+      formData.append("work_types", workTypesOther.trim());
+    }
+
+    // 使用ソフト
     software.forEach((s) => formData.append("software_options", s));
+    if (softwareOtherShow && softwareOther.trim()) {
+      formData.append("software_options", softwareOther.trim());
+    }
+
+    // 納品形式
     deliveryFormats.forEach((f) => formData.append("delivery_formats", f));
+    if (deliveryFormatsOtherShow && deliveryFormatsOther.trim()) {
+      formData.append("delivery_formats", deliveryFormatsOther.trim());
+    }
+
     formData.set("finish_duration_unit", finishUnit);
     formData.set("is_recurring", isRecurring ? "1" : "");
+
+    // クライアント種別
+    if (clientTypeChoice === "other") {
+      formData.set("client_type", clientTypeOther.trim());
+    } else {
+      formData.set("client_type", clientTypeChoice);
+    }
+
     const result = await createJob(formData);
     if (result?.error) {
       setError(result.error);
@@ -71,11 +130,25 @@ export function JobForm() {
     }
   };
 
+  const workTypesFilled =
+    workTypes.length > 0 ||
+    (workTypesOtherShow && workTypesOther.trim().length > 0);
+  const deliveryFormatsFilled =
+    deliveryFormats.length > 0 ||
+    (deliveryFormatsOtherShow && deliveryFormatsOther.trim().length > 0);
+
   const canSubmit =
     !saving &&
     selectedGenres.length > 0 &&
-    workTypes.length > 0 &&
-    deliveryFormats.length > 0;
+    workTypesFilled &&
+    deliveryFormatsFilled;
+
+  const pillClass = (active: boolean) =>
+    `rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+      active
+        ? "border-primary-500 bg-primary-500 text-white"
+        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+    }`;
 
   return (
     <form action={handleSubmit} className="space-y-8">
@@ -85,50 +158,35 @@ export function JobForm() {
         </div>
       )}
 
-      {/* Title & Description */}
+      {/* 基本情報 (タイトルのみ) */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-6 text-lg font-bold text-[#222]">基本情報</h2>
-        <div className="space-y-5">
-          <div>
-            <label
-              htmlFor="title"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-            >
-              案件タイトル *
-            </label>
-            <input
-              id="title"
-              name="title"
-              type="text"
-              required
-              maxLength={50}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="description"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-            >
-              案件詳細 *
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={8}
-              required
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder={"制作したい動画の詳細を記入してください。\n\n・動画の目的や用途\n・ターゲット視聴者\n・動画の長さ\n・希望するテイストや参考動画\n・素材の有無（撮影が必要か等）\n・その他の要件"}
-            />
-          </div>
+        <div>
+          <label
+            htmlFor="title"
+            className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
+          >
+            案件タイトル
+            <RequiredMark />
+          </label>
+          <input
+            id="title"
+            name="title"
+            type="text"
+            required
+            maxLength={50}
+            className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+            placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
+          />
         </div>
       </section>
 
-      {/* Genre selection */}
+      {/* 制作ジャンル */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-2 text-lg font-bold text-[#222]">制作ジャンル *</h2>
+        <h2 className="mb-2 flex items-center text-lg font-bold text-[#222]">
+          制作ジャンル
+          <RequiredMark />
+        </h2>
         <p className="mb-4 text-sm text-[#828282]">
           該当するジャンルを選択してください（複数選択可）
         </p>
@@ -191,9 +249,10 @@ export function JobForm() {
           <div>
             <label
               htmlFor="footage_minutes"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+              className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
             >
-              素材時間（約◯分） *
+              素材時間（約◯分）
+              <RequiredMark />
             </label>
             <div className="flex items-center gap-2">
               <span className="text-sm text-[#828282]">約</span>
@@ -213,8 +272,9 @@ export function JobForm() {
           {/* 完成尺 */}
           <div>
             <div className="mb-1.5 flex items-center justify-between">
-              <label className="block text-sm font-medium text-[#4F4F4F]">
-                完成尺 *
+              <label className="flex items-center text-sm font-medium text-[#4F4F4F]">
+                完成尺
+                <RequiredMark />
               </label>
               <div className="flex overflow-hidden rounded-lg border border-[#E0E0E0] text-xs">
                 <button
@@ -267,10 +327,11 @@ export function JobForm() {
             </div>
           </div>
 
-          {/* 本数 (発注本数の最低・上限) */}
+          {/* 本数 */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-              本数 *
+            <label className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]">
+              本数
+              <RequiredMark />
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -304,37 +365,58 @@ export function JobForm() {
 
           {/* 作業 */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-              作業内容 *（複数選択可）
+            <label className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]">
+              作業内容
+              <RequiredMark />
+              <span className="ml-2 text-xs font-normal text-[#828282]">
+                （複数選択可・ヘルプにカーソルを当てると説明）
+              </span>
             </label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {EDIT_WORK_TYPES.map((w) => {
                 const isActive = workTypes.includes(w);
+                const desc = EDIT_WORK_TYPE_DESCRIPTIONS[w];
                 return (
-                  <button
-                    key={w}
-                    type="button"
-                    onClick={() => toggleIn(workTypes, setWorkTypes, w)}
-                    className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "border-primary-500 bg-primary-500 text-white"
-                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
-                    }`}
-                  >
-                    {w}
-                  </button>
+                  <div key={w} className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleIn(workTypes, setWorkTypes, w)}
+                      className={pillClass(isActive)}
+                    >
+                      {w}
+                    </button>
+                    {desc && <HelpTip text={desc} />}
+                  </div>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setWorkTypesOtherShow((v) => !v)}
+                className={pillClass(workTypesOtherShow)}
+              >
+                + その他
+              </button>
             </div>
+            {workTypesOtherShow && (
+              <input
+                type="text"
+                value={workTypesOther}
+                onChange={(e) => setWorkTypesOther(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="自由入力（例: アニメーション、3DCG合成 など）"
+                maxLength={60}
+              />
+            )}
           </div>
 
           {/* 修正回数 */}
           <div>
             <label
               htmlFor="revision_count"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+              className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
             >
-              修正回数 *
+              修正回数
+              <RequiredMark />
             </label>
             <div className="flex items-center gap-2">
               <input
@@ -363,23 +445,40 @@ export function JobForm() {
                     key={s}
                     type="button"
                     onClick={() => toggleIn(software, setSoftware, s)}
-                    className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "border-primary-500 bg-primary-500 text-white"
-                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
-                    }`}
+                    className={pillClass(isActive)}
                   >
                     {s}
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setSoftwareOtherShow((v) => !v)}
+                className={pillClass(softwareOtherShow)}
+              >
+                + その他
+              </button>
             </div>
+            {softwareOtherShow && (
+              <input
+                type="text"
+                value={softwareOther}
+                onChange={(e) => setSoftwareOther(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="自由入力（例: CapCut、VEGAS Pro など）"
+                maxLength={60}
+              />
+            )}
           </div>
 
           {/* 納品形式 */}
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-              納品形式 *（複数選択可）
+            <label className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]">
+              納品形式
+              <RequiredMark />
+              <span className="ml-2 text-xs font-normal text-[#828282]">
+                （複数選択可）
+              </span>
             </label>
             <div className="flex flex-wrap gap-2">
               {EDIT_DELIVERY_FORMATS.map((f) => {
@@ -391,26 +490,40 @@ export function JobForm() {
                     onClick={() =>
                       toggleIn(deliveryFormats, setDeliveryFormats, f)
                     }
-                    className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                      isActive
-                        ? "border-primary-500 bg-primary-500 text-white"
-                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
-                    }`}
+                    className={pillClass(isActive)}
                   >
                     {f}
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setDeliveryFormatsOtherShow((v) => !v)}
+                className={pillClass(deliveryFormatsOtherShow)}
+              >
+                + その他
+              </button>
             </div>
+            {deliveryFormatsOtherShow && (
+              <input
+                type="text"
+                value={deliveryFormatsOther}
+                onChange={(e) => setDeliveryFormatsOther(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="自由入力（例: H.265、縦型9:16 など）"
+                maxLength={60}
+              />
+            )}
           </div>
 
-          {/* 納期 (素材受け取りから) */}
+          {/* 納期 */}
           <div>
             <label
               htmlFor="delivery_days"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+              className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
             >
-              納期（素材受け取りから） *
+              納期（素材受け取りから）
+              <RequiredMark />
             </label>
             <div className="flex items-center gap-2">
               <span className="text-sm text-[#828282]">素材受け取りから</span>
@@ -453,22 +566,14 @@ export function JobForm() {
               <button
                 type="button"
                 onClick={() => setIsRecurring(false)}
-                className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  !isRecurring
-                    ? "border-primary-500 bg-primary-500 text-white"
-                    : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
-                }`}
+                className={pillClass(!isRecurring)}
               >
                 単発
               </button>
               <button
                 type="button"
                 onClick={() => setIsRecurring(true)}
-                className={`rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  isRecurring
-                    ? "border-primary-500 bg-primary-500 text-white"
-                    : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
-                }`}
+                className={pillClass(isRecurring)}
               >
                 継続案件
               </button>
@@ -497,23 +602,77 @@ export function JobForm() {
               {CLIENT_TYPES.map((t) => (
                 <label
                   key={t.value}
-                  className="flex cursor-pointer items-center gap-2 rounded-pill border border-[#E0E0E0] px-4 py-1.5 text-sm font-medium text-[#4F4F4F] hover:border-primary-500"
+                  className={`flex cursor-pointer items-center gap-2 rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                    clientTypeChoice === t.value
+                      ? "border-primary-500 bg-primary-50 text-primary-600"
+                      : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500"
+                  }`}
                 >
                   <input
                     type="radio"
-                    name="client_type"
+                    name="client_type_choice"
                     value={t.value}
+                    checked={clientTypeChoice === t.value}
+                    onChange={() => setClientTypeChoice(t.value)}
                     className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
                   />
                   {t.label}
                 </label>
               ))}
+              <label
+                className={`flex cursor-pointer items-center gap-2 rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
+                  clientTypeChoice === "other"
+                    ? "border-primary-500 bg-primary-50 text-primary-600"
+                    : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="client_type_choice"
+                  value="other"
+                  checked={clientTypeChoice === "other"}
+                  onChange={() => setClientTypeChoice("other")}
+                  className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
+                />
+                その他
+              </label>
             </div>
+            {clientTypeChoice === "other" && (
+              <input
+                type="text"
+                value={clientTypeOther}
+                onChange={(e) => setClientTypeOther(e.target.value)}
+                className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="自由入力（例: 教育機関、NPO法人 など）"
+                maxLength={60}
+              />
+            )}
           </div>
         </div>
       </section>
 
-      {/* Budget & Dates */}
+      {/* 案件詳細 (編集要件の下のフリーテキスト) */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <h2 className="mb-2 flex items-center text-lg font-bold text-[#222]">
+          案件詳細
+          <RequiredMark />
+        </h2>
+        <p className="mb-4 text-sm text-[#828282]">
+          編集要件で書ききれない補足や、案件の背景・目的などを自由に記入してください。
+        </p>
+        <textarea
+          id="description"
+          name="description"
+          rows={10}
+          required
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          placeholder={
+            "例:\n・動画の目的や配信先\n・ターゲット視聴者\n・希望するテイストや参考動画\n・素材の有無（撮影が必要か等）\n・その他の要件"
+          }
+        />
+      </section>
+
+      {/* 見積もり・スケジュール */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-6 text-lg font-bold text-[#222]">見積もり・スケジュール</h2>
         <div className="space-y-5">
@@ -521,9 +680,10 @@ export function JobForm() {
           <div>
             <label
               htmlFor="unit_price"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+              className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
             >
-              1本あたりの単価（円） *
+              1本あたりの単価（円）
+              <RequiredMark />
             </label>
             <input
               id="unit_price"
@@ -541,7 +701,7 @@ export function JobForm() {
             </p>
           </div>
 
-          {/* 単価 × 本数 → 自動集計の見積もり */}
+          {/* 単価 × 本数 → 自動集計 */}
           {(budgetMin !== null || budgetMax !== null) && (
             <div className="rounded-lg bg-primary-50 px-4 py-4">
               <p className="text-xs text-[#828282]">見積もり金額（自動集計）</p>
@@ -560,7 +720,6 @@ export function JobForm() {
             </div>
           )}
 
-          {/* createJob actions.ts への送信用 hidden inputs */}
           <input
             type="hidden"
             name="budget_min"
@@ -605,7 +764,6 @@ export function JobForm() {
         </div>
       </section>
 
-      {/* Submit */}
       <div className="flex justify-end">
         <button
           type="submit"

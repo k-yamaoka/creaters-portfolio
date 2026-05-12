@@ -48,6 +48,16 @@ export const EDIT_WORK_TYPES = [
   "MA",
 ] as const;
 
+// 作業内容のヘルプ説明 (ツールチップ用)
+export const EDIT_WORK_TYPE_DESCRIPTIONS: Record<string, string> = {
+  カット: "不要部分の削除や場面のつなぎ編集",
+  テロップ: "字幕・タイトル等のテキストを挿入する作業",
+  BGM: "背景音楽の選定・配置",
+  SE: "効果音の選定・付与（クリック音やヒット音など）",
+  カラグレ: "映像の色味を調整する工程",
+  MA: "効果音の挿入・声のバランスを調整する作業（音声整音／ミックス）",
+};
+
 export const EDIT_SOFTWARE_OPTIONS = [
   "Premiere Pro",
   "DaVinci",
