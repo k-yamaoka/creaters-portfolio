@@ -20,10 +20,12 @@ ALTER TABLE jobs
   ADD COLUMN IF NOT EXISTS client_type TEXT;                        -- 個人 / 中小企業 / 上場企業 (任意)
 
 -- 値の整合性チェック (NULL は許可。既存行は NULL のまま)
+ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_finish_duration_unit_check;
 ALTER TABLE jobs
   ADD CONSTRAINT jobs_finish_duration_unit_check
     CHECK (finish_duration_unit IS NULL OR finish_duration_unit IN ('sec', 'min'));
 
+ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_client_type_check;
 ALTER TABLE jobs
   ADD CONSTRAINT jobs_client_type_check
     CHECK (client_type IS NULL OR client_type IN ('individual', 'sme', 'listed'));

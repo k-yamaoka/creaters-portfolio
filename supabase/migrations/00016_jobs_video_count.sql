@@ -8,10 +8,12 @@ ALTER TABLE jobs
   ADD COLUMN IF NOT EXISTS count_min INTEGER,
   ADD COLUMN IF NOT EXISTS count_max INTEGER;
 
+ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_count_min_positive;
 ALTER TABLE jobs
   ADD CONSTRAINT jobs_count_min_positive
     CHECK (count_min IS NULL OR count_min >= 1);
 
+ALTER TABLE jobs DROP CONSTRAINT IF EXISTS jobs_count_max_gte_min;
 ALTER TABLE jobs
   ADD CONSTRAINT jobs_count_max_gte_min
     CHECK (count_max IS NULL OR count_min IS NULL OR count_max >= count_min);
