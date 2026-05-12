@@ -25,18 +25,10 @@ function RequiredMark() {
   );
 }
 
-function HelpTip({ text }: { text: string }) {
+function TipBubble({ text }: { text: string }) {
   return (
-    <span className="group relative inline-flex">
-      <span
-        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-[#BDBDBD] text-[10px] font-bold text-[#828282]"
-        aria-label={text}
-      >
-        ?
-      </span>
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 hidden w-48 -translate-x-1/2 rounded-md bg-[#222] px-2.5 py-1.5 text-[11px] leading-relaxed text-white shadow-card group-hover:block">
-        {text}
-      </span>
+    <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 hidden w-48 -translate-x-1/2 rounded-md bg-[#222] px-2.5 py-1.5 text-[11px] font-normal leading-relaxed text-white shadow-card group-hover:block">
+      {text}
     </span>
   );
 }
@@ -397,7 +389,7 @@ export function JobForm() {
               作業内容
               <RequiredMark />
               <span className="ml-2 text-xs font-normal text-[#828282]">
-                （複数選択可・ヘルプにカーソルを当てると説明）
+                （複数選択可・項目にカーソルを当てると説明）
               </span>
             </label>
             <div className="flex flex-wrap items-center gap-2">
@@ -405,15 +397,16 @@ export function JobForm() {
                 const isActive = workTypes.includes(w);
                 const desc = EDIT_WORK_TYPE_DESCRIPTIONS[w];
                 return (
-                  <div key={w} className="flex items-center gap-1.5">
+                  <div key={w} className="group relative">
                     <button
                       type="button"
                       onClick={() => toggleIn(workTypes, setWorkTypes, w)}
                       className={pillClass(isActive)}
+                      aria-label={desc ? `${w}: ${desc}` : w}
                     >
                       {w}
                     </button>
-                    {desc && <HelpTip text={desc} />}
+                    {desc && <TipBubble text={desc} />}
                   </div>
                 );
               })}
