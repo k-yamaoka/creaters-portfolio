@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { addPortfolioItem, deletePortfolioItem } from "./actions";
+import {
+  addPortfolioItem,
+  deletePortfolioItem,
+  updatePortfolioThumbnail,
+} from "./actions";
 import { GENRES } from "@/lib/constants";
 
 type PortfolioItem = {
@@ -17,16 +21,55 @@ type PortfolioItem = {
   created_at: string;
 };
 
+type ThumbnailMode = "auto" | "url" | "upload";
+
+/**
+ * URLからプラットフォーム種別を推測する。
+ * 編集UIで video_url を貼り付けたら自動で video_platform セレクトが
+ * 切り替わるようにするために使う。
+ */
+function detectPlatform(url: string): string | null {
+  const u = url.toLowerCase();
+  if (u.includes("youtube.com/shorts/") || u.includes("youtu.be/shorts/")) {
+    return "youtube_short";
+  }
+  if (u.includes("youtube.com/") || u.includes("youtu.be/")) return "youtube";
+  if (u.includes("vimeo.com/")) return "vimeo";
+  if (u.includes("tiktok.com/")) return "tiktok";
+  if (u.includes("instagram.com/")) return "instagram";
+  return null;
+}
+
+/** 自動サムネ取得が信頼できないプラットフォーム */
+const MANUAL_THUMB_PLATFORMS = new Set(["tiktok", "instagram"]);
+
 export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedPlatform, setSelectedPlatform] = useState("youtube");
-  const [thumbnailMode, setThumbnailMode] = useState<"auto" | "url" | "upload">("auto");
+  const [thumbnailMode, setThumbnailMode] = useState<ThumbnailMode>("auto");
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [uploadedThumbUrl, setUploadedThumbUrl] = useState<string | null>(null);
   const [hasPublishPermission, setHasPublishPermission] = useState(false);
+
+  const platformNeedsManualThumb = MANUAL_THUMB_PLATFORMS.has(selectedPlatform);
+
+  // プラットフォーム変更時: 手動サムネ必須プラットフォームなら upload モードに自動切替
+  const handlePlatformChange = (next: string) => {
+    setSelectedPlatform(next);
+    if (MANUAL_THUMB_PLATFORMS.has(next) && thumbnailMode === "auto") {
+      setThumbnailMode("upload");
+    }
+  };
+
+  // 動画URL変更時: プラットフォームを自動推測し、対応するモードに切替
+  const handleVideoUrlChange = (url: string) => {
+    const detected = detectPlatform(url);
+    if (!detected || detected === selectedPlatform) return;
+    handlePlatformChange(detected);
+  };
 
   const handleThumbUpload = async (file: File) => {
     setUploadingThumb(true);
@@ -56,16 +99,37 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
 
     const videoUrl = formData.get("video_url") as string;
 
-    // Validate URL format
-    if (!videoUrl || (!videoUrl.includes("youtube.com") && !videoUrl.includes("youtu.be") && !videoUrl.includes("vimeo.com") && !videoUrl.includes("tiktok.com") && !videoUrl.includes("instagram.com"))) {
-      setError("YouTube、Vimeo、TikTok、InstagramのURLを入力してください");
+    if (
+      !videoUrl ||
+      (!videoUrl.includes("youtube.com") &&
+        !videoUrl.includes("youtu.be") &&
+        !videoUrl.includes("vimeo.com") &&
+        !videoUrl.includes("tiktok.com") &&
+        !videoUrl.includes("instagram.com"))
+    ) {
+      setError(
+        "YouTube、Vimeo、TikTok、InstagramのURLを入力してください"
+      );
       setSaving(false);
       return;
     }
 
-    // Set uploaded thumbnail URL if upload mode
     if (thumbnailMode === "upload" && uploadedThumbUrl) {
       formData.set("thumbnail_url", uploadedThumbUrl);
+    }
+
+    // TikTok/Instagram は手動サムネが必須
+    if (platformNeedsManualThumb) {
+      const hasThumb =
+        (thumbnailMode === "upload" && uploadedThumbUrl) ||
+        (thumbnailMode === "url" && (formData.get("thumbnail_url") as string));
+      if (!hasThumb) {
+        setError(
+          "TikTok / Instagram は自動取得が不安定なため、サムネイル画像をアップロードしてください。"
+        );
+        setSaving(false);
+        return;
+      }
     }
 
     formData.set("has_publish_permission", hasPublishPermission ? "1" : "");
@@ -77,6 +141,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setShowForm(false);
       setUploadedThumbUrl(null);
       setThumbnailMode("auto");
+      setSelectedPlatform("youtube");
       setHasPublishPermission(false);
     }
     setSaving(false);
@@ -144,11 +209,20 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               />
             </div>
 
-            {/* URL input only - no file upload */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
               <div className="flex items-start gap-2">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                <svg
+                  className="mt-0.5 h-4 w-4 shrink-0 text-blue-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                  />
                 </svg>
                 <p className="text-xs text-blue-700">
                   著作権保護のため、動画ファイルの直接アップロードには対応していません。YouTube、Vimeo、TikTok、Instagramの埋め込みURLを入力してください。
@@ -165,11 +239,12 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   name="video_url"
                   type="url"
                   required
+                  onChange={(e) => handleVideoUrlChange(e.target.value)}
                   className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   placeholder="https://youtube.com/watch?v=..."
                 />
                 <p className="mt-1 text-xs text-[#BDBDBD]">
-                  YouTube / Vimeo / TikTok / Instagram
+                  URLを貼り付けるとプラットフォームを自動判定します
                 </p>
               </div>
               <div>
@@ -180,11 +255,13 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   name="video_platform"
                   required
                   value={selectedPlatform}
-                  onChange={(e) => setSelectedPlatform(e.target.value)}
+                  onChange={(e) => handlePlatformChange(e.target.value)}
                   className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 >
                   <option value="youtube">YouTube</option>
-                  <option value="youtube_short">YouTube ショート（縦型）</option>
+                  <option value="youtube_short">
+                    YouTube ショート（縦型）
+                  </option>
                   <option value="vimeo">Vimeo</option>
                   <option value="tiktok">TikTok（縦型）</option>
                   <option value="instagram">Instagram（縦型）</option>
@@ -195,34 +272,73 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
 
             {/* Thumbnail section */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#4F4F4F]">
                 サムネイル
-                {selectedPlatform === "instagram" || selectedPlatform === "tiktok" ? (
-                  <span className="ml-2 text-xs font-normal text-red-500">* TikTok/Instagramは画像アップロード推奨</span>
+                {platformNeedsManualThumb ? (
+                  <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-500">
+                    アップロード必須
+                  </span>
                 ) : (
-                  <span className="ml-2 text-xs font-normal text-[#BDBDBD]">YouTube/Vimeoは自動取得可</span>
+                  <span className="text-xs font-normal text-[#BDBDBD]">
+                    YouTube/Vimeoは自動取得可
+                  </span>
                 )}
               </label>
 
+              {platformNeedsManualThumb && (
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
+                  TikTok / Instagram
+                  は公開APIの制約でサムネイルを安定取得できません。
+                  作品画像（推奨: 1280×720 横長 or 720×1280 縦長）を
+                  アップロードしてください。
+                </div>
+              )}
+
               {/* Thumbnail mode tabs */}
               <div className="mb-3 flex gap-1 rounded-lg bg-[#F2F2F2] p-1">
-                <button type="button" onClick={() => setThumbnailMode("auto")}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${thumbnailMode === "auto" ? "bg-white text-[#222] shadow-sm" : "text-[#828282]"}`}>
+                <button
+                  type="button"
+                  onClick={() => setThumbnailMode("auto")}
+                  disabled={platformNeedsManualThumb}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    thumbnailMode === "auto"
+                      ? "bg-white text-[#222] shadow-sm"
+                      : "text-[#828282]"
+                  } ${
+                    platformNeedsManualThumb
+                      ? "cursor-not-allowed opacity-40"
+                      : ""
+                  }`}
+                >
                   自動取得
                 </button>
-                <button type="button" onClick={() => setThumbnailMode("upload")}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${thumbnailMode === "upload" ? "bg-white text-[#222] shadow-sm" : "text-[#828282]"}`}>
+                <button
+                  type="button"
+                  onClick={() => setThumbnailMode("upload")}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    thumbnailMode === "upload"
+                      ? "bg-white text-[#222] shadow-sm"
+                      : "text-[#828282]"
+                  }`}
+                >
                   画像アップロード
                 </button>
-                <button type="button" onClick={() => setThumbnailMode("url")}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${thumbnailMode === "url" ? "bg-white text-[#222] shadow-sm" : "text-[#828282]"}`}>
+                <button
+                  type="button"
+                  onClick={() => setThumbnailMode("url")}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    thumbnailMode === "url"
+                      ? "bg-white text-[#222] shadow-sm"
+                      : "text-[#828282]"
+                  }`}
+                >
                   URL入力
                 </button>
               </div>
 
-              {thumbnailMode === "auto" && (
+              {thumbnailMode === "auto" && !platformNeedsManualThumb && (
                 <div className="rounded-lg border border-[#E0E0E0] bg-[#F8F8F8] px-4 py-3 text-sm text-[#828282]">
-                  YouTube / Vimeo / TikTok は動画から自動取得します
+                  YouTube / Vimeo は動画から自動取得します
                   <input type="hidden" name="thumbnail_url" value="" />
                 </div>
               )}
@@ -240,12 +356,22 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 <div>
                   {uploadedThumbUrl ? (
                     <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
-                      <img src={uploadedThumbUrl} alt="サムネイル" className="h-16 w-16 rounded object-cover" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={uploadedThumbUrl}
+                        alt="サムネイル"
+                        className="h-16 w-16 rounded object-cover"
+                      />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-green-700">アップロード完了</p>
+                        <p className="text-sm font-medium text-green-700">
+                          アップロード完了
+                        </p>
                       </div>
-                      <button type="button" onClick={() => setUploadedThumbUrl(null)}
-                        className="text-xs text-[#828282] hover:text-red-500">
+                      <button
+                        type="button"
+                        onClick={() => setUploadedThumbUrl(null)}
+                        className="text-xs text-[#828282] hover:text-red-500"
+                      >
                         取り消し
                       </button>
                     </div>
@@ -264,26 +390,50 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       />
                       <label
                         htmlFor="thumb-file-input"
-                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-6 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${uploadingThumb ? "pointer-events-none opacity-50" : ""}`}
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-6 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${
+                          uploadingThumb
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }`}
                       >
                         {uploadingThumb ? (
                           <>
                             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
-                            <span className="text-xs text-[#828282]">アップロード中...</span>
+                            <span className="text-xs text-[#828282]">
+                              アップロード中...
+                            </span>
                           </>
                         ) : (
                           <>
-                            <svg className="h-6 w-6 text-[#BDBDBD]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+                            <svg
+                              className="h-6 w-6 text-[#BDBDBD]"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
+                              />
                             </svg>
-                            <span className="text-xs font-medium text-[#4F4F4F]">クリックして画像を選択</span>
-                            <span className="text-[10px] text-[#BDBDBD]">JPG / PNG / WebP（5MB以下）</span>
+                            <span className="text-xs font-medium text-[#4F4F4F]">
+                              クリックして画像を選択
+                            </span>
+                            <span className="text-[10px] text-[#BDBDBD]">
+                              JPG / PNG / WebP（5MB以下）
+                            </span>
                           </>
                         )}
                       </label>
                     </div>
                   )}
-                  <input type="hidden" name="thumbnail_url" value={uploadedThumbUrl || ""} />
+                  <input
+                    type="hidden"
+                    name="thumbnail_url"
+                    value={uploadedThumbUrl || ""}
+                  />
                 </div>
               )}
             </div>
@@ -319,7 +469,6 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             </div>
           </div>
 
-          {/* 掲載許諾チェック (必須) */}
           <div className="mt-6 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-4">
             <label className="flex cursor-pointer items-start gap-3">
               <input
@@ -387,68 +536,226 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {items.map((item) => (
-            <div
+            <PortfolioCard
               key={item.id}
-              className="overflow-hidden rounded-2xl bg-white shadow-card"
-            >
-              <div className="relative aspect-video bg-[#F2F2F2]">
-                {item.thumbnail_url ? (
-                  <Image
-                    src={item.thumbnail_url}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, 50vw"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-[#BDBDBD]">
-                    <svg
-                      className="h-10 w-10"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
-                      />
-                    </svg>
-                  </div>
-                )}
-                {/* Platform badge */}
-                <div className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
-                  {item.video_platform === "youtube" ? "YouTube" : item.video_platform === "youtube_short" ? "Short" : item.video_platform === "vimeo" ? "Vimeo" : item.video_platform === "tiktok" ? "TikTok" : item.video_platform === "instagram" ? "Insta" : "Other"}
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-[#222]">{item.title}</h3>
-                {item.description && (
-                  <p className="mt-1 line-clamp-2 text-sm text-[#828282]">
-                    {item.description}
-                  </p>
-                )}
-                {item.genre && (
-                  <span className="mt-2 inline-block rounded-pill bg-primary-50 px-2.5 py-0.5 text-[11px] font-bold text-primary-500">
-                    {item.genre}
-                  </span>
-                )}
-                <div className="mt-3 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    disabled={deleting === item.id}
-                    className="text-sm text-red-500 hover:text-red-700 disabled:opacity-50"
-                  >
-                    {deleting === item.id ? "削除中..." : "削除"}
-                  </button>
-                </div>
-              </div>
-            </div>
+              item={item}
+              onDelete={() => handleDelete(item.id)}
+              deleting={deleting === item.id}
+              onThumbnailUpdated={() => setError(null)}
+            />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * 既存ポートフォリオ1件。サムネが NULL のときは「サムネイルを追加」、
+ * 既に存在しているときも「サムネ変更」で差し替え可能にする。
+ */
+function PortfolioCard({
+  item,
+  onDelete,
+  deleting,
+  onThumbnailUpdated,
+}: {
+  item: PortfolioItem;
+  onDelete: () => void;
+  deleting: boolean;
+  onThumbnailUpdated: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const platformLabel =
+    item.video_platform === "youtube"
+      ? "YouTube"
+      : item.video_platform === "youtube_short"
+        ? "Short"
+        : item.video_platform === "vimeo"
+          ? "Vimeo"
+          : item.video_platform === "tiktok"
+            ? "TikTok"
+            : item.video_platform === "instagram"
+              ? "Insta"
+              : "Other";
+
+  const handleUpload = async (file: File) => {
+    setUploading(true);
+    setErrorMsg(null);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/upload/thumbnail", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.error) {
+        setErrorMsg(data.error);
+      } else {
+        const r = await updatePortfolioThumbnail(item.id, data.url);
+        if (r?.error) setErrorMsg(r.error);
+        else {
+          setEditing(false);
+          onThumbnailUpdated();
+        }
+      }
+    } catch {
+      setErrorMsg("アップロードに失敗しました");
+    }
+    setUploading(false);
+  };
+
+  return (
+    <div className="overflow-hidden rounded-2xl bg-white shadow-card">
+      <div className="relative aspect-video bg-[#F2F2F2]">
+        {item.thumbnail_url ? (
+          <Image
+            src={item.thumbnail_url}
+            alt={item.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 50vw"
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-[#828282]">
+            <svg
+              className="h-10 w-10"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
+              />
+            </svg>
+            <span className="text-[11px] font-bold text-[#828282]">
+              サムネ未設定
+            </span>
+          </div>
+        )}
+        <div className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
+          {platformLabel}
+        </div>
+        {/* サムネ変更ボタン (右上) */}
+        <button
+          type="button"
+          onClick={() => setEditing(!editing)}
+          className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-pill bg-white/95 px-2.5 py-1 text-[10px] font-bold text-ink shadow-soft transition-colors hover:bg-white"
+        >
+          <svg
+            className="h-3 w-3"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"
+            />
+          </svg>
+          {item.thumbnail_url ? "サムネ変更" : "サムネ追加"}
+        </button>
+      </div>
+
+      {/* サムネ編集パネル */}
+      {editing && (
+        <div className="border-b border-ink/10 bg-paper-deep/40 p-4">
+          {errorMsg && (
+            <p className="mb-2 text-xs text-red-600">{errorMsg}</p>
+          )}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            id={`thumb-input-${item.id}`}
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleUpload(file);
+            }}
+            disabled={uploading}
+          />
+          <label
+            htmlFor={`thumb-input-${item.id}`}
+            className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border-2 border-dashed border-primary-300 bg-white px-4 py-4 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${
+              uploading ? "pointer-events-none opacity-50" : ""
+            }`}
+          >
+            {uploading ? (
+              <>
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
+                <span className="text-xs text-ink-muted">
+                  アップロード中...
+                </span>
+              </>
+            ) : (
+              <>
+                <svg
+                  className="h-5 w-5 text-primary-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"
+                  />
+                </svg>
+                <span className="text-xs font-bold text-primary-600">
+                  画像を選択して差し替え
+                </span>
+                <span className="text-[10px] text-ink-soft">
+                  JPG / PNG / WebP（5MB以下）
+                </span>
+              </>
+            )}
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              setEditing(false);
+              setErrorMsg(null);
+            }}
+            className="mt-2 w-full text-center text-[11px] text-ink-muted hover:text-ink"
+          >
+            キャンセル
+          </button>
+        </div>
+      )}
+
+      <div className="p-4">
+        <h3 className="font-bold text-[#222]">{item.title}</h3>
+        {item.description && (
+          <p className="mt-1 line-clamp-2 text-sm text-[#828282]">
+            {item.description}
+          </p>
+        )}
+        {item.genre && (
+          <span className="mt-2 inline-block rounded-pill bg-primary-50 px-2.5 py-0.5 text-[11px] font-bold text-primary-500">
+            {item.genre}
+          </span>
+        )}
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            onClick={onDelete}
+            disabled={deleting}
+            className="text-sm text-red-500 hover:text-red-700 disabled:opacity-50"
+          >
+            {deleting ? "削除中..." : "削除"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
