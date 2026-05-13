@@ -192,7 +192,7 @@ export function Header({
                 href="/portfolios"
                 className="rounded-pill px-4 py-2 text-[13px] font-bold text-ink transition-colors hover:bg-accent-100 hover:text-primary-700"
               >
-                ポートフォリオ
+                ポートフォリオを見る
               </Link>
             )}
             {showJobsLink && (
