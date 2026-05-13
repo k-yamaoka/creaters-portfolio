@@ -47,7 +47,10 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
   const [software, setSoftware] = useState<string[]>([]);
   const [deliveryFormats, setDeliveryFormats] = useState<string[]>([]);
   const [finishUnit, setFinishUnit] = useState<"sec" | "min">("sec");
-  const [isRecurring, setIsRecurring] = useState(false);
+  // null = 未選択 / "single" = 単発 / "recurring" = 継続案件
+  const [orderType, setOrderType] = useState<"single" | "recurring" | null>(null);
+  // 継続案件のとき: "specified" = 月N本指定 / "tbd" = 本数未定
+  const [recurringFreq, setRecurringFreq] = useState<"specified" | "tbd">("specified");
 
   const [workTypesOtherShow, setWorkTypesOtherShow] = useState(false);
   const [workTypesOther, setWorkTypesOther] = useState("");
@@ -465,35 +468,76 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
         <div>
           <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
             発注形態（任意）
+            <span className="ml-2 text-[11px] font-normal text-[#9a9da9]">
+              ※もう一度押すと解除
+            </span>
           </label>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={() => setIsRecurring(false)}
-              className={pillClass(!isRecurring)}
+              onClick={() =>
+                setOrderType((curr) => (curr === "single" ? null : "single"))
+              }
+              className={pillClass(orderType === "single")}
             >
               単発
             </button>
             <button
               type="button"
-              onClick={() => setIsRecurring(true)}
-              className={pillClass(isRecurring)}
+              onClick={() =>
+                setOrderType((curr) =>
+                  curr === "recurring" ? null : "recurring"
+                )
+              }
+              className={pillClass(orderType === "recurring")}
             >
               継続案件
             </button>
           </div>
-          <input type="hidden" name="is_recurring" value={isRecurring ? "1" : ""} />
-          {isRecurring && (
-            <div className="mt-3 flex items-center gap-2">
-              <span className="text-sm text-[#828282]">月</span>
-              <input
-                name="monthly_count"
-                type="number"
-                min={1}
-                className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                placeholder="4"
-              />
-              <span className="text-sm text-[#828282]">本</span>
+          <input
+            type="hidden"
+            name="is_recurring"
+            value={orderType === "recurring" ? "1" : ""}
+          />
+          {orderType === "recurring" && (
+            <div className="mt-3 space-y-3 rounded-lg border border-primary-100 bg-primary-50/40 p-3">
+              <div>
+                <p className="mb-2 text-xs font-bold text-[#4F4F4F]">本数</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRecurringFreq("specified")}
+                    className={pillClass(recurringFreq === "specified")}
+                  >
+                    月◯本で指定する
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecurringFreq("tbd")}
+                    className={pillClass(recurringFreq === "tbd")}
+                  >
+                    未定（相談して決める）
+                  </button>
+                </div>
+              </div>
+              {recurringFreq === "specified" && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-[#828282]">月</span>
+                  <input
+                    name="monthly_count"
+                    type="number"
+                    min={1}
+                    className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    placeholder="4"
+                  />
+                  <span className="text-sm text-[#828282]">本</span>
+                </div>
+              )}
+              {recurringFreq === "tbd" && (
+                <p className="text-xs text-[#828282]">
+                  本数はクリエイターと相談して決定します。
+                </p>
+              )}
             </div>
           )}
         </div>

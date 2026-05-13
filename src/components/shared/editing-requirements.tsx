@@ -122,7 +122,7 @@ function RequirementBody({ d }: { d: EditingRequirementsData }) {
             d.is_recurring
               ? d.monthly_count
                 ? `継続案件（月 ${d.monthly_count} 本）`
-                : "継続案件"
+                : "継続案件（本数未定・相談）"
               : "単発"
           }
         />
