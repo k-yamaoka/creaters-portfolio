@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   FlowerMark,
   MiniFlower,
@@ -9,13 +6,6 @@ import {
 } from "@/components/ui/illustrations";
 
 export function Footer() {
-  const pathname = usePathname();
-  // チャット系・編集系の full-height レイアウト画面では非表示
-  const hidden =
-    pathname?.startsWith("/dashboard/messages") ||
-    pathname?.startsWith("/admin");
-  if (hidden) return null;
-
   return (
     <footer className="relative mt-16 overflow-hidden bg-paper-deep">
       {/* うねり線ディバイダー (上端) */}

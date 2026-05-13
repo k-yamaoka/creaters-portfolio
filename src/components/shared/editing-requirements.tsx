@@ -172,42 +172,65 @@ export function EditingRequirementsCollapsible({
   jobTitle: string;
   jobHref?: string;
 }) {
-  const [open, setOpen] = useState(true);
+  // デフォルトは折りたたみ。チャット画面で縦スペースを圧迫しないように
+  const [open, setOpen] = useState(false);
   if (!hasAnyRequirement(data)) return null;
   return (
-    <div className="rounded-xl border border-primary-100 bg-primary-50/40">
+    <div className="overflow-hidden rounded-xl border border-primary-200 bg-primary-50/40">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        aria-expanded={open}
+        className="group flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-primary-50"
       >
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-primary-600">
-            この取引の編集要件
-          </p>
-          <p className="mt-0.5 truncate text-sm font-bold text-[#222]">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-pill bg-primary-500 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+            <svg
+              className="h-3 w-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z"
+              />
+            </svg>
+            編集要件
+          </span>
+          <p className="min-w-0 truncate text-sm font-bold text-ink">
             {jobTitle}
           </p>
         </div>
-        <svg
-          className={`h-4 w-4 shrink-0 text-[#828282] transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={2}
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-        </svg>
+        <span className="inline-flex shrink-0 items-center gap-1 rounded-pill border border-primary-300 bg-white px-2.5 py-1 text-[11px] font-bold text-primary-600 transition-colors group-hover:border-primary-500 group-hover:bg-primary-500 group-hover:text-white">
+          {open ? "閉じる" : "詳細を見る"}
+          <svg
+            className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m19.5 8.25-7.5 7.5-7.5-7.5"
+            />
+          </svg>
+        </span>
       </button>
       {open && (
-        <div className="border-t border-primary-100 px-4 pb-4 pt-3">
+        <div className="border-t border-primary-200 bg-white/70 px-4 pb-4 pt-3">
           <RequirementBody d={data} />
           {jobHref && (
             <a
               href={jobHref}
-              className="mt-3 inline-block text-xs font-medium text-primary-600 hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary-600 hover:underline"
             >
-              案件詳細を開く →
+              案件詳細を開く
+              <span aria-hidden>→</span>
             </a>
           )}
         </div>
