@@ -1,49 +1,52 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   FlowerMark,
   MiniFlower,
-  Leaf,
   WavyLine,
 } from "@/components/ui/illustrations";
 
 export function Footer() {
+  const pathname = usePathname();
+  // チャット系・編集系の full-height レイアウト画面では非表示
+  const hidden =
+    pathname?.startsWith("/dashboard/messages") ||
+    pathname?.startsWith("/admin");
+  if (hidden) return null;
+
   return (
-    <footer className="relative mt-24 overflow-hidden bg-paper-deep">
+    <footer className="relative mt-16 overflow-hidden bg-paper-deep">
       {/* うねり線ディバイダー (上端) */}
-      <div className="absolute inset-x-0 top-0 h-3 text-primary-500/40">
+      <div className="absolute inset-x-0 top-0 h-3 text-primary-500/30">
         <div className="rule-wavy" />
       </div>
 
-      {/* 装飾イラスト */}
+      {/* 装飾イラスト (小ぶりに) */}
       <span
         aria-hidden
-        className="pointer-events-none absolute -left-6 top-16 text-leaf opacity-70 animate-sway"
+        className="pointer-events-none absolute right-6 top-8 text-accent-400/70 animate-float"
       >
-        <Leaf size={90} />
+        <FlowerMark size={48} />
       </span>
       <span
         aria-hidden
-        className="pointer-events-none absolute right-6 top-12 text-accent-400 opacity-80 animate-float"
+        className="pointer-events-none absolute right-32 bottom-16 text-primary-300/50"
       >
-        <FlowerMark size={64} />
-      </span>
-      <span
-        aria-hidden
-        className="pointer-events-none absolute right-32 bottom-32 text-primary-300 opacity-70"
-      >
-        <MiniFlower size={36} />
+        <MiniFlower size={28} />
       </span>
 
-      <div className="relative mx-auto max-w-container px-6 py-20 lg:px-10">
+      <div className="relative mx-auto max-w-container px-6 py-12 lg:px-10">
         {/* Brand mast */}
-        <div className="grid gap-12 lg:grid-cols-[1.2fr_2fr] lg:gap-16">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr] lg:gap-12">
           <div>
-            <Link href="/" className="inline-flex items-center gap-3">
+            <Link href="/" className="inline-flex items-center gap-2.5">
               <span className="block text-primary-500">
-                <FlowerMark size={44} />
+                <FlowerMark size={36} />
               </span>
               <span className="flex flex-col leading-none">
-                <span className="text-2xl font-black tracking-tight text-ink">
+                <span className="text-xl font-black tracking-tight text-ink">
                   Creators<span className="text-primary-500">Hub</span>
                 </span>
                 <span className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.22em] text-ink-soft">
@@ -51,18 +54,18 @@ export function Footer() {
                 </span>
               </span>
             </Link>
-            <p className="mt-6 max-w-sm text-sm leading-[1.9] text-ink-muted">
+            <p className="mt-4 max-w-sm text-sm leading-[1.85] text-ink-muted">
               映像クリエイターとビジネスを、まっすぐつなぐ。
               <br />
               スカウトと公募、ふたつの方法で。
             </p>
-            <div className="mt-6 text-primary-500/70">
-              <WavyLine size={180} />
+            <div className="mt-3 text-primary-500/60">
+              <WavyLine size={140} />
             </div>
           </div>
 
           {/* Navigation Columns */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
             <FooterColumn title="Service">
               <FooterLink href="/creators">クリエイター</FooterLink>
               <FooterLink href="/how-it-works">使い方</FooterLink>
@@ -86,7 +89,7 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-16 flex flex-col items-start justify-between gap-3 border-t border-ink/10 pt-6 sm:flex-row sm:items-center">
+        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-ink/10 pt-5 sm:flex-row sm:items-center">
           <p className="text-xs text-ink-muted">
             &copy; 2026 CreatorsHub by{" "}
             <a
@@ -100,7 +103,7 @@ export function Footer() {
           </p>
           <p className="inline-flex items-center gap-2 text-xs font-medium text-ink-soft">
             <span aria-hidden className="text-accent-500">
-              <MiniFlower size={16} />
+              <MiniFlower size={14} />
             </span>
             Made with care, in Tokyo.
           </p>
@@ -123,7 +126,7 @@ function FooterColumn({
         <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />
         {title}
       </h3>
-      <ul className="mt-5 space-y-3">{children}</ul>
+      <ul className="mt-4 space-y-2.5">{children}</ul>
     </div>
   );
 }
