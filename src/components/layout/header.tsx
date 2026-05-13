@@ -187,6 +187,14 @@ export function Header({
                 クリエイターを探す
               </Link>
             )}
+            {showCreatorsLink && (
+              <Link
+                href="/portfolios"
+                className="rounded-pill px-4 py-2 text-[13px] font-bold text-ink transition-colors hover:bg-accent-100 hover:text-primary-700"
+              >
+                ポートフォリオ
+              </Link>
+            )}
             {showJobsLink && (
               <Link
                 href="/jobs"
@@ -474,6 +482,16 @@ export function Header({
                 onClick={() => setMobileMenuOpen(false)}
               >
                 クリエイターを探す
+                <span className="text-primary-500">→</span>
+              </Link>
+            )}
+            {showCreatorsLink && (
+              <Link
+                href="/portfolios"
+                className="flex items-center justify-between border-b border-ink/10 py-4 text-lg font-bold text-ink"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                ポートフォリオを見る
                 <span className="text-primary-500">→</span>
               </Link>
             )}

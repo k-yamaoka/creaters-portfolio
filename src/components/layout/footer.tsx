@@ -57,7 +57,8 @@ export function Footer() {
           {/* Navigation Columns */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
             <FooterColumn title="Service">
-              <FooterLink href="/creators">クリエイター</FooterLink>
+              <FooterLink href="/creators">クリエイター一覧</FooterLink>
+              <FooterLink href="/portfolios">ポートフォリオ一覧</FooterLink>
               <FooterLink href="/how-it-works">使い方</FooterLink>
               <FooterLink href="/pricing">料金</FooterLink>
             </FooterColumn>
