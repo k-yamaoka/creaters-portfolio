@@ -56,8 +56,23 @@ export default async function CreatorDetailPage({
   const isVerified = creator.profiles.is_verified;
   const activePackages = creator.service_packages.filter((p) => p.is_active);
 
-  const ratingEmoji = creator.rating >= 2.5 ? "😊" : creator.rating >= 1.5 ? "😐" : "😢";
-  const ratingLabel = creator.rating >= 2.5 ? "満足" : creator.rating >= 1.5 ? "普通" : "不満";
+  // 評価数が 0 のときは絵文字/ラベルを出さない。
+  // 1件以上ある場合のみ、レーティング数値から絵文字+ラベルを算出する。
+  const hasReviews = creator.review_count > 0;
+  const ratingEmoji = !hasReviews
+    ? null
+    : creator.rating >= 2.5
+      ? "😊"
+      : creator.rating >= 1.5
+        ? "😐"
+        : "😢";
+  const ratingLabel = !hasReviews
+    ? null
+    : creator.rating >= 2.5
+      ? "満足"
+      : creator.rating >= 1.5
+        ? "普通"
+        : "不満";
 
   return (
     <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
@@ -132,9 +147,19 @@ export default async function CreatorDetailPage({
                       経験{creator.years_of_experience}年
                     </div>
                     <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-sm text-[#4F4F4F]">
-                      <span>{ratingEmoji}</span>
-                      {ratingLabel}
-                      <span className="text-[#BDBDBD]">({creator.review_count}件)</span>
+                      {hasReviews ? (
+                        <>
+                          <span>{ratingEmoji}</span>
+                          {ratingLabel}
+                          <span className="text-[#BDBDBD]">
+                            ({creator.review_count}件)
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-[#828282]">
+                          まだ評価がありません。
+                        </span>
+                      )}
                     </div>
                   </div>
 

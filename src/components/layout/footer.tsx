@@ -1,61 +1,47 @@
 import Link from "next/link";
-import {
-  FlowerMark,
-  MiniFlower,
-  WavyLine,
-} from "@/components/ui/illustrations";
+import { FlowerMark, MiniFlower } from "@/components/ui/illustrations";
 
 export function Footer() {
   return (
-    <footer className="relative mt-16 overflow-hidden bg-paper-deep">
+    <footer className="relative mt-10 overflow-hidden bg-paper-deep">
       {/* うねり線ディバイダー (上端) */}
-      <div className="absolute inset-x-0 top-0 h-3 text-primary-500/30">
+      <div className="absolute inset-x-0 top-0 h-2 text-primary-500/25">
         <div className="rule-wavy" />
       </div>
 
-      {/* 装飾イラスト (小ぶりに) */}
+      {/* 装飾イラスト (小ぶり) */}
       <span
         aria-hidden
-        className="pointer-events-none absolute right-6 top-8 text-accent-400/70 animate-float"
+        className="pointer-events-none absolute right-6 top-5 text-accent-400/60 animate-float"
       >
-        <FlowerMark size={48} />
-      </span>
-      <span
-        aria-hidden
-        className="pointer-events-none absolute right-32 bottom-16 text-primary-300/50"
-      >
-        <MiniFlower size={28} />
+        <FlowerMark size={32} />
       </span>
 
-      <div className="relative mx-auto max-w-container px-6 py-12 lg:px-10">
+      <div className="relative mx-auto max-w-container px-6 py-7 lg:px-10 lg:py-8">
         {/* Brand mast */}
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr] lg:gap-12">
+        <div className="grid gap-6 lg:grid-cols-[1.2fr_2fr] lg:gap-10">
           <div>
-            <Link href="/" className="inline-flex items-center gap-2.5">
+            <Link href="/" className="inline-flex items-center gap-2">
               <span className="block text-primary-500">
-                <FlowerMark size={36} />
+                <FlowerMark size={28} />
               </span>
               <span className="flex flex-col leading-none">
-                <span className="text-xl font-black tracking-tight text-ink">
+                <span className="text-base font-black tracking-tight text-ink">
                   Creators<span className="text-primary-500">Hub</span>
                 </span>
-                <span className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.22em] text-ink-soft">
+                <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.22em] text-ink-soft">
                   creators × business
                 </span>
               </span>
             </Link>
-            <p className="mt-4 max-w-sm text-sm leading-[1.85] text-ink-muted">
+            <p className="mt-3 max-w-sm text-xs leading-[1.75] text-ink-muted">
               映像クリエイターとビジネスを、まっすぐつなぐ。
-              <br />
               スカウトと公募、ふたつの方法で。
             </p>
-            <div className="mt-3 text-primary-500/60">
-              <WavyLine size={140} />
-            </div>
           </div>
 
           {/* Navigation Columns */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
             <FooterColumn title="Service">
               <FooterLink href="/creators">クリエイター一覧</FooterLink>
               <FooterLink href="/portfolios">ポートフォリオ一覧</FooterLink>
@@ -80,8 +66,8 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-ink/10 pt-5 sm:flex-row sm:items-center">
-          <p className="text-xs text-ink-muted">
+        <div className="mt-6 flex flex-col items-start justify-between gap-1 border-t border-ink/10 pt-3 sm:flex-row sm:items-center">
+          <p className="text-[11px] text-ink-muted">
             &copy; 2026 CreatorsHub by{" "}
             <a
               href="https://comhuman-quality.com/"
@@ -92,9 +78,9 @@ export function Footer() {
               Comhuman-Quality Co., Ltd.
             </a>
           </p>
-          <p className="inline-flex items-center gap-2 text-xs font-medium text-ink-soft">
+          <p className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink-soft">
             <span aria-hidden className="text-accent-500">
-              <MiniFlower size={14} />
+              <MiniFlower size={12} />
             </span>
             Made with care, in Tokyo.
           </p>
@@ -113,11 +99,11 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h3 className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-primary-600">
+      <h3 className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-primary-600">
         <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />
         {title}
       </h3>
-      <ul className="mt-4 space-y-2.5">{children}</ul>
+      <ul className="mt-2.5 space-y-1.5">{children}</ul>
     </div>
   );
 }

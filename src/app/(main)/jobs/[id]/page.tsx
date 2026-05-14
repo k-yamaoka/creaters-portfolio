@@ -8,6 +8,7 @@ import {
   EditingRequirements,
   type EditingRequirementsData,
 } from "@/components/shared/editing-requirements";
+import { MessageDialog } from "@/components/messages/message-dialog";
 
 export default async function JobDetailPage({
   params,
@@ -54,6 +55,26 @@ export default async function JobDetailPage({
       .eq("creator_id", user.creator_profile.id)
       .single();
     hasApplied = !!existing;
+  }
+
+  // 応募済みの場合のみ、初期メッセージ履歴を取得 (ダイアログに渡す)
+  let initialMessages: Array<{
+    id: string;
+    sender_id: string;
+    receiver_id: string;
+    content: string;
+    created_at: string;
+    is_read?: boolean;
+  }> = [];
+  if (hasApplied && user) {
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("*")
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${clientData.user_id}),and(sender_id.eq.${clientData.user_id},receiver_id.eq.${user.id})`
+      )
+      .order("created_at", { ascending: true });
+    initialMessages = msgs ?? [];
   }
 
   return (
@@ -225,12 +246,26 @@ export default async function JobDetailPage({
                         </p>
                       </div>
                     </div>
-                    <Link
-                      href={`/dashboard/messages/${clientData.user_id}`}
-                      className="btn-primary mt-3 w-full text-sm"
-                    >
-                      この企業にメッセージを送る
-                    </Link>
+                    {user && (
+                      <MessageDialog
+                        partnerUserId={clientData.user_id}
+                        partnerName={
+                          clientData.company_name ||
+                          clientData.profiles.display_name
+                        }
+                        currentUserId={user.id}
+                        senderRole={
+                          user.role === "creator" ||
+                          user.role === "client" ||
+                          user.role === "admin"
+                            ? user.role
+                            : undefined
+                        }
+                        initialMessages={initialMessages}
+                        triggerLabel="この企業にメッセージを送る"
+                        triggerClassName="btn-primary mt-3 w-full text-sm"
+                      />
+                    )}
                   </div>
                 </div>
               ) : (

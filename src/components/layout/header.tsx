@@ -45,7 +45,10 @@ export function Header({
   const isCreator = role === "creator";
   const isClient = role === "client";
   const isAdmin = role === "admin";
-  const showCreatorsLink = !user || isClient || isAdmin;
+  // creator も「クリエイター一覧」リンクを使えるように true。
+  // 文言はロールで出し分け (creator: 「クリエイター一覧」, それ以外: 「クリエイターを探す」)
+  const showCreatorsLink = true;
+  const creatorsLinkLabel = isCreator ? "クリエイター一覧" : "クリエイターを探す";
   const showJobsLink = !user || isCreator || isAdmin;
   const showPostJobCta = isClient;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -184,7 +187,7 @@ export function Header({
                 href="/creators"
                 className="rounded-pill px-4 py-2 text-[13px] font-bold text-ink transition-colors hover:bg-accent-100 hover:text-primary-700"
               >
-                クリエイターを探す
+                {creatorsLinkLabel}
               </Link>
             )}
             {showCreatorsLink && (
@@ -481,7 +484,7 @@ export function Header({
                 className="flex items-center justify-between border-b border-ink/10 py-4 text-lg font-bold text-ink"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                クリエイターを探す
+                {creatorsLinkLabel}
                 <span className="text-primary-500">→</span>
               </Link>
             )}

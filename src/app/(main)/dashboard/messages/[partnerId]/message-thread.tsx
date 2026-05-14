@@ -86,13 +86,31 @@ export function MessageThread({
 
   const mergeMessage = useCallback((incoming: Message) => {
     setMessages((prev) => {
-      // 既に同 ID が存在する場合は無視 (自分送信は sendMessage の戻り値で先に差し替え済み)
+      // 既に同 ID が存在する場合は無視 (sendMessage の戻り値で先に差し替え済み)
       if (prev.some((m) => m.id === incoming.id)) return prev;
+      // 自分送信の Realtime が先に来た場合: 同じ送信者・内容の temp- を置換する
+      // (これをしないと temp + real の 2 件が短時間ダブって表示される)
+      if (incoming.sender_id === currentUserId) {
+        const tempIdx = prev.findIndex(
+          (m) =>
+            m.id.startsWith("temp-") &&
+            m.sender_id === incoming.sender_id &&
+            m.receiver_id === incoming.receiver_id &&
+            m.content === incoming.content
+        );
+        if (tempIdx !== -1) {
+          const next = [...prev];
+          next[tempIdx] = incoming;
+          return next.sort((a, b) =>
+            a.created_at.localeCompare(b.created_at)
+          );
+        }
+      }
       return [...prev, incoming].sort((a, b) =>
         a.created_at.localeCompare(b.created_at)
       );
     });
-  }, []);
+  }, [currentUserId]);
 
   const replaceTemp = useCallback((tempId: string, real: Message) => {
     setMessages((prev) => {

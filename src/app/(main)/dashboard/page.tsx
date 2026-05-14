@@ -101,16 +101,34 @@ export default async function DashboardPage() {
           <div className="rounded-2xl bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
               <p className="text-sm text-[#828282]">評価</p>
-              <span className="text-2xl">
-                {user.creator_profile!.rating >= 2.5 ? "😊" : user.creator_profile!.rating >= 1.5 ? "😐" : "😢"}
-              </span>
+              {user.creator_profile!.review_count > 0 && (
+                <span className="text-2xl">
+                  {user.creator_profile!.rating >= 2.5
+                    ? "😊"
+                    : user.creator_profile!.rating >= 1.5
+                      ? "😐"
+                      : "😢"}
+                </span>
+              )}
             </div>
-            <p className="mt-2 text-2xl font-bold text-[#222]">
-              {user.creator_profile!.rating >= 2.5 ? "満足" : user.creator_profile!.rating >= 1.5 ? "普通" : "不満"}
-            </p>
-            <p className="mt-1 text-xs text-[#BDBDBD]">
-              {user.creator_profile!.review_count}件のレビュー
-            </p>
+            {user.creator_profile!.review_count > 0 ? (
+              <>
+                <p className="mt-2 text-2xl font-bold text-[#222]">
+                  {user.creator_profile!.rating >= 2.5
+                    ? "満足"
+                    : user.creator_profile!.rating >= 1.5
+                      ? "普通"
+                      : "不満"}
+                </p>
+                <p className="mt-1 text-xs text-[#BDBDBD]">
+                  {user.creator_profile!.review_count}件のレビュー
+                </p>
+              </>
+            ) : (
+              <p className="mt-2 text-sm text-[#828282]">
+                まだ評価がありません。
+              </p>
+            )}
           </div>
           <div className="rounded-2xl bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">

@@ -287,13 +287,15 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
                 認証済み
               </span>
             )}
-            {creator.rating > 0 && (
+            {creator.review_count > 0 ? (
               <span className="inline-flex items-center gap-1 text-xs font-bold text-ink-muted">
                 <span className="text-accent-500">★</span>
                 {creator.rating.toFixed(1)}
-                {creator.review_count > 0 && (
-                  <span className="text-ink-soft">({creator.review_count})</span>
-                )}
+                <span className="text-ink-soft">({creator.review_count})</span>
+              </span>
+            ) : (
+              <span className="text-xs text-ink-soft">
+                まだ評価がありません。
               </span>
             )}
             {creator.years_of_experience > 0 && (
