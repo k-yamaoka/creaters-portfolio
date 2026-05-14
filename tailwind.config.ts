@@ -53,6 +53,20 @@ const config: Config = {
         sky: "#dceaf4",
         leaf: "#cfe3ce",
         peach: "#f7d9c4",
+        // Modern-flat illustration palette (Coral + Navy)
+        coral: {
+          50: "#fff1f1",
+          100: "#ffd9da",
+          200: "#ffb3b5",
+          300: "#ff8285",
+          400: "#ff6064",
+          500: "#ff4d52",
+          600: "#e53a3f",
+          700: "#b32c30",
+          800: "#7d2024",
+          900: "#4a1416",
+        },
+        navy: "#1d2939",
       },
       borderRadius: {
         sm: "8px",

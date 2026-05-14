@@ -8,10 +8,13 @@ import {
   SunMark,
   SparkStar,
   WavyLine,
-  TwoFeet,
   HeartMark,
   Blob,
 } from "@/components/ui/illustrations";
+import {
+  VideoEditorScene,
+  PlayTriangle,
+} from "@/components/ui/illustrations-modern";
 
 const InfiniteSlider = dynamic(
   () =>
@@ -23,48 +26,48 @@ export default function HomePage() {
   return (
     <>
       {/* =================================================
-          HERO — Two creators meet under flowers
+          HERO — Modern flat editor at desk
           ================================================= */}
       <section className="relative overflow-hidden bg-paper">
         {/* 背景の装飾 */}
         <span
           aria-hidden
-          className="pointer-events-none absolute -left-16 top-16 text-accent-200 opacity-70"
+          className="pointer-events-none absolute -left-24 -top-10 text-coral-100 opacity-70"
         >
-          <Blob size={260} />
+          <Blob size={320} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute right-0 top-32 text-sky opacity-90"
+          className="pointer-events-none absolute right-10 -top-4 text-accent-200 opacity-80"
         >
-          <CloudShape size={220} />
+          <Blob size={180} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute right-20 top-12 text-accent-500 animate-float"
+          className="pointer-events-none absolute right-32 top-8 text-accent-500 animate-float"
         >
-          <SunMark size={80} />
+          <SunMark size={64} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-40 -translate-x-1/2 text-primary-300/60 animate-sway"
+          className="pointer-events-none absolute left-1/3 top-28 text-coral-300 animate-sway"
         >
-          <SparkStar size={28} />
+          <SparkStar size={20} />
         </span>
 
         <div className="relative mx-auto max-w-container px-6 pb-24 pt-20 lg:px-10 lg:pb-32 lg:pt-28">
           <div className="grid grid-cols-12 gap-8 lg:gap-12">
             {/* テキスト */}
-            <div className="col-span-12 lg:col-span-7">
+            <div className="col-span-12 lg:col-span-6">
               <p className="eyebrow">CREATORS × BUSINESS</p>
 
-              <h1 className="mt-6 text-balance text-[2.4rem] font-black leading-[1.25] tracking-tight text-ink sm:text-[3.5rem] lg:text-[4.5rem]">
+              <h1 className="mt-6 text-balance text-[2.4rem] font-black leading-[1.2] tracking-tight text-ink sm:text-[3.4rem] lg:text-[4.25rem]">
                 映像で、
                 <br />
                 <span className="underline-yellow">仕事</span>
-                <span className="text-primary-500">と</span>
+                <span className="text-coral-500">と</span>
                 <span className="underline-yellow">人</span>
-                <span className="text-primary-500">が</span>
+                <span className="text-coral-500">が</span>
                 <br />
                 出会う場所。
               </h1>
@@ -81,7 +84,7 @@ export default function HomePage() {
               <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/creators"
-                  className="group inline-flex items-center justify-between gap-3 rounded-pill bg-primary-500 px-7 py-4 text-base font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-primary-600 hover:shadow-card"
+                  className="group inline-flex items-center justify-between gap-3 rounded-pill bg-coral-500 px-7 py-4 text-base font-bold text-white shadow-soft transition-all hover:-translate-y-0.5 hover:bg-coral-600 hover:shadow-card"
                 >
                   <span>クリエイターを探す</span>
                   <span className="text-accent-300 transition-transform group-hover:translate-x-1">
@@ -119,71 +122,32 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* イラスト — 二人の足元 + 花壇 */}
-            <div className="col-span-12 lg:col-span-5">
-              <div className="relative mx-auto aspect-square max-w-md">
-                {/* バックの黄色丸 */}
-                <div
-                  aria-hidden
-                  className="absolute inset-6 rounded-pill bg-accent-300"
-                />
-                {/* 雲 */}
+            {/* イラスト — 動画編集者デスク (モダンフラット) */}
+            <div className="col-span-12 lg:col-span-6">
+              <div className="relative mx-auto w-full max-w-2xl">
+                {/* 後ろに浮かぶ幾何形状 */}
                 <span
                   aria-hidden
-                  className="absolute -left-4 top-8 text-white"
+                  className="pointer-events-none absolute -right-4 -top-2 text-accent-400"
                 >
-                  <CloudShape size={120} />
-                </span>
-                {/* 葉 */}
-                <span
-                  aria-hidden
-                  className="absolute -right-4 top-16 text-leaf animate-sway"
-                >
-                  <Leaf size={84} />
+                  <SparkStar size={32} />
                 </span>
                 <span
                   aria-hidden
-                  className="absolute left-4 bottom-20 -rotate-12 text-leaf"
+                  className="pointer-events-none absolute -left-6 top-12 rotate-12 text-coral-300 animate-float"
                 >
-                  <Leaf size={60} />
+                  <PlayTriangle size={40} />
                 </span>
-                {/* 二人の足元 */}
-                <div className="absolute inset-x-0 bottom-12 flex items-end justify-center">
-                  <TwoFeet size={300} />
+                {/* メインのデスクシーン */}
+                <VideoEditorScene className="relative w-full h-auto" />
+                {/* 浮かぶ通知バブル */}
+                <div className="absolute -bottom-4 -left-2 rotate-[-6deg] rounded-xl border-2 border-ink bg-white px-4 py-2 text-xs font-black shadow-pop sm:bottom-2">
+                  <p className="text-ink">納品完了！</p>
+                  <p className="text-coral-600">★ 5.0</p>
                 </div>
-                {/* 花 (中央に大きく咲く) */}
-                <span
-                  aria-hidden
-                  className="absolute left-1/2 top-1/4 -translate-x-1/2 text-primary-500 animate-wiggle"
-                >
-                  <FlowerMark size={110} />
-                </span>
-                {/* 小花たち */}
-                <span
-                  aria-hidden
-                  className="absolute right-10 bottom-32 text-primary-400"
-                >
-                  <MiniFlower size={28} />
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute left-8 bottom-40 text-accent-500"
-                >
-                  <MiniFlower size={32} />
-                </span>
-                {/* キラキラ */}
-                <span
-                  aria-hidden
-                  className="absolute right-16 top-10 text-accent-500 animate-float"
-                >
-                  <SparkStar size={22} />
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute left-10 top-24 text-primary-400 animate-float"
-                >
-                  <SparkStar size={14} />
-                </span>
+                <div className="absolute -top-2 right-6 rotate-[4deg] rounded-xl border-2 border-ink bg-accent-500 px-3 py-1.5 text-xs font-black text-ink shadow-pop">
+                  新着案件 +3
+                </div>
               </div>
             </div>
           </div>
