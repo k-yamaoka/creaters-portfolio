@@ -67,6 +67,19 @@ const config: Config = {
           900: "#4a1416",
         },
         navy: "#1d2939",
+        // Retrowave / city pop / lofi palette
+        neon: {
+          pink: "#ff4d9d",
+          "pink-soft": "#ff8ec0",
+          purple: "#9d5cff",
+          "purple-deep": "#5b2dd1",
+          cyan: "#4dd5f7",
+          "cyan-soft": "#a6e8f7",
+          sunset: "#ffae3b",
+          magenta: "#e83fae",
+          midnight: "#1a1340",
+          "midnight-deep": "#0f0826",
+        },
       },
       borderRadius: {
         sm: "8px",
