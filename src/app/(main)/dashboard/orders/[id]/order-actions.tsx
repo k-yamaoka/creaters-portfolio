@@ -225,17 +225,21 @@ export function OrderActions({
           </button>
         )}
 
-        {action && !showStripePayment && !showStripeCapture && (
-          <button
-            type="button"
-            onClick={() => handleAction(action.nextStatus)}
-            disabled={loading}
-            className={`${action.style} text-sm disabled:opacity-50`}
-          >
-            {loading ? "処理中..." : action.label}
-          </button>
-        )}
+        {/* 通常アクション (Stripe 決済/キャプチャを使わないステージ) */}
+        {action &&
+          !config.useStripePayment &&
+          !config.useStripeCapture && (
+            <button
+              type="button"
+              onClick={() => handleAction(action.nextStatus)}
+              disabled={loading}
+              className={`${action.style} text-sm disabled:opacity-50`}
+            >
+              {loading ? "処理中..." : action.label}
+            </button>
+          )}
 
+        {/* Stripe 決済段階 (contract) で Stripe キー無しのフォールバック */}
         {config.useStripePayment && !hasStripeKey && action && (
           <button
             type="button"
@@ -247,6 +251,7 @@ export function OrderActions({
           </button>
         )}
 
+        {/* Stripe キャプチャ段階 (delivered) で Stripe キー無しのフォールバック */}
         {config.useStripeCapture &&
           !hasStripeKey &&
           escrowStatus !== "released" &&
