@@ -22,14 +22,36 @@ export type EditingRequirementsData = {
 };
 
 function formatFinishDuration(d: EditingRequirementsData): string | null {
-  const unit = d.finish_duration_unit === "min" ? "分" : "秒";
   const min = d.finish_duration_min;
   const max = d.finish_duration_max;
+  const unit = d.finish_duration_unit === "sec" ? "秒" : "分";
   if (min == null && max == null) return null;
+  // バケット 4 種に一致するなら定型ラベルを返す
+  if (d.finish_duration_unit !== "sec") {
+    if (min == null && max === 1) return "〜1分";
+    if (min === 1 && max === 5) return "1分〜5分";
+    if (min === 5 && max === 10) return "5分〜10分";
+    if (min === 10 && max == null) return "10分以上";
+  }
   if (min != null && max != null) {
     return min === max ? `${min}${unit}` : `${min}〜${max}${unit}`;
   }
   return `${min ?? max}${unit}`;
+}
+
+function formatFootageMinutes(n: number): string {
+  if (n <= 10) return "〜10分";
+  if (n <= 30) return "10〜30分";
+  if (n === 60) return "30分〜1時間";
+  if (n >= 61 && n < 121) return "1時間〜";
+  if (n >= 121 && n < 181) return "2時間〜";
+  if (n >= 181) return "3時間〜";
+  return `約 ${n} 分`;
+}
+
+function formatRevisionCount(n: number): string {
+  if (n >= 99) return "5回〜";
+  return `${n} 回`;
 }
 
 function formatCount(d: EditingRequirementsData): string | null {
@@ -96,7 +118,7 @@ function RequirementBody({ d }: { d: EditingRequirementsData }) {
   return (
     <dl className="divide-y divide-[#F2F2F2]">
       {d.footage_minutes != null && (
-        <Row label="素材時間" value={`約 ${d.footage_minutes} 分`} />
+        <Row label="素材時間" value={formatFootageMinutes(d.footage_minutes)} />
       )}
       {finishLabel && <Row label="完成尺" value={finishLabel} />}
       {countLabel && <Row label="本数" value={countLabel} />}
@@ -104,7 +126,7 @@ function RequirementBody({ d }: { d: EditingRequirementsData }) {
         <Row label="作業内容" value={<TagList items={d.work_types} />} />
       )}
       {d.revision_count != null && (
-        <Row label="修正回数" value={`${d.revision_count} 回`} />
+        <Row label="修正回数" value={formatRevisionCount(d.revision_count)} />
       )}
       {d.software_options.length > 0 && (
         <Row label="使用ソフト" value={<TagList items={d.software_options} />} />
@@ -131,14 +153,24 @@ function RequirementBody({ d }: { d: EditingRequirementsData }) {
         <Row
           label="参考動画"
           value={
-            <a
-              href={d.reference_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="break-all text-primary-500 hover:underline"
-            >
-              {d.reference_url}
-            </a>
+            <ul className="space-y-1">
+              {d.reference_url
+                .split(/\r?\n/)
+                .map((u) => u.trim())
+                .filter(Boolean)
+                .map((u) => (
+                  <li key={u}>
+                    <a
+                      href={u}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="break-all text-primary-500 hover:underline"
+                    >
+                      {u}
+                    </a>
+                  </li>
+                ))}
+            </ul>
           }
         />
       )}

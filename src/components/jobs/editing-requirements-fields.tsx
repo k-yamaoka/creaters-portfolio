@@ -9,6 +9,41 @@ import {
   CLIENT_TYPES,
 } from "@/lib/constants";
 
+/**
+ * バケット選択肢の定義。
+ * select の表示ラベルとサーバへ送る生値 (DB の integer / null をエンコードした文字列) を持つ。
+ *
+ * - 素材時間: footage_minutes (integer 分) のレンジ。
+ *   バケットごとに代表 integer を割り当て、表示側で逆引きしてラベル化する。
+ *   1時間〜/2時間〜/3時間〜 は「以上」を示すため代表値を 61/121/181 にする
+ *   (30分〜1時間=60 と区別したい)。
+ * - 完成尺: finish_duration_unit="min" 固定で finish_duration_min/max のレンジ。
+ * - 修正回数: revision_count integer。5回〜 は 99 をセンチネルとして保存。
+ */
+const FOOTAGE_MINUTES_BUCKETS = [
+  { v: "10", n: 10, label: "〜10分" },
+  { v: "30", n: 30, label: "10〜30分" },
+  { v: "60", n: 60, label: "30分〜1時間" },
+  { v: "61", n: 61, label: "1時間〜" },
+  { v: "121", n: 121, label: "2時間〜" },
+  { v: "181", n: 181, label: "3時間〜" },
+] as const;
+
+const FINISH_DURATION_BUCKETS = [
+  { v: "0-1", min: "", max: "1", label: "〜1分" },
+  { v: "1-5", min: "1", max: "5", label: "1分〜5分" },
+  { v: "5-10", min: "5", max: "10", label: "5分〜10分" },
+  { v: "10+", min: "10", max: "", label: "10分以上" },
+] as const;
+
+const REVISION_COUNT_BUCKETS = [
+  { v: "1", n: 1, label: "1回" },
+  { v: "2", n: 2, label: "2回" },
+  { v: "3", n: 3, label: "3回" },
+  { v: "4", n: 4, label: "4回" },
+  { v: "99", n: 99, label: "5回〜" },
+] as const;
+
 function RequiredMark() {
   return (
     <span className="ml-1 rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-500">
@@ -30,6 +65,18 @@ function toNum(s: string): number | null {
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
+/**
+ * 数字以外を弾き、桁数を制限する onInput ハンドラを返す。
+ * type="number" でも貼り付け等で長い数字が入るため、明示的に切り詰める。
+ */
+function digitsOnly(maxDigits: number) {
+  return (e: React.FormEvent<HTMLInputElement>) => {
+    const t = e.currentTarget;
+    const cleaned = t.value.replace(/[^0-9]/g, "").slice(0, maxDigits);
+    if (t.value !== cleaned) t.value = cleaned;
+  };
+}
+
 type Props = {
   /** 本数 (count_min/count_max) の変化を親に通知。jobs/new の見積もり自動計算に使う。 */
   onCountChange?: (countMin: number | null, countMax: number | null) => void;
@@ -46,11 +93,22 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
   const [workTypes, setWorkTypes] = useState<string[]>([]);
   const [software, setSoftware] = useState<string[]>([]);
   const [deliveryFormats, setDeliveryFormats] = useState<string[]>([]);
-  const [finishUnit, setFinishUnit] = useState<"sec" | "min">("sec");
+  // 完成尺はバケット選択方式に統一。unit は固定で "min"
+  const [finishBucket, setFinishBucket] = useState<string>("");
+  // 素材時間バケット
+  const [footageBucket, setFootageBucket] = useState<string>("");
+  // 修正回数バケット
+  const [revisionBucket, setRevisionBucket] = useState<string>("");
+  // 参考動画URL: 複数行 (空文字を残すと UI 上 + ボタンで追加した直後の空欄が出る)
+  const [referenceUrls, setReferenceUrls] = useState<string[]>([""]);
   // null = 未選択 / "single" = 単発 / "recurring" = 継続案件
   const [orderType, setOrderType] = useState<"single" | "recurring" | null>(null);
   // 継続案件のとき: "specified" = 月N本指定 / "tbd" = 本数未定
   const [recurringFreq, setRecurringFreq] = useState<"specified" | "tbd">("specified");
+
+  const currentFinishBucket = FINISH_DURATION_BUCKETS.find(
+    (b) => b.v === finishBucket
+  );
 
   const [workTypesOtherShow, setWorkTypesOtherShow] = useState(false);
   const [workTypesOther, setWorkTypesOther] = useState("");
@@ -109,84 +167,73 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
         {/* 素材時間 */}
         <div>
           <label
-            htmlFor="footage_minutes"
+            htmlFor="footage_bucket"
             className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
           >
-            素材時間（約◯分）
+            素材時間
             <RequiredMark />
           </label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-[#828282]">約</span>
-            <input
-              id="footage_minutes"
-              name="footage_minutes"
-              type="number"
-              min={1}
-              required
-              className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="30"
-            />
-            <span className="text-sm text-[#828282]">分</span>
-          </div>
+          <select
+            id="footage_bucket"
+            value={footageBucket}
+            onChange={(e) => setFootageBucket(e.target.value)}
+            required
+            className="w-full rounded-lg border border-[#E0E0E0] bg-white px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 sm:w-64"
+          >
+            <option value="">選択してください</option>
+            {FOOTAGE_MINUTES_BUCKETS.map((b) => (
+              <option key={b.v} value={b.v}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+          {/* DB 既存スキーマ (footage_minutes: integer) に合わせて hidden で送る */}
+          <input
+            type="hidden"
+            name="footage_minutes"
+            value={footageBucket}
+          />
         </div>
 
         {/* 完成尺 */}
         <div>
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className="flex items-center text-sm font-medium text-[#4F4F4F]">
-              完成尺
-              <RequiredMark />
-            </label>
-            <div className="flex overflow-hidden rounded-lg border border-[#E0E0E0] text-xs">
-              <button
-                type="button"
-                onClick={() => setFinishUnit("sec")}
-                className={`px-3 py-1.5 ${
-                  finishUnit === "sec"
-                    ? "bg-primary-500 text-white"
-                    : "bg-white text-[#4F4F4F] hover:bg-[#F8F8F8]"
-                }`}
-              >
-                秒
-              </button>
-              <button
-                type="button"
-                onClick={() => setFinishUnit("min")}
-                className={`px-3 py-1.5 ${
-                  finishUnit === "min"
-                    ? "bg-primary-500 text-white"
-                    : "bg-white text-[#4F4F4F] hover:bg-[#F8F8F8]"
-                }`}
-              >
-                分
-              </button>
-            </div>
-          </div>
-          <input type="hidden" name="finish_duration_unit" value={finishUnit} />
-          <div className="flex items-center gap-2">
-            <input
-              name="finish_duration_min"
-              type="number"
-              min={0}
-              step={finishUnit === "sec" ? 1 : 0.5}
-              required
-              className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder={finishUnit === "sec" ? "30" : "3"}
-            />
-            <span className="text-sm text-[#828282]">〜</span>
-            <input
-              name="finish_duration_max"
-              type="number"
-              min={0}
-              step={finishUnit === "sec" ? 1 : 0.5}
-              required
-              className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder={finishUnit === "sec" ? "60" : "5"}
-            />
-            <span className="text-sm text-[#828282]">
-              {finishUnit === "sec" ? "秒" : "分"}
-            </span>
-          </div>
+          <label
+            htmlFor="finish_bucket"
+            className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
+          >
+            完成尺
+            <RequiredMark />
+          </label>
+          <select
+            id="finish_bucket"
+            value={finishBucket}
+            onChange={(e) => setFinishBucket(e.target.value)}
+            required
+            className="w-full rounded-lg border border-[#E0E0E0] bg-white px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 sm:w-64"
+          >
+            <option value="">選択してください</option>
+            {FINISH_DURATION_BUCKETS.map((b) => (
+              <option key={b.v} value={b.v}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+          {/* DB 既存スキーマ用 hidden 出力。unit は固定で min */}
+          <input
+            type="hidden"
+            name="finish_duration_unit"
+            value={finishBucket ? "min" : ""}
+          />
+          <input
+            type="hidden"
+            name="finish_duration_min"
+            value={currentFinishBucket?.min ?? ""}
+          />
+          <input
+            type="hidden"
+            name="finish_duration_max"
+            value={currentFinishBucket?.max ?? ""}
+          />
         </div>
 
         {/* 本数 */}
@@ -200,28 +247,36 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
               id="count_min"
               name="count_min"
               type="number"
+              inputMode="numeric"
               min={1}
+              max={999}
               required
               value={countMin}
-              onChange={(e) => setCountMin(e.target.value)}
+              onChange={(e) =>
+                setCountMin(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))
+              }
               className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="1"
+              placeholder="下限"
             />
             <span className="text-sm text-[#828282]">〜</span>
             <input
               id="count_max"
               name="count_max"
               type="number"
+              inputMode="numeric"
               min={1}
+              max={999}
               value={countMax}
-              onChange={(e) => setCountMax(e.target.value)}
+              onChange={(e) =>
+                setCountMax(e.target.value.replace(/[^0-9]/g, "").slice(0, 3))
+              }
               className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="未指定なら下限と同数"
+              placeholder="上限"
             />
             <span className="text-sm text-[#828282]">本</span>
           </div>
-          <p className="mt-1 text-xs text-[#828282]">
-            範囲指定したい場合は上限を入力
+          <p className="mt-1.5 text-xs text-[#828282]">
+            ※ 半角数字3桁まで。範囲指定したい場合は上限も入力（未指定なら下限と同数として扱います）。
           </p>
         </div>
 
@@ -281,24 +336,31 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
         {/* 修正回数 */}
         <div>
           <label
-            htmlFor="revision_count"
+            htmlFor="revision_bucket"
             className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
           >
             修正回数
             <RequiredMark />
           </label>
-          <div className="flex items-center gap-2">
-            <input
-              id="revision_count"
-              name="revision_count"
-              type="number"
-              min={0}
-              required
-              className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="2"
-            />
-            <span className="text-sm text-[#828282]">回</span>
-          </div>
+          <select
+            id="revision_bucket"
+            value={revisionBucket}
+            onChange={(e) => setRevisionBucket(e.target.value)}
+            required
+            className="w-full rounded-lg border border-[#E0E0E0] bg-white px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 sm:w-48"
+          >
+            <option value="">選択してください</option>
+            {REVISION_COUNT_BUCKETS.map((b) => (
+              <option key={b.v} value={b.v}>
+                {b.label}
+              </option>
+            ))}
+          </select>
+          <input
+            type="hidden"
+            name="revision_count"
+            value={revisionBucket}
+          />
         </div>
 
         {/* 使用ソフト */}
@@ -438,29 +500,97 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
               id="delivery_days"
               name="delivery_days"
               type="number"
+              inputMode="numeric"
               min={1}
+              max={999}
               required
+              onInput={digitsOnly(3)}
               className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               placeholder="7"
             />
             <span className="text-sm text-[#828282]">日</span>
           </div>
+          <p className="mt-1.5 text-xs text-[#828282]">
+            ※ 半角数字3桁まで（例: 7、30、180）。
+          </p>
         </div>
 
-        {/* 参考動画URL */}
+        {/* 参考動画URL (複数追加可) */}
         <div>
-          <label
-            htmlFor="reference_url"
-            className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-          >
-            参考動画URL（任意）
+          <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+            参考動画URL（任意・複数追加可）
           </label>
+          <div className="space-y-2">
+            {referenceUrls.map((url, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => {
+                    const next = [...referenceUrls];
+                    next[idx] = e.target.value;
+                    setReferenceUrls(next);
+                  }}
+                  className="flex-1 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder="https://youtube.com/..."
+                />
+                {referenceUrls.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setReferenceUrls(
+                        referenceUrls.filter((_, i) => i !== idx)
+                      )
+                    }
+                    aria-label={`${idx + 1} 番目のURLを削除`}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#E0E0E0] text-[#828282] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-500"
+                  >
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18 18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() => setReferenceUrls([...referenceUrls, ""])}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-primary-300 bg-primary-50/50 px-4 py-2 text-xs font-bold text-primary-600 transition-colors hover:border-primary-500 hover:bg-primary-50"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4.5v15m7.5-7.5h-15"
+                />
+              </svg>
+              URLを追加
+            </button>
+          </div>
+          {/* DB 既存カラム (reference_url: TEXT) に改行区切りで保存 */}
           <input
-            id="reference_url"
+            type="hidden"
             name="reference_url"
-            type="url"
-            className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-            placeholder="https://youtube.com/..."
+            value={referenceUrls
+              .map((u) => u.trim())
+              .filter(Boolean)
+              .join("\n")}
           />
         </div>
 
@@ -526,7 +656,10 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
                   <input
                     name="monthly_count"
                     type="number"
+                    inputMode="numeric"
                     min={1}
+                    max={999}
+                    onInput={digitsOnly(3)}
                     className="w-28 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     placeholder="4"
                   />

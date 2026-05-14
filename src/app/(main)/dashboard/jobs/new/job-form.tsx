@@ -233,15 +233,21 @@ export function JobForm() {
               id="unit_price"
               name="unit_price"
               type="number"
+              inputMode="numeric"
               min={0}
+              max={999999}
               required
               value={unitPrice}
-              onChange={(e) => setUnitPrice(e.target.value)}
+              onChange={(e) =>
+                setUnitPrice(
+                  e.target.value.replace(/[^0-9]/g, "").slice(0, 6)
+                )
+              }
               className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               placeholder="50000"
             />
             <p className="mt-1 text-xs text-[#828282]">
-              動画1本あたりの概算単価を入力してください
+              ※ 半角数字6桁まで（最大 999,999 円）。動画1本あたりの概算単価を入力してください。
             </p>
           </div>
 
