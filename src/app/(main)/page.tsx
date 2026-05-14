@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import {
   FlowerMark,
@@ -12,12 +13,7 @@ import {
   Blob,
 } from "@/components/ui/illustrations";
 import { PlayTriangle } from "@/components/ui/illustrations-modern";
-import {
-  RetroSun,
-  NeonCitySkyline,
-  LofiCreator,
-  NeonStar,
-} from "@/components/ui/illustrations-retrowave";
+import { NeonStar } from "@/components/ui/illustrations-retrowave";
 
 const InfiniteSlider = dynamic(
   () =>
@@ -125,101 +121,50 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* イラスト — レトロウェーブ Lofi (夜の都市 + サンセット + クリエイター) */}
-            <div className="col-span-12 lg:col-span-6">
-              <div className="relative mx-auto aspect-[5/4] w-full max-w-2xl overflow-hidden rounded-2xl border-2 border-ink bg-neon-midnight-deep shadow-pop">
-                {/* グラデーション空 */}
-                <div className="absolute inset-0 bg-gradient-to-b from-neon-midnight-deep via-neon-purple-deep to-neon-pink" />
-
-                {/* 星 */}
-                <div className="absolute inset-0">
-                  {[
-                    [8, 12, 1.5],
-                    [22, 8, 1],
-                    [38, 14, 1.2],
-                    [55, 6, 1],
-                    [68, 18, 0.9],
-                    [80, 10, 1.4],
-                    [92, 14, 1],
-                    [14, 24, 1],
-                    [44, 28, 0.8],
-                    [76, 26, 1.2],
-                  ].map(([x, y, r], i) => (
-                    <span
-                      key={i}
-                      aria-hidden
-                      className="absolute block rounded-full bg-white"
-                      style={{
-                        left: `${x}%`,
-                        top: `${y}%`,
-                        width: `${(r as number) * 3}px`,
-                        height: `${(r as number) * 3}px`,
-                      }}
-                    />
-                  ))}
+            {/* イラスト — ヘッドホンつけて編集中のクリエイター (実画像) */}
+            <div className="relative col-span-12 lg:col-span-6">
+              <div className="relative mx-auto w-full max-w-2xl">
+                {/* メイン画像 */}
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl border-2 border-ink bg-paper-deep shadow-pop">
+                  <Image
+                    src="/hero/editor.png"
+                    alt="ヘッドホンを着けて動画編集をする映像クリエイターのイラスト"
+                    fill
+                    priority
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    className="object-cover"
+                  />
                 </div>
 
-                {/* レトロサン (中央上) */}
-                <div className="absolute left-1/2 top-[6%] -translate-x-1/2">
-                  <RetroSun size={260} />
-                </div>
-
-                {/* 縦のパープルスキャンライン */}
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-25"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(0deg, transparent 0, transparent 6px, rgba(0,0,0,0.6) 6px, rgba(0,0,0,0.6) 7px)",
-                  }}
-                />
-
-                {/* 都市シルエット (下部、フル幅) */}
-                <div className="absolute inset-x-0 bottom-0">
-                  <NeonCitySkyline className="w-full h-[42%]" />
-                </div>
-
-                {/* キャラ (左下に配置) */}
-                <div className="absolute -bottom-2 left-[5%] z-10 w-[44%] sm:w-[42%]">
-                  <LofiCreator className="w-full h-auto" />
-                </div>
-
-                {/* ネオンスター (右上、ピンク) */}
+                {/* 装飾: 星 (画像外) */}
                 <span
                   aria-hidden
-                  className="absolute right-6 top-6 text-neon-pink animate-float"
+                  className="pointer-events-none absolute -right-2 -top-3 text-accent-500 animate-float"
                 >
-                  <NeonStar size={36} />
+                  <SparkStar size={34} />
                 </span>
                 <span
                   aria-hidden
-                  className="absolute right-16 top-20 text-neon-cyan animate-sway"
+                  className="pointer-events-none absolute -left-3 top-1/3 hidden text-neon-pink animate-sway lg:block"
                 >
-                  <NeonStar size={20} />
+                  <NeonStar size={22} />
+                </span>
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -left-6 -bottom-2 hidden rotate-12 text-coral-300 animate-float lg:block"
+                >
+                  <PlayTriangle size={36} />
                 </span>
 
                 {/* 浮かぶ通知バブル */}
-                <div className="absolute right-4 top-1/2 z-20 rotate-[4deg] rounded-xl border-2 border-ink bg-accent-500 px-3 py-1.5 text-xs font-black text-ink shadow-pop">
+                <div className="absolute -top-3 right-6 z-20 rotate-[4deg] rounded-xl border-2 border-ink bg-accent-500 px-3 py-1.5 text-xs font-black text-ink shadow-pop">
                   新着案件 +3
                 </div>
-                <div className="absolute bottom-4 right-4 z-20 rotate-[-3deg] rounded-xl border-2 border-ink bg-white px-3 py-1.5 text-xs font-black shadow-pop">
+                <div className="absolute -bottom-3 left-6 z-20 rotate-[-4deg] rounded-xl border-2 border-ink bg-white px-3 py-1.5 text-xs font-black shadow-pop">
                   <p className="text-ink">納品完了！</p>
-                  <p className="text-neon-pink">★ 5.0</p>
+                  <p className="text-coral-600">★ 5.0</p>
                 </div>
               </div>
-
-              {/* 装飾 (フレーム外) */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -left-6 top-12 hidden rotate-12 text-coral-300 animate-float lg:block"
-              >
-                <PlayTriangle size={40} />
-              </span>
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -right-4 -top-2 hidden text-accent-400 lg:block"
-              >
-                <SparkStar size={32} />
-              </span>
             </div>
           </div>
         </div>
