@@ -228,22 +228,17 @@ function minPrice(pkgs: CreatorWithRelations["service_packages"]) {
   const prices = pkgs.filter((p) => p.is_active).map((p) => p.price);
   return prices.length ? Math.min(...prices) : Number.POSITIVE_INFINITY;
 }
-function maxPrice(pkgs: CreatorWithRelations["service_packages"]) {
-  const prices = pkgs.filter((p) => p.is_active).map((p) => p.price);
-  return prices.length ? Math.max(...prices) : 0;
-}
 
-function formatPriceRange(pkgs: CreatorWithRelations["service_packages"]) {
+/** 1本単価 (最低価格を1本あたりの基準価格として扱う) */
+function formatUnitPrice(pkgs: CreatorWithRelations["service_packages"]) {
   const min = minPrice(pkgs);
-  const max = maxPrice(pkgs);
-  if (!isFinite(min) || max === 0) return null;
-  if (min === max) return `¥${min.toLocaleString()}`;
-  return `¥${min.toLocaleString()} 〜 ¥${max.toLocaleString()}`;
+  if (!isFinite(min)) return null;
+  return `¥${min.toLocaleString()}〜`;
 }
 
 function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
   const { profiles } = creator;
-  const priceRange = formatPriceRange(creator.service_packages);
+  const unitPrice = formatUnitPrice(creator.service_packages);
   const thumbs = creator.portfolio_items
     .filter((p) => p.thumbnail_url)
     .slice(0, 4);
@@ -251,9 +246,10 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
   return (
     <Link
       href={`/creators/${creator.id}`}
-      className="group block rounded-xl border border-ink/10 bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-card sm:p-6"
+      className="group block overflow-hidden rounded-xl border border-ink/10 bg-white transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-card"
     >
-      <div className="grid grid-cols-12 gap-4 sm:gap-6">
+      {/* === 情報行 === */}
+      <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
         {/* 左: アバター */}
         <div className="col-span-2 sm:col-span-1">
           <div className="relative aspect-square overflow-hidden rounded-pill bg-paper-deep">
@@ -274,18 +270,14 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
         </div>
 
         {/* 中央: 名前・bio・タグ */}
-        <div className="col-span-10 min-w-0 sm:col-span-7">
+        <div className="col-span-10 min-w-0 sm:col-span-8">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-base font-black text-ink sm:text-lg">
               {profiles.display_name}
             </h3>
             {profiles.is_verified && (
               <span className="inline-flex items-center gap-0.5 rounded-pill bg-primary-50 px-2 py-0.5 text-[10px] font-black text-primary-600">
-                <svg
-                  className="h-3 w-3"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
+                <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
                     d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
@@ -300,38 +292,13 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
                 <span className="text-accent-500">★</span>
                 {creator.rating.toFixed(1)}
                 {creator.review_count > 0 && (
-                  <span className="text-ink-soft">
-                    ({creator.review_count})
-                  </span>
+                  <span className="text-ink-soft">({creator.review_count})</span>
                 )}
               </span>
             )}
             {creator.years_of_experience > 0 && (
               <span className="chip-outline">
                 経験 {creator.years_of_experience} 年
-              </span>
-            )}
-            {creator.location && (
-              <span className="inline-flex items-center gap-1 text-xs text-ink-muted">
-                <svg
-                  className="h-3 w-3"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.8}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                  />
-                </svg>
-                {creator.location}
               </span>
             )}
           </div>
@@ -342,7 +309,6 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
             </p>
           )}
 
-          {/* タグ */}
           {(creator.genres.length > 0 || creator.skills.length > 0) && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {creator.genres.slice(0, 4).map((g) => (
@@ -364,50 +330,50 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
           )}
         </div>
 
-        {/* 右: 料金 + サムネ + CTA */}
-        <div className="col-span-12 sm:col-span-4">
-          <div className="flex h-full flex-col justify-between gap-3">
-            <div className="text-right">
-              <p className="text-[11px] font-bold tracking-wider text-ink-soft">
-                料金
-              </p>
-              <p className="mt-1 text-base font-black text-primary-600 sm:text-lg">
-                {priceRange ?? "—"}
-              </p>
-            </div>
-
-            {thumbs.length > 0 && (
-              <div className="grid grid-cols-4 gap-1.5">
-                {thumbs.map((t) => (
-                  <div
-                    key={t.id}
-                    className="relative aspect-video overflow-hidden rounded-md bg-paper-deep"
-                  >
-                    {t.thumbnail_url && (
-                      <Image
-                        src={t.thumbnail_url}
-                        alt={t.title}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="flex justify-end">
-              <span className="inline-flex items-center gap-1.5 rounded-pill bg-primary-50 px-4 py-1.5 text-xs font-bold text-primary-600 transition-colors group-hover:bg-primary-500 group-hover:text-white">
-                プロフィールを見る
-                <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-                  →
-                </span>
-              </span>
-            </div>
+        {/* 右: 料金 + CTA */}
+        <div className="col-span-12 flex flex-row items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-end sm:justify-start sm:gap-2">
+          <div className="text-right">
+            <p className="text-[11px] font-bold tracking-wider text-ink-soft">
+              1本単価
+            </p>
+            <p className="mt-1 text-base font-black text-primary-600 sm:text-xl">
+              {unitPrice ?? "—"}
+            </p>
           </div>
+          <span className="inline-flex items-center gap-1.5 rounded-pill bg-primary-50 px-4 py-1.5 text-xs font-bold text-primary-600 transition-colors group-hover:bg-primary-500 group-hover:text-white">
+            プロフィール
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+          </span>
         </div>
       </div>
+
+      {/* === サムネイル行 (大きく表示) === */}
+      {thumbs.length > 0 && (
+        <div className="grid grid-cols-2 gap-1 border-t border-ink/5 bg-paper-deep/40 p-1 sm:grid-cols-4">
+          {thumbs.map((t) => (
+            <div
+              key={t.id}
+              className="relative aspect-video overflow-hidden rounded-md bg-paper-deep"
+            >
+              {t.thumbnail_url && (
+                <Image
+                  src={t.thumbnail_url}
+                  alt={t.title}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 640px) 50vw, 25vw"
+                />
+              )}
+              {/* タイトルオーバーレイ (hover時) */}
+              <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/85 via-ink/30 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 group-hover:translate-y-0">
+                <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
+                  {t.title}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </Link>
   );
 }
