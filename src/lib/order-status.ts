@@ -99,3 +99,36 @@ export function getStatusMeta(status: string): StatusMeta {
 export function isFinalStatus(status: string): boolean {
   return status === "delivered" || status === "cancelled";
 }
+
+/**
+ * 状態遷移ホワイトリスト
+ * `current` ステータスから `next` への遷移が許可されているか判定する。
+ * cancelled は最終状態でどこからでも遷移可、delivered からは escrow capture のみ
+ * (= 同じ status を返す/cancelled に戻す はできない)
+ */
+const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  consultation: ["quoting", "contract", "cancelled"],
+  quoting: ["contract", "cancelled"],
+  contract: ["data_sharing", "cancelled"],
+  data_sharing: ["production", "cancelled"],
+  production: ["delivered", "revision"],
+  revision: ["delivered"],
+  delivered: [], // 検収による escrow released は別 API (capture) で実施
+  cancelled: [],
+};
+
+export function isValidStatusTransition(
+  current: string,
+  next: string
+): boolean {
+  if (!(current in ALLOWED_TRANSITIONS)) return false;
+  return ALLOWED_TRANSITIONS[current as OrderStatus].includes(
+    next as OrderStatus
+  );
+}
+
+export function isOrderStatus(value: unknown): value is OrderStatus {
+  return (
+    typeof value === "string" && value in ALLOWED_TRANSITIONS
+  );
+}

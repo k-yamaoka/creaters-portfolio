@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createNotification, sendSystemMessage } from "@/lib/notify";
+import { isOrderStatus, isValidStatusTransition } from "@/lib/order-status";
 
 export async function createOrder(formData: FormData) {
   const supabase = await createClient();
@@ -140,6 +141,11 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // バリデーション: 既知の OrderStatus enum のみ受け付ける
+  if (!isOrderStatus(newStatus)) {
+    return { error: "不正なステータスです" };
+  }
+
   // 認可: 当該 order のクライアント or クリエイターであることを確認
   const { data: order } = await supabase
     .from("orders")
@@ -164,6 +170,13 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
     return { error: "この注文を操作する権限がありません" };
   }
 
+  // 遷移ホワイトリスト: 想定された前進方向のみ通す
+  if (!isValidStatusTransition(order.status, newStatus)) {
+    return {
+      error: `「${order.status}」から「${newStatus}」への遷移は許可されていません`,
+    };
+  }
+
   const updateData: Record<string, unknown> = { status: newStatus };
 
   if (newStatus === "delivered") {
@@ -175,13 +188,19 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
     updateData.escrow_status = "refunded";
   }
 
-  const { error } = await supabase
+  // WHERE 句に現在ステータスを含めることで二重実行による不整合を防ぐ
+  const { error, data: updated } = await supabase
     .from("orders")
     .update(updateData)
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .eq("status", order.status)
+    .select("id");
 
   if (error) {
     return { error: "ステータスの更新に失敗しました" };
+  }
+  if (!updated || updated.length === 0) {
+    return { error: "他のセッションで状態が変更されました。画面を再読み込みしてください" };
   }
 
   revalidatePath(`/dashboard/orders/${orderId}`);
