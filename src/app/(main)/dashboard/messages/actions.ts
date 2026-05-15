@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { sendExternalNotification } from "@/lib/notify-external";
 
 export type SentMessage = {
@@ -94,10 +95,16 @@ export async function markAsRead(senderId: string) {
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  await supabase
+  const { data: updated } = await supabase
     .from("messages")
     .update({ is_read: true })
     .eq("sender_id", senderId)
     .eq("receiver_id", user.id)
-    .eq("is_read", false);
+    .eq("is_read", false)
+    .select("id");
+
+  // (main) レイアウトで計算している未読バッジを再計算させる
+  if (updated && updated.length > 0) {
+    revalidatePath("/", "layout");
+  }
 }

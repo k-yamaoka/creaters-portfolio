@@ -239,9 +239,15 @@ function formatUnitPrice(pkgs: CreatorWithRelations["service_packages"]) {
 function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
   const { profiles } = creator;
   const unitPrice = formatUnitPrice(creator.service_packages);
-  const thumbs = creator.portfolio_items
-    .filter((p) => p.thumbnail_url)
-    .slice(0, 4);
+  // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
+  // 未設定クリエイター(=fallback)はサムネありの先頭4件。
+  const featured = creator.portfolio_items.filter(
+    (p) => p.is_featured && p.thumbnail_url
+  );
+  const thumbs = (featured.length > 0
+    ? featured
+    : creator.portfolio_items.filter((p) => p.thumbnail_url)
+  ).slice(0, 4);
 
   return (
     <Link
@@ -351,29 +357,39 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
 
       {/* === サムネイル行 (大きく表示) === */}
       {thumbs.length > 0 && (
-        <div className="grid grid-cols-2 gap-1 border-t border-ink/5 bg-paper-deep/40 p-1 sm:grid-cols-4">
-          {thumbs.map((t) => (
-            <div
-              key={t.id}
-              className="relative aspect-video overflow-hidden rounded-md bg-paper-deep"
-            >
-              {t.thumbnail_url && (
-                <Image
-                  src={t.thumbnail_url}
-                  alt={t.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                />
-              )}
-              {/* タイトルオーバーレイ (hover時) */}
-              <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/85 via-ink/30 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 group-hover:translate-y-0">
-                <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
-                  {t.title}
-                </p>
+        <div className="grid grid-cols-2 gap-1 border-t border-ink/5 bg-white p-1 sm:grid-cols-4">
+          {thumbs.map((t) => {
+            const isVertical =
+              t.video_platform === "youtube_short" ||
+              t.video_platform === "tiktok" ||
+              t.video_platform === "instagram";
+            return (
+              <div
+                key={t.id}
+                className="relative aspect-video overflow-hidden rounded-md bg-white"
+              >
+                {t.thumbnail_url && (
+                  <Image
+                    src={t.thumbnail_url}
+                    alt={t.title}
+                    fill
+                    className={`${
+                      isVertical ? "object-contain" : "object-cover"
+                    } transition-transform duration-300 group-hover:scale-105`}
+                    sizes="(max-width: 640px) 50vw, 25vw"
+                  />
+                )}
+                {/* 縦型動画はホスト動画と同じ縦長サムネ → 16:9枠だと左右に余白が出るが
+                    枠を切らずに全画面で見せる方が情報量が多いので object-contain にしている */}
+                {/* タイトルオーバーレイ (hover時) */}
+                <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/85 via-ink/30 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 group-hover:translate-y-0">
+                  <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
+                    {t.title}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Link>

@@ -44,6 +44,19 @@ export function MessageNotifier({ userId }: { userId: string }) {
       .on(
         "postgres_changes",
         {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${userId}`,
+        },
+        () => {
+          // is_read 等の更新 → 未読バッジ再計算のためレイアウト再描画
+          router.refresh();
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
           event: "INSERT",
           schema: "public",
           table: "messages",

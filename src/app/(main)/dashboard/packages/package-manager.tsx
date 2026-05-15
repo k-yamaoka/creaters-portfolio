@@ -74,7 +74,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  プラン名 *
+                  プラン名 <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="name"
@@ -86,7 +86,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  料金（円） *
+                  料金（円） <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="price"
@@ -101,7 +101,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                説明 *
+                説明 <span className="text-red-500">*</span>
               </label>
               <input
                 name="description"
@@ -115,7 +115,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  納期（日） *
+                  納期（日） <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="delivery_days"
@@ -128,7 +128,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  修正回数 *
+                  修正回数 <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="revisions"

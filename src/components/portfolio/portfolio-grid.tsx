@@ -67,8 +67,8 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
       {horizontalItems.length > 0 && (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {horizontalItems.map((item) => (
-            <div key={item.id} className="group overflow-hidden rounded-xl">
-              <div className="relative aspect-video overflow-hidden rounded-xl">
+            <div key={item.id} className="group">
+              <div className="relative aspect-video overflow-hidden rounded-xl bg-white">
                 <VideoPreviewCard
                   thumbnailUrl={item.thumbnail_url}
                   videoUrl={item.video_url}
@@ -78,11 +78,15 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
                   className="h-full w-full"
                 />
               </div>
-              <div className="mt-3">
-                <h3 className="text-sm font-bold text-[#222]">{item.title}</h3>
-                <p className="mt-1 text-xs text-[#828282]">
-                  {item.description}
-                </p>
+              <div className="mt-3 min-w-0">
+                <h3 className="break-words text-sm font-bold text-[#222]">
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p className="mt-1 break-words text-xs text-[#828282]">
+                    {item.description}
+                  </p>
+                )}
                 {item.tags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {item.tags.map((tag) => (
@@ -113,8 +117,8 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
           )}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {verticalItems.map((item) => (
-              <div key={item.id} className="group overflow-hidden rounded-xl">
-                <div className="relative aspect-[9/16] overflow-hidden rounded-xl">
+              <div key={item.id} className="group">
+                <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-white">
                   <VideoPreviewCard
                     thumbnailUrl={item.thumbnail_url}
                     videoUrl={item.video_url}
@@ -124,10 +128,22 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
                     className="h-full w-full"
                   />
                 </div>
-                <div className="mt-2">
-                  <h3 className="truncate text-xs font-bold text-[#222]">
+                <div className="mt-2 min-w-0">
+                  <h3 className="line-clamp-2 break-words text-xs font-bold text-[#222]">
                     {item.title}
                   </h3>
+                  {item.tags.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {item.tags.slice(0, 3).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded bg-[#F2F2F2] px-1.5 py-0.5 text-[10px] text-[#828282]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

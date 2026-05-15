@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   addPortfolioItem,
   deletePortfolioItem,
+  togglePortfolioFeatured,
   updatePortfolioThumbnail,
 } from "./actions";
 import { GENRES } from "@/lib/constants";
@@ -18,6 +19,7 @@ type PortfolioItem = {
   thumbnail_url: string | null;
   genre: string | null;
   tags: string[];
+  is_featured: boolean;
   created_at: string;
 };
 
@@ -186,7 +188,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                タイトル *
+                タイトル <span className="text-red-500">*</span>
               </label>
               <input
                 name="title"
@@ -233,7 +235,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  動画URL *
+                  動画URL <span className="text-red-500">*</span>
                 </label>
                 <input
                   name="video_url"
@@ -249,7 +251,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  プラットフォーム *
+                  プラットフォーム <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="video_platform"
@@ -534,17 +536,45 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {items.map((item) => (
-            <PortfolioCard
-              key={item.id}
-              item={item}
-              onDelete={() => handleDelete(item.id)}
-              deleting={deleting === item.id}
-              onThumbnailUpdated={() => setError(null)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="flex items-start gap-3 rounded-xl border border-primary-100 bg-primary-50 p-4">
+            <svg
+              className="mt-0.5 h-5 w-5 shrink-0 text-primary-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
+              />
+            </svg>
+            <div className="min-w-0 flex-1 text-sm leading-relaxed text-primary-700">
+              <p className="font-bold">
+                クリエイター一覧に表示する作品: {items.filter((i) => i.is_featured).length} / 4 件
+              </p>
+              <p className="mt-0.5 text-xs text-primary-700/80">
+                「★ 表示する」ボタンで切り替え。最大4件まで選択でき、企業のクリエイター一覧画面のサムネイル行に表示されます。
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {items.map((item) => (
+              <PortfolioCard
+                key={item.id}
+                item={item}
+                onDelete={() => handleDelete(item.id)}
+                deleting={deleting === item.id}
+                onThumbnailUpdated={() => setError(null)}
+                onFeaturedError={(msg) => setError(msg)}
+                featuredCount={items.filter((i) => i.is_featured).length}
+              />
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -559,15 +589,33 @@ function PortfolioCard({
   onDelete,
   deleting,
   onThumbnailUpdated,
+  onFeaturedError,
+  featuredCount,
 }: {
   item: PortfolioItem;
   onDelete: () => void;
   deleting: boolean;
   onThumbnailUpdated: () => void;
+  onFeaturedError: (msg: string) => void;
+  featuredCount: number;
 }) {
   const [editing, setEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [togglingFeatured, setTogglingFeatured] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleToggleFeatured = async () => {
+    if (togglingFeatured) return;
+    // 4件選択済みで OFF → ON にしようとしたらブロック (DB制約もあるが UX のため事前チェック)
+    if (!item.is_featured && featuredCount >= 4) {
+      onFeaturedError("表示できる作品は最大4件までです");
+      return;
+    }
+    setTogglingFeatured(true);
+    const res = await togglePortfolioFeatured(item.id, !item.is_featured);
+    if (res?.error) onFeaturedError(res.error);
+    setTogglingFeatured(false);
+  };
 
   const platformLabel =
     item.video_platform === "youtube"
@@ -745,7 +793,26 @@ function PortfolioCard({
             {item.genre}
           </span>
         )}
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={handleToggleFeatured}
+            disabled={togglingFeatured}
+            aria-pressed={item.is_featured}
+            className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 ${
+              item.is_featured
+                ? "bg-accent-400 text-ink hover:bg-accent-300"
+                : "border border-ink/20 bg-white text-ink-muted hover:border-accent-400 hover:text-ink"
+            }`}
+            title={
+              item.is_featured
+                ? "クリックで一覧表示から外す"
+                : "クリエイター一覧のサムネイル行に表示する"
+            }
+          >
+            <span aria-hidden>★</span>
+            {item.is_featured ? "表示中" : "表示する"}
+          </button>
           <button
             type="button"
             onClick={onDelete}

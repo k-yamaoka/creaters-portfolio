@@ -81,7 +81,7 @@ export function ReviewForm({
       {/* 3-level emoji rating */}
       <div className="mt-4">
         <label className="mb-3 block text-sm font-medium text-[#4F4F4F]">
-          評価 *
+          評価 <span className="text-red-500">*</span>
         </label>
         <div className="flex gap-3">
           {RATING_LEVELS.map((level) => (

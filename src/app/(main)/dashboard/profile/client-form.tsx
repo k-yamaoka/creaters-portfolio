@@ -36,7 +36,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               htmlFor="display_name"
               className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
             >
-              担当者名 *
+              担当者名 <span className="text-red-500">*</span>
             </label>
             <input
               id="display_name"

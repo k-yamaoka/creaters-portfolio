@@ -137,6 +137,43 @@ export async function updatePortfolioThumbnail(
   return { success: true };
 }
 
+/**
+ * クリエイター一覧のサムネイル行に出す作品を選ぶための featured フラグ切り替え。
+ * 上限(4件)はDBトリガで保証しているので、ここではエラーメッセージだけ整形する。
+ */
+export async function togglePortfolioFeatured(id: string, next: boolean) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: creator } = await supabase
+    .from("creator_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (!creator) return { error: "権限がありません" };
+
+  const { error } = await supabase
+    .from("portfolio_items")
+    .update({ is_featured: next })
+    .eq("id", id)
+    .eq("creator_id", creator.id);
+
+  if (error) {
+    if (error.message?.includes("最大4件")) {
+      return { error: "表示できる作品は最大4件までです" };
+    }
+    return { error: "表示設定の更新に失敗しました" };
+  }
+
+  revalidatePath("/dashboard/portfolio");
+  revalidatePath("/creators");
+  return { success: true };
+}
+
 export async function deletePortfolioItem(id: string) {
   const supabase = await createClient();
   const {
