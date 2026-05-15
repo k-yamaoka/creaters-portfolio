@@ -60,22 +60,46 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Create PaymentIntent with manual capture (hold funds)
-  const paymentIntent = await getStripe().paymentIntents.create({
-    amount: order.total_amount,
-    currency: "jpy",
-    capture_method: "manual", // Hold funds without capturing
-    metadata: {
-      order_id: order.id,
-      order_number: order.order_number,
-    },
-    transfer_data: {
-      destination: creatorData.stripe_account_id,
-    },
-    application_fee_amount: order.platform_fee,
-  });
+  // 既に PaymentIntent が紐づいているなら再利用 (ネットワーク再送による二重生成防止)
+  if (order.stripe_payment_intent_id) {
+    try {
+      const existing = await getStripe().paymentIntents.retrieve(
+        order.stripe_payment_intent_id
+      );
+      if (
+        existing.status !== "canceled" &&
+        existing.status !== "succeeded" &&
+        existing.client_secret
+      ) {
+        return NextResponse.json({ clientSecret: existing.client_secret });
+      }
+    } catch {
+      // 取得失敗時は新規作成にフォールバック
+    }
+  }
 
-  // Save PaymentIntent ID to order
+  // Create PaymentIntent with manual capture (hold funds)
+  // idempotencyKey は order.id に固定し、ネットワーク再送でも同じ PI を返させる。
+  const paymentIntent = await getStripe().paymentIntents.create(
+    {
+      amount: order.total_amount,
+      currency: "jpy",
+      capture_method: "manual", // Hold funds without capturing
+      metadata: {
+        order_id: order.id,
+        order_number: order.order_number,
+      },
+      transfer_data: {
+        destination: creatorData.stripe_account_id,
+      },
+      application_fee_amount: order.platform_fee,
+    },
+    {
+      idempotencyKey: `payment-intent:${order.id}`,
+    }
+  );
+
+  // Save PaymentIntent ID to order (既に同じ ID なら no-op)
   await supabase
     .from("orders")
     .update({ stripe_payment_intent_id: paymentIntent.id })
