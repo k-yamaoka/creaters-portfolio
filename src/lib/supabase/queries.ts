@@ -26,7 +26,7 @@ export type CreatorWithRelations = {
     thumbnail_url: string | null;
     genre: string | null;
     tags: string[];
-    is_featured: boolean;
+    is_featured?: boolean;
   }[];
   service_packages: {
     id: string;
@@ -54,7 +54,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         is_verified
       ),
       portfolio_items (
-        id, title, description, video_url, video_platform, thumbnail_url, genre, tags, is_featured
+        id, title, description, video_url, video_platform, thumbnail_url, genre, tags
       ),
       service_packages (
         id, name, description, price, delivery_days, revisions, features, is_active
@@ -87,7 +87,7 @@ export async function getCreatorById(
         is_verified
       ),
       portfolio_items (
-        id, title, description, video_url, video_platform, thumbnail_url, genre, tags, is_featured
+        id, title, description, video_url, video_platform, thumbnail_url, genre, tags
       ),
       service_packages (
         id, name, description, price, delivery_days, revisions, features, is_active

@@ -240,9 +240,9 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
   const { profiles } = creator;
   const unitPrice = formatUnitPrice(creator.service_packages);
   // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
-  // 未設定クリエイター(=fallback)はサムネありの先頭4件。
+  // is_featured カラム未マイグレーションでも壊れないよう optional 扱い。
   const featured = creator.portfolio_items.filter(
-    (p) => p.is_featured && p.thumbnail_url
+    (p) => p.is_featured === true && p.thumbnail_url
   );
   const thumbs = (featured.length > 0
     ? featured

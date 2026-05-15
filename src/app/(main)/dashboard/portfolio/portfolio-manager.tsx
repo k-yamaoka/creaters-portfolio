@@ -19,7 +19,7 @@ type PortfolioItem = {
   thumbnail_url: string | null;
   genre: string | null;
   tags: string[];
-  is_featured: boolean;
+  is_featured?: boolean;
   created_at: string;
 };
 
@@ -553,7 +553,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
             </svg>
             <div className="min-w-0 flex-1 text-sm leading-relaxed text-primary-700">
               <p className="font-bold">
-                クリエイター一覧に表示する作品: {items.filter((i) => i.is_featured).length} / 4 件
+                クリエイター一覧に表示する作品: {items.filter((i) => i.is_featured === true).length} / 4 件
               </p>
               <p className="mt-0.5 text-xs text-primary-700/80">
                 「★ 表示する」ボタンで切り替え。最大4件まで選択でき、企業のクリエイター一覧画面のサムネイル行に表示されます。
@@ -570,7 +570,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 deleting={deleting === item.id}
                 onThumbnailUpdated={() => setError(null)}
                 onFeaturedError={(msg) => setError(msg)}
-                featuredCount={items.filter((i) => i.is_featured).length}
+                featuredCount={items.filter((i) => i.is_featured === true).length}
               />
             ))}
           </div>

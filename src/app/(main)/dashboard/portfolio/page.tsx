@@ -16,7 +16,6 @@ export default async function PortfolioPage() {
     .from("portfolio_items")
     .select("*")
     .eq("creator_id", user.creator_profile.id)
-    .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false });
 
   return (
