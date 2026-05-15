@@ -63,15 +63,20 @@ export default async function OrdersPage() {
   >();
 
   if (partnerIds.length > 0) {
+    // partnerIds に絞り込んでメッセージを取得し、JS 側のフィルタを最小化する。
+    // (以前は user が関与する全メッセージを取得して全件スキャンしていた)
+    const csvList = partnerIds.map((id) => `"${id}"`).join(",");
     const { data: msgs } = await supabase
       .from("messages")
       .select("sender_id, receiver_id, created_at, is_read")
-      .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.in.(${csvList})),` +
+          `and(receiver_id.eq.${user.id},sender_id.in.(${csvList}))`
+      )
       .order("created_at", { ascending: false });
 
     for (const m of msgs ?? []) {
       const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
-      if (!partnerIds.includes(partnerId)) continue;
       const cur = messageStats.get(partnerId);
       if (!cur) {
         messageStats.set(partnerId, {
