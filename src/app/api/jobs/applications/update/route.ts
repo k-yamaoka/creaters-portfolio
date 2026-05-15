@@ -130,7 +130,8 @@ export async function POST(request: NextRequest) {
     if (!orderErr && order) {
       createdOrderId = order.id;
     } else if (orderErr) {
-      console.error("order auto-creation failed", orderErr);
+      // orderErr 全体を出さない (内部 ID や detail が混じる可能性)
+      console.error(`order auto-creation failed: ${orderErr.message ?? "unknown"}`);
     }
   }
 

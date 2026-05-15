@@ -53,7 +53,8 @@ export async function sendExternalNotification(p: Payload): Promise<void> {
       .maybeSingle();
 
     if (!profile) {
-      console.warn(`[notify-external] profile not found for ${p.userId}`);
+      // userId はログに残さない (PII / 内部ID 露出を回避)
+      console.warn(`[notify-external] target profile not found`);
       return;
     }
 
@@ -72,7 +73,9 @@ export async function sendExternalNotification(p: Payload): Promise<void> {
       });
     }
   } catch (err) {
-    console.error("[notify-external] failed", err);
+    // err 全体を出さない: スタックトレースや内部状態に PII が混入する余地を残さない
+    const msg = err instanceof Error ? err.message : "unknown";
+    console.error(`[notify-external] failed: ${msg}`);
   }
 }
 
@@ -82,9 +85,8 @@ async function dispatch(
 ): Promise<void> {
   if (channel === "email") {
     if (!resend) {
-      console.info(
-        `[notify-external/email/STUB] to=${data.to} subject="${data.subject}" link=${data.fullLink}`
-      );
+      // STUB ログには宛先メール / link を出さない (PII 漏えい対策)
+      console.info(`[notify-external/email/STUB] subject="${data.subject}"`);
       return;
     }
     try {
@@ -100,19 +102,22 @@ async function dispatch(
         }),
       });
       if (error) {
-        console.error(`[notify-external/email] resend error`, error);
+        // error オブジェクト全体を出すと API 応答内に宛先が含まれる場合があるため
+        // message のみ取り出す
+        const msg =
+          (error as { message?: string } | undefined)?.message ?? "unknown";
+        console.error(`[notify-external/email] resend error: ${msg}`);
       }
-    } catch (err) {
-      console.error(`[notify-external/email] exception`, err);
+    } catch {
+      console.error(`[notify-external/email] exception during send`);
     }
     return;
   }
 
   if (channel === "line") {
     if (!process.env.LINE_CHANNEL_ACCESS_TOKEN) {
-      console.info(
-        `[notify-external/line/STUB] to=${data.to} body="${data.body.slice(0, 80)}"`
-      );
+      // STUB ログには LINE userId / body を出さない (PII)
+      console.info(`[notify-external/line/STUB] subject="${data.subject}"`);
       return;
     }
     try {
@@ -136,13 +141,11 @@ async function dispatch(
         }),
       });
       if (!res.ok) {
-        console.error(
-          `[notify-external/line] http ${res.status}`,
-          await res.text()
-        );
+        // 応答本文には userId が含まれる可能性があるため status のみログする
+        console.error(`[notify-external/line] http ${res.status}`);
       }
-    } catch (err) {
-      console.error(`[notify-external/line] exception`, err);
+    } catch {
+      console.error(`[notify-external/line] exception during send`);
     }
     return;
   }
