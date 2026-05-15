@@ -23,10 +23,10 @@ export function PortfoliosPageClient({
       const kw = filters.keyword.toLowerCase();
       result = result.filter(
         (c) =>
-          c.profiles.display_name.toLowerCase().includes(kw) ||
-          c.bio.toLowerCase().includes(kw) ||
-          c.skills.some((s) => s.toLowerCase().includes(kw)) ||
-          c.genres.some((g) => g.toLowerCase().includes(kw))
+          (c.profiles.display_name ?? "").toLowerCase().includes(kw) ||
+          (c.bio ?? "").toLowerCase().includes(kw) ||
+          (c.skills ?? []).some((s) => s.toLowerCase().includes(kw)) ||
+          (c.genres ?? []).some((g) => g.toLowerCase().includes(kw))
       );
     }
 

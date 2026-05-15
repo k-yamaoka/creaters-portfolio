@@ -128,7 +128,7 @@ export default async function JobDetailPage({
 
             {/* Genre tags */}
             <div className="mt-4 flex flex-wrap gap-2">
-              {job.genres.map((genre: string) => (
+              {(job.genres ?? []).map((genre: string) => (
                 <span
                   key={genre}
                   className="rounded-pill bg-primary-50 px-3 py-1 text-xs font-bold text-primary-500"

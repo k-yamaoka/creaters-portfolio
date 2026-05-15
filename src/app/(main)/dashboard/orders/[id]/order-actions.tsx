@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { updateOrderStatus } from "../actions";
 import type { OrderStatus } from "@/lib/order-status";
@@ -106,6 +107,7 @@ export function OrderActions({
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const config = ACTION_MAP[currentStatus as OrderStatus];
   if (!config) return null;
@@ -116,7 +118,12 @@ export function OrderActions({
     setLoading(true);
     setError(null);
     const result = await updateOrderStatus(orderId, nextStatus);
-    if (result?.error) setError(result.error);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      // revalidatePath だけだとクライアント側が再フェッチしないので router.refresh() を呼ぶ
+      router.refresh();
+    }
     setLoading(false);
   };
 
@@ -142,15 +149,24 @@ export function OrderActions({
     setLoading(true);
     setError(null);
     const result = await updateOrderStatus(orderId, "revision");
-    if (result?.error) setError(result.error);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      router.refresh();
+    }
     setLoading(false);
   };
 
   const handleCancel = async () => {
     if (!confirm("この案件をキャンセルしますか？")) return;
     setLoading(true);
+    setError(null);
     const result = await updateOrderStatus(orderId, "cancelled");
-    if (result?.error) setError(result.error);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      router.refresh();
+    }
     setLoading(false);
   };
 
