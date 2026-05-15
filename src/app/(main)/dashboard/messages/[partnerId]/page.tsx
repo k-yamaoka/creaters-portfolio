@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 import Link from "next/link";
 import { markAsRead } from "../actions";
 import { MessageThread } from "./message-thread";
+import { RefreshOnMount } from "./refresh-on-mount";
 import { ApplicationActions } from "@/components/messages/application-actions";
 import {
   EditingRequirementsCollapsible,
@@ -239,6 +240,9 @@ export default async function ConversationPage({
         partnerId={partnerId}
         senderRole={me.role}
       />
+
+      {/* マウント時に layout を再フェッチして未読バッジを 0 にする */}
+      <RefreshOnMount />
     </div>
   );
 }
