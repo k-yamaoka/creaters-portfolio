@@ -9,6 +9,13 @@ import {
   getTikTokThumbnail,
   getInstagramThumbnail,
 } from "@/lib/video-thumbnail";
+import {
+  parseEnum,
+  parseText,
+  isAllowedVideoUrl,
+  isHttpUrl,
+  VIDEO_PLATFORMS,
+} from "@/lib/validation";
 
 /**
  * Platforms where auto-fetch is unreliable and we should require a manual thumbnail.
@@ -34,16 +41,32 @@ export async function addPortfolioItem(formData: FormData) {
     return { error: "クリエイタープロフィールを先に作成してください" };
   }
 
-  const title = formData.get("title") as string;
-  const description = formData.get("description") as string;
-  const video_url = formData.get("video_url") as string;
-  const video_platform = formData.get("video_platform") as string;
-  const thumbnail_url = formData.get("thumbnail_url") as string;
-  const genre = formData.get("genre") as string;
-  const tags = (formData.get("tags") as string)
+  const title = parseText(formData.get("title"), 200);
+  if (!title) return { error: "タイトルを入力してください" };
+  const description = parseText(formData.get("description"), 2000) ?? "";
+  const video_url = parseText(formData.get("video_url"), 2000);
+  if (!video_url) return { error: "動画URLを入力してください" };
+  if (!isAllowedVideoUrl(video_url)) {
+    return { error: "対応プラットフォーム以外の URL は登録できません" };
+  }
+  const video_platform = parseEnum(
+    formData.get("video_platform"),
+    VIDEO_PLATFORMS
+  );
+  if (!video_platform) {
+    return { error: "プラットフォームの指定が不正です" };
+  }
+  const thumbnail_raw = parseText(formData.get("thumbnail_url"), 2000);
+  // thumbnail_url は外部 CDN または Supabase Storage の URL のみ通す
+  const thumbnail_url =
+    thumbnail_raw && isHttpUrl(thumbnail_raw) ? thumbnail_raw : "";
+  const genre = parseText(formData.get("genre"), 100);
+  const tags = ((formData.get("tags") as string) ?? "")
     .split(",")
     .map((t) => t.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .slice(0, 20)
+    .map((t) => (t.length > 30 ? t.slice(0, 30) : t));
   const has_publish_permission = !!formData.get("has_publish_permission");
 
   if (!has_publish_permission) {
