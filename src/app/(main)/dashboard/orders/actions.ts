@@ -140,6 +140,30 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  // 認可: 当該 order のクライアント or クリエイターであることを確認
+  const { data: order } = await supabase
+    .from("orders")
+    .select(
+      `id, status,
+       client:client_profiles!orders_client_id_fkey ( user_id ),
+       creator:creator_profiles!orders_creator_id_fkey ( user_id )`
+    )
+    .eq("id", orderId)
+    .single();
+
+  if (!order) {
+    return { error: "注文が見つかりません" };
+  }
+  const clientUserId = (
+    order.client as unknown as { user_id: string } | null
+  )?.user_id;
+  const creatorUserId = (
+    order.creator as unknown as { user_id: string } | null
+  )?.user_id;
+  if (clientUserId !== user.id && creatorUserId !== user.id) {
+    return { error: "この注文を操作する権限がありません" };
+  }
+
   const updateData: Record<string, unknown> = { status: newStatus };
 
   if (newStatus === "delivered") {

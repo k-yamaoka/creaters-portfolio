@@ -25,6 +25,11 @@ export default async function DashboardJobDetailPage({
 
   if (!job) notFound();
 
+  // 認可: 自分が掲載した案件のみ閲覧可。それ以外は public 詳細 (/jobs/[id]) へ。
+  if (!user.client_profile || job.client_id !== user.client_profile.id) {
+    redirect(`/jobs/${id}`);
+  }
+
   // Get applications with creator info (user_id を含めてメッセージ画面リンク用に)
   const { data: applications } = await supabase
     .from("job_applications")

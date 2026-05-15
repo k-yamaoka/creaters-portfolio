@@ -15,12 +15,13 @@ export async function POST(request: NextRequest) {
 
   const { orderId } = await request.json();
 
-  // Get order with creator's Stripe account
+  // Get order with creator's Stripe account + client user_id for authorization
   const { data: order } = await supabase
     .from("orders")
     .select(
       `
       *,
+      client:client_profiles!orders_client_id_fkey ( user_id ),
       creator:creator_profiles!orders_creator_id_fkey (
         stripe_account_id
       )
@@ -31,6 +32,14 @@ export async function POST(request: NextRequest) {
 
   if (!order) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  }
+
+  // 認可: 支払う側 (client) 本人であること
+  const clientUserId = (
+    order.client as unknown as { user_id: string } | null
+  )?.user_id;
+  if (!clientUserId || clientUserId !== user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   if (order.status !== "contract") {

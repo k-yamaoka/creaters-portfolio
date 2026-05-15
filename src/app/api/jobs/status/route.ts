@@ -18,6 +18,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
+  // 認可: 当該 job が現在ユーザーの client_profile に紐づいているか確認
+  const { data: jobOwner } = await supabase
+    .from("jobs")
+    .select("client:client_profiles!jobs_client_id_fkey ( user_id )")
+    .eq("id", jobId)
+    .single();
+  const ownerUserId = (
+    jobOwner?.client as unknown as { user_id: string } | null
+  )?.user_id;
+  if (!ownerUserId || ownerUserId !== user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const { error } = await supabase
     .from("jobs")
     .update({ status })

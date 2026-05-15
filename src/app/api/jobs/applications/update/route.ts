@@ -40,6 +40,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "応募が見つかりません" }, { status: 404 });
   }
 
+  // 認可: 応募対象 job のオーナー (client) であることを確認
+  const jobOwnerUserId = (
+    app.job as unknown as { client: { user_id: string } | null }
+  ).client?.user_id;
+  if (!jobOwnerUserId || jobOwnerUserId !== user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   // 応募ステータス更新
   const { error: updateErr } = await supabase
     .from("job_applications")
