@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import {
+  getImageKindFromExt,
+  detectImageKindByMagic,
+} from "@/lib/upload-validation";
+
+const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_MIME = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+]);
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -15,25 +27,52 @@ export async function POST(request: NextRequest) {
   const file = formData.get("file") as File;
 
   if (!file) {
-    return NextResponse.json({ error: "ファイルが選択されていません" }, { status: 400 });
+    return NextResponse.json(
+      { error: "ファイルが選択されていません" },
+      { status: 400 }
+    );
   }
 
-  // Validate file type (images only)
-  if (!file.type.startsWith("image/")) {
-    return NextResponse.json({ error: "画像ファイルのみアップロードできます" }, { status: 400 });
-  }
-
-  // Validate file size (5MB max)
-  const MAX_SIZE = 5 * 1024 * 1024;
+  // 1. サイズ
   if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: "ファイルサイズは5MB以下にしてください" }, { status: 400 });
+    return NextResponse.json(
+      { error: "ファイルサイズは5MB以下にしてください" },
+      { status: 400 }
+    );
   }
 
-  // Generate unique filename
-  const ext = file.name.split(".").pop() || "jpg";
-  const filename = `thumbnails/${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  // 2. Content-Type ホワイトリスト (client controllable な参考程度)
+  if (!ALLOWED_MIME.has(file.type)) {
+    return NextResponse.json(
+      { error: "JPG / PNG / GIF / WebP のみアップロードできます" },
+      { status: 400 }
+    );
+  }
 
-  // Upload to Supabase Storage
+  // 3. 拡張子ホワイトリスト
+  const extKind = getImageKindFromExt(file.name);
+  if (!extKind) {
+    return NextResponse.json(
+      { error: "対応していない拡張子です (.jpg / .png / .gif / .webp)" },
+      { status: 400 }
+    );
+  }
+
+  // 4. マジックナンバー検証
+  const head = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  const magicKind = detectImageKindByMagic(head);
+  if (!magicKind || magicKind !== extKind) {
+    return NextResponse.json(
+      { error: "ファイル内容と拡張子が一致しません" },
+      { status: 400 }
+    );
+  }
+
+  // 一意ファイル名 (パストラバーサル安全: user.id とランダム値のみ)
+  const filename = `thumbnails/${user.id}/${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}.${extKind === "jpeg" ? "jpg" : extKind}`;
+
   const { error: uploadError } = await supabase.storage
     .from("portfolio-videos")
     .upload(filename, file, {
@@ -42,19 +81,15 @@ export async function POST(request: NextRequest) {
     });
 
   if (uploadError) {
-    console.error("Thumbnail upload error:", uploadError);
     return NextResponse.json(
       { error: "アップロードに失敗しました" },
       { status: 500 }
     );
   }
 
-  // Get public URL
   const { data: publicUrl } = supabase.storage
     .from("portfolio-videos")
     .getPublicUrl(filename);
 
-  return NextResponse.json({
-    url: publicUrl.publicUrl,
-  });
+  return NextResponse.json({ url: publicUrl.publicUrl });
 }
