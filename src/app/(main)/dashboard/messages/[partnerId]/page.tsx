@@ -6,6 +6,7 @@ import { markAsRead } from "../actions";
 import { MessageThread } from "./message-thread";
 import { RefreshOnMount } from "./refresh-on-mount";
 import { ApplicationActions } from "@/components/messages/application-actions";
+import { OrderTodoBanner } from "@/components/messages/order-todo-banner";
 import {
   EditingRequirementsCollapsible,
   type EditingRequirementsData,
@@ -126,6 +127,41 @@ export default async function ConversationPage({
     }
   }
 
+  // 二者間の現在進行中の order を 1 件取得 (やること バナー用)
+  let activeOrder:
+    | { id: string; title: string; status: string }
+    | null = null;
+  {
+    const clientUserId = me.role === "client" ? me.id : partnerId;
+    const creatorUserId = me.role === "creator" ? me.id : partnerId;
+    const { data: cp } = await supabase
+      .from("client_profiles")
+      .select("id")
+      .eq("user_id", clientUserId)
+      .maybeSingle();
+    const { data: crp } = await supabase
+      .from("creator_profiles")
+      .select("id")
+      .eq("user_id", creatorUserId)
+      .maybeSingle();
+    if (cp && crp) {
+      // 進行中ステータス優先で 1 件取り出す
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("id, title, status, updated_at")
+        .eq("client_id", cp.id)
+        .eq("creator_id", crp.id)
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      // cancelled は最後の手段
+      const live = (orders ?? []).find((o) => o.status !== "cancelled");
+      const pick = live ?? orders?.[0] ?? null;
+      if (pick) {
+        activeOrder = { id: pick.id, title: pick.title, status: pick.status };
+      }
+    }
+  }
+
   // 自分が企業 & 相手がクリエイターのとき: 自分のジョブへの pending 応募を引く
   let pendingApplication: {
     id: string;
@@ -239,6 +275,16 @@ export default async function ConversationPage({
         currentUserId={me.id}
         partnerId={partnerId}
         senderRole={me.role}
+        footerSlot={
+          activeOrder && (me.role === "client" || me.role === "creator") ? (
+            <OrderTodoBanner
+              orderId={activeOrder.id}
+              orderTitle={activeOrder.title}
+              status={activeOrder.status}
+              viewerRole={me.role}
+            />
+          ) : null
+        }
       />
 
       {/* マウント時に layout を再フェッチして未読バッジを 0 にする */}

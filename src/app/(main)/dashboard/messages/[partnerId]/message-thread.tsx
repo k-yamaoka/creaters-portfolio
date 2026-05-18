@@ -23,6 +23,8 @@ type Props = {
   compact?: boolean;
   /** 自分のロール（テンプレート出し分け） */
   senderRole?: "creator" | "client" | "admin";
+  /** メッセージ一覧と入力欄の間に差し込むスロット (やることバナー等) */
+  footerSlot?: React.ReactNode;
 };
 
 const NEAR_BOTTOM_PX = 120;
@@ -33,6 +35,7 @@ export function MessageThread({
   partnerId,
   compact = false,
   senderRole,
+  footerSlot,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [sending, setSending] = useState(false);
@@ -288,6 +291,9 @@ export function MessageThread({
           </div>
         )}
       </div>
+
+      {/* メッセージ一覧と入力欄の間に挟むスロット (やることバナー等) */}
+      {footerSlot && <div className="mt-3">{footerSlot}</div>}
 
       {/* 入力 */}
       <div className="relative border-t border-ink/10 pt-4">
