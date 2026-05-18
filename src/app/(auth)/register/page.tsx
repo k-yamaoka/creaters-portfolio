@@ -5,6 +5,30 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+/**
+ * Supabase Auth から返ってきた英語エラーメッセージを日本語に置き換える。
+ * "User already registered" は + エイリアスでも発火するので、注意書きを添える。
+ */
+function localizeAuthError(msg: string): string {
+  const m = msg.toLowerCase();
+  if (m.includes("user already registered") || m.includes("already been registered")) {
+    return "このメールアドレスは既に登録されています。なお Supabase の仕様で foo+1@... のようなエイリアスは foo@... と同一扱いになるため、別アカウントを作る場合は完全に異なるアドレスを使ってください。";
+  }
+  if (m.includes("invalid login credentials")) {
+    return "メールアドレスまたはパスワードが正しくありません";
+  }
+  if (m.includes("email rate limit") || m.includes("rate limit")) {
+    return "短時間に複数回試行されました。数分後に再度お試しください。";
+  }
+  if (m.includes("password should be at least")) {
+    return "パスワードは6文字以上で設定してください";
+  }
+  if (m.includes("unable to validate email address") || m.includes("invalid email")) {
+    return "メールアドレスの形式が正しくありません";
+  }
+  return msg;
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
@@ -45,7 +69,7 @@ export default function RegisterPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(localizeAuthError(error.message));
       setLoading(false);
       return;
     }
@@ -67,7 +91,7 @@ export default function RegisterPage() {
       },
     });
     if (resendErr) {
-      setError(resendErr.message);
+      setError(localizeAuthError(resendErr.message));
     } else {
       setResent(true);
     }
