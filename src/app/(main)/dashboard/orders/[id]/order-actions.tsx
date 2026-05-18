@@ -120,6 +120,9 @@ export function OrderActions({
     const result = await updateOrderStatus(orderId, nextStatus);
     if (result?.error) {
       setError(result.error);
+      // 「他のセッションで状態が変わった」「遷移許可されてない」系のエラーは
+      // 画面が古いので router.refresh() で最新ステータスに合わせる
+      router.refresh();
     } else {
       // revalidatePath だけだとクライアント側が再フェッチしないので router.refresh() を呼ぶ
       router.refresh();
@@ -151,9 +154,9 @@ export function OrderActions({
     const result = await updateOrderStatus(orderId, "revision");
     if (result?.error) {
       setError(result.error);
-    } else {
-      router.refresh();
     }
+    // 成功/失敗いずれも最新化
+    router.refresh();
     setLoading(false);
   };
 
@@ -164,9 +167,8 @@ export function OrderActions({
     const result = await updateOrderStatus(orderId, "cancelled");
     if (result?.error) {
       setError(result.error);
-    } else {
-      router.refresh();
     }
+    router.refresh();
     setLoading(false);
   };
 

@@ -113,7 +113,9 @@ const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   data_sharing: ["production", "cancelled"],
   production: ["delivered", "revision"],
   revision: ["delivered"],
-  delivered: [], // 検収による escrow released は別 API (capture) で実施
+  // delivered からは「修正依頼」で revision に戻すフローを許容。
+  // 検収完了 (escrow released) は別 API (capture) で実施する。
+  delivered: ["revision"],
   cancelled: [],
 };
 
