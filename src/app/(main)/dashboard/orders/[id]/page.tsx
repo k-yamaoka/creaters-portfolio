@@ -7,6 +7,7 @@ import Link from "next/link";
 import { OrderActions } from "./order-actions";
 import { ReviewForm } from "./review-form";
 import { MessageThread } from "../../messages/[partnerId]/message-thread";
+import { OrderTodoBanner } from "@/components/messages/order-todo-banner";
 import { markAsRead } from "../../messages/actions";
 import {
   EditingRequirements,
@@ -320,6 +321,16 @@ export default async function OrderDetailPage({
           partnerId={partnerUserId}
           senderRole={user.role}
           compact
+          footerSlot={
+            user.role === "client" || user.role === "creator" ? (
+              <OrderTodoBanner
+                orderId={order.id}
+                orderTitle={order.title}
+                status={order.status}
+                viewerRole={user.role}
+              />
+            ) : null
+          }
         />
       </div>
     </div>
