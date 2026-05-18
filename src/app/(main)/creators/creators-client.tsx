@@ -9,9 +9,14 @@ import type { CreatorSearchFilters } from "@/types/database";
 
 export function CreatorsPageClient({
   creators,
+  viewerRole,
+  viewerCreatorId,
 }: {
   creators: CreatorWithRelations[];
+  viewerRole?: "creator" | "client" | "admin" | null;
+  viewerCreatorId?: string | null;
 }) {
+  const isCreatorViewer = viewerRole === "creator";
   const [filters, setFilters] = useState<CreatorSearchFilters>({
     sortBy: "recommended",
   });
@@ -75,16 +80,30 @@ export function CreatorsPageClient({
     return result;
   }, [filters, creators]);
 
+  // クリエイター本人が見るときは「他クリエイターを眺める」目的なので
+  // 自分自身は一覧から除外する (= 自己案件の重複防止)
+  const visibleCreators = useMemo(() => {
+    if (!isCreatorViewer || !viewerCreatorId) return filteredCreators;
+    return filteredCreators.filter((c) => c.id !== viewerCreatorId);
+  }, [filteredCreators, isCreatorViewer, viewerCreatorId]);
+
+  const heading = isCreatorViewer
+    ? "クリエイター一覧"
+    : "クリエイターを探す";
+  const subheading = isCreatorViewer
+    ? "他のクリエイターのプロフィール・作品・料金をチェックして、自分のページのブラッシュアップに役立てましょう。"
+    : "プロフィール・実績・料金からあなたに合うクリエイターを見つける。";
+
   return (
     <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
       {/* Page Header */}
       <div className="mb-8 flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-ink sm:text-[2.5rem]">
-            クリエイターを探す
+            {heading}
           </h1>
           <p className="mt-3 text-sm text-ink-muted">
-            プロフィール・実績・料金からあなたに合うクリエイターを見つける。
+            {subheading}
             <span className="hidden sm:inline">
               {" "}
               作品サムネで探すなら{" "}
@@ -96,6 +115,18 @@ export function CreatorsPageClient({
               </Link>
             </span>
           </p>
+          {isCreatorViewer && (
+            <div className="mt-4 inline-flex items-center gap-2 rounded-pill border border-accent-300 bg-accent-50 px-3 py-1.5 text-xs font-bold text-ink">
+              <span aria-hidden>★</span>
+              自分のプロフィールを編集する場合は
+              <Link
+                href="/dashboard/profile"
+                className="underline underline-offset-4 hover:text-primary-700"
+              >
+                マイプロフィール →
+              </Link>
+            </div>
+          )}
         </div>
         <button
           type="button"
@@ -122,7 +153,7 @@ export function CreatorsPageClient({
       <SearchTopBar
         filters={filters}
         onFilterChange={setFilters}
-        resultCount={filteredCreators.length}
+        resultCount={visibleCreators.length}
       />
 
       <div className="flex gap-8">
@@ -130,7 +161,7 @@ export function CreatorsPageClient({
           <SearchFilters
             filters={filters}
             onFilterChange={setFilters}
-            resultCount={filteredCreators.length}
+            resultCount={visibleCreators.length}
           />
         </div>
 
@@ -166,25 +197,25 @@ export function CreatorsPageClient({
               <SearchFilters
                 filters={filters}
                 onFilterChange={setFilters}
-                resultCount={filteredCreators.length}
+                resultCount={visibleCreators.length}
               />
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
                 className="btn-primary mt-6 w-full"
               >
-                {filteredCreators.length}件を表示
+                {visibleCreators.length}件を表示
               </button>
             </div>
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          {filteredCreators.length > 0 ? (
+          {visibleCreators.length > 0 ? (
             <ul className="space-y-4">
-              {filteredCreators.map((c) => (
+              {visibleCreators.map((c) => (
                 <li key={c.id}>
-                  <CreatorRow creator={c} />
+                  <CreatorRow creator={c} isCreatorViewer={isCreatorViewer} />
                 </li>
               ))}
             </ul>
@@ -236,7 +267,13 @@ function formatUnitPrice(pkgs: CreatorWithRelations["service_packages"]) {
   return `¥${min.toLocaleString()}〜`;
 }
 
-function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
+function CreatorRow({
+  creator,
+  isCreatorViewer,
+}: {
+  creator: CreatorWithRelations;
+  isCreatorViewer?: boolean;
+}) {
   const { profiles } = creator;
   const unitPrice = formatUnitPrice(creator.service_packages);
   // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
@@ -338,18 +375,32 @@ function CreatorRow({ creator }: { creator: CreatorWithRelations }) {
           )}
         </div>
 
-        {/* 右: 料金 + CTA */}
+        {/* 右: 料金 + CTA (クリエイター閲覧時は単価を出さず作品数で代替) */}
         <div className="col-span-12 flex flex-row items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-end sm:justify-start sm:gap-2">
           <div className="text-right">
-            <p className="text-[11px] font-bold tracking-wider text-ink-soft">
-              1本単価
-            </p>
-            <p className="mt-1 text-base font-black text-primary-600 sm:text-xl">
-              {unitPrice ?? "—"}
-            </p>
+            {isCreatorViewer ? (
+              <>
+                <p className="text-[11px] font-bold tracking-wider text-ink-soft">
+                  公開作品
+                </p>
+                <p className="mt-1 text-base font-black text-primary-600 sm:text-xl">
+                  {creator.portfolio_items.length}
+                  <span className="ml-1 text-xs font-bold text-ink-soft">件</span>
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[11px] font-bold tracking-wider text-ink-soft">
+                  1本単価
+                </p>
+                <p className="mt-1 text-base font-black text-primary-600 sm:text-xl">
+                  {unitPrice ?? "—"}
+                </p>
+              </>
+            )}
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-pill bg-primary-50 px-4 py-1.5 text-xs font-bold text-primary-600 transition-colors group-hover:bg-primary-500 group-hover:text-white">
-            プロフィール
+            {isCreatorViewer ? "作品を見る" : "プロフィール"}
             <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
           </span>
         </div>
