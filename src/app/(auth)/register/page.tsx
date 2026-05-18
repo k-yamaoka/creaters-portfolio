@@ -14,6 +14,17 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
+
+  // メールテンプレートに埋め込む URL は本番ドメインを優先 (localhost が
+  // メール内に固定されないように NEXT_PUBLIC_APP_URL を尊重する)
+  const redirectBase =
+    process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.trim() !== ""
+      ? process.env.NEXT_PUBLIC_APP_URL
+      : typeof window !== "undefined"
+        ? window.location.origin
+        : "";
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +40,7 @@ export default function RegisterPage() {
           display_name: displayName,
           role,
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${redirectBase}/auth/callback`,
       },
     });
 
@@ -43,6 +54,26 @@ export default function RegisterPage() {
     setLoading(false);
   };
 
+  const handleResend = async () => {
+    if (resending) return;
+    setResending(true);
+    setError(null);
+    const supabase = createClient();
+    const { error: resendErr } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${redirectBase}/auth/callback`,
+      },
+    });
+    if (resendErr) {
+      setError(resendErr.message);
+    } else {
+      setResent(true);
+    }
+    setResending(false);
+  };
+
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F8F8F8] px-4">
@@ -52,13 +83,37 @@ export default function RegisterPage() {
             <h2 className="mb-2 text-xl font-bold text-[#222]">
               確認メールを送信しました
             </h2>
-            <p className="mb-6 text-sm text-[#828282]">
+            <p className="mb-2 text-sm text-[#828282]">
               {email}{" "}
               に確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。
             </p>
-            <Link href="/login" className="btn-primary">
-              ログインページへ
-            </Link>
+            <p className="mb-6 text-xs text-[#BDBDBD]">
+              数分待っても届かない場合は、迷惑メールフォルダもご確認ください。
+            </p>
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-50 p-3 text-xs text-red-600">
+                {error}
+              </div>
+            )}
+            {resent ? (
+              <p className="mb-6 text-xs text-green-600">
+                再送しました。受信トレイをご確認ください。
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending}
+                className="mb-3 inline-block text-sm font-bold text-primary-500 hover:underline disabled:opacity-50"
+              >
+                {resending ? "再送中..." : "確認メールを再送する"}
+              </button>
+            )}
+            <div className="mt-4">
+              <Link href="/login" className="btn-primary">
+                ログインページへ
+              </Link>
+            </div>
           </div>
         </div>
       </div>
