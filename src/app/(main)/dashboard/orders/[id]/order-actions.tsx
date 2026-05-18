@@ -91,6 +91,9 @@ const ACTION_MAP: Record<OrderStatus, StageConfig> = {
     useStripeCapture: true,
     client: {
       label: "検収完了（決済確定）",
+      // nextStatus は self-loop だが、検収完了は status を変えず escrow_status だけ
+      // released にする操作なので、handleCapture (/api/stripe/capture) が処理する。
+      // ラベルだけがこのオブジェクトから引かれる。
       nextStatus: "delivered",
       style: "btn-primary",
     },
@@ -269,14 +272,17 @@ export function OrderActions({
           </button>
         )}
 
-        {/* Stripe キャプチャ段階 (delivered) で Stripe キー無しのフォールバック */}
+        {/* Stripe キャプチャ段階 (delivered) で Stripe キー無しのフォールバック
+            検収完了は status を変えず escrow_status だけ released にしたいので、
+            /api/stripe/capture を叩く handleCapture を呼ぶ (status 遷移ホワイトリストには
+            self-loop が無いため、handleAction(delivered) は弾かれてしまう) */}
         {config.useStripeCapture &&
           !hasStripeKey &&
           escrowStatus !== "released" &&
           action && (
             <button
               type="button"
-              onClick={() => handleAction(action.nextStatus)}
+              onClick={handleCapture}
               disabled={loading}
               className={`${action.style} text-sm disabled:opacity-50`}
             >
