@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sendMessage, markAsRead } from "../actions";
 import { createClient } from "@/lib/supabase/client";
 import { templatesFor, type MessageTemplate } from "@/lib/message-templates";
+import { linkifyText } from "@/lib/linkify";
 
 export type Message = {
   id: string;
@@ -269,7 +270,7 @@ export function MessageThread({
                     }`}
                   >
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {msg.content}
+                      {linkifyText(msg.content)}
                     </p>
                     <p
                       className={`mt-1 text-right text-[10px] ${
