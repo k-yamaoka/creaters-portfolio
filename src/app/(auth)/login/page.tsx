@@ -10,9 +10,14 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(
-    searchParams.get("error") ? "認証エラーが発生しました" : null
-  );
+  const [error, setError] = useState<string | null>(() => {
+    const e = searchParams.get("error");
+    if (!e) return null;
+    if (e === "account_deactivated") {
+      return "このアカウントは退会済みです。新しいメールアドレスで再登録してください。";
+    }
+    return "認証エラーが発生しました";
+  });
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {

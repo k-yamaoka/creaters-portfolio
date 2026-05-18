@@ -38,20 +38,27 @@ export async function updateSession(request: NextRequest) {
   const shouldSkip = skipPaths.some((p) => pathname.startsWith(p));
 
   if (user && !shouldSkip) {
-    const role = user.user_metadata?.role;
-    if (!role) {
-      // Check if profile exists with a role
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", user.id)
-        .single();
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, is_active")
+      .eq("id", user.id)
+      .single();
 
-      if (!profile || !profile.role) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/select-role";
-        return NextResponse.redirect(url);
-      }
+    // 退会済み (is_active=false) は強制ログアウトしてトップへ送る。
+    // ハード削除でなく soft delete で残った場合のフェイルセーフ。
+    if (profile && profile.is_active === false) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("error", "account_deactivated");
+      return NextResponse.redirect(url);
+    }
+
+    const role = user.user_metadata?.role ?? profile?.role;
+    if (!role) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/select-role";
+      return NextResponse.redirect(url);
     }
   }
 

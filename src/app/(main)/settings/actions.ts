@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 
 export async function updatePassword(formData: FormData) {
@@ -69,13 +70,24 @@ export async function deleteAccount() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Deactivate profile instead of hard delete
-  await supabase
-    .from("profiles")
-    .update({ is_active: false })
-    .eq("id", user.id);
+  // is_active=false に倒すだけだと auth.users は残ったままで、
+  // Google などの OAuth でメールが同じなら即再ログインできてしまう。
+  // Admin API で auth.users を物理削除し、FK ON DELETE CASCADE で
+  // profiles 以下のレコードも連鎖削除する。
+  const admin = getSupabaseAdmin();
+  const { error: deleteErr } = await admin.auth.admin.deleteUser(user.id);
 
-  // Sign out
+  if (deleteErr) {
+    // 物理削除に失敗したらせめて soft delete + signout で防御
+    await supabase
+      .from("profiles")
+      .update({ is_active: false })
+      .eq("id", user.id);
+    await supabase.auth.signOut();
+    return { error: "アカウントの削除に失敗しました。サポートにお問い合わせください。" };
+  }
+
+  // 物理削除後はセッション cookie だけが浮いた状態なので明示的に sign out
   await supabase.auth.signOut();
 
   redirect("/");
