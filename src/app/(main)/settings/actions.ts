@@ -70,24 +70,57 @@ export async function deleteAccount() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // is_active=false に倒すだけだと auth.users は残ったままで、
-  // Google などの OAuth でメールが同じなら即再ログインできてしまう。
-  // Admin API で auth.users を物理削除し、FK ON DELETE CASCADE で
-  // profiles 以下のレコードも連鎖削除する。
-  const admin = getSupabaseAdmin();
-  const { error: deleteErr } = await admin.auth.admin.deleteUser(user.id);
+  const userEmail = user.email?.toLowerCase() ?? null;
 
-  if (deleteErr) {
-    // 物理削除に失敗したらせめて soft delete + signout で防御
+  // 1. 退会済みメールリストに登録 (同じ Google/LINE で再ログインさせない)
+  //    admin client が利用できないケースもあるので try で防御。
+  let adminAvailable = false;
+  try {
+    const admin = getSupabaseAdmin();
+    adminAvailable = true;
+    if (userEmail) {
+      await admin
+        .from("deleted_account_emails")
+        .upsert(
+          { email_lower: userEmail, reason: "user_initiated" },
+          { onConflict: "email_lower" }
+        );
+    }
+
+    // 2. auth.users を物理削除 (FK ON DELETE CASCADE で profiles 以下も消える)
+    const { error: deleteErr } = await admin.auth.admin.deleteUser(user.id);
+    if (deleteErr) {
+      // 物理削除失敗時のフォールバック
+      await supabase
+        .from("profiles")
+        .update({ is_active: false })
+        .eq("id", user.id);
+      await supabase.auth.signOut();
+      return {
+        error:
+          "アカウントの削除に失敗しました。サポートにお問い合わせください。",
+      };
+    }
+  } catch {
+    // SUPABASE_SERVICE_ROLE_KEY 未設定など、admin client 自体が
+    // 動かないケース。最低限 soft delete + signOut まではやり切る。
     await supabase
       .from("profiles")
       .update({ is_active: false })
       .eq("id", user.id);
     await supabase.auth.signOut();
-    return { error: "アカウントの削除に失敗しました。サポートにお問い合わせください。" };
+    if (!adminAvailable) {
+      return {
+        error:
+          "管理権限が設定されていないため完全削除できませんでした。サポートに連絡してください。",
+      };
+    }
+    return {
+      error: "アカウントの削除に失敗しました。サポートにお問い合わせください。",
+    };
   }
 
-  // 物理削除後はセッション cookie だけが浮いた状態なので明示的に sign out
+  // 3. セッション cookie をクリーンアップ
   await supabase.auth.signOut();
 
   redirect("/");

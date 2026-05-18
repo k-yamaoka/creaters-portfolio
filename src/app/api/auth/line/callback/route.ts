@@ -77,6 +77,18 @@ export async function GET(request: NextRequest) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
+    // 退会済みメールは LINE 経由でも再ログインさせない
+    const { data: blocked } = await supabaseAdmin
+      .from("deleted_account_emails")
+      .select("email_lower")
+      .eq("email_lower", email.toLowerCase())
+      .maybeSingle();
+    if (blocked) {
+      return NextResponse.redirect(
+        `${origin}/login?error=account_deactivated`
+      );
+    }
+
     // Check if user exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existingUser = existingUsers?.users?.find((u) => u.email === email);
