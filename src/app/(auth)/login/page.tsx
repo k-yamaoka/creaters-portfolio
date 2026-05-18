@@ -14,7 +14,7 @@ function LoginForm() {
     const e = searchParams.get("error");
     if (!e) return null;
     if (e === "account_deactivated") {
-      return "このアカウントは退会済みです。新しいメールアドレスで再登録してください。";
+      return "このアカウントは退会済みです。退会から30日以上経過するか、別のメールアドレスで再登録してください。";
     }
     return "認証エラーが発生しました";
   });

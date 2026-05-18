@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 function localizeAuthError(msg: string): string {
   const m = msg.toLowerCase();
   if (m.includes("user already registered") || m.includes("already been registered")) {
-    return "このメールアドレスは既に登録されています。なお Supabase の仕様で foo+1@... のようなエイリアスは foo@... と同一扱いになるため、別アカウントを作る場合は完全に異なるアドレスを使ってください。";
+    return "このメールアドレスは既に登録されています。なお退会から30日以内のアドレスでは再登録できません。Supabase の仕様で foo+1@... のようなエイリアスは foo@... と同一扱いになるため、別アカウントを作る場合は完全に異なるアドレスを使ってください。";
   }
   if (m.includes("invalid login credentials")) {
     return "メールアドレスまたはパスワードが正しくありません";

@@ -79,10 +79,16 @@ export async function deleteAccount() {
     const admin = getSupabaseAdmin();
     adminAvailable = true;
     if (userEmail) {
+      // upsert で deleted_at を明示的に上書きし、再退会した場合に
+      // 30 日の猶予クロックがリセットされるようにする
       await admin
         .from("deleted_account_emails")
         .upsert(
-          { email_lower: userEmail, reason: "user_initiated" },
+          {
+            email_lower: userEmail,
+            reason: "user_initiated",
+            deleted_at: new Date().toISOString(),
+          },
           { onConflict: "email_lower" }
         );
     }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { isEmailBlocked } from "@/lib/account-blocklist";
 import { revalidatePath } from "next/cache";
 
 export async function GET(request: Request) {
@@ -21,13 +22,8 @@ export async function GET(request: Request) {
       if (email) {
         try {
           const admin = getSupabaseAdmin();
-          const { data: blocked } = await admin
-            .from("deleted_account_emails")
-            .select("email_lower")
-            .eq("email_lower", email)
-            .maybeSingle();
-          if (blocked) {
-            // 作成されたばかりの auth.users を物理削除して痕跡を消す
+          // 退会後 30 日以内のメールはブロック (30 日以上経過していれば通す)
+          if (await isEmailBlocked(admin, email)) {
             try {
               await admin.auth.admin.deleteUser(data.user.id);
             } catch {

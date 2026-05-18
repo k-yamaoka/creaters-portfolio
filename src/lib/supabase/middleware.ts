@@ -54,10 +54,9 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    // blocklist (deleted_account_emails) のメールで作成されたユーザーも遮断。
-    // RLS は anon/authenticated を弾くので auth callback / 管理サーバー側で
-    // しか入らないが、念のため middleware からも防御層を張る。
-    // RLS により読めない場合は何も返らない (= スキップ) ので副作用なし。
+    // 退会後 30 日以内のメールは middleware でも防御する。
+    // RLS policy 側で deleted_at > now() - 30 days をフィルタしているため、
+    // 30 日経過した行はクエリ結果に含まれず素通りする (再登録可能)。
     if (user.email) {
       const { data: blocked } = await supabase
         .from("deleted_account_emails")

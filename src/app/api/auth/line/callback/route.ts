@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { isEmailBlocked } from "@/lib/account-blocklist";
 import { revalidatePath } from "next/cache";
 
 export async function GET(request: NextRequest) {
@@ -77,13 +78,8 @@ export async function GET(request: NextRequest) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // 退会済みメールは LINE 経由でも再ログインさせない
-    const { data: blocked } = await supabaseAdmin
-      .from("deleted_account_emails")
-      .select("email_lower")
-      .eq("email_lower", email.toLowerCase())
-      .maybeSingle();
-    if (blocked) {
+    // 退会後 30 日以内のメールは LINE 経由でも再ログインさせない
+    if (await isEmailBlocked(supabaseAdmin, email.toLowerCase())) {
       return NextResponse.redirect(
         `${origin}/login?error=account_deactivated`
       );
