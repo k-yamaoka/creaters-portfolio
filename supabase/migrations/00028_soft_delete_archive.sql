@@ -44,13 +44,13 @@ CREATE POLICY "Nobody can read archived_profiles"
 ALTER TABLE orders ALTER COLUMN client_id DROP NOT NULL;
 ALTER TABLE orders ALTER COLUMN creator_id DROP NOT NULL;
 
-ALTER TABLE orders
-  DROP CONSTRAINT IF EXISTS orders_client_id_fkey,
-  DROP CONSTRAINT IF EXISTS orders_creator_id_fkey;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_client_id_fkey;
+ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_creator_id_fkey;
 
 ALTER TABLE orders
   ADD CONSTRAINT orders_client_id_fkey
-    FOREIGN KEY (client_id) REFERENCES client_profiles(id) ON DELETE SET NULL,
+    FOREIGN KEY (client_id) REFERENCES client_profiles(id) ON DELETE SET NULL;
+ALTER TABLE orders
   ADD CONSTRAINT orders_creator_id_fkey
     FOREIGN KEY (creator_id) REFERENCES creator_profiles(id) ON DELETE SET NULL;
 
@@ -65,13 +65,13 @@ ALTER TABLE orders
 ALTER TABLE messages ALTER COLUMN sender_id DROP NOT NULL;
 ALTER TABLE messages ALTER COLUMN receiver_id DROP NOT NULL;
 
-ALTER TABLE messages
-  DROP CONSTRAINT IF EXISTS messages_sender_id_fkey,
-  DROP CONSTRAINT IF EXISTS messages_receiver_id_fkey;
+ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_sender_id_fkey;
+ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_receiver_id_fkey;
 
 ALTER TABLE messages
   ADD CONSTRAINT messages_sender_id_fkey
-    FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE SET NULL,
+    FOREIGN KEY (sender_id) REFERENCES profiles(id) ON DELETE SET NULL;
+ALTER TABLE messages
   ADD CONSTRAINT messages_receiver_id_fkey
     FOREIGN KEY (receiver_id) REFERENCES profiles(id) ON DELETE SET NULL;
 
@@ -86,22 +86,27 @@ ALTER TABLE job_applications
     FOREIGN KEY (creator_id) REFERENCES creator_profiles(id) ON DELETE SET NULL;
 
 -- ----- 5. reviews も SET NULL 化 -----
--- (00006 で reviews テーブルが作成されている場合のみ)
+-- reviews テーブルは 00006 で client_id / creator_id を持つ。
+-- カラムが本当に存在するかを確認してから安全に処理する (将来のスキーマ変更耐性)
 DO $$
 BEGIN
   IF EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_name = 'reviews'
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'reviews' AND column_name = 'client_id'
   ) THEN
-    EXECUTE 'ALTER TABLE reviews ALTER COLUMN reviewer_id DROP NOT NULL';
-    EXECUTE 'ALTER TABLE reviews ALTER COLUMN creator_id DROP NOT NULL';
-
-    EXECUTE 'ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_reviewer_id_fkey';
-    EXECUTE 'ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_creator_id_fkey';
-
+    EXECUTE 'ALTER TABLE reviews ALTER COLUMN client_id DROP NOT NULL';
+    EXECUTE 'ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_client_id_fkey';
     EXECUTE 'ALTER TABLE reviews
-      ADD CONSTRAINT reviews_reviewer_id_fkey
-        FOREIGN KEY (reviewer_id) REFERENCES client_profiles(id) ON DELETE SET NULL';
+      ADD CONSTRAINT reviews_client_id_fkey
+        FOREIGN KEY (client_id) REFERENCES client_profiles(id) ON DELETE SET NULL';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'reviews' AND column_name = 'creator_id'
+  ) THEN
+    EXECUTE 'ALTER TABLE reviews ALTER COLUMN creator_id DROP NOT NULL';
+    EXECUTE 'ALTER TABLE reviews DROP CONSTRAINT IF EXISTS reviews_creator_id_fkey';
     EXECUTE 'ALTER TABLE reviews
       ADD CONSTRAINT reviews_creator_id_fkey
         FOREIGN KEY (creator_id) REFERENCES creator_profiles(id) ON DELETE SET NULL';
