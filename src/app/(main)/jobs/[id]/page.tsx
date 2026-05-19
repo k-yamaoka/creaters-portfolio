@@ -68,6 +68,7 @@ export default async function JobDetailPage({
     sender_id: string;
     receiver_id: string;
     content: string;
+    attachment_url?: string | null;
     created_at: string;
     is_read?: boolean;
   }> = [];

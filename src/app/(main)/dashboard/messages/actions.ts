@@ -10,6 +10,7 @@ export type SentMessage = {
   sender_id: string;
   receiver_id: string;
   content: string;
+  attachment_url: string | null;
   created_at: string;
   is_read: boolean;
 };
@@ -24,9 +25,28 @@ export async function sendMessage(
   if (!user) redirect("/login");
 
   const receiver_id = formData.get("receiver_id") as string;
-  const content = (formData.get("content") as string).trim();
+  const content = ((formData.get("content") as string | null) ?? "").trim();
+  const attachmentRaw = (formData.get("attachment_url") as string | null) ?? "";
+  // 信頼できる URL のみ受け付ける (XSS / オープンリダイレクト防止):
+  // 自前バケットの公開 URL は NEXT_PUBLIC_SUPABASE_URL/storage/v1/object/public/portfolio-videos/...
+  // の形になる。サーバー側でこのプレフィックスを検証する。
+  const attachment_url = (() => {
+    const trimmed = attachmentRaw.trim();
+    if (!trimmed) return null;
+    const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+    const expectedPrefix = supaUrl
+      ? `${supaUrl}/storage/v1/object/public/portfolio-videos/messages/`
+      : "";
+    if (!expectedPrefix || !trimmed.startsWith(expectedPrefix)) {
+      return null;
+    }
+    return trimmed;
+  })();
 
-  if (!content) return { error: "メッセージを入力してください" };
+  // 本文か添付のいずれかが必要
+  if (!content && !attachment_url) {
+    return { error: "メッセージを入力してください" };
+  }
   if (!receiver_id || receiver_id === user.id) {
     return { error: "送信先が正しくありません" };
   }
@@ -58,8 +78,11 @@ export async function sendMessage(
       sender_id: user.id,
       receiver_id,
       content,
+      attachment_url,
     })
-    .select("id, sender_id, receiver_id, content, created_at, is_read")
+    .select(
+      "id, sender_id, receiver_id, content, attachment_url, created_at, is_read"
+    )
     .single();
 
   if (error || !inserted) {
@@ -74,7 +97,8 @@ export async function sendMessage(
       .eq("id", user.id)
       .maybeSingle();
     const senderName = senderProfile?.display_name ?? "ユーザー";
-    const snippet = content.length > 280 ? `${content.slice(0, 280)}…` : content;
+    const baseBody = content || "(画像が送信されました)";
+    const snippet = baseBody.length > 280 ? `${baseBody.slice(0, 280)}…` : baseBody;
 
     await sendExternalNotification({
       userId: receiver_id,

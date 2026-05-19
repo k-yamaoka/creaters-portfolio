@@ -8,6 +8,7 @@
 
 export type AllowedImageKind = "jpeg" | "png" | "gif" | "webp";
 export type AllowedVideoKind = "mp4" | "mov" | "webm";
+export type AllowedDocKind = "pdf";
 
 const IMAGE_EXT: Record<string, AllowedImageKind> = {
   jpg: "jpeg",
@@ -31,6 +32,26 @@ export function getImageKindFromExt(name: string): AllowedImageKind | null {
 export function getVideoKindFromExt(name: string): AllowedVideoKind | null {
   const ext = name.split(".").pop()?.toLowerCase() ?? "";
   return VIDEO_EXT[ext] ?? null;
+}
+export function getDocKindFromExt(name: string): AllowedDocKind | null {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  return ext === "pdf" ? "pdf" : null;
+}
+
+/**
+ * PDF のマジックナンバー判定。先頭 4 バイトが "%PDF" (25 50 44 46) なら PDF。
+ */
+export function detectDocKindByMagic(bytes: Uint8Array): AllowedDocKind | null {
+  if (bytes.length < 4) return null;
+  if (
+    bytes[0] === 0x25 && // %
+    bytes[1] === 0x50 && // P
+    bytes[2] === 0x44 && // D
+    bytes[3] === 0x46 // F
+  ) {
+    return "pdf";
+  }
+  return null;
 }
 
 /**

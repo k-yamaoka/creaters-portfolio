@@ -11,6 +11,7 @@ export type Message = {
   sender_id: string;
   receiver_id: string;
   content: string;
+  attachment_url?: string | null;
   created_at: string;
   is_read?: boolean;
 };
@@ -29,6 +30,66 @@ type Props = {
 
 const NEAR_BOTTOM_PX = 120;
 
+/**
+ * 添付 URL から PDF 判定。pdf 拡張子 (クエリ・末尾セグメント) を緩く見る。
+ */
+function isPdfUrl(url: string): boolean {
+  const path = url.split("?")[0]?.split("#")[0] ?? url;
+  return path.toLowerCase().endsWith(".pdf");
+}
+
+/**
+ * バブル内の添付描画。画像はインライン (クリックで原寸タブ)、PDF はリンク。
+ */
+function AttachmentView({
+  url,
+  inverted,
+}: {
+  url: string;
+  inverted: boolean;
+}) {
+  if (isPdfUrl(url)) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+          inverted
+            ? "border-white/40 bg-white/10 text-white hover:bg-white/20"
+            : "border-ink/15 bg-paper-deep text-ink hover:bg-paper-deep/80"
+        }`}
+      >
+        <svg
+          className={`h-4 w-4 ${inverted ? "" : "text-red-500"}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+          />
+        </svg>
+        PDF を開く
+      </a>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt="添付画像"
+        className="max-h-[300px] w-auto max-w-full rounded-lg object-contain"
+        loading="lazy"
+      />
+    </a>
+  );
+}
+
 export function MessageThread({
   initialMessages,
   currentUserId,
@@ -42,12 +103,16 @@ export function MessageThread({
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  // 添付画像 (アップロード済み URL)。送信時に消費 + リセット
+  const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const templates = useMemo(() => templatesFor(senderRole), [senderRole]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const initialScrollDone = useRef(false);
   const sentByMeFlag = useRef(false);
   const composingRef = useRef(false);
@@ -100,7 +165,8 @@ export function MessageThread({
             m.id.startsWith("temp-") &&
             m.sender_id === incoming.sender_id &&
             m.receiver_id === incoming.receiver_id &&
-            m.content === incoming.content
+            m.content === incoming.content &&
+            (m.attachment_url ?? null) === (incoming.attachment_url ?? null)
         );
         if (tempIdx !== -1) {
           const next = [...prev];
@@ -179,12 +245,44 @@ export function MessageThread({
     };
   }, [currentUserId, partnerId, mergeMessage]);
 
+  const handleFilePick = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    // 同じファイルを連続選択しても onChange が発火するように value をクリア
+    e.target.value = "";
+    if (!file) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.set("file", file);
+      const res = await fetch("/api/upload/message-attachment", {
+        method: "POST",
+        body: fd,
+      });
+      const json: { url?: string; error?: string } = await res.json();
+      if (!res.ok || !json.url) {
+        setError(json.error ?? "アップロードに失敗しました");
+        return;
+      }
+      setAttachmentUrl(json.url);
+    } catch {
+      setError("アップロードに失敗しました");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && !attachmentUrl) || sending) return;
     setError(null);
     setSending(true);
+    const sentText = text;
+    const sentAttachment = attachmentUrl;
     setInput("");
+    setAttachmentUrl(null);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -194,7 +292,8 @@ export function MessageThread({
       id: tempId,
       sender_id: currentUserId,
       receiver_id: partnerId,
-      content: text,
+      content: sentText,
+      attachment_url: sentAttachment,
       created_at: new Date().toISOString(),
     };
     sentByMeFlag.current = true;
@@ -202,12 +301,14 @@ export function MessageThread({
 
     const fd = new FormData();
     fd.set("receiver_id", partnerId);
-    fd.set("content", text);
+    fd.set("content", sentText);
+    if (sentAttachment) fd.set("attachment_url", sentAttachment);
     const result = await sendMessage(fd);
 
     if ("error" in result) {
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
-      setInput(text);
+      setInput(sentText);
+      setAttachmentUrl(sentAttachment);
       setError(result.error);
     } else {
       replaceTemp(tempId, {
@@ -215,6 +316,7 @@ export function MessageThread({
         sender_id: result.message.sender_id,
         receiver_id: result.message.receiver_id,
         content: result.message.content,
+        attachment_url: result.message.attachment_url,
         created_at: result.message.created_at,
         is_read: result.message.is_read,
       });
@@ -272,9 +374,21 @@ export function MessageThread({
                         : "bg-white text-ink shadow-card"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {linkifyText(msg.content, { inverted: isMine })}
-                    </p>
+                    {msg.attachment_url && (
+                      <AttachmentView
+                        url={msg.attachment_url}
+                        inverted={isMine}
+                      />
+                    )}
+                    {msg.content && (
+                      <p
+                        className={`whitespace-pre-wrap text-sm leading-relaxed ${
+                          msg.attachment_url ? "mt-2" : ""
+                        }`}
+                      >
+                        {linkifyText(msg.content, { inverted: isMine })}
+                      </p>
+                    )}
                     <p
                       className={`mt-1 text-right text-[10px] ${
                         isMine ? "text-white/60" : "text-ink-soft"
@@ -377,7 +491,106 @@ export function MessageThread({
           </button>
         </div>
 
+        {/* 添付プレビュー */}
+        {attachmentUrl && (
+          <div className="mb-2 flex items-center gap-3 rounded-lg border border-ink/15 bg-paper-deep px-3 py-2">
+            {isPdfUrl(attachmentUrl) ? (
+              <>
+                <svg
+                  className="h-5 w-5 text-red-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                  />
+                </svg>
+                <span className="flex-1 truncate text-xs text-ink-muted">
+                  PDF を添付
+                </span>
+              </>
+            ) : (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={attachmentUrl}
+                  alt="添付プレビュー"
+                  className="h-10 w-10 shrink-0 rounded object-cover"
+                />
+                <span className="flex-1 truncate text-xs text-ink-muted">
+                  画像を添付
+                </span>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setAttachmentUrl(null)}
+              className="text-xs text-ink-soft hover:text-ink"
+              aria-label="添付を取り消す"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* 隠し file input (📎 ボタンから起動) */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,application/pdf"
+          className="hidden"
+          onChange={handleFilePick}
+        />
+
         <div className="flex items-end gap-3">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading || sending}
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-ink/20 bg-white text-ink-muted transition-colors hover:border-ink hover:bg-paper-deep disabled:opacity-50"
+            aria-label="画像 / PDF を添付"
+            title="画像 (PNG/JPEG) / PDF を添付"
+          >
+            {uploading ? (
+              <svg
+                className="h-5 w-5 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.6}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"
+                />
+              </svg>
+            )}
+          </button>
           <textarea
             ref={textareaRef}
             value={input}
@@ -400,7 +613,7 @@ export function MessageThread({
           <button
             type="button"
             onClick={handleSend}
-            disabled={sending || !input.trim()}
+            disabled={sending || uploading || (!input.trim() && !attachmentUrl)}
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-500 text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
             aria-label="送信"
           >
