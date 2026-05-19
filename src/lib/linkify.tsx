@@ -28,8 +28,23 @@ function trimTrailingPunct(url: string): { url: string; trailing: string } {
   };
 }
 
-export function linkifyText(input: string): ReactNode[] {
+type LinkifyOptions = {
+  /**
+   * true の場合、背景が濃い色 (例: primary-500) のバブル向けに
+   * 白系の文字色でリンクを描画する。デフォルトは false (= primary-600)。
+   */
+  inverted?: boolean;
+};
+
+export function linkifyText(
+  input: string,
+  opts: LinkifyOptions = {}
+): ReactNode[] {
   if (!input) return [];
+  const linkClass = opts.inverted
+    ? "text-white underline underline-offset-2 hover:text-white/80 break-all"
+    : "text-primary-600 underline underline-offset-2 hover:text-primary-700 break-all";
+
   const out: ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -49,11 +64,7 @@ export function linkifyText(input: string): ReactNode[] {
 
     if (isInternal) {
       out.push(
-        <Link
-          key={key}
-          href={url}
-          className="text-primary-600 underline underline-offset-2 hover:text-primary-700"
-        >
+        <Link key={key} href={url} className={linkClass}>
           {url}
         </Link>
       );
@@ -64,7 +75,7 @@ export function linkifyText(input: string): ReactNode[] {
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary-600 underline underline-offset-2 hover:text-primary-700 break-all"
+          className={linkClass}
         >
           {url}
         </a>

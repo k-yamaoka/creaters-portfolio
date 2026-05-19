@@ -273,7 +273,7 @@ export function MessageThread({
                     }`}
                   >
                     <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                      {linkifyText(msg.content)}
+                      {linkifyText(msg.content, { inverted: isMine })}
                     </p>
                     <p
                       className={`mt-1 text-right text-[10px] ${
