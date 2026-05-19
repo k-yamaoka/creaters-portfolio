@@ -60,16 +60,17 @@ export default async function OrderDetailPage({
   }
 
   const isCreator = user.role === "creator";
+  // 退会者がいる場合は creator/client が null になる (FK ON DELETE SET NULL)
   const creatorData = order.creator as unknown as {
     id: string;
     user_id: string;
     profiles: { display_name: string };
-  };
+  } | null;
   const clientData = order.client as unknown as {
     id: string;
     user_id: string;
     profiles: { display_name: string };
-  };
+  } | null;
   const pkg = order.package as unknown as {
     name: string;
     description: string;
@@ -83,22 +84,28 @@ export default async function OrderDetailPage({
   const currentStepIndex = STATUS_FLOW.indexOf(
     order.status as (typeof STATUS_FLOW)[number]
   );
-  const partnerUserId = isCreator ? clientData.user_id : creatorData.user_id;
+  // partner が退会済みの場合は archived_*_user_id を fallback として使う
+  const partnerUserId = isCreator
+    ? clientData?.user_id ?? order.archived_client_user_id
+    : creatorData?.user_id ?? order.archived_creator_user_id;
   const partnerName = isCreator
-    ? clientData.profiles.display_name
-    : creatorData.profiles.display_name;
+    ? clientData?.profiles.display_name ?? "(退会済みのクライアント)"
+    : creatorData?.profiles.display_name ?? "(退会済みのクリエイター)";
 
-  // 二者間の全メッセージを取得 (左メニュー「メッセージ」と完全同期)
-  const { data: threadMessages } = await supabase
-    .from("messages")
-    .select("*")
-    .or(
-      `and(sender_id.eq.${user.id},receiver_id.eq.${partnerUserId}),and(sender_id.eq.${partnerUserId},receiver_id.eq.${user.id})`
-    )
-    .order("created_at", { ascending: true });
-
-  // 既読化
-  await markAsRead(partnerUserId);
+  // 二者間の全メッセージを取得 (左メニュー「メッセージ」と完全同期)。
+  // partner が退会済みで user_id が引けない場合はメッセージ取得不能なのでスキップする。
+  let threadMessages: unknown[] | null = null;
+  if (partnerUserId) {
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${partnerUserId}),and(sender_id.eq.${partnerUserId},receiver_id.eq.${user.id})`
+      )
+      .order("created_at", { ascending: true });
+    threadMessages = data;
+    await markAsRead(partnerUserId);
+  }
 
   return (
     <div>
@@ -220,14 +227,20 @@ export default async function OrderDetailPage({
             />
           )}
 
-          {/* レビュー投稿フォーム - 検収完了かつレビュー未投稿のクライアントのみ */}
-          {isFullyCompleted && !isCreator && !hasReview && (
-            <ReviewForm
-              orderId={order.id}
-              creatorId={creatorData.id}
-              clientId={clientData.id}
-            />
-          )}
+          {/* レビュー投稿フォーム - 検収完了かつレビュー未投稿のクライアントのみ。
+              退会済みクリエイター/クライアント (creator_id / client_id が NULL) の
+              取引にはレビュー機能を出さない */}
+          {isFullyCompleted &&
+            !isCreator &&
+            !hasReview &&
+            creatorData &&
+            clientData && (
+              <ReviewForm
+                orderId={order.id}
+                creatorId={creatorData.id}
+                clientId={clientData.id}
+              />
+            )}
 
           {isFullyCompleted && hasReview && (
             <div className="rounded-2xl bg-green-50 p-6 text-center">
@@ -280,59 +293,68 @@ export default async function OrderDetailPage({
           <div className="rounded-2xl bg-white p-6 shadow-card">
             <h2 className="text-sm font-bold text-[#828282]">取引相手</h2>
             <p className="mt-2 font-bold text-[#222]">{partnerName}</p>
-            <Link
-              href={`/dashboard/messages/${partnerUserId}`}
-              className="btn-secondary mt-3 w-full text-sm"
-            >
-              フルスクリーンで開く
-            </Link>
+            {partnerUserId ? (
+              <Link
+                href={`/dashboard/messages/${partnerUserId}`}
+                className="btn-secondary mt-3 w-full text-sm"
+              >
+                フルスクリーンで開く
+              </Link>
+            ) : (
+              <p className="mt-3 text-xs text-[#BDBDBD]">
+                相手が退会済みのためメッセージはできません
+              </p>
+            )}
           </div>
         </div>
       </div>
 
       {/* ==============================
           下部メッセージパネル (左メニュー「メッセージ」と同期)
+          相手が退会済みの場合は表示しない
           ============================== */}
-      <div className="mt-8 rounded-2xl bg-white p-6 shadow-card">
-        <div className="mb-3 flex items-center justify-between border-b border-[#F2F2F2] pb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-600">
-              {partnerName[0]}
+      {partnerUserId && (
+        <div className="mt-8 rounded-2xl bg-white p-6 shadow-card">
+          <div className="mb-3 flex items-center justify-between border-b border-[#F2F2F2] pb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-600">
+                {partnerName[0] ?? "?"}
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-[#222]">
+                  {partnerName} とのメッセージ
+                </h2>
+                <p className="text-xs text-[#828282]">
+                  左メニューの「メッセージ」と同期されています
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-sm font-bold text-[#222]">
-                {partnerName} とのメッセージ
-              </h2>
-              <p className="text-xs text-[#828282]">
-                左メニューの「メッセージ」と同期されています
-              </p>
-            </div>
+            <Link
+              href={`/dashboard/messages/${partnerUserId}`}
+              className="text-xs font-medium text-primary-500 hover:underline"
+            >
+              別画面で開く →
+            </Link>
           </div>
-          <Link
-            href={`/dashboard/messages/${partnerUserId}`}
-            className="text-xs font-medium text-primary-500 hover:underline"
-          >
-            別画面で開く →
-          </Link>
+          <MessageThread
+            initialMessages={(threadMessages ?? []) as never}
+            currentUserId={user.id}
+            partnerId={partnerUserId}
+            senderRole={user.role}
+            compact
+            footerSlot={
+              user.role === "client" || user.role === "creator" ? (
+                <OrderTodoBanner
+                  orderId={order.id}
+                  orderTitle={order.title}
+                  status={order.status}
+                  viewerRole={user.role}
+                />
+              ) : null
+            }
+          />
         </div>
-        <MessageThread
-          initialMessages={threadMessages ?? []}
-          currentUserId={user.id}
-          partnerId={partnerUserId}
-          senderRole={user.role}
-          compact
-          footerSlot={
-            user.role === "client" || user.role === "creator" ? (
-              <OrderTodoBanner
-                orderId={order.id}
-                orderTitle={order.title}
-                status={order.status}
-                viewerRole={user.role}
-              />
-            ) : null
-          }
-        />
-      </div>
+      )}
     </div>
   );
 }

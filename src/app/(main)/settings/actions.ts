@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
+import { createHash } from "node:crypto";
 
 export async function updatePassword(formData: FormData) {
   const supabase = await createClient();
@@ -93,7 +94,63 @@ export async function deleteAccount() {
         );
     }
 
-    // 2. auth.users を物理削除 (FK ON DELETE CASCADE で profiles 以下も消える)
+    // 2. 退会前に profile snapshot を archived_profiles に書き残す。
+    //    orders.archived_client_user_id / archived_creator_user_id と
+    //    アプリ層で結合させて「(退会済み: 山田太郎)」のような表示に使う。
+    const { data: profileSnapshot } = await admin
+      .from("profiles")
+      .select("id, display_name, role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profileSnapshot) {
+      const emailHash = userEmail
+        ? createHash("sha256").update(userEmail).digest("hex")
+        : null;
+      await admin
+        .from("archived_profiles")
+        .upsert(
+          {
+            original_user_id: profileSnapshot.id,
+            display_name: profileSnapshot.display_name,
+            role: profileSnapshot.role,
+            email_hash: emailHash,
+          },
+          { onConflict: "original_user_id" }
+        );
+    }
+
+    // 3. orders に archived_*_user_id を書き戻してから auth.users を消す。
+    //    FK SET NULL で client_id / creator_id は NULL になるが、
+    //    どのユーザーだったかは archived_*_user_id 列で追える。
+    if (profileSnapshot) {
+      if (profileSnapshot.role === "client") {
+        const { data: cp } = await admin
+          .from("client_profiles")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (cp) {
+          await admin
+            .from("orders")
+            .update({ archived_client_user_id: user.id })
+            .eq("client_id", cp.id);
+        }
+      } else if (profileSnapshot.role === "creator") {
+        const { data: crp } = await admin
+          .from("creator_profiles")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (crp) {
+          await admin
+            .from("orders")
+            .update({ archived_creator_user_id: user.id })
+            .eq("creator_id", crp.id);
+        }
+      }
+    }
+
+    // 4. auth.users を物理削除 → FK SET NULL で orders/messages 等は残る
     const { error: deleteErr } = await admin.auth.admin.deleteUser(user.id);
     if (deleteErr) {
       // 物理削除失敗時のフォールバック
