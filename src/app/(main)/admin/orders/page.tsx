@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 
@@ -134,7 +134,7 @@ export default async function AdminOrdersPage() {
                     {formatPrice(order.platform_fee)}
                   </td>
                   <td className="px-5 py-3 text-right text-xs text-[#BDBDBD]">
-                    {new Date(order.created_at).toLocaleDateString("ja-JP")}
+                    {formatDateJP(order.created_at)}
                   </td>
                 </tr>
               );

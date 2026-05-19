@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 
 type Application = {
   id: string;
@@ -127,7 +127,7 @@ export function ApplicationList({
                     </span>
                   </div>
                   <span className="text-xs text-[#BDBDBD]">
-                    {new Date(app.created_at).toLocaleDateString("ja-JP")}
+                    {formatDateJP(app.created_at)}
                   </span>
                 </div>
 

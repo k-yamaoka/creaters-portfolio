@@ -341,6 +341,7 @@ export function Header({
                                 {new Date(n.created_at).toLocaleDateString(
                                   "ja-JP",
                                   {
+                                    timeZone: "Asia/Tokyo",
                                     month: "short",
                                     day: "numeric",
                                     hour: "2-digit",

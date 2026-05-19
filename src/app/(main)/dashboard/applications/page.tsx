@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 import Link from "next/link";
 
 const APP_STATUS: Record<string, { label: string; color: string }> = {
@@ -130,7 +130,7 @@ export default async function ApplicationsPage() {
                         </p>
                       )}
                       <p className="mt-1 text-xs text-[#BDBDBD]">
-                        {new Date(app.created_at).toLocaleDateString("ja-JP")}
+                        {formatDateJP(app.created_at)}
                       </p>
                     </div>
                   </div>

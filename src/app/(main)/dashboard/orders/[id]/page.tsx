@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 import { STATUS_FLOW, STATUS_META, getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 import { OrderActions } from "./order-actions";
@@ -92,10 +92,41 @@ export default async function OrderDetailPage({
     ? clientData?.profiles.display_name ?? "(退会済みのクライアント)"
     : creatorData?.profiles.display_name ?? "(退会済みのクリエイター)";
 
-  // 二者間の全メッセージを取得 (左メニュー「メッセージ」と完全同期)。
+  // 二者間のメッセージを取得 (左メニュー「メッセージ」と同期)。
+  // 過去取引のメッセージ混入を防ぐため、この取引の前にあった "最新の応募" の
+  // created_at を anchor として使う (応募開始 〜 受注 までの相談メッセージも含めるため)。
+  // 該当応募がなければ order.created_at を anchor にする。
   // partner が退会済みで user_id が引けない場合はメッセージ取得不能なのでスキップする。
   let threadMessages: unknown[] | null = null;
-  if (partnerUserId) {
+  if (partnerUserId && creatorData && clientData) {
+    let anchorAt: string = order.created_at;
+    const { data: priorApp } = await supabase
+      .from("job_applications")
+      .select(
+        "created_at, job:jobs!job_applications_job_id_fkey ( client_id )"
+      )
+      .eq("creator_id", creatorData.id)
+      .lte("created_at", order.created_at)
+      .order("created_at", { ascending: false });
+    const matched = (priorApp ?? []).find((a) => {
+      const j = a.job as unknown as { client_id: string } | null;
+      return j?.client_id === clientData.id;
+    });
+    if (matched) anchorAt = matched.created_at;
+
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .or(
+        `and(sender_id.eq.${user.id},receiver_id.eq.${partnerUserId}),and(sender_id.eq.${partnerUserId},receiver_id.eq.${user.id})`
+      )
+      .gte("created_at", anchorAt)
+      .order("created_at", { ascending: true });
+    threadMessages = data;
+    await markAsRead(partnerUserId);
+  } else if (partnerUserId) {
+    // 相手が退会済みなど creatorData/clientData が null のときは anchor が引けない。
+    // フォールバックで全件取る (退会後の表示なので過去取引引き継ぎ問題は実害が小さい)。
     const { data } = await supabase
       .from("messages")
       .select("*")
@@ -128,9 +159,7 @@ export default async function OrderDetailPage({
               {status.shortLabel}
             </span>
             <span>{order.order_number}</span>
-            <span>
-              {new Date(order.created_at).toLocaleDateString("ja-JP")}
-            </span>
+            <span>{formatDateJP(order.created_at)}</span>
           </div>
         </div>
       </div>

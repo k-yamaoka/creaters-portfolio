@@ -253,11 +253,11 @@ export function MessageThread({
               const isTemp = msg.id.startsWith("temp-");
               const time = new Date(msg.created_at).toLocaleTimeString(
                 "ja-JP",
-                { hour: "2-digit", minute: "2-digit" }
+                { timeZone: "Asia/Tokyo", hour: "2-digit", minute: "2-digit" }
               );
               const date = new Date(msg.created_at).toLocaleDateString(
                 "ja-JP",
-                { month: "short", day: "numeric" }
+                { timeZone: "Asia/Tokyo", month: "short", day: "numeric" }
               );
 
               return (

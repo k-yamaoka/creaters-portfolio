@@ -1,19 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP, formatDateTimeJP } from "@/lib/utils";
 import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
-
-function formatLastUpdate(iso: string): string {
-  const d = new Date(iso);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
-}
 
 export default async function OrdersPage() {
   const user = await getCurrentUser();
@@ -207,7 +197,7 @@ export default async function OrdersPage() {
                         <span>{order.order_number}</span>
                       </div>
                       <div className="mt-2 text-[11px] text-[#828282]">
-                        最終更新: {formatLastUpdate(lastAt)}
+                        最終更新: {formatDateTimeJP(lastAt)}
                       </div>
                     </div>
                     <div className="text-right">
@@ -215,7 +205,7 @@ export default async function OrdersPage() {
                         {formatPrice(order.total_amount)}
                       </p>
                       <p className="mt-1 text-[11px] text-[#BDBDBD]">
-                        作成 {new Date(order.created_at).toLocaleDateString("ja-JP")}
+                        作成 {formatDateJP(order.created_at)}
                       </p>
                     </div>
                   </div>

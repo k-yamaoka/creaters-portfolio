@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 import Link from "next/link";
 import { ApplicationList } from "./application-list";
 import { JobStatusActions } from "./job-status-actions";
@@ -94,7 +94,7 @@ export default async function DashboardJobDetailPage({
             )}
             {job.deadline && (
               <span>
-                締切: {new Date(job.deadline).toLocaleDateString("ja-JP")}
+                締切: {formatDateJP(job.deadline)}
               </span>
             )}
             <span>応募 {job.application_count}件</span>

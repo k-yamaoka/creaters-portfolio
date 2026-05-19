@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { GENRES, PLATFORMS } from "@/lib/constants";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 import type { JobSearchFilters } from "@/types/database";
 
 type Job = {
@@ -527,7 +527,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                             <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                             </svg>
-                            締切 {new Date(job.deadline).toLocaleDateString("ja-JP")}
+                            締切 {formatDateJP(job.deadline)}
                           </div>
                         )}
                         <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-xs text-[#828282]">

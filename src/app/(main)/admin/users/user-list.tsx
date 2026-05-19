@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toggleUserActive, toggleUserVerified } from "./actions";
+import { formatDateJP } from "@/lib/utils";
 
 type User = {
   id: string;
@@ -130,7 +131,7 @@ export function UserList({ users }: { users: User[] }) {
                   </div>
                 </td>
                 <td className="px-5 py-4 text-sm text-[#828282]">
-                  {new Date(user.created_at).toLocaleDateString("ja-JP")}
+                  {formatDateJP(user.created_at)}
                 </td>
                 <td className="px-5 py-4 text-right">
                   {user.role !== "admin" && (

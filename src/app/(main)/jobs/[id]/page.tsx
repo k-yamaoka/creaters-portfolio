@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateJP } from "@/lib/utils";
 import Link from "next/link";
 import { ApplyButton } from "./apply-button";
 import {
@@ -46,18 +46,23 @@ export default async function JobDetailPage({
   };
 
   // Check if already applied
+  // この応募の created_at は「過去取引のメッセージを引き継がない」境界として使う。
   let hasApplied = false;
+  let applicationCreatedAt: string | null = null;
   if (isCreator && user?.creator_profile) {
     const { data: existing } = await supabase
       .from("job_applications")
-      .select("id")
+      .select("id, created_at")
       .eq("job_id", id)
       .eq("creator_id", user.creator_profile.id)
       .single();
     hasApplied = !!existing;
+    applicationCreatedAt = existing?.created_at ?? null;
   }
 
-  // 応募済みの場合のみ、初期メッセージ履歴を取得 (ダイアログに渡す)
+  // 応募済みの場合のみ、初期メッセージ履歴を取得 (ダイアログに渡す)。
+  // この応募の created_at 以降に限定し、同じクライアントとの過去取引メッセージが
+  // 混ざらないようにする。
   let initialMessages: Array<{
     id: string;
     sender_id: string;
@@ -67,13 +72,17 @@ export default async function JobDetailPage({
     is_read?: boolean;
   }> = [];
   if (hasApplied && user) {
-    const { data: msgs } = await supabase
+    let q = supabase
       .from("messages")
       .select("*")
       .or(
         `and(sender_id.eq.${user.id},receiver_id.eq.${clientData.user_id}),and(sender_id.eq.${clientData.user_id},receiver_id.eq.${user.id})`
       )
       .order("created_at", { ascending: true });
+    if (applicationCreatedAt) {
+      q = q.gte("created_at", applicationCreatedAt);
+    }
+    const { data: msgs } = await q;
     initialMessages = msgs ?? [];
   }
 
@@ -151,21 +160,12 @@ export default async function JobDetailPage({
             {/* Meta */}
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#828282]">
               {job.deadline && (
-                <span>
-                  応募締切:{" "}
-                  {new Date(job.deadline).toLocaleDateString("ja-JP")}
-                </span>
+                <span>応募締切: {formatDateJP(job.deadline)}</span>
               )}
               {job.delivery_deadline && (
-                <span>
-                  納品希望:{" "}
-                  {new Date(job.delivery_deadline).toLocaleDateString("ja-JP")}
-                </span>
+                <span>納品希望: {formatDateJP(job.delivery_deadline)}</span>
               )}
-              <span>
-                掲載日:{" "}
-                {new Date(job.created_at).toLocaleDateString("ja-JP")}
-              </span>
+              <span>掲載日: {formatDateJP(job.created_at)}</span>
             </div>
           </div>
 

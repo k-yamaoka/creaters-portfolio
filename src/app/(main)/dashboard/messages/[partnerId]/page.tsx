@@ -77,21 +77,14 @@ export default async function ConversationPage({
 
   if (!partner) redirect("/dashboard/messages");
 
-  // 二者間の全メッセージ
-  const { data: messages } = await supabase
-    .from("messages")
-    .select("*")
-    .or(
-      `and(sender_id.eq.${me.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me.id})`
-    )
-    .order("created_at", { ascending: true });
-
-  await markAsRead(partnerId);
-
-  // 両者間の最新応募 (pending/accepted) を引いて、その案件の編集要件を表示
+  // 両者間の最新応募 (status 問わず) を引き、その応募の created_at を
+  // 「現在の会話の開始点 (anchor)」として使う。
+  // anchor 以降のメッセージのみ表示することで、過去の取引メッセージが
+  // 新しい応募の会話に引き継がれないようにする。
+  // ついでに contextJob (取引中の編集要件) もこの応募から派生して取り出す。
   let contextJob: JobRequirementsRow | null = null;
+  let threadAnchorAt: string | null = null;
   {
-    // クライアント側 user_id / クリエイター側 user_id を相手と自分から特定する
     const clientUserId = me.role === "client" ? me.id : partnerId;
     const creatorUserId = me.role === "creator" ? me.id : partnerId;
 
@@ -114,18 +107,40 @@ export default async function ConversationPage({
            job:jobs!job_applications_job_id_fkey ( ${JOB_REQUIREMENT_FIELDS}, client_id )`
         )
         .eq("creator_id", crp.id)
-        .in("status", ["pending", "accepted"])
         .order("created_at", { ascending: false });
 
-      const match = (app ?? []).find((a) => {
+      const matches = (app ?? []).filter((a) => {
         const j = a.job as unknown as { client_id: string } | null;
         return j?.client_id === cp.id;
       });
-      if (match) {
-        contextJob = match.job as unknown as JobRequirementsRow;
+      // 最新応募の created_at を anchor に
+      if (matches.length > 0) {
+        threadAnchorAt = matches[0].created_at;
+      }
+      // 編集要件表示用: 進行中 (pending/accepted) の最新応募
+      const live = matches.find(
+        (a) => a.status === "pending" || a.status === "accepted"
+      );
+      if (live) {
+        contextJob = live.job as unknown as JobRequirementsRow;
       }
     }
   }
+
+  // 二者間のメッセージ (anchor 以降のみ)
+  let messagesQuery = supabase
+    .from("messages")
+    .select("*")
+    .or(
+      `and(sender_id.eq.${me.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me.id})`
+    )
+    .order("created_at", { ascending: true });
+  if (threadAnchorAt) {
+    messagesQuery = messagesQuery.gte("created_at", threadAnchorAt);
+  }
+  const { data: messages } = await messagesQuery;
+
+  await markAsRead(partnerId);
 
   // 二者間の現在進行中の order を 1 件取得 (やること バナー用)
   let activeOrder:

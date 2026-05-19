@@ -1,4 +1,5 @@
 import { RATING_LEVELS } from "@/lib/constants";
+import { formatDateJP } from "@/lib/utils";
 
 type Review = {
   id: string;
@@ -46,7 +47,7 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
                 </span>
               </div>
               <span className="text-xs text-[#BDBDBD]">
-                {new Date(review.created_at).toLocaleDateString("ja-JP")}
+                {formatDateJP(review.created_at)}
               </span>
             </div>
             {/* Emoji rating */}
