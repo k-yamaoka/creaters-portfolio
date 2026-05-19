@@ -14,7 +14,7 @@
 --   3. messages.sender_id / receiver_id を nullable + ON DELETE SET NULL に
 --      (00025 で CASCADE にしたばかりだが、ここで SET NULL に再変更)
 --   4. job_applications.creator_id も nullable + SET NULL
---   5. reviews.reviewer_id / creator_id も nullable + SET NULL
+--   5. reviews.client_id / creator_id も nullable + SET NULL
 --
 -- 既存データへの影響:
 --   - 全テーブルのカラムを NOT NULL → NULL 許容に変更
