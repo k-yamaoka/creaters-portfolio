@@ -85,11 +85,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if user exists
-    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = existingUsers?.users?.find((u) => u.email === email);
+    // 既存ユーザー確認は profiles テーブルへの SELECT で行う。
+    // ※ かつては auth.admin.listUsers() を使っていたが、これは default 50/max 1000 件で
+    //   全件ページネーション必須となるため、ユーザー数の増加で破綻する時限爆弾だった。
+    //   profiles.email は handle_new_user trigger で auth.users と同期されるので、
+    //   email でピンポイント検索すれば O(1) で済む。
+    const { data: existingProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
 
-    if (!existingUser) {
+    if (!existingProfile) {
       const { error: createError } = await supabaseAdmin.auth.admin.createUser({
         email,
         email_confirm: true,
