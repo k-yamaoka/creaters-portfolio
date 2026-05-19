@@ -225,9 +225,9 @@ export default async function ConversationPage({
   }
 
   return (
-    // ヘッダー(80px) + Footer(コンパクト ~220px) + ページ余白 を引いた高さでチャット領域を取る。
-    // モバイル等の小画面では最低 480px を確保。
-    <div className="flex h-[min(calc(100svh-22rem),740px)] min-h-[480px] flex-col pb-4">
+    // ヘッダー + Footer を引いた高さで限界までチャット領域を確保。
+    // 視認性のため最低 640px を確保し、上限も 1000px まで広げる。
+    <div className="flex h-[min(calc(100svh-14rem),1000px)] min-h-[640px] flex-col pb-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 border-b border-[#F2F2F2] pb-4">
         <div className="flex items-start gap-4">

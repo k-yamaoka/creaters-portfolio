@@ -339,7 +339,7 @@ export function MessageThread({
   };
 
   return (
-    <div className={`flex flex-col ${compact ? "h-[520px]" : "h-full min-h-0"}`}>
+    <div className={`flex flex-col ${compact ? "h-[720px]" : "h-full min-h-0"}`}>
       {/* メッセージリスト */}
       <div ref={containerRef} className="flex-1 overflow-y-auto py-4">
         {messages.length === 0 ? (
