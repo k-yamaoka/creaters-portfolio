@@ -25,7 +25,7 @@ export default function ForBusinessPage() {
         <p className="mt-4 text-base leading-relaxed text-[#828282]">
           制作会社を通さず、実力あるフリーランスクリエイターに直接依頼。
           <br className="hidden sm:block" />
-          コスト削減とスピードアップを同時に実現します。
+          明朗な手数料とスピード発注を同時に実現します。
         </p>
       </div>
 
@@ -33,8 +33,8 @@ export default function ForBusinessPage() {
       <div className="mt-20 grid gap-8 md:grid-cols-3">
         {[
           {
-            title: "コスト削減",
-            desc: "制作会社の中間マージンをカット。同じ予算でより高品質な映像制作が可能です。一般的な制作会社と比較して30〜50%のコスト削減を実現。",
+            title: "明朗な手数料",
+            desc: "制作会社を介さず、フリーランスクリエイターに直接発注。手数料は取引額の15%のみで、相見積もりや見えない費用なく予算を立てられます。",
             icon: (
               <path
                 strokeLinecap="round"

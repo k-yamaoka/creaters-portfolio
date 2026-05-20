@@ -101,13 +101,13 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {/* Stats row */}
+              {/* Stats row — 事実ベース (ローンチ期の誇張を避ける) */}
               <div className="mt-14 grid grid-cols-2 gap-y-6 lg:grid-cols-4">
                 {[
-                  { num: "500+", label: "マッチング成立" },
-                  { num: "4.9", label: "平均満足度" },
-                  { num: "100%", label: "リモート対応" },
+                  { num: "15%", label: "シンプル手数料" },
                   { num: "¥0", label: "登録料金" },
+                  { num: "100%", label: "リモート対応" },
+                  { num: "24h", label: "スカウト受付" },
                 ].map((s) => (
                   <div key={s.label} className="px-1">
                     <p className="text-3xl font-black leading-none text-primary-600 sm:text-4xl">
@@ -161,8 +161,8 @@ export default function HomePage() {
                   新着案件 +3
                 </div>
                 <div className="absolute -bottom-3 left-6 z-20 rotate-[-4deg] rounded-xl border-2 border-ink bg-white px-3 py-1.5 text-xs font-black shadow-pop">
-                  <p className="text-ink">納品完了！</p>
-                  <p className="text-coral-600">★ 5.0</p>
+                  <p className="text-ink">スカウト受信！</p>
+                  <p className="text-coral-600">企業から</p>
                 </div>
               </div>
             </div>
@@ -535,8 +535,8 @@ export default function HomePage() {
                       "ポートフォリオで過去の作品を確認。スキルが一目でわかる。",
                     ],
                     [
-                      "コスト削減",
-                      "制作会社を介さず直接依頼。中間マージンをカット。",
+                      "シンプルな手数料",
+                      "制作会社を介さず直接、明朗な手数料で発注できる。",
                     ],
                     [
                       "スピーディな発注",
