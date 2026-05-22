@@ -145,7 +145,7 @@ export default async function OrderDetailPage({
         <div>
           <Link
             href="/dashboard/orders"
-            className="text-sm text-[#828282] hover:text-primary-500"
+            className="text-sm text-[#828282] hover:text-neon-pink"
           >
             &larr; 取引一覧に戻る
           </Link>
@@ -179,9 +179,9 @@ export default async function OrderDetailPage({
                     title={stepInfo.description}
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
                       isCurrent
-                        ? "bg-primary-500 text-white"
+                        ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white"
                         : isCompleted
-                          ? "bg-primary-100 text-primary-600"
+                          ? "bg-neon-purple/15 text-neon-purple-deep"
                           : "bg-[#F2F2F2] text-[#BDBDBD]"
                     }`}
                   >
@@ -200,7 +200,7 @@ export default async function OrderDetailPage({
                 {i < STATUS_FLOW.length - 1 && (
                   <div
                     className={`mx-1 h-0.5 flex-1 ${
-                      i < currentStepIndex ? "bg-primary-300" : "bg-[#F2F2F2]"
+                      i < currentStepIndex ? "bg-neon-purple/40" : "bg-[#F2F2F2]"
                     }`}
                   />
                 )}
@@ -311,7 +311,7 @@ export default async function OrderDetailPage({
               </div>
               <div className="flex justify-between border-t border-[#F2F2F2] pt-2 text-sm">
                 <span className="text-[#4F4F4F]">クリエイター受取額</span>
-                <span className="font-bold text-primary-500">
+                <span className="font-bold text-neon-purple-deep">
                   {formatPrice(order.creator_payout)}
                 </span>
               </div>
@@ -346,7 +346,7 @@ export default async function OrderDetailPage({
         <div className="mt-8 rounded-2xl bg-white p-6 shadow-card">
           <div className="mb-3 flex items-center justify-between border-b border-[#F2F2F2] pb-3">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-600">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-neon-purple/15 text-sm font-bold text-neon-purple-deep">
                 {partnerName[0] ?? "?"}
               </div>
               <div>
@@ -360,7 +360,7 @@ export default async function OrderDetailPage({
             </div>
             <Link
               href={`/dashboard/messages/${partnerUserId}`}
-              className="text-xs font-medium text-primary-500 hover:underline"
+              className="text-xs font-medium text-neon-purple-deep hover:underline"
             >
               別画面で開く →
             </Link>

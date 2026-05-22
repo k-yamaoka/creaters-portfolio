@@ -56,7 +56,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               type="text"
               required
               defaultValue={user.display_name}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
           </div>
 
@@ -73,7 +73,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               type="text"
               defaultValue={cp?.location ?? ""}
               placeholder="例: 東京都"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
           </div>
 
@@ -91,7 +91,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               min={0}
               max={50}
               defaultValue={cp?.years_of_experience ?? 0}
-              className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
             <span className="ml-2 text-sm text-[#828282]">年</span>
           </div>
@@ -106,7 +106,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           rows={5}
           defaultValue={cp?.bio ?? ""}
           placeholder="あなたの経歴、得意分野、制作への想いなどを書いてください"
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
         />
       </section>
 
@@ -124,8 +124,8 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               onClick={() => toggleGenre(genre)}
               className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
                 selectedGenres.includes(genre)
-                  ? "border-primary-500 bg-primary-500 text-white"
-                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-primary-500"
+                  ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-pink"
               }`}
             >
               {genre}
@@ -145,7 +145,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           type="text"
           defaultValue={cp?.skills?.join(", ") ?? ""}
           placeholder="例: Premiere Pro, After Effects, カラーグレーディング"
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
         />
         <div className="mt-3 flex flex-wrap gap-1.5">
           {SKILLS.map((skill) => (

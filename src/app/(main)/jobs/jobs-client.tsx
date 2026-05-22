@@ -135,10 +135,10 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
       <div className="mb-8 flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#222] sm:text-[2.75rem]">
-            案件を探す
+            AI動画案件を探す
           </h1>
           <p className="mt-3 text-base text-[#828282]">
-            企業が掲載した映像制作の募集案件から、あなたに合った仕事を見つけましょう
+            企業が掲載したAI動画制作の募集案件から、あなたのAIスキルに合う仕事を見つけましょう
           </p>
         </div>
         {/* Mobile filter toggle */}
@@ -189,7 +189,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
               onChange={(e) =>
                 updateFilter({ keyword: e.target.value || undefined })
               }
-              className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
           </div>
 
@@ -203,7 +203,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                   sortBy: e.target.value as JobSearchFilters["sortBy"],
                 })
               }
-              className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -227,7 +227,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
               name="statusFilter"
               checked={filters.statusFilter === "all"}
               onChange={() => updateFilter({ statusFilter: "all" })}
-              className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
+              className="h-4 w-4 border-[#E0E0E0] text-neon-pink focus:ring-neon-pink"
             />
             <span className={filters.statusFilter === "all" ? "font-bold text-[#222]" : "text-[#4F4F4F]"}>
               全て
@@ -239,7 +239,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
               name="statusFilter"
               checked={filters.statusFilter === "open"}
               onChange={() => updateFilter({ statusFilter: "open" })}
-              className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
+              className="h-4 w-4 border-[#E0E0E0] text-neon-pink focus:ring-neon-pink"
             />
             <span className={filters.statusFilter === "open" ? "font-bold text-[#222]" : "text-[#4F4F4F]"}>
               募集中案件
@@ -284,8 +284,8 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                         onClick={() => toggleGenre(genre)}
                         className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                           isActive
-                            ? "border-primary-500 bg-primary-500 text-white"
-                            : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                            ? "border-neon-purple-deep bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                            : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
                         }`}
                       >
                         {genre}
@@ -327,8 +327,8 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                         onClick={() => togglePlatform(platform)}
                         className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                           isActive
-                            ? "border-primary-500 bg-primary-500 text-white"
-                            : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                            ? "border-neon-purple-deep bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                            : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
                         }`}
                       >
                         {platform}
@@ -396,8 +396,8 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                           onClick={() => toggleGenre(genre)}
                           className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                             isActive
-                              ? "border-primary-500 bg-primary-500 text-white"
-                              : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                              ? "border-neon-purple-deep bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                              : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
                           }`}
                         >
                           {genre}
@@ -418,8 +418,8 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                           onClick={() => togglePlatform(platform)}
                           className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                             isActive
-                              ? "border-primary-500 bg-primary-500 text-white"
-                              : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                              ? "border-neon-purple-deep bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                              : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
                           }`}
                         >
                           {platform}
@@ -483,7 +483,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                     <div className="p-6">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
-                          <h2 className="text-lg font-bold text-[#222] group-hover:text-primary-500 transition-colors">
+                          <h2 className="text-lg font-bold text-[#222] group-hover:text-neon-purple-deep transition-colors">
                             {job.title}
                           </h2>
                           <p className="mt-1 text-sm text-[#828282]">
@@ -497,7 +497,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                             {job.genres.slice(0, 4).map((genre) => (
                               <span
                                 key={genre}
-                                className="rounded-pill bg-primary-50 px-2.5 py-0.5 text-[11px] font-bold text-primary-500"
+                                className="rounded-pill bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple-deep"
                               >
                                 {genre}
                               </span>
@@ -514,7 +514,7 @@ export function JobsPageClient({ jobs }: { jobs: Job[] }) {
                       {/* Bottom stats */}
                       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[#F2F2F2] pt-4">
                         {(job.budget_min || job.budget_max) && (
-                          <div className="flex items-center gap-1.5 rounded-lg bg-primary-50 px-3 py-1.5 text-sm font-bold text-primary-500">
+                          <div className="flex items-center gap-1.5 rounded-lg bg-neon-purple/10 px-3 py-1.5 text-sm font-bold text-neon-purple-deep">
                             {job.budget_min && job.budget_max
                               ? `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
                               : job.budget_max

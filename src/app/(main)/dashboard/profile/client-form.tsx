@@ -44,7 +44,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               type="text"
               required
               defaultValue={user.display_name}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
           </div>
 
@@ -83,7 +83,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               type="text"
               defaultValue={cp?.company_name ?? ""}
               placeholder="例: 株式会社サンプル"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
           </div>
 
@@ -100,7 +100,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               type="url"
               defaultValue={cp?.company_url ?? ""}
               placeholder="https://example.com"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             />
           </div>
 
@@ -115,7 +115,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               id="industry"
               name="industry"
               defaultValue={cp?.industry ?? ""}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             >
               <option value="">選択してください</option>
               <option value="IT・通信">IT・通信</option>

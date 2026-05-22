@@ -3,9 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { JobsPageClient } from "./jobs-client";
 
 export const metadata: Metadata = {
-  title: "案件を探す",
+  title: "AI動画案件を探す",
   description:
-    "企業が掲載した映像制作の募集案件から、あなたに合った仕事を見つけましょう。",
+    "企業が掲載したAI動画制作の募集案件から、あなたのAIスキルに合った仕事を見つけましょう。",
 };
 
 export const revalidate = 60;

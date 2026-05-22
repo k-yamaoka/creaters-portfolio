@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "運営会社",
-  description: "CreatorsHub運営会社の情報。",
+  description: "AIクリエイター特化型マッチングプラットフォーム AILIER の運営会社（Comhuman-Quality株式会社）情報。",
 };
 
 export const revalidate = 3600;
@@ -23,7 +23,7 @@ export default function CompanyPage() {
               {
                 label: "事業内容",
                 value:
-                  "システム開発・Web制作、AI活用・開発コンサルティング、映像制作・SNS運用、映像クリエイターマッチングプラットフォーム（CreatorsHub）の運営",
+                  "システム開発・Web制作、AI活用・開発コンサルティング、AI動画制作・SNS運用、AIクリエイター特化型マッチングプラットフォーム『AILIER』の運営",
               },
               { label: "メール", value: "info@comhuman-quality.com" },
               { label: "電話", value: "03-6403-3319" },
@@ -44,14 +44,14 @@ export default function CompanyPage() {
       <div className="mt-12 rounded-2xl bg-[#F8F8F8] p-8 sm:p-12">
         <h2 className="text-xl font-bold text-[#222]">ミッション</h2>
         <p className="mt-4 text-sm leading-relaxed text-[#4F4F4F]">
-          私たちは「映像の力で、すべての人のビジネスを加速させる」をミッションに掲げています。
-          優れた映像クリエイターと、映像制作を必要とする企業を最適な形でつなぎ、
+          私たちは「AI動画の力で、すべての人のビジネスを加速させる」をミッションに掲げています。
+          Sora / Veo / Runway / Midjourney などを使いこなすAIクリエイターと、AI動画制作を必要とする企業を最適な形でつなぎ、
           双方にとって価値のある取引を実現するプラットフォームを目指しています。
         </p>
         <p className="mt-4 text-sm leading-relaxed text-[#4F4F4F]">
-          フリーランスの映像クリエイターが営業に時間を費やすことなく、制作に集中できる環境。
-          企業が信頼できるクリエイターに、安心して映像制作を依頼できる仕組み。
-          CreatorsHubは、そのどちらも実現します。
+          AIクリエイターが営業に時間を費やすことなく、プロンプト設計と編集に集中できる環境。
+          企業が信頼できるAIクリエイターに、最短2日で高品質なAI動画を依頼できる仕組み。
+          AILIERは、そのどちらも実現します。
         </p>
       </div>
 
@@ -62,15 +62,15 @@ export default function CompanyPage() {
           {[
             {
               title: "透明性",
-              desc: "ポートフォリオ、料金、評価をすべて可視化。情報の非対称性をなくします。",
+              desc: "使用AIツール・プロンプト方針・料金・評価をすべて可視化。情報の非対称性をなくします。",
             },
             {
               title: "安全性",
-              desc: "エスクロー決済と本人確認で、安心して取引できる環境を提供します。",
+              desc: "エスクロー決済と本人確認、AI生成物の権利確認で、安心して取引できる環境を提供します。",
             },
             {
-              title: "シンプルさ",
-              desc: "検索から納品まで、誰でも迷わず使えるシンプルなUXを追求します。",
+              title: "スピード",
+              desc: "AI生成 × 編集 を前提とした体験設計で、最短2日納品・AB案10倍の制作スピードを実現します。",
             },
           ].map((item) => (
             <div

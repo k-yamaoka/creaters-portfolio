@@ -42,14 +42,19 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F8F8F8] px-4">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
+      <div className="pointer-events-none absolute -left-32 top-0 h-[300px] w-[300px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-[260px] w-[260px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+
+      <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-sm font-black text-white">
-              C
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-neon-pink to-neon-purple text-sm font-black text-white shadow-[0_0_16px_rgba(255,77,157,0.5)]">
+              A
             </div>
-            <span className="text-xl font-bold text-[#222]">CreatorsHub</span>
+            <span className="text-xl font-black text-white">
+              AI<span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">LIER</span>
+            </span>
           </Link>
         </div>
 
@@ -78,7 +83,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="example@email.com"
               />
             </div>
@@ -97,7 +102,7 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="6文字以上"
               />
             </div>
@@ -158,7 +163,7 @@ function LoginForm() {
             アカウントをお持ちでない方は{" "}
             <Link
               href="/register"
-              className="font-medium text-primary-500 hover:underline"
+              className="font-medium text-neon-pink hover:underline"
             >
               新規登録
             </Link>

@@ -125,7 +125,7 @@ export default async function ApplicationsPage() {
                     </div>
                     <div className="shrink-0 text-right">
                       {app.proposed_price && (
-                        <p className="text-sm font-bold text-primary-500">
+                        <p className="text-sm font-bold text-neon-purple-deep">
                           {formatPrice(app.proposed_price)}
                         </p>
                       )}

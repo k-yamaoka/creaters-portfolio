@@ -82,7 +82,7 @@ export default async function AdminDashboardPage() {
         </div>
         <div className="rounded-2xl bg-white p-6 shadow-card">
           <p className="text-sm text-[#828282]">手数料収入</p>
-          <p className="mt-1 text-2xl font-bold text-primary-500">
+          <p className="mt-1 text-2xl font-bold text-neon-purple-deep">
             {formatPrice(totalFees)}
           </p>
           <p className="mt-1 text-xs text-[#BDBDBD]">15% × 完了取引</p>

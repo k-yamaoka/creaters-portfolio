@@ -370,7 +370,7 @@ export function MessageThread({
                   <div
                     className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                       isMine
-                        ? `bg-primary-500 text-white ${isTemp ? "opacity-70" : ""}`
+                        ? `bg-gradient-to-r from-neon-pink to-neon-purple text-white ${isTemp ? "opacity-70" : ""}`
                         : "bg-white text-ink shadow-card"
                     }`}
                   >
@@ -607,14 +607,14 @@ export function MessageThread({
             }}
             placeholder="メッセージを入力 (Enter送信 / Shift+Enter改行)"
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-ink/20 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+            className="flex-1 resize-none rounded-xl border border-ink/20 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             autoComplete="off"
           />
           <button
             type="button"
             onClick={handleSend}
             disabled={sending || uploading || (!input.trim() && !attachmentUrl)}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-500 text-white transition-colors hover:bg-primary-600 disabled:opacity-50"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-white transition-colors hover:bg-neon-purple disabled:opacity-50"
             aria-label="送信"
           >
             <svg

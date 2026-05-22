@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "企業の方へ",
   description:
-    "制作会社を通さず、実力あるフリーランスクリエイターに直接依頼。コスト削減とスピードアップを実現。",
+    "AIクリエイターに直接依頼。Sora / Veo / Runway / Midjourney を活用し、撮影費ゼロ・最短2日納品でAI動画制作を実現。",
 };
 
 export const revalidate = 3600;
@@ -14,18 +14,18 @@ export default function ForBusinessPage() {
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">
       {/* Hero */}
       <div className="text-center">
-        <p className="text-sm font-bold tracking-widest text-primary-500">
+        <p className="text-sm font-bold tracking-widest text-neon-purple-deep">
           FOR BUSINESS
         </p>
         <h1 className="mt-4 text-3xl font-bold text-[#222] sm:text-[2.75rem]">
-          企業の映像制作を、
+          企業のAI動画制作を、
           <br className="hidden sm:block" />
-          もっとシンプルに
+          もっと速く、もっと自由に
         </h1>
         <p className="mt-4 text-base leading-relaxed text-[#828282]">
-          制作会社を通さず、実力あるフリーランスクリエイターに直接依頼。
+          Sora / Veo / Runway / Midjourney を使いこなすAIクリエイターに直接依頼。
           <br className="hidden sm:block" />
-          明朗な手数料とスピード発注を同時に実現します。
+          撮影費ゼロ・最短2日納品・AB案10倍を、明朗な手数料で実現します。
         </p>
       </div>
 
@@ -33,8 +33,8 @@ export default function ForBusinessPage() {
       <div className="mt-20 grid gap-8 md:grid-cols-3">
         {[
           {
-            title: "明朗な手数料",
-            desc: "制作会社を介さず、フリーランスクリエイターに直接発注。手数料は取引額の15%のみで、相見積もりや見えない費用なく予算を立てられます。",
+            title: "撮影費ゼロ・明朗な手数料",
+            desc: "制作会社を介さず、AIクリエイターに直接発注。撮影スタジオやキャストが不要なので、手数料15%のみで透明な予算組みが可能です。",
             icon: (
               <path
                 strokeLinecap="round"
@@ -44,8 +44,8 @@ export default function ForBusinessPage() {
             ),
           },
           {
-            title: "スピーディな発注",
-            desc: "ポートフォリオを見て即日相談開始。検索から発注まで最短1日。急ぎのプロジェクトにも柔軟に対応できます。",
+            title: "最短2日納品のスピード",
+            desc: "AI生成 × 編集により、ポートフォリオを見て即日相談、最短2日で初稿が上がります。SNSキャンペーンや差し替えにも即対応。",
             icon: (
               <path
                 strokeLinecap="round"
@@ -56,7 +56,7 @@ export default function ForBusinessPage() {
           },
           {
             title: "実力で選べる安心感",
-            desc: "全クリエイターのポートフォリオ動画を事前に確認。過去の作品・評価・レビューで実力を可視化しています。",
+            desc: "全AIクリエイターのポートフォリオ動画・使用ツール・プロンプト力を事前に確認。過去の作品と実績で実力を可視化しています。",
             icon: (
               <path
                 strokeLinecap="round"
@@ -70,9 +70,9 @@ export default function ForBusinessPage() {
             key={item.title}
             className="rounded-[15px] bg-white p-8 shadow-card"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-neon-purple/10">
               <svg
-                className="h-7 w-7 text-primary-500"
+                className="h-7 w-7 text-neon-purple-deep"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -96,19 +96,19 @@ export default function ForBusinessPage() {
         <h2 className="text-2xl font-bold text-[#222]">こんな企業に最適です</h2>
         <div className="mx-auto mt-12 grid max-w-3xl gap-4 md:grid-cols-2">
           {[
-            "採用動画・企業紹介映像を作りたい",
+            "採用動画・企業紹介をAIで素早く作りたい",
             "YouTube・SNSの動画マーケティングを始めたい",
-            "商品・サービスのプロモーション動画が必要",
-            "社内研修・マニュアル動画を効率的に制作したい",
-            "テレビCM・Web CMの制作パートナーを探している",
-            "イベント・セミナーの映像記録を残したい",
+            "商品・サービスのAB案を10倍量で検証したい",
+            "Sora / Veo を使った最先端AI動画を試したい",
+            "テレビCM・Web CMの絵コンテをAIで量産したい",
+            "撮影費・キャスト費を抑えてプロモを回したい",
           ].map((text) => (
             <div
               key={text}
               className="flex items-center gap-3 rounded-xl bg-white p-5 shadow-card"
             >
               <svg
-                className="h-5 w-5 shrink-0 text-primary-500"
+                className="h-5 w-5 shrink-0 text-neon-pink"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={2}
@@ -134,7 +134,7 @@ export default function ForBusinessPage() {
         </p>
         <div className="mx-auto mt-12 max-w-md rounded-2xl bg-white p-8 shadow-card">
           <p className="text-sm text-[#828282]">システム手数料</p>
-          <p className="mt-2 text-4xl font-bold text-primary-500">15%</p>
+          <p className="mt-2 text-4xl font-bold text-neon-purple-deep">15%</p>
           <p className="mt-2 text-sm text-[#828282]">
             取引金額に対して（クリエイター負担）
           </p>
@@ -146,7 +146,7 @@ export default function ForBusinessPage() {
               "1件からでも利用可能",
             ].map((t) => (
               <li key={t} className="flex items-center gap-2 text-sm text-[#4F4F4F]">
-                <svg className="h-4 w-4 shrink-0 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="h-4 w-4 shrink-0 text-neon-pink" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -157,19 +157,19 @@ export default function ForBusinessPage() {
       </div>
 
       {/* CTA */}
-      <div className="mt-24 rounded-2xl bg-[#242424] p-10 text-center sm:p-16">
+      <div className="mt-24 rounded-2xl bg-neon-midnight-deep p-10 text-center sm:p-16">
         <h2 className="text-2xl font-bold text-white sm:text-3xl">
           まずは無料登録から始めましょう
         </h2>
-        <p className="mt-4 text-sm text-[#828282]">
-          登録後すぐにクリエイターの検索・依頼が可能です
+        <p className="mt-4 text-sm text-white/70">
+          登録後すぐにAIクリエイターの検索・依頼が可能です
         </p>
         <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
           <Link href="/register" className="btn-primary text-sm">
             無料で企業登録
           </Link>
           <Link href="/creators" className="inline-flex items-center justify-center rounded-pill border-2 border-white/30 px-8 py-3 text-sm font-bold text-white transition-all hover:bg-white/10">
-            クリエイターを見る
+            AIクリエイターを見る
           </Link>
         </div>
       </div>

@@ -91,8 +91,8 @@ export default async function JobDetailPage({
     <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
       {/* Breadcrumb */}
       <nav className="mb-8 text-sm text-[#828282]">
-        <Link href="/jobs" className="hover:text-primary-500">
-          案件を探す
+        <Link href="/jobs" className="hover:text-neon-purple-deep">
+          AI動画案件を探す
         </Link>
         <span className="mx-2">/</span>
         <span className="text-[#222]">{job.title}</span>
@@ -121,7 +121,7 @@ export default async function JobDetailPage({
               {(job.budget_min || job.budget_max) && (
                 <div className="shrink-0 whitespace-nowrap text-right">
                   <p className="text-xs text-[#828282]">見積もり</p>
-                  <p className="text-xl font-bold text-primary-500">
+                  <p className="text-xl font-bold text-neon-purple-deep">
                     {job.budget_min &&
                     job.budget_max &&
                     job.budget_min === job.budget_max
@@ -141,7 +141,7 @@ export default async function JobDetailPage({
               {(job.genres ?? []).map((genre: string) => (
                 <span
                   key={genre}
-                  className="rounded-pill bg-primary-50 px-3 py-1 text-xs font-bold text-primary-500"
+                  className="rounded-pill bg-neon-purple/10 px-3 py-1 text-xs font-bold text-neon-purple-deep"
                 >
                   {genre}
                 </span>
@@ -231,16 +231,16 @@ export default async function JobDetailPage({
                     </p>
                   </div>
                   {/* 応募済み = メッセージ解放 (#6) */}
-                  <div className="mt-6 rounded-xl border border-primary-100 bg-primary-50 p-4">
+                  <div className="mt-6 rounded-xl border border-neon-purple/20 bg-neon-purple/10 p-4">
                     <div className="flex items-start gap-3">
-                      <svg className="mt-0.5 h-5 w-5 shrink-0 text-primary-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <svg className="mt-0.5 h-5 w-5 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
                       </svg>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-primary-700">
+                        <p className="text-sm font-bold text-neon-purple-deep">
                           メッセージ機能が解放されました
                         </p>
-                        <p className="mt-0.5 text-xs text-primary-700/80">
+                        <p className="mt-0.5 text-xs text-neon-purple-deep/80">
                           {clientData.company_name ||
                             clientData.profiles.display_name}{" "}
                           にメッセージを送れます
@@ -321,7 +321,7 @@ export default async function JobDetailPage({
                   href={clientData.company_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 block text-sm text-primary-500 hover:underline"
+                  className="mt-2 block text-sm text-neon-purple-deep hover:underline"
                 >
                   企業サイト
                 </a>

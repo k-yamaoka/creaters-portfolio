@@ -194,7 +194,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 name="title"
                 type="text"
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="作品のタイトル"
               />
             </div>
@@ -206,7 +206,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               <textarea
                 name="description"
                 rows={3}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="作品の概要や制作の背景"
               />
             </div>
@@ -242,7 +242,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   type="url"
                   required
                   onChange={(e) => handleVideoUrlChange(e.target.value)}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="https://youtube.com/watch?v=..."
                 />
                 <p className="mt-1 text-xs text-[#BDBDBD]">
@@ -258,7 +258,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   required
                   value={selectedPlatform}
                   onChange={(e) => handlePlatformChange(e.target.value)}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 >
                   <option value="youtube">YouTube</option>
                   <option value="youtube_short">
@@ -349,7 +349,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 <input
                   name="thumbnail_url"
                   type="url"
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="サムネイル画像のURLを入力"
                 />
               )}
@@ -392,7 +392,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       />
                       <label
                         htmlFor="thumb-file-input"
-                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-6 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-6 text-center transition-colors hover:border-neon-pink hover:bg-neon-pink/10/30 ${
                           uploadingThumb
                             ? "pointer-events-none opacity-50"
                             : ""
@@ -400,7 +400,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       >
                         {uploadingThumb ? (
                           <>
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neon-purple/30 border-t-neon-pink" />
                             <span className="text-xs text-[#828282]">
                               アップロード中...
                             </span>
@@ -447,7 +447,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 </label>
                 <select
                   name="genre"
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 >
                   <option value="">選択してください</option>
                   {GENRES.map((g) => (
@@ -464,7 +464,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 <input
                   name="tags"
                   type="text"
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="カンマ区切り: 企業VP, ドローン"
                 />
               </div>
@@ -477,7 +477,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 type="checkbox"
                 checked={hasPublishPermission}
                 onChange={(e) => setHasPublishPermission(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#BDBDBD] text-primary-500 focus:ring-primary-500"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#BDBDBD] text-neon-purple-deep focus:ring-neon-pink"
               />
               <div className="text-sm leading-relaxed text-[#4F4F4F]">
                 <span className="font-bold text-[#222]">
@@ -537,9 +537,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         </div>
       ) : (
         <>
-          <div className="flex items-start gap-3 rounded-xl border border-primary-100 bg-primary-50 p-4">
+          <div className="flex items-start gap-3 rounded-xl border border-neon-purple/20 bg-neon-purple/10 p-4">
             <svg
-              className="mt-0.5 h-5 w-5 shrink-0 text-primary-600"
+              className="mt-0.5 h-5 w-5 shrink-0 text-neon-purple-deep"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
@@ -551,11 +551,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
               />
             </svg>
-            <div className="min-w-0 flex-1 text-sm leading-relaxed text-primary-700">
+            <div className="min-w-0 flex-1 text-sm leading-relaxed text-neon-purple-deep">
               <p className="font-bold">
                 クリエイター一覧に表示する作品: {items.filter((i) => i.is_featured === true).length} / 4 件
               </p>
-              <p className="mt-0.5 text-xs text-primary-700/80">
+              <p className="mt-0.5 text-xs text-neon-purple-deep/80">
                 「★ 表示する」ボタンで切り替え。最大4件まで選択でき、企業のクリエイター一覧画面のサムネイル行に表示されます。
               </p>
             </div>
@@ -733,13 +733,13 @@ function PortfolioCard({
           />
           <label
             htmlFor={`thumb-input-${item.id}`}
-            className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border-2 border-dashed border-primary-300 bg-white px-4 py-4 text-center transition-colors hover:border-primary-500 hover:bg-primary-50/30 ${
+            className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border-2 border-dashed border-neon-purple/30 bg-white px-4 py-4 text-center transition-colors hover:border-neon-pink hover:bg-neon-pink/10/30 ${
               uploading ? "pointer-events-none opacity-50" : ""
             }`}
           >
             {uploading ? (
               <>
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-200 border-t-primary-500" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-purple/30 border-t-neon-pink" />
                 <span className="text-xs text-ink-muted">
                   アップロード中...
                 </span>
@@ -747,7 +747,7 @@ function PortfolioCard({
             ) : (
               <>
                 <svg
-                  className="h-5 w-5 text-primary-500"
+                  className="h-5 w-5 text-neon-purple-deep"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
@@ -759,7 +759,7 @@ function PortfolioCard({
                     d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"
                   />
                 </svg>
-                <span className="text-xs font-bold text-primary-600">
+                <span className="text-xs font-bold text-neon-purple-deep">
                   画像を選択して差し替え
                 </span>
                 <span className="text-[10px] text-ink-soft">
@@ -789,7 +789,7 @@ function PortfolioCard({
           </p>
         )}
         {item.genre && (
-          <span className="mt-2 inline-block rounded-pill bg-primary-50 px-2.5 py-0.5 text-[11px] font-bold text-primary-500">
+          <span className="mt-2 inline-block rounded-pill bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple-deep">
             {item.genre}
           </span>
         )}
@@ -801,8 +801,8 @@ function PortfolioCard({
             aria-pressed={item.is_featured}
             className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 ${
               item.is_featured
-                ? "bg-accent-400 text-ink hover:bg-accent-300"
-                : "border border-ink/20 bg-white text-ink-muted hover:border-accent-400 hover:text-ink"
+                ? "bg-neon-pink text-ink hover:bg-neon-pink/80"
+                : "border border-ink/20 bg-white text-ink-muted hover:border-neon-pink hover:text-ink"
             }`}
             title={
               item.is_featured

@@ -68,7 +68,7 @@ export function OrderForm({
               type="text"
               required
               maxLength={50}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               placeholder="例: 新商品紹介動画の制作依頼（50文字以内）"
             />
           </div>
@@ -86,7 +86,7 @@ export function OrderForm({
               name="description"
               rows={6}
               required
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               placeholder={
                 "編集要件で書ききれない補足や、依頼の背景・目的などを自由に記入してください。\n\n例:\n・動画の目的や用途\n・ターゲット視聴者\n・希望するテイストや参考動画\n・素材の有無（撮影が必要か等）\n・希望納期"
               }

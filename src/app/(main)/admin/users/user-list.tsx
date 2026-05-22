@@ -47,7 +47,7 @@ export function UserList({ users }: { users: User[] }) {
             onClick={() => setFilter(f)}
             className={`rounded-pill px-4 py-2 text-sm font-medium transition-colors ${
               filter === f
-                ? "bg-primary-500 text-white"
+                ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white"
                 : "border border-[#BDBDBD] text-[#4F4F4F] hover:bg-[#F2F2F2]"
             }`}
           >

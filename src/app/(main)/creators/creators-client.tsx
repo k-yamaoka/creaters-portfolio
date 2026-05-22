@@ -88,45 +88,75 @@ export function CreatorsPageClient({
   }, [filteredCreators, isCreatorViewer, viewerCreatorId]);
 
   const heading = isCreatorViewer
-    ? "クリエイター一覧"
-    : "クリエイターを探す";
+    ? "AIクリエイター一覧"
+    : "AIクリエイターを探す";
   const subheading = isCreatorViewer
-    ? "他のクリエイターのプロフィール・作品・料金をチェックして、自分のページのブラッシュアップに役立てましょう。"
-    : "プロフィール・実績・料金からあなたに合うクリエイターを見つける。";
+    ? "他のAIクリエイターのプロフィール・作品・料金をチェックして、自分のページのブラッシュアップに役立てましょう。"
+    : "Sora・Veo・Runwayを使いこなす精鋭から、用途に合うクリエイターを発見。";
 
   return (
-    <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
-      {/* Page Header */}
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-ink sm:text-[2.5rem]">
-            {heading}
+    <>
+      {/* Hero band */}
+      <section className="relative overflow-hidden bg-neon-midnight-deep py-16 text-white">
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+          }}
+        />
+        <div className="absolute -left-32 top-0 h-[320px] w-[320px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
+        <div className="absolute -right-20 bottom-0 h-[280px] w-[280px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+
+        <div className="relative mx-auto max-w-container px-6 lg:px-10">
+          <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
+            AI CREATORS
+          </p>
+          <h1 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[3rem]">
+            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+              専門家
+            </span>
+            を、ツールから選ぶ。
           </h1>
-          <p className="mt-3 text-sm text-ink-muted">
+          <p className="mt-4 max-w-xl text-sm leading-[2] text-white/70">
             {subheading}
+            <br className="hidden sm:block" />
             <span className="hidden sm:inline">
-              {" "}
               作品サムネで探すなら{" "}
               <Link
                 href="/portfolios"
-                className="font-bold text-primary-600 underline underline-offset-4 hover:text-primary-700"
+                className="font-bold text-neon-cyan underline-offset-4 hover:underline"
               >
                 ポートフォリオを見る →
               </Link>
             </span>
           </p>
           {isCreatorViewer && (
-            <div className="mt-4 inline-flex items-center gap-2 rounded-pill border border-accent-300 bg-accent-50 px-3 py-1.5 text-xs font-bold text-ink">
+            <div className="mt-5 inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft">
               <span aria-hidden>★</span>
               自分のプロフィールを編集する場合は
               <Link
                 href="/dashboard/profile"
-                className="underline underline-offset-4 hover:text-primary-700"
+                className="text-neon-cyan underline underline-offset-4"
               >
                 マイプロフィール →
               </Link>
             </div>
           )}
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
+        {/* Page Title for context */}
+        <div className="mb-8 flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">
+            {heading}
+          </h2>
         </div>
         <button
           type="button"
@@ -251,7 +281,8 @@ export function CreatorsPageClient({
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -289,7 +320,7 @@ function CreatorRow({
   return (
     <Link
       href={`/creators/${creator.id}`}
-      className="group block overflow-hidden rounded-xl border border-ink/10 bg-white transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-card"
+      className="group block overflow-hidden rounded-xl border-2 border-ink/10 bg-white shadow-pop transition-all hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[8px_8px_0_0_rgba(255,77,157,0.25)]"
     >
       {/* === 情報行 === */}
       <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
@@ -305,7 +336,7 @@ function CreatorRow({
                 sizes="64px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-primary-100 text-lg font-black text-primary-600">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-lg font-black text-white">
                 {profiles.display_name[0]}
               </div>
             )}
@@ -318,8 +349,11 @@ function CreatorRow({
             <h3 className="text-base font-black text-ink sm:text-lg">
               {profiles.display_name}
             </h3>
+            <span className="inline-flex items-center gap-0.5 rounded-pill bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-black text-white">
+              AI
+            </span>
             {profiles.is_verified && (
-              <span className="inline-flex items-center gap-0.5 rounded-pill bg-primary-50 px-2 py-0.5 text-[10px] font-black text-primary-600">
+              <span className="inline-flex items-center gap-0.5 rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
                 <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                   <path
                     fillRule="evenodd"
@@ -332,7 +366,7 @@ function CreatorRow({
             )}
             {creator.review_count > 0 ? (
               <span className="inline-flex items-center gap-1 text-xs font-bold text-ink-muted">
-                <span className="text-accent-500">★</span>
+                <span className="text-neon-pink">★</span>
                 {creator.rating.toFixed(1)}
                 <span className="text-ink-soft">({creator.review_count})</span>
               </span>
@@ -383,7 +417,7 @@ function CreatorRow({
                 <p className="text-[11px] font-bold tracking-wider text-ink-soft">
                   公開作品
                 </p>
-                <p className="mt-1 text-base font-black text-primary-600 sm:text-xl">
+                <p className="mt-1 text-base font-black text-neon-purple-deep sm:text-xl">
                   {creator.portfolio_items.length}
                   <span className="ml-1 text-xs font-bold text-ink-soft">件</span>
                 </p>
@@ -393,13 +427,13 @@ function CreatorRow({
                 <p className="text-[11px] font-bold tracking-wider text-ink-soft">
                   1本単価
                 </p>
-                <p className="mt-1 text-base font-black text-primary-600 sm:text-xl">
+                <p className="mt-1 text-base font-black text-neon-purple-deep sm:text-xl">
                   {unitPrice ?? "—"}
                 </p>
               </>
             )}
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-pill bg-primary-50 px-4 py-1.5 text-xs font-bold text-primary-600 transition-colors group-hover:bg-primary-500 group-hover:text-white">
+          <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-xs font-bold text-white transition-all group-hover:shadow-[0_0_16px_rgba(255,77,157,0.5)]">
             {isCreatorViewer ? "作品を見る" : "プロフィール"}
             <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
           </span>

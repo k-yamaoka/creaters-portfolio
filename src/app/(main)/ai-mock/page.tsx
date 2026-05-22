@@ -1,10 +1,19 @@
 import Link from "next/link";
-import { getCreators } from "@/lib/supabase/queries";
+import type { Metadata } from "next";
 import {
   SparkStar,
+  FlowerMark,
   Blob,
+  SunMark,
 } from "@/components/ui/illustrations";
 import { NeonStar, RetroSun } from "@/components/ui/illustrations-retrowave";
+import { AI_CREATORS } from "./_data/creators";
+
+export const metadata: Metadata = {
+  title: "AI Creators Hub — SNS広告動画を、AIで量産する",
+  description:
+    "Sora・Veo・Runway・Midjourneyを使いこなすAIクリエイターに、SNS広告動画の制作を依頼できる専門プラットフォーム",
+};
 
 const AI_TOOLS = [
   { name: "Sora 2", category: "Video", color: "from-neon-pink to-neon-purple" },
@@ -37,15 +46,26 @@ const AI_TOOLS = [
   },
 ];
 
-export const revalidate = 300;
-
-export default async function HomePage() {
-  // Fetch creators via existing helper, pick top 4 by rating
-  const allCreators = await getCreators();
-  const featuredCreators = allCreators.slice(0, 4);
+export default function AiMockHome() {
+  const featuredCreators = AI_CREATORS.slice(0, 4);
 
   return (
     <>
+      {/* =================================================
+          BANNER — Mock notice
+          ================================================= */}
+      <div className="bg-neon-pink/10 border-y border-neon-pink/30 px-4 py-2 text-center">
+        <p className="text-xs font-bold text-neon-purple-deep">
+          🚀 これは「AIクリエイター特化型」のデザインモックです（社内検討用）
+          <Link
+            href="/"
+            className="ml-3 underline hover:no-underline"
+          >
+            現行サイトに戻る
+          </Link>
+        </p>
+      </div>
+
       {/* =================================================
           HERO — Dark midnight neon
           ================================================= */}
@@ -84,32 +104,32 @@ export default async function HomePage() {
             <div className="col-span-12 lg:col-span-7">
               <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
-                AILIER — AI CREATORS PLATFORM
+                AI CREATORS PLATFORM
               </p>
 
               <h1 className="mt-8 text-[2.4rem] font-black leading-[1.1] tracking-tight sm:text-[3.6rem] lg:text-[4.8rem]">
                 <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                  AIクリエイター
+                  SNS広告動画
                 </span>
-                と、
+                を、
                 <br />
-                <span className="text-white">企業をつなぐ</span>
-                <span className="text-neon-pink">。</span>
+                <span className="text-white">AIで量産</span>
+                <span className="text-neon-pink">する。</span>
               </h1>
 
               <p className="mt-8 max-w-xl text-[15px] leading-[2] text-white/70">
-                Sora・Veo・Runway・Midjourney を使いこなすクリエイターに、
+                Sora・Veo・Runwayを使いこなすクリエイターに、
                 <span className="font-bold text-white">
-                  SNS広告動画・ブランドムービー・採用動画
+                  Meta/TikTok広告動画
                 </span>
-                を依頼できる専門マッチングプラットフォーム。
+                を依頼できる専門プラットフォーム。
                 <br />
                 撮影不要・最短2日納品・AB案を10倍量産。
               </p>
 
               <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                 <Link
-                  href="/creators"
+                  href="/ai-mock/creators"
                   className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-4 text-base font-bold text-white shadow-[0_0_30px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(255,77,157,0.6)]"
                 >
                   <span>AIクリエイターを探す</span>
@@ -133,11 +153,7 @@ export default async function HomePage() {
                 {[
                   { num: "2日", label: "最短納品", color: "text-neon-pink" },
                   { num: "1/5", label: "従来比コスト", color: "text-neon-cyan" },
-                  {
-                    num: "10×",
-                    label: "クリエイティブ量",
-                    color: "text-neon-purple",
-                  },
+                  { num: "10×", label: "クリエイティブ量", color: "text-neon-purple" },
                   { num: "0円", label: "撮影費", color: "text-neon-sunset" },
                 ].map((s) => (
                   <div key={s.label}>
@@ -170,11 +186,15 @@ export default async function HomePage() {
                       transform: `translateY(${i % 2 === 0 ? "-12px" : "12px"})`,
                     }}
                   >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${g}`} />
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${g}`}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep/80 to-transparent" />
                     <div className="absolute bottom-2 left-2 text-[10px] font-bold text-white">
                       <p className="opacity-70">Gen by</p>
-                      <p>{["Sora 2", "Runway", "Veo 3", "Kling"][i]}</p>
+                      <p>
+                        {["Sora 2", "Runway", "Veo 3", "Kling"][i]}
+                      </p>
                     </div>
                     <div className="absolute right-2 top-2 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
                       AI
@@ -218,7 +238,7 @@ export default async function HomePage() {
       </section>
 
       {/* =================================================
-          WHY AI VIDEO
+          WHY AI VIDEO — 3 reasons
           ================================================= */}
       <section className="relative overflow-hidden bg-paper py-28">
         <span
@@ -245,7 +265,7 @@ export default async function HomePage() {
             <p className="mx-auto mt-6 max-w-2xl text-sm leading-[2] text-ink-muted">
               Meta/TikTok広告で勝つには、AB案を高速で回せることが必須。
               <br />
-              AILIERのAIクリエイターなら、撮影なし・低コストで、毎週新しいクリエイティブを生み出せます。
+              AIクリエイターなら、撮影なし・低コストで、毎週新しいクリエイティブを生み出せます。
             </p>
           </div>
 
@@ -300,114 +320,83 @@ export default async function HomePage() {
       </section>
 
       {/* =================================================
-          Featured creators (real Supabase data)
+          Featured creators
           ================================================= */}
-      {featuredCreators.length > 0 && (
-        <section className="relative overflow-hidden bg-paper-deep py-28">
-          <div className="relative mx-auto max-w-container px-6 lg:px-10">
-            <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-              <div>
-                <p className="eyebrow">注目のAIクリエイター</p>
-                <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem]">
-                  厳選された、
-                  <span className="underline-yellow">専門家</span>たち。
-                </h2>
-                <p className="mt-6 max-w-xl text-sm leading-[2] text-ink-muted">
-                  各クリエイターは「使うAIツール」「得意ジャンル」「料金レンジ」が明確。
-                  <br />
-                  プロンプト力だけでなく、広告ディレクション力で選ばれた精鋭。
-                </p>
-              </div>
-              <Link
-                href="/creators"
-                className="group inline-flex items-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
-              >
-                すべて見る
-                <span className="transition-transform group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
+      <section className="relative overflow-hidden bg-paper-deep py-28">
+        <div className="relative mx-auto max-w-container px-6 lg:px-10">
+          <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+            <div>
+              <p className="eyebrow">注目のAIクリエイター</p>
+              <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem]">
+                厳選された、<span className="underline-yellow">専門家</span>たち。
+              </h2>
+              <p className="mt-6 max-w-xl text-sm leading-[2] text-ink-muted">
+                各クリエイターは「使うAIツール」「得意ジャンル」「料金レンジ」が明確。
+                <br />
+                プロンプト力だけでなく、広告ディレクション力で選ばれた精鋭。
+              </p>
             </div>
-
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredCreators.map((c, idx) => {
-                const gradients = [
-                  "linear-gradient(135deg, #ff4d9d 0%, #9d5cff 100%)",
-                  "linear-gradient(135deg, #4dd5f7 0%, #2e6ca0 100%)",
-                  "linear-gradient(135deg, #9d5cff 0%, #5b2dd1 100%)",
-                  "linear-gradient(135deg, #ffae3b 0%, #ff4d9d 100%)",
-                ];
-                const skills = c.skills?.slice(0, 3) ?? [];
-                const minPrice = c.service_packages
-                  ?.filter((p) => p.is_active)
-                  .reduce<number | null>(
-                    (acc, p) =>
-                      acc === null ? p.price : Math.min(acc, p.price),
-                    null
-                  );
-                return (
-                  <Link
-                    key={c.id}
-                    href={`/creators/${c.id}`}
-                    className="group block overflow-hidden rounded-xl border-2 border-ink bg-white shadow-pop transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0_0_rgba(42,42,50,1)]"
-                  >
-                    <div
-                      className="relative aspect-[4/3] w-full"
-                      style={{
-                        background: c.profiles?.avatar_url
-                          ? `url(${c.profiles.avatar_url}) center/cover`
-                          : gradients[idx % gradients.length],
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-                      <div className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
-                        AI
-                      </div>
-                      <div className="absolute bottom-3 left-3 right-3">
-                        <p className="text-base font-black text-white">
-                          {c.profiles?.display_name ?? "AIクリエイター"}
-                        </p>
-                        {c.location && (
-                          <p className="line-clamp-1 text-[11px] font-bold text-white/80">
-                            {c.location}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <p className="line-clamp-2 text-sm font-bold text-ink">
-                        {c.bio || "AIクリエイター"}
-                      </p>
-                      {skills.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1">
-                          {skills.map((tool) => (
-                            <span
-                              key={tool}
-                              className="rounded-full bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white"
-                            >
-                              {tool}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      {minPrice !== null && minPrice !== undefined && (
-                        <div className="mt-4 flex items-baseline justify-between border-t border-rule pt-3">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
-                            from
-                          </span>
-                          <span className="text-base font-black text-neon-purple-deep">
-                            ¥{minPrice.toLocaleString()}〜
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            <Link
+              href="/ai-mock/creators"
+              className="group inline-flex items-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
+            >
+              すべて見る ({AI_CREATORS.length}名)
+              <span className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
+            </Link>
           </div>
-        </section>
-      )}
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featuredCreators.map((c) => (
+              <Link
+                key={c.id}
+                href={`/ai-mock/creators/${c.id}`}
+                className="group block overflow-hidden rounded-xl border-2 border-ink bg-white shadow-pop transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0_0_rgba(42,42,50,1)]"
+              >
+                <div
+                  className="relative aspect-[4/3] w-full"
+                  style={{ background: c.avatar }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
+                    AI
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <p className="text-base font-black text-white">{c.name}</p>
+                    <p className="text-[11px] font-bold text-white/80">
+                      {c.handle}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <p className="line-clamp-2 text-sm font-bold text-ink">
+                    {c.headline}
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {c.tools.slice(0, 3).map((tool) => (
+                      <span
+                        key={tool}
+                        className="rounded-full bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white"
+                      >
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4 flex items-baseline justify-between border-t border-rule pt-3">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                      from
+                    </span>
+                    <span className="text-base font-black text-neon-purple-deep">
+                      ¥{c.priceFrom.toLocaleString()}〜
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* =================================================
           AI tools we support
@@ -460,6 +449,13 @@ export default async function HomePage() {
           Pricing — Packaged plans
           ================================================= */}
       <section className="relative overflow-hidden bg-paper py-28">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-12 top-20 text-accent-400 animate-sway"
+        >
+          <FlowerMark size={70} />
+        </span>
+
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <div className="text-center">
             <p className="eyebrow justify-center">パッケージ料金</p>
@@ -569,7 +565,7 @@ export default async function HomePage() {
                         className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full text-center text-[10px] font-bold leading-4 ${
                           plan.featured
                             ? "bg-neon-pink text-white"
-                            : "bg-neon-cyan text-neon-midnight-deep"
+                            : "bg-accent-500 text-ink"
                         }`}
                       >
                         ✓
@@ -579,7 +575,7 @@ export default async function HomePage() {
                   ))}
                 </ul>
                 <Link
-                  href="/creators"
+                  href="/ai-mock/creators"
                   className={`mt-8 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
                     plan.featured
                       ? "bg-neon-pink text-white hover:bg-neon-pink-soft"
@@ -603,8 +599,7 @@ export default async function HomePage() {
           <div className="text-center">
             <p className="eyebrow justify-center">制作フロー</p>
             <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem]">
-              依頼から納品まで
-              <span className="underline-yellow">最短2日</span>。
+              依頼から納品まで<span className="underline-yellow">最短2日</span>。
             </h2>
           </div>
 
@@ -683,7 +678,7 @@ export default async function HomePage() {
 
           <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/creators"
+              href="/ai-mock/creators"
               className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-8 py-4 text-base font-black text-white shadow-[0_0_30px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_50px_rgba(255,77,157,0.7)]"
             >
               <span>AIクリエイターを探す</span>
@@ -692,13 +687,10 @@ export default async function HomePage() {
               </span>
             </Link>
             <Link
-              href="/register"
+              href="/"
               className="group inline-flex items-center justify-between gap-3 rounded-pill border-2 border-white/30 px-8 py-4 text-base font-bold text-white transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
             >
-              <span>無料ではじめる</span>
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
+              <span>現行サイトに戻る</span>
             </Link>
           </div>
         </div>

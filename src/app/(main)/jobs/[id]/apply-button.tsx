@@ -71,7 +71,7 @@ export function ApplyButton({
           name="message"
           rows={4}
           required
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
           placeholder="自己紹介、実績、この案件への意気込みなど"
         />
       </div>
@@ -83,7 +83,7 @@ export function ApplyButton({
           name="proposed_price"
           type="number"
           min={0}
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
           placeholder="300000"
         />
       </div>

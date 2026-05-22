@@ -62,7 +62,7 @@ export default async function DashboardJobDetailPage({
       {/* Header */}
       <Link
         href="/dashboard/jobs"
-        className="text-sm text-[#828282] hover:text-primary-500"
+        className="text-sm text-[#828282] hover:text-neon-pink"
       >
         &larr; 案件一覧に戻る
       </Link>

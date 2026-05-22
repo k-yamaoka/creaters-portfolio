@@ -82,10 +82,10 @@ export function PortfoliosPageClient({
       <div className="mb-8 flex items-end justify-between">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-ink sm:text-[2.5rem]">
-            ポートフォリオを見る
+            AI動画ポートフォリオ
           </h1>
           <p className="mt-3 text-sm text-ink-muted">
-            プラットフォーム別にサムネイル一覧。気になる作品からクリエイター詳細へ。
+            Sora / Veo / Runway / Midjourney などを使いこなすAIクリエイターの作品一覧。気になる作品から詳細へ。
           </p>
         </div>
         {/* Mobile filter toggle */}

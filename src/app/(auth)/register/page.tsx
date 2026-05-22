@@ -100,7 +100,7 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8F8F8] px-4">
+      <div className="flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
         <div className="w-full max-w-md">
           <div className="rounded-2xl bg-white p-8 text-center shadow-card">
             <div className="mb-4 text-4xl">✉️</div>
@@ -128,7 +128,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={handleResend}
                 disabled={resending}
-                className="mb-3 inline-block text-sm font-bold text-primary-500 hover:underline disabled:opacity-50"
+                className="mb-3 inline-block text-sm font-bold text-neon-pink hover:underline disabled:opacity-50"
               >
                 {resending ? "再送中..." : "確認メールを再送する"}
               </button>
@@ -145,14 +145,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#F8F8F8] px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-sm font-black text-white">
-              C
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-neon-pink to-neon-purple text-sm font-black text-white shadow-[0_0_16px_rgba(255,77,157,0.5)]">
+              A
             </div>
-            <span className="text-xl font-bold text-[#222]">CreatorsHub</span>
+            <span className="text-xl font-black text-white">
+              AI<span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">LIER</span>
+            </span>
           </Link>
         </div>
 
@@ -179,7 +181,7 @@ export default function RegisterPage() {
                   onClick={() => setRole("client")}
                   className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                     role === "client"
-                      ? "border-primary-500 bg-primary-50 text-primary-500"
+                      ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
@@ -191,7 +193,7 @@ export default function RegisterPage() {
                   onClick={() => setRole("creator")}
                   className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                     role === "creator"
-                      ? "border-primary-500 bg-primary-50 text-primary-500"
+                      ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
@@ -214,7 +216,7 @@ export default function RegisterPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="山田 太郎"
               />
             </div>
@@ -232,7 +234,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="example@email.com"
               />
             </div>
@@ -251,7 +253,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="6文字以上"
               />
             </div>
@@ -312,7 +314,7 @@ export default function RegisterPage() {
             すでにアカウントをお持ちの方は{" "}
             <Link
               href="/login"
-              className="font-medium text-primary-500 hover:underline"
+              className="font-medium text-neon-pink hover:underline"
             >
               ログイン
             </Link>

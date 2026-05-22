@@ -80,7 +80,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                   name="name"
                   type="text"
                   required
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="例: スタンダード"
                 />
               </div>
@@ -93,7 +93,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                   type="number"
                   required
                   min={0}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="300000"
                 />
               </div>
@@ -107,7 +107,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                 name="description"
                 type="text"
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder="例: 企業紹介動画（3分以内）"
               />
             </div>
@@ -122,7 +122,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                   type="number"
                   required
                   min={1}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="14"
                 />
               </div>
@@ -135,7 +135,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                   type="number"
                   required
                   min={0}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="2"
                 />
               </div>
@@ -148,7 +148,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
               <textarea
                 name="features"
                 rows={4}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder={"企画構成\n撮影1日\n編集\nBGM選定\n修正2回"}
               />
             </div>
@@ -221,7 +221,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                     {pkg.description}
                   </p>
                 </div>
-                <p className="text-xl font-bold text-primary-500">
+                <p className="text-xl font-bold text-neon-purple-deep">
                   {formatPrice(pkg.price)}
                 </p>
               </div>

@@ -78,8 +78,8 @@ export function JobForm() {
   const pillClass = (active: boolean) =>
     `rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
       active
-        ? "border-primary-500 bg-primary-500 text-white"
-        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+        ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-pink hover:text-neon-pink"
     }`;
 
   return (
@@ -107,7 +107,7 @@ export function JobForm() {
             type="text"
             required
             maxLength={50}
-            className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+            className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
             placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
           />
         </div>
@@ -130,7 +130,7 @@ export function JobForm() {
                 key={genre}
                 className={`flex cursor-pointer items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm transition-colors ${
                   isSelected
-                    ? "border-primary-500 bg-primary-50 text-primary-500"
+                    ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
                     : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                 }`}
               >
@@ -143,7 +143,7 @@ export function JobForm() {
                 <div
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
                     isSelected
-                      ? "border-primary-500 bg-primary-500"
+                      ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
                       : "border-[#BDBDBD]"
                   }`}
                 >
@@ -181,7 +181,7 @@ export function JobForm() {
               type="text"
               value={genresOther}
               onChange={(e) => setGenresOther(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               placeholder="自由入力（例: 学校紹介、医療系インタビュー など）"
               maxLength={60}
             />
@@ -209,7 +209,7 @@ export function JobForm() {
           name="description"
           rows={10}
           required
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
           placeholder={
             "例:\n・動画の目的や配信先\n・ターゲット視聴者\n・希望するテイストや参考動画\n・素材の有無（撮影が必要か等）\n・その他の要件"
           }
@@ -243,7 +243,7 @@ export function JobForm() {
                   e.target.value.replace(/[^0-9]/g, "").slice(0, 6)
                 )
               }
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               placeholder="50000"
             />
             <p className="mt-1 text-xs text-[#828282]">
@@ -253,9 +253,9 @@ export function JobForm() {
 
           {/* 単価 × 本数 → 自動集計 */}
           {(budgetMin !== null || budgetMax !== null) && (
-            <div className="rounded-lg bg-primary-50 px-4 py-4">
+            <div className="rounded-lg bg-neon-purple/10 px-4 py-4">
               <p className="text-xs text-[#828282]">見積もり金額（自動集計）</p>
-              <p className="mt-1 text-lg font-bold text-primary-600">
+              <p className="mt-1 text-lg font-bold text-neon-purple-deep">
                 {budgetMin !== null && budgetMax !== null && budgetMin === budgetMax
                   ? formatPrice(budgetMin)
                   : budgetMin !== null && budgetMax !== null
@@ -293,7 +293,7 @@ export function JobForm() {
                 id="deadline"
                 name="deadline"
                 type="date"
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               />
             </div>
             <div>
@@ -307,7 +307,7 @@ export function JobForm() {
                 id="delivery_deadline"
                 name="delivery_deadline"
                 type="date"
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               />
             </div>
           </div>

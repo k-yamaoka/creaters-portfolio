@@ -38,10 +38,10 @@ export default function SelectRolePage() {
         <div className="rounded-2xl bg-white p-8 shadow-card">
           <div className="mb-2 text-center">
             <Link href="/" className="inline-flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-500 text-sm font-black text-white">
-                C
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-sm font-black text-white">
+                A
               </div>
-              <span className="text-xl font-bold text-[#222]">CreatorsHub</span>
+              <span className="text-xl font-bold text-[#222]">AILIER</span>
             </Link>
           </div>
 
@@ -49,7 +49,7 @@ export default function SelectRolePage() {
             アカウントの種類を選択
           </h1>
           <p className="mt-2 text-center text-sm text-[#828282]">
-            ご利用方法に合わせて選択してください
+            AILIERの利用方法に合わせて選択してください
           </p>
 
           {error && (
@@ -64,14 +64,14 @@ export default function SelectRolePage() {
               onClick={() => setRole("client")}
               className={`rounded-xl border-2 px-4 py-6 text-center transition-colors ${
                 role === "client"
-                  ? "border-primary-500 bg-primary-50 text-primary-500"
+                  ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
                   : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
               }`}
             >
               <div className="text-3xl">🏢</div>
               <div className="mt-2 text-sm font-bold">依頼者</div>
               <div className="mt-1 text-xs text-[#828282]">
-                クリエイターに依頼したい
+                AIクリエイターに依頼したい
               </div>
             </button>
             <button
@@ -79,14 +79,14 @@ export default function SelectRolePage() {
               onClick={() => setRole("creator")}
               className={`rounded-xl border-2 px-4 py-6 text-center transition-colors ${
                 role === "creator"
-                  ? "border-primary-500 bg-primary-50 text-primary-500"
+                  ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
                   : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
               }`}
             >
               <div className="text-3xl">🎬</div>
-              <div className="mt-2 text-sm font-bold">クリエイター</div>
+              <div className="mt-2 text-sm font-bold">AIクリエイター</div>
               <div className="mt-1 text-xs text-[#828282]">
-                仕事を受注したい
+                AI動画案件を受注したい
               </div>
             </button>
           </div>

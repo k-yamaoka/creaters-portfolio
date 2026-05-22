@@ -161,7 +161,7 @@ export default async function OrdersPage() {
                   key={order.id}
                   href={`/dashboard/orders/${order.id}`}
                   className={`block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${
-                    unread > 0 ? "ring-2 ring-primary-200" : ""
+                    unread > 0 ? "ring-2 ring-neon-pink/40" : ""
                   }`}
                 >
                   <div className="flex items-start justify-between gap-4">
@@ -172,7 +172,7 @@ export default async function OrdersPage() {
                         </span>
                         {/* 案件名 = order.title をブロック状で表示 + 進捗tooltip */}
                         <span
-                          className="group/title relative inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-primary-100 bg-primary-50 px-2 py-0.5 text-xs font-bold text-primary-700"
+                          className="group/title relative inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-neon-purple/20 bg-neon-purple/10 px-2 py-0.5 text-xs font-bold text-neon-purple-deep"
                           title={`${status.label}: ${status.description}`}
                         >
                           <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -186,7 +186,7 @@ export default async function OrdersPage() {
                           {status.shortLabel}
                         </span>
                         {unread > 0 && (
-                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-500 px-1.5 text-[10px] font-bold text-white">
+                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-1.5 text-[10px] font-bold text-white">
                             {unread > 99 ? "99+" : unread}
                           </span>
                         )}

@@ -37,7 +37,7 @@ export default async function AdminLayout({
     <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
       {/* Admin header */}
       <div className="mb-8">
-        <h1 className="text-sm font-bold text-primary-500">管理画面</h1>
+        <h1 className="text-sm font-bold text-neon-purple-deep">管理画面</h1>
       </div>
 
       {/* Tab navigation */}

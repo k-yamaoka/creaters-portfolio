@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "クリエイターガイドライン",
+  title: "AIクリエイターガイドライン",
   description:
-    "CreatorsHubで活動するクリエイター向けのガイドライン。",
+    "AILIERで活動するAIクリエイター向けのガイドライン。プロンプト力・ツール選定・著作権・透明性を満たす運用方針をまとめています。",
 };
 
 export const revalidate = 3600;
@@ -13,10 +13,10 @@ export default function CreatorGuidePage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">
       <h1 className="text-3xl font-bold text-[#222]">
-        クリエイターガイドライン
+        AIクリエイターガイドライン
       </h1>
       <p className="mt-2 text-sm text-[#828282]">
-        CreatorsHubで活動するクリエイターの皆さまへ
+        AILIERで活動するAIクリエイターの皆さまへ
       </p>
 
       <div className="mt-10 space-y-10">
@@ -24,8 +24,8 @@ export default function CreatorGuidePage() {
         <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
           <h2 className="text-xl font-bold text-[#222]">はじめに</h2>
           <p className="mt-3 text-sm leading-relaxed text-[#4F4F4F]">
-            CreatorsHubは、映像クリエイターと企業を直接つなぐプラットフォームです。
-            本ガイドラインは、すべてのクリエイターが安心して活動できる環境を維持するために定めたものです。
+            AILIERは、AIクリエイターと企業を直接つなぐプラットフォームです。
+            本ガイドラインは、プロンプト力 / ツール選定 / 著作権 / クライアントへの透明性を備えたAIクリエイターが、安心して活動できる環境を維持するために定めたものです。
           </p>
         </section>
 
@@ -36,11 +36,11 @@ export default function CreatorGuidePage() {
             {[
               "正確な情報を記載してください（経験年数、スキル、所在地など）",
               "プロフィール写真は本人の顔写真またはロゴを推奨します",
-              "自己紹介文は具体的に。得意ジャンル・制作実績・使用ツールを明記してください",
+              "得意ジャンル・制作実績に加え、使用AIツール（Sora / Veo / Runway / Midjourney など）を必ず明記してください",
               "虚偽の情報や誇大な表現は禁止です",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -54,14 +54,15 @@ export default function CreatorGuidePage() {
           <h2 className="text-xl font-bold text-[#222]">ポートフォリオについて</h2>
           <ul className="mt-4 space-y-3">
             {[
-              "自身が制作に携わった作品のみ掲載してください",
+              "自身がプロンプト設計・編集を担当した作品のみ掲載してください",
               "クライアントの許可を得た作品を掲載してください",
-              "著作権・肖像権を侵害する作品は掲載できません",
+              "著作権・肖像権を侵害する作品、第三者のAI生成物を自作として転用する行為は禁止です",
+              "学習データやモデルの利用条件を遵守してください（商用利用可否を含む）",
               "動画はYouTubeまたはVimeoにアップロードし、URLを登録してください",
               "サムネイル画像は作品の内容がわかるものを設定してください",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -75,13 +76,13 @@ export default function CreatorGuidePage() {
           <h2 className="text-xl font-bold text-[#222]">料金設定について</h2>
           <ul className="mt-4 space-y-3">
             {[
-              "料金プランには含まれる内容を明確に記載してください",
-              "追加料金が発生する場合は事前にクライアントへ説明してください",
+              "料金プランには含まれる内容（使用AIツール / 生成枚数 / 編集工程）を明確に記載してください",
+              "AIツール利用料・追加プロンプト調整など、追加料金が発生する場合は事前にクライアントへ説明してください",
               "不当に高額または低額な価格設定はお控えください",
               "取引成立時にシステム手数料（15%）が差し引かれます",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -99,10 +100,11 @@ export default function CreatorGuidePage() {
               "プラットフォーム外での直接取引は禁止です",
               "納期を厳守してください。遅れる場合は早めにクライアントへ連絡してください",
               "修正依頼には料金プランの範囲内で誠実に対応してください",
+              "AI生成物については、使用ツール・プロンプト方針・素材の権利状況をクライアントへ透明に共有してください",
               "クライアントの個人情報や機密情報は適切に管理してください",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -140,7 +142,7 @@ export default function CreatorGuidePage() {
         <div className="text-center">
           <p className="text-sm text-[#828282]">
             ガイドラインに関するご質問は
-            <Link href="/help" className="font-medium text-primary-500 hover:underline">
+            <Link href="/help" className="font-medium text-neon-purple-deep hover:underline">
               ヘルプセンター
             </Link>
             からお問い合わせください。

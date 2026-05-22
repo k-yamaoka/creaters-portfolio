@@ -19,10 +19,8 @@ export default async function CreatorDetailPage({
     notFound();
   }
 
-  // Fetch reviews
   const supabase = await createClient();
 
-  // 閲覧者のロール (メッセージ送信ボタンの表示制御に使用)
   const {
     data: { user: viewer },
   } = await supabase.auth.getUser();
@@ -35,7 +33,6 @@ export default async function CreatorDetailPage({
       .maybeSingle();
     viewerRole = (viewerProfile?.role as string | undefined) ?? null;
   }
-  // creator ↔ client のみメッセージ可。同ロール (creator → creator) は送信ボタンを出さない
   const canMessageCreator = viewerRole === "client" || viewerRole === "admin";
 
   const { data: reviews } = await supabase
@@ -56,249 +53,293 @@ export default async function CreatorDetailPage({
   const isVerified = creator.profiles.is_verified;
   const activePackages = creator.service_packages.filter((p) => p.is_active);
 
-  // 評価数が 0 のときは絵文字/ラベルを出さない。
-  // 1件以上ある場合のみ、レーティング数値から絵文字+ラベルを算出する。
   const hasReviews = creator.review_count > 0;
-  const ratingEmoji = !hasReviews
-    ? null
-    : creator.rating >= 2.5
-      ? "😊"
-      : creator.rating >= 1.5
-        ? "😐"
-        : "😢";
-  const ratingLabel = !hasReviews
-    ? null
-    : creator.rating >= 2.5
-      ? "満足"
-      : creator.rating >= 1.5
-        ? "普通"
-        : "不満";
 
   return (
-    <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
-      {/* Breadcrumb */}
-      <nav className="mb-8 text-sm text-[#828282]">
-        <Link href="/creators" className="hover:text-primary-500">
-          クリエイターを探す
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-[#222]">{displayName}</span>
-      </nav>
+    <>
+      {/* =================================================
+          HERO BAND
+          ================================================= */}
+      <section className="relative overflow-hidden bg-neon-midnight-deep py-16 text-white">
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+          }}
+        />
+        <div className="absolute -left-32 top-0 h-[360px] w-[360px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
+        <div className="absolute -right-20 bottom-0 h-[300px] w-[300px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
 
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-        {/* Left Column: Profile + Portfolio */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Profile Header with gradient bg */}
-          <div className="overflow-hidden rounded-2xl bg-white shadow-card">
-            <div className="h-32 bg-gradient-to-r from-primary-400 to-primary-600" />
-            <div className="p-6 sm:p-8">
-              <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-                {/* Avatar - overlapping the gradient */}
-                <div className="relative -mt-20 h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-4 border-white bg-[#F2F2F2] shadow-lg">
-                  {avatarUrl ? (
-                    <Image
-                      src={avatarUrl}
-                      alt={displayName}
-                      fill
-                      className="object-cover"
-                      sizes="112px"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-3xl font-bold text-[#828282]">
-                      {displayName[0]}
-                    </div>
-                  )}
+        <div className="relative mx-auto max-w-container px-6 lg:px-10">
+          {/* Breadcrumb */}
+          <nav className="mb-6 text-xs text-white/60">
+            <Link href="/creators" className="hover:text-neon-pink">
+              AIクリエイターを探す
+            </Link>
+            <span className="mx-2">/</span>
+            <span className="text-white">{displayName}</span>
+          </nav>
+
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            {/* Avatar */}
+            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-neon-midnight shadow-[0_0_24px_rgba(255,77,157,0.4)]">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={displayName}
+                  fill
+                  className="object-cover"
+                  sizes="112px"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-3xl font-black text-white">
+                  {displayName[0]}
                 </div>
+              )}
+            </div>
 
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-2xl font-bold text-[#222] sm:text-3xl">
-                      {displayName}
-                    </h1>
-                    {isVerified && (
-                      <span className="flex items-center gap-1 rounded-pill bg-primary-500 px-3 py-1 text-xs font-bold text-white">
-                        <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
-                          <path
-                            fillRule="evenodd"
-                            d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        認証済み
-                      </span>
-                    )}
-                  </div>
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-bold tracking-[0.16em] text-neon-pink-soft">
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
+                  AI CREATOR
+                </span>
+                {isVerified && (
+                  <span className="rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-cyan">
+                    認証済み
+                  </span>
+                )}
+                {hasReviews && (
+                  <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-0.5 text-xs font-bold text-white">
+                    <span className="text-neon-pink">★</span>
+                    {creator.rating.toFixed(1)}
+                    <span className="text-white/60">({creator.review_count})</span>
+                  </span>
+                )}
+              </div>
+              <h1 className="mt-3 text-3xl font-black sm:text-[2.5rem]">
+                {displayName}
+              </h1>
+              <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
+                {creator.location && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="text-neon-cyan">◉</span>
+                    {creator.location}
+                  </span>
+                )}
+                {creator.years_of_experience > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="text-neon-purple">◆</span>
+                    経験 {creator.years_of_experience} 年
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-neon-pink">✦</span>
+                  作品 {creator.portfolio_items.length} 件
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-                  {/* Stats row */}
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    {creator.location && (
-                      <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-sm text-[#4F4F4F]">
-                        <svg className="h-4 w-4 text-[#828282]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
-                        </svg>
-                        {creator.location}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-sm text-[#4F4F4F]">
-                      <svg className="h-4 w-4 text-[#828282]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                      </svg>
-                      経験{creator.years_of_experience}年
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-sm text-[#4F4F4F]">
-                      {hasReviews ? (
-                        <>
-                          <span>{ratingEmoji}</span>
-                          {ratingLabel}
-                          <span className="text-[#BDBDBD]">
-                            ({creator.review_count}件)
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-[#828282]">
-                          まだ評価がありません。
-                        </span>
-                      )}
-                    </div>
-                  </div>
+      <div className="mx-auto max-w-container px-6 py-12 lg:px-10">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+          {/* Left Column: Profile + Portfolio */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Profile */}
+            <div className="rounded-xl border-2 border-ink/10 bg-white p-6 shadow-pop sm:p-8">
+              <h2 className="text-lg font-black text-ink">
+                <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle" />
+                プロフィール
+              </h2>
+              <p className="mt-4 whitespace-pre-line text-sm leading-[2] text-ink-muted">
+                {creator.bio}
+              </p>
 
-                  {/* Bio */}
-                  <p className="mt-4 text-sm leading-relaxed text-[#4F4F4F]">
-                    {creator.bio}
+              {creator.genres.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                    得意ジャンル
                   </p>
-
-                  {/* Genre tags */}
-                  <div className="mt-4 flex flex-wrap gap-2">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {creator.genres.map((genre) => (
                       <span
                         key={genre}
-                        className="rounded-pill bg-primary-50 px-3 py-1 text-xs font-bold text-primary-500"
+                        className="rounded-pill border border-neon-purple/30 bg-neon-purple/10 px-3 py-1 text-xs font-bold text-neon-purple-deep"
                       >
                         {genre}
                       </span>
                     ))}
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-          </div>
 
-          {/* Skills */}
-          <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-            <h2 className="mb-4 text-lg font-bold text-[#222]">スキル</h2>
-            <div className="flex flex-wrap gap-2">
-              {creator.skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="rounded-pill border border-[#E0E0E0] px-4 py-1.5 text-sm text-[#4F4F4F]"
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Portfolio */}
-          {creator.portfolio_items.length > 0 && (
-            <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-              <h2 className="mb-6 text-lg font-bold text-[#222]">
-                ポートフォリオ
-              </h2>
-              <PortfolioGrid items={creator.portfolio_items} />
-            </div>
-          )}
-
-          {/* Reviews */}
-          <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-            <h2 className="mb-6 text-lg font-bold text-[#222]">
-              レビュー（{reviews?.length ?? 0}件）
-            </h2>
-            <ReviewList reviews={(reviews ?? []) as unknown as { id: string; rating: number; comment: string; created_at: string; client: { profiles: { display_name: string } } }[]} />
-          </div>
-        </div>
-
-        {/* Right Column: Packages */}
-        <div className="space-y-6">
-          <div className="sticky top-24">
-            <h2 className="mb-4 text-lg font-bold text-[#222]">料金プラン</h2>
-            <div className="space-y-4">
-              {activePackages.map((pkg, index) => (
-                <div
-                  key={pkg.id}
-                  className={`rounded-2xl bg-white shadow-card ${index === 0 ? "ring-2 ring-primary-500" : ""}`}
-                >
-                  {index === 0 && (
-                    <div className="rounded-t-2xl bg-primary-500 px-4 py-1.5 text-center text-xs font-bold text-white">
-                      おすすめ
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-base font-bold text-[#222]">
-                        {pkg.name}
-                      </h3>
-                      <p className="text-xl font-bold text-primary-500">
-                        {formatPrice(pkg.price)}
-                      </p>
-                    </div>
-                    <p className="mt-2 text-sm text-[#828282]">
-                      {pkg.description}
-                    </p>
-
-                    {/* Delivery & Revisions */}
-                    <div className="mt-4 flex gap-4 text-xs text-[#828282]">
-                      <span className="flex items-center gap-1">
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                        </svg>
-                        納期 {pkg.delivery_days}日
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
-                        </svg>
-                        修正 {pkg.revisions}回
-                      </span>
-                    </div>
-
-                    {/* Features */}
-                    <ul className="mt-4 space-y-2">
-                      {pkg.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-2 text-sm text-[#4F4F4F]">
-                          <svg className="mt-0.5 h-4 w-4 shrink-0 text-primary-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                          </svg>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Link
-                      href={`/dashboard/orders/new?creator_id=${creator.id}&package_id=${pkg.id}`}
-                      className="btn-primary mt-6 w-full text-sm"
+            {/* AI Tools / Skills */}
+            {creator.skills.length > 0 && (
+              <div className="rounded-xl border-2 border-ink/10 bg-white p-6 shadow-pop sm:p-8">
+                <h2 className="text-lg font-black text-ink">
+                  <span className="inline-block h-2 w-2 rounded-full bg-neon-cyan mr-2 align-middle" />
+                  使用AIツール・スキル
+                </h2>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {creator.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="rounded-pill bg-neon-midnight-deep px-3 py-1.5 text-xs font-bold text-white"
                     >
-                      このプランで依頼する
-                    </Link>
-                  </div>
+                      {skill}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Contact button (企業ユーザーのみ表示) */}
-            {canMessageCreator && (
-              <div className="mt-6">
-                <Link
-                  href={`/dashboard/messages/${creator.user_id}`}
-                  className="btn-secondary w-full text-sm"
-                >
-                  メッセージを送る
-                </Link>
               </div>
             )}
+
+            {/* Portfolio */}
+            {creator.portfolio_items.length > 0 && (
+              <div className="rounded-xl border-2 border-ink/10 bg-white p-6 shadow-pop sm:p-8">
+                <h2 className="mb-6 text-lg font-black text-ink">
+                  <span className="inline-block h-2 w-2 rounded-full bg-neon-purple mr-2 align-middle" />
+                  ポートフォリオ
+                </h2>
+                <PortfolioGrid items={creator.portfolio_items} />
+              </div>
+            )}
+
+            {/* Reviews */}
+            <div className="rounded-xl border-2 border-ink/10 bg-white p-6 shadow-pop sm:p-8">
+              <h2 className="mb-6 text-lg font-black text-ink">
+                <span className="inline-block h-2 w-2 rounded-full bg-neon-sunset mr-2 align-middle" />
+                レビュー({reviews?.length ?? 0}件)
+              </h2>
+              <ReviewList
+                reviews={(reviews ?? []) as unknown as {
+                  id: string;
+                  rating: number;
+                  comment: string;
+                  created_at: string;
+                  client: { profiles: { display_name: string } };
+                }[]}
+              />
+            </div>
+          </div>
+
+          {/* Right Column: Packages */}
+          <div className="space-y-6">
+            <div className="sticky top-24">
+              <h2 className="mb-4 text-lg font-black text-ink">料金プラン</h2>
+              <div className="space-y-4">
+                {activePackages.map((pkg, index) => (
+                  <div
+                    key={pkg.id}
+                    className={`overflow-hidden rounded-xl border-2 transition-all ${
+                      index === 0
+                        ? "border-neon-pink bg-neon-midnight-deep text-white shadow-[0_0_32px_rgba(255,77,157,0.3)]"
+                        : "border-ink/10 bg-white shadow-pop"
+                    }`}
+                  >
+                    {index === 0 && (
+                      <div className="bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-wider text-white">
+                        ⭐ もっとも人気
+                      </div>
+                    )}
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3
+                          className={`text-base font-black ${
+                            index === 0 ? "text-white" : "text-ink"
+                          }`}
+                        >
+                          {pkg.name}
+                        </h3>
+                        <p
+                          className={`text-xl font-black ${
+                            index === 0 ? "text-neon-pink" : "text-neon-purple-deep"
+                          }`}
+                        >
+                          {formatPrice(pkg.price)}
+                        </p>
+                      </div>
+                      <p
+                        className={`mt-2 text-sm leading-[1.85] ${
+                          index === 0 ? "text-white/70" : "text-ink-muted"
+                        }`}
+                      >
+                        {pkg.description}
+                      </p>
+
+                      <div
+                        className={`mt-4 flex gap-4 text-xs ${
+                          index === 0 ? "text-white/60" : "text-ink-muted"
+                        }`}
+                      >
+                        <span className="inline-flex items-center gap-1">
+                          <span>⏱</span>
+                          納期 {pkg.delivery_days}日
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span>↻</span>
+                          修正 {pkg.revisions}回
+                        </span>
+                      </div>
+
+                      <ul className="mt-4 space-y-2">
+                        {pkg.features.map((feature) => (
+                          <li
+                            key={feature}
+                            className={`flex items-start gap-2 text-sm ${
+                              index === 0 ? "text-white/90" : "text-ink"
+                            }`}
+                          >
+                            <span
+                              className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full text-center text-[10px] font-bold leading-4 ${
+                                index === 0
+                                  ? "bg-neon-pink text-white"
+                                  : "bg-neon-cyan text-neon-midnight-deep"
+                              }`}
+                            >
+                              ✓
+                            </span>
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+
+                      <Link
+                        href={`/dashboard/orders/new?creator_id=${creator.id}&package_id=${pkg.id}`}
+                        className={`mt-6 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
+                          index === 0
+                            ? "bg-neon-pink text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
+                            : "border-2 border-ink bg-paper text-ink hover:bg-ink hover:text-paper"
+                        }`}
+                      >
+                        <span>このプランで依頼</span>
+                        <span>→</span>
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {canMessageCreator && (
+                <div className="mt-6">
+                  <Link
+                    href={`/dashboard/messages/${creator.user_id}`}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-3 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-white"
+                  >
+                    💬 メッセージを送る
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

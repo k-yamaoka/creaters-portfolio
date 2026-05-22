@@ -50,7 +50,7 @@ export function SearchTopBar({
           onChange={(e) =>
             updateFilter({ keyword: e.target.value || undefined })
           }
-          className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
         />
       </div>
 
@@ -64,7 +64,7 @@ export function SearchTopBar({
               sortBy: e.target.value as CreatorSearchFilters["sortBy"],
             })
           }
-          className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
         >
           {SORT_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -157,8 +157,8 @@ export function SearchFilters({
                     onClick={() => toggleGenre(genre)}
                     className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive
-                        ? "border-primary-500 bg-primary-500 text-white"
-                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                        ? "border-neon-pink bg-neon-pink text-white"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-pink hover:text-neon-pink"
                     }`}
                   >
                     {genre}
@@ -204,8 +204,8 @@ export function SearchFilters({
                     onClick={() => togglePlatform(platform)}
                     className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                       isActive
-                        ? "border-primary-500 bg-primary-500 text-white"
-                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500 hover:text-primary-500"
+                        ? "border-neon-pink bg-neon-pink text-white"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-pink hover:text-neon-pink"
                     }`}
                   >
                     {platform}

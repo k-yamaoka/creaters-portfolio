@@ -83,7 +83,7 @@ export default async function NewOrderPage({
                     className="flex items-center gap-1.5 text-xs text-[#4F4F4F]"
                   >
                     <svg
-                      className="h-3 w-3 shrink-0 text-primary-500"
+                      className="h-3 w-3 shrink-0 text-neon-purple-deep"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={2}
@@ -104,7 +104,7 @@ export default async function NewOrderPage({
             <div className="mt-4 border-t border-[#F2F2F2] pt-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-[#828282]">料金</span>
-                <span className="text-xl font-bold text-primary-500">
+                <span className="text-xl font-bold text-neon-purple-deep">
                   {formatPrice(pkg.price)}
                 </span>
               </div>

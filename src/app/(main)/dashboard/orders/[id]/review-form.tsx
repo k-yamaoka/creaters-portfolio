@@ -91,14 +91,14 @@ export function ReviewForm({
               onClick={() => setRating(level.value)}
               className={`flex flex-1 flex-col items-center gap-2 rounded-xl border-2 px-4 py-4 transition-all ${
                 rating === level.value
-                  ? "border-primary-500 bg-primary-50"
+                  ? "border-neon-pink bg-neon-purple/10"
                   : "border-[#E0E0E0] hover:border-[#BDBDBD]"
               }`}
             >
               <span className="text-3xl">{level.emoji}</span>
               <span
                 className={`text-sm font-medium ${
-                  rating === level.value ? "text-primary-500" : "text-[#4F4F4F]"
+                  rating === level.value ? "text-neon-purple-deep" : "text-[#4F4F4F]"
                 }`}
               >
                 {level.label}
@@ -116,7 +116,7 @@ export function ReviewForm({
         <textarea
           name="comment"
           rows={4}
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
           placeholder="クリエイターの仕事ぶり、コミュニケーション、成果物の品質などについて"
         />
       </div>

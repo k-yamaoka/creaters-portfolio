@@ -4,9 +4,9 @@ import { fixMissingThumbnails } from "@/lib/video-thumbnail";
 import { PortfoliosPageClient } from "./portfolios-client";
 
 export const metadata: Metadata = {
-  title: "ポートフォリオを見る",
+  title: "AI動画ポートフォリオを見る",
   description:
-    "プラットフォーム別にサムネイル一覧から作品を探す。気になる作品からクリエイター詳細へ。",
+    "Sora / Veo / Runway / Midjourney を使いこなすAIクリエイターのAI動画作品を、プラットフォーム別に一覧で探せます。",
 };
 
 export const revalidate = 60;

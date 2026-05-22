@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "利用規約",
-  description: "CreatorsHubの利用規約。",
+  description: "AILIERの利用規約。",
 };
 
 export const revalidate = 3600;
@@ -17,7 +17,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-bold text-[#222]">第1条（適用）</h2>
           <p className="mt-3">
-            本利用規約（以下「本規約」といいます。）は、CreatorsHub（以下「当社」といいます。）が提供する映像クリエイターマッチングサービス「CreatorsHub」（以下「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下「ユーザー」といいます。）には、本規約に従って本サービスをご利用いただきます。
+            本利用規約（以下「本規約」といいます。）は、AILIER（以下「当社」といいます。）が提供する映像クリエイターマッチングサービス「AILIER」（以下「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下「ユーザー」といいます。）には、本規約に従って本サービスをご利用いただきます。
           </p>
         </section>
 
