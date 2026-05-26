@@ -14,8 +14,10 @@ type PortfolioItem = {
   id: string;
   title: string;
   description: string;
-  video_url: string;
+  media_type: "video" | "image";
+  video_url: string | null;
   video_platform: string;
+  image_url: string | null;
   thumbnail_url: string | null;
   genre: string | null;
   tags: string[];
@@ -24,6 +26,7 @@ type PortfolioItem = {
 };
 
 type ThumbnailMode = "auto" | "url" | "upload";
+type MediaType = "video" | "image";
 
 /**
  * URLからプラットフォーム種別を推測する。
@@ -50,11 +53,45 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mediaType, setMediaType] = useState<MediaType>("video");
   const [selectedPlatform, setSelectedPlatform] = useState("youtube");
   const [thumbnailMode, setThumbnailMode] = useState<ThumbnailMode>("auto");
   const [uploadingThumb, setUploadingThumb] = useState(false);
   const [uploadedThumbUrl, setUploadedThumbUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [hasPublishPermission, setHasPublishPermission] = useState(false);
+
+  const resetFormState = () => {
+    setMediaType("video");
+    setSelectedPlatform("youtube");
+    setThumbnailMode("auto");
+    setUploadedThumbUrl(null);
+    setUploadedImageUrl(null);
+    setHasPublishPermission(false);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    setUploadingImage(true);
+    setError(null);
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const res = await fetch("/api/upload/thumbnail", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setUploadedImageUrl(data.url);
+      }
+    } catch {
+      setError("画像のアップロードに失敗しました");
+    }
+    setUploadingImage(false);
+  };
 
   const platformNeedsManualThumb = MANUAL_THUMB_PLATFORMS.has(selectedPlatform);
 
@@ -99,52 +136,61 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setSaving(true);
     setError(null);
 
-    const videoUrl = formData.get("video_url") as string;
+    formData.set("media_type", mediaType);
+    formData.set("has_publish_permission", hasPublishPermission ? "1" : "");
 
-    if (
-      !videoUrl ||
-      (!videoUrl.includes("youtube.com") &&
-        !videoUrl.includes("youtu.be") &&
-        !videoUrl.includes("vimeo.com") &&
-        !videoUrl.includes("tiktok.com") &&
-        !videoUrl.includes("instagram.com"))
-    ) {
-      setError(
-        "YouTube、Vimeo、TikTok、InstagramのURLを入力してください"
-      );
-      setSaving(false);
-      return;
-    }
+    if (mediaType === "image") {
+      // 画像アイテム: image_url をセット
+      if (!uploadedImageUrl) {
+        setError("画像をアップロードしてください");
+        setSaving(false);
+        return;
+      }
+      formData.set("image_url", uploadedImageUrl);
+    } else {
+      // 動画アイテム: 既存のバリデーション
+      const videoUrl = formData.get("video_url") as string;
 
-    if (thumbnailMode === "upload" && uploadedThumbUrl) {
-      formData.set("thumbnail_url", uploadedThumbUrl);
-    }
-
-    // TikTok/Instagram は手動サムネが必須
-    if (platformNeedsManualThumb) {
-      const hasThumb =
-        (thumbnailMode === "upload" && uploadedThumbUrl) ||
-        (thumbnailMode === "url" && (formData.get("thumbnail_url") as string));
-      if (!hasThumb) {
+      if (
+        !videoUrl ||
+        (!videoUrl.includes("youtube.com") &&
+          !videoUrl.includes("youtu.be") &&
+          !videoUrl.includes("vimeo.com") &&
+          !videoUrl.includes("tiktok.com") &&
+          !videoUrl.includes("instagram.com"))
+      ) {
         setError(
-          "TikTok / Instagram は自動取得が不安定なため、サムネイル画像をアップロードしてください。"
+          "YouTube、Vimeo、TikTok、InstagramのURLを入力してください"
         );
         setSaving(false);
         return;
       }
-    }
 
-    formData.set("has_publish_permission", hasPublishPermission ? "1" : "");
+      if (thumbnailMode === "upload" && uploadedThumbUrl) {
+        formData.set("thumbnail_url", uploadedThumbUrl);
+      }
+
+      // TikTok/Instagram は手動サムネが必須
+      if (platformNeedsManualThumb) {
+        const hasThumb =
+          (thumbnailMode === "upload" && uploadedThumbUrl) ||
+          (thumbnailMode === "url" && (formData.get("thumbnail_url") as string));
+        if (!hasThumb) {
+          setError(
+            "TikTok / Instagram は自動取得が不安定なため、サムネイル画像をアップロードしてください。"
+          );
+          setSaving(false);
+          return;
+        }
+      }
+    }
 
     const result = await addPortfolioItem(formData);
     if (result?.error) {
       setError(result.error);
     } else {
       setShowForm(false);
-      setUploadedThumbUrl(null);
-      setThumbnailMode("auto");
-      setSelectedPlatform("youtube");
-      setHasPublishPermission(false);
+      resetFormState();
     }
     setSaving(false);
   };
@@ -185,6 +231,40 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           className="rounded-2xl bg-white p-6 shadow-card sm:p-8"
         >
           <h2 className="mb-6 text-lg font-bold text-[#222]">新しい作品</h2>
+
+          {/* Media type tabs: 動画 / 画像 */}
+          <div className="mb-6">
+            <div className="inline-flex gap-1 rounded-pill bg-[#F2F2F2] p-1">
+              <button
+                type="button"
+                onClick={() => setMediaType("video")}
+                className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
+                  mediaType === "video"
+                    ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.4)]"
+                    : "text-[#828282] hover:text-[#222]"
+                }`}
+              >
+                ▶ 動画
+              </button>
+              <button
+                type="button"
+                onClick={() => setMediaType("image")}
+                className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
+                  mediaType === "image"
+                    ? "bg-gradient-to-r from-neon-cyan to-neon-purple text-white shadow-[0_0_12px_rgba(77,213,247,0.4)]"
+                    : "text-[#828282] hover:text-[#222]"
+                }`}
+              >
+                ◧ 静止画
+              </button>
+            </div>
+            <p className="mt-2 text-[11px] text-[#BDBDBD]">
+              {mediaType === "video"
+                ? "YouTube / Vimeo / TikTok / Instagram の埋め込みURLで動画を登録します"
+                : "AI生成バナー・商品ビジュアル等の静止画ファイル(JPG/PNG/WebP)をアップロードします"}
+            </p>
+          </div>
+
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
@@ -195,7 +275,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 type="text"
                 required
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                placeholder="作品のタイトル"
+                placeholder={
+                  mediaType === "image"
+                    ? "作品タイトル(例: コスメD2C 春バナー A案)"
+                    : "作品のタイトル"
+                }
               />
             </div>
 
@@ -207,10 +291,103 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 name="description"
                 rows={3}
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                placeholder="作品の概要や制作の背景"
+                placeholder={
+                  mediaType === "image"
+                    ? "使用AIツール・コンセプト・制作背景など"
+                    : "作品の概要や制作の背景"
+                }
               />
             </div>
 
+            {mediaType === "image" ? (
+              <>
+                {/* === 画像アップロード === */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+                    画像ファイル <span className="text-red-500">*</span>
+                  </label>
+                  {uploadedImageUrl ? (
+                    <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={uploadedImageUrl}
+                        alt="ポートフォリオ画像"
+                        className="h-24 w-24 rounded object-cover"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-700">
+                          アップロード完了
+                        </p>
+                        <p className="mt-0.5 text-xs text-green-600/80">
+                          そのままポートフォリオに表示されます
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setUploadedImageUrl(null)}
+                        className="text-xs text-[#828282] hover:text-red-500"
+                      >
+                        取り消し
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleImageUpload(file);
+                        }}
+                        disabled={uploadingImage}
+                        className="hidden"
+                        id="portfolio-image-input"
+                      />
+                      <label
+                        htmlFor="portfolio-image-input"
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-neon-cyan/40 bg-neon-cyan/5 px-4 py-10 text-center transition-colors hover:border-neon-cyan hover:bg-neon-cyan/10 ${
+                          uploadingImage
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }`}
+                      >
+                        {uploadingImage ? (
+                          <>
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neon-cyan/30 border-t-neon-cyan" />
+                            <span className="text-xs text-[#828282]">
+                              アップロード中...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              className="h-8 w-8 text-neon-cyan"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={1.5}
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
+                              />
+                            </svg>
+                            <span className="text-sm font-bold text-neon-purple-deep">
+                              クリックして画像を選択
+                            </span>
+                            <span className="text-[10px] text-[#BDBDBD]">
+                              JPG / PNG / WebP(5MB以下)
+                            </span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
               <div className="flex items-start gap-2">
                 <svg
@@ -439,6 +616,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 </div>
               )}
             </div>
+              </>
+            )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
@@ -496,14 +675,21 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                resetFormState();
+              }}
               className="btn-white text-sm"
             >
               キャンセル
             </button>
             <button
               type="submit"
-              disabled={saving || !hasPublishPermission}
+              disabled={
+                saving ||
+                !hasPublishPermission ||
+                (mediaType === "image" && !uploadedImageUrl)
+              }
               className="btn-primary text-sm disabled:opacity-50"
             >
               {saving ? "追加中..." : "追加する"}
@@ -617,8 +803,10 @@ function PortfolioCard({
     setTogglingFeatured(false);
   };
 
-  const platformLabel =
-    item.video_platform === "youtube"
+  const isImage = item.media_type === "image";
+  const platformLabel = isImage
+    ? "画像"
+    : item.video_platform === "youtube"
       ? "YouTube"
       : item.video_platform === "youtube_short"
         ? "Short"
@@ -688,10 +876,15 @@ function PortfolioCard({
             </span>
           </div>
         )}
-        <div className="absolute left-2 top-2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">
+        <div
+          className={`absolute left-2 top-2 rounded px-2 py-0.5 text-[10px] font-bold text-white ${
+            isImage ? "bg-gradient-to-r from-neon-cyan to-neon-purple" : "bg-black/60"
+          }`}
+        >
           {platformLabel}
         </div>
-        {/* サムネ変更ボタン (右上) */}
+        {/* サムネ変更ボタン (右上) — 画像アイテムは差し替え不要 */}
+        {!isImage && (
         <button
           type="button"
           onClick={() => setEditing(!editing)}
@@ -712,10 +905,11 @@ function PortfolioCard({
           </svg>
           {item.thumbnail_url ? "サムネ変更" : "サムネ追加"}
         </button>
+        )}
       </div>
 
-      {/* サムネ編集パネル */}
-      {editing && (
+      {/* サムネ編集パネル(動画のみ) */}
+      {!isImage && editing && (
         <div className="border-b border-ink/10 bg-paper-deep/40 p-4">
           {errorMsg && (
             <p className="mb-2 text-xs text-red-600">{errorMsg}</p>

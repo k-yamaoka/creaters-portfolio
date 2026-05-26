@@ -29,7 +29,7 @@ export function CreatorCard({ creator }: CreatorCardProps) {
         {firstPortfolio ? (
           <VideoPreviewCard
             thumbnailUrl={firstPortfolio.thumbnail_url}
-            videoUrl={firstPortfolio.video_url}
+            videoUrl={firstPortfolio.video_url ?? ""}
             videoPlatform={firstPortfolio.video_platform}
             alt={firstPortfolio.title || "ポートフォリオ"}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

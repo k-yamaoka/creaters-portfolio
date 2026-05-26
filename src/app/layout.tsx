@@ -10,18 +10,22 @@ export const metadata: Metadata = {
     template: "%s | AILIER",
   },
   description:
-    "Sora・Veo・Runway・Midjourneyを使いこなすAIクリエイターと、企業をつなぐ専門マッチングプラットフォーム。SNS広告動画・ブランドムービー・採用動画まで、AIで最短2日納品。",
+    "Sora・Veo・Runway・Midjourneyを使いこなすAIクリエイターと、企業をつなぐ専門マッチングプラットフォーム。SNS広告動画・静止画クリエイティブ・ブランドムービーまで、AIで最短2日納品。",
   keywords: [
     "AIクリエイター",
     "AI動画生成",
+    "AI画像生成",
     "Sora",
     "Veo",
     "Runway",
     "Midjourney",
+    "Stable Diffusion",
     "SNS広告動画",
+    "SNS広告バナー",
     "Meta広告",
     "TikTok広告",
     "AI動画編集",
+    "AI静止画",
     "マッチングプラットフォーム",
     "AILIER",
     "アイリエ",
@@ -33,7 +37,7 @@ export const metadata: Metadata = {
     siteName: "AILIER",
     title: "AILIER (アイリエ) — AIクリエイター特化型の企業マッチングプラットフォーム",
     description:
-      "Sora・Veo・Runwayを使いこなすAIクリエイターに、SNS広告動画・ブランドムービーを依頼できる専門プラットフォーム。最短2日納品。",
+      "Sora・Veo・Runway・Midjourneyを使いこなすAIクリエイターに、SNS広告動画・静止画クリエイティブ・ブランドムービーを依頼できる専門プラットフォーム。最短2日納品。",
   },
   twitter: {
     card: "summary_large_image",

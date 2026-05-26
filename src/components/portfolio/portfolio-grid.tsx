@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import { isVerticalVideo } from "@/lib/video-utils";
 
 const VideoPreviewCard = dynamic(
@@ -12,8 +13,10 @@ type PortfolioItem = {
   id: string;
   title: string;
   description: string;
-  video_url: string;
+  media_type?: "video" | "image";
+  video_url: string | null;
   video_platform: string;
+  image_url?: string | null;
   thumbnail_url: string | null;
   genre: string | null;
   tags: string[];
@@ -54,11 +57,14 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
 }
 
 function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
-  const verticalItems = items.filter((item) =>
-    isVerticalVideo(item.video_platform, item.video_url)
+  const imageItems = items.filter((item) => item.media_type === "image");
+  const videoItems = items.filter((item) => item.media_type !== "image");
+
+  const verticalItems = videoItems.filter((item) =>
+    isVerticalVideo(item.video_platform, item.video_url ?? "")
   );
-  const horizontalItems = items.filter(
-    (item) => !isVerticalVideo(item.video_platform, item.video_url)
+  const horizontalItems = videoItems.filter(
+    (item) => !isVerticalVideo(item.video_platform, item.video_url ?? "")
   );
 
   return (
@@ -71,7 +77,7 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
               <div className="relative aspect-video overflow-hidden rounded-xl bg-white">
                 <VideoPreviewCard
                   thumbnailUrl={item.thumbnail_url}
-                  videoUrl={item.video_url}
+                  videoUrl={item.video_url ?? ""}
                   videoPlatform={item.video_platform}
                   alt={item.title}
                   sizes="(max-width: 640px) 100vw, 50vw"
@@ -121,7 +127,7 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
                 <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-white">
                   <VideoPreviewCard
                     thumbnailUrl={item.thumbnail_url}
-                    videoUrl={item.video_url}
+                    videoUrl={item.video_url ?? ""}
                     videoPlatform={item.video_platform}
                     alt={item.title}
                     sizes="(max-width: 640px) 50vw, 25vw"
@@ -147,6 +153,72 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Static images: masonry-style grid */}
+      {imageItems.length > 0 && (
+        <div>
+          {(horizontalItems.length > 0 || verticalItems.length > 0) && (
+            <div className="mb-4 flex items-center gap-2">
+              <div className="h-px flex-1 bg-[#F2F2F2]" />
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-neon-purple-deep">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-neon-cyan to-neon-purple" />
+                静止画クリエイティブ
+              </span>
+              <div className="h-px flex-1 bg-[#F2F2F2]" />
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {imageItems.map((item) => {
+              const src = item.image_url || item.thumbnail_url;
+              return (
+                <a
+                  key={item.id}
+                  href={src ?? "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block"
+                >
+                  <div className="relative aspect-square overflow-hidden rounded-xl bg-[#F2F2F2]">
+                    {src ? (
+                      <Image
+                        src={src}
+                        alt={item.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-[#828282]">
+                        画像なし
+                      </div>
+                    )}
+                    <div className="absolute left-2 top-2 rounded bg-gradient-to-r from-neon-cyan to-neon-purple px-1.5 py-0.5 text-[9px] font-bold text-white">
+                      AI画像
+                    </div>
+                  </div>
+                  <div className="mt-2 min-w-0">
+                    <h3 className="line-clamp-2 break-words text-xs font-bold text-[#222]">
+                      {item.title}
+                    </h3>
+                    {item.tags.length > 0 && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {item.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded bg-[#F2F2F2] px-1.5 py-0.5 text-[10px] text-[#828282]"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

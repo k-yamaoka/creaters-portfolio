@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "料金体系",
   description:
-    "AILIERの料金体系。AI動画制作の標準料金と、企業無料・クリエイター15%のシンプルな手数料設計をご案内します。",
+    "AILIERの料金体系。AI動画・静止画制作の標準料金と、企業無料・クリエイター15%のシンプルな手数料設計をご案内します。",
 };
 
 export const revalidate = 3600;
@@ -14,7 +14,7 @@ export default function PricingPage() {
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-[#222] sm:text-[2.75rem]">
-          AI動画制作の標準料金
+          AI動画・静止画制作の標準料金
         </h1>
         <p className="mt-4 text-base text-[#828282]">
           登録無料。AILIERはシンプルで分かりやすい料金設計です
@@ -90,13 +90,15 @@ export default function PricingPage() {
       {/* Price examples */}
       <div className="mx-auto mt-20 max-w-2xl">
         <h2 className="text-center text-xl font-bold text-[#222]">
-          AI動画制作の費用目安
+          AI動画・静止画制作の費用目安
         </h2>
         <div className="mt-8 space-y-3">
           {[
-            { genre: "SNSショートAI動画（縦型1本）", price: "¥10,000〜¥25,000" },
-            { genre: "YouTube AI動画編集（10分）", price: "¥25,000〜¥50,000" },
+            { genre: "SNSショートAI動画(縦型1本)", price: "¥10,000〜¥25,000" },
+            { genre: "SNS広告用 静止画バナー(5枚セット)", price: "¥15,000〜¥40,000" },
+            { genre: "YouTube AI動画編集(10分)", price: "¥25,000〜¥50,000" },
             { genre: "商品・サービス紹介AI動画", price: "¥80,000〜¥250,000" },
+            { genre: "Midjourney 商品ビジュアル(10枚)", price: "¥30,000〜¥80,000" },
             { genre: "企業紹介・採用AI動画", price: "¥200,000〜¥450,000" },
             { genre: "AI絵コンテ / CM案複数パターン", price: "¥100,000〜¥600,000" },
             { genre: "Sora / Veo 活用ハイエンドAI映像", price: "¥300,000〜¥1,000,000" },

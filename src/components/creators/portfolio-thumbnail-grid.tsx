@@ -69,7 +69,7 @@ export function PortfolioThumbnailGrid({
     const c: Record<PlatformTab, number> = { all: allPortfolios.length, youtube: 0, youtube_short: 0, vimeo: 0, tiktok: 0, instagram: 0 };
     for (const { portfolio } of allPortfolios) {
       for (const tab of PLATFORM_TABS) {
-        if (tab.value !== "all" && matchPlatform(portfolio.video_platform, portfolio.video_url, tab.value)) {
+        if (tab.value !== "all" && matchPlatform(portfolio.video_platform, portfolio.video_url ?? "", tab.value)) {
           c[tab.value]++;
         }
       }
@@ -83,17 +83,17 @@ export function PortfolioThumbnailGrid({
         ? allPortfolios
         : allPortfolios.filter(({ portfolio }) =>
             Array.from(selectedPlatforms).some((tab) =>
-              matchPlatform(portfolio.video_platform, portfolio.video_url, tab)
+              matchPlatform(portfolio.video_platform, portfolio.video_url ?? "", tab)
             )
           ),
     [allPortfolios, selectedPlatforms, isAllSelected]
   );
 
   const horizontalItems = filtered.filter(
-    ({ portfolio }) => !isVerticalVideo(portfolio.video_platform, portfolio.video_url)
+    ({ portfolio }) => !isVerticalVideo(portfolio.video_platform, portfolio.video_url ?? "")
   );
   const verticalItems = filtered.filter(({ portfolio }) =>
-    isVerticalVideo(portfolio.video_platform, portfolio.video_url)
+    isVerticalVideo(portfolio.video_platform, portfolio.video_url ?? "")
   );
 
   return (
@@ -147,7 +147,7 @@ export function PortfolioThumbnailGrid({
             >
               <VideoPreviewCard
                 thumbnailUrl={portfolio.thumbnail_url}
-                videoUrl={portfolio.video_url}
+                videoUrl={portfolio.video_url ?? ""}
                 videoPlatform={portfolio.video_platform}
                 alt={portfolio.title}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -189,7 +189,7 @@ export function PortfolioThumbnailGrid({
               >
                 <VideoPreviewCard
                   thumbnailUrl={portfolio.thumbnail_url}
-                  videoUrl={portfolio.video_url}
+                  videoUrl={portfolio.video_url ?? ""}
                   videoPlatform={portfolio.video_platform}
                   alt={portfolio.title}
                   sizes="(max-width: 640px) 33vw, 20vw"

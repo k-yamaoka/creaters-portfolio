@@ -42,8 +42,8 @@ export default function HowItWorksPage() {
             },
             {
               step: "03",
-              title: "AI生成 × 編集・納品",
-              desc: "エスクロー仮払い後、AI生成 × 編集で最短2日納品。納品物を確認して検収完了で報酬が確定します。",
+              title: "AIで動画・静止画を生成 × 納品",
+              desc: "エスクロー仮払い後、AIで動画(MP4)と静止画バナー(JPG・PNG)を生成・編集し、最短2日納品。納品物を確認して検収完了で報酬が確定します。",
               color: "bg-gradient-to-r from-neon-pink to-neon-purple",
             },
           ].map((item) => (
@@ -90,8 +90,8 @@ export default function HowItWorksPage() {
             },
             {
               step: "03",
-              title: "AI生成 × 編集・納品",
-              desc: "AI生成と編集で短納期に対応し、納品。クライアントの検収完了後、エスクロー方式で確実に報酬を受け取れます。",
+              title: "AIで動画・静止画を生成 × 納品",
+              desc: "AIで動画と静止画クリエイティブを生成・編集し、短納期で納品。クライアントの検収完了後、エスクロー方式で確実に報酬を受け取れます。",
               color: "bg-neon-midnight-deep",
             },
           ].map((item) => (
@@ -129,8 +129,8 @@ export default function HowItWorksPage() {
               a: "はい、企業・AIクリエイターともに登録は完全無料です。取引成立時にシステム手数料（15%）が発生します。",
             },
             {
-              q: "どんなジャンルのAI動画を依頼できますか？",
-              a: "Sora / Veo を活用したCM・PV、Runway / Midjourney を組み合わせた商品紹介、AI絵コンテ、SNSショート動画、採用動画、企業VP、アニメーションなど幅広く対応しています。",
+              q: "どんなジャンルのAI動画・静止画を依頼できますか？",
+              a: "Sora / Veo を活用したCM・PV、Runway / Midjourney を組み合わせた商品紹介、SNS広告用バナー静止画、AI絵コンテ、SNSショート動画、採用動画、企業VP、アニメーションなど、動画・静止画ともに幅広く対応しています。",
             },
             {
               q: "支払いはどのように行われますか？",

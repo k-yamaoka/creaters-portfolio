@@ -57,6 +57,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "img.youtube.com" },
       { protocol: "https", hostname: "i.vimeocdn.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      // Supabase Storage (ポートフォリオ画像・サムネイル)
+      { protocol: "https", hostname: "quxwvikiszvobxadyday.supabase.co" },
     ],
   },
   headers: async () => [

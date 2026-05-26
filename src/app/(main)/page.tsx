@@ -100,7 +100,7 @@ export default async function HomePage() {
               <p className="mt-8 max-w-xl text-[15px] leading-[2] text-white/70">
                 Sora・Veo・Runway・Midjourney を使いこなすクリエイターに、
                 <span className="font-bold text-white">
-                  SNS広告動画・ブランドムービー・採用動画
+                  SNS広告動画・静止画クリエイティブ・ブランドムービー
                 </span>
                 を依頼できる専門マッチングプラットフォーム。
                 <br />
@@ -482,6 +482,7 @@ export default async function HomePage() {
                 tag: "お試し向け",
                 features: [
                   "縦型15秒動画 × 3本",
+                  "静止画バナー × 5枚",
                   "AB案バリエーション",
                   "修正2回まで",
                   "3営業日納品",
@@ -495,6 +496,7 @@ export default async function HomePage() {
                 tag: "もっとも人気",
                 features: [
                   "縦型15-30秒動画 × 10本",
+                  "静止画バナー × 15枚",
                   "AB案 + 派生バリエーション",
                   "修正5回まで",
                   "1週間納品",
@@ -511,6 +513,7 @@ export default async function HomePage() {
                 tag: "月次運用",
                 features: [
                   "縦型動画 30本以上",
+                  "静止画クリエイティブ 40枚以上",
                   "ABテスト設計込み",
                   "修正無制限",
                   "2週間納品",
@@ -622,13 +625,13 @@ export default async function HomePage() {
               },
               {
                 step: "STEP 3",
-                title: "AI生成 × 編集",
-                body: "クリエイターがAIで複数案を生成し、最適な編集で仕上げ",
+                title: "AIで動画・静止画を生成 × 編集",
+                body: "クリエイターがAIで動画・バナー画像を複数案生成し、最適な編集で仕上げ",
               },
               {
                 step: "STEP 4",
                 title: "納品 × 修正",
-                body: "MP4形式で納品。修正は契約プラン内で対応",
+                body: "動画(MP4) / 静止画(JPG・PNG)で納品。修正は契約プラン内で対応",
               },
             ].map((s, i) => (
               <div
