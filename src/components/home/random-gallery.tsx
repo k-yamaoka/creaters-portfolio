@@ -65,16 +65,20 @@ export function RandomGallery({
   const dbTiles = extractTiles(creators);
   const source = dbTiles.length >= 5 ? dbTiles : FALLBACK_VIDEOS;
 
-  const NUM_COLS = 5;
-  const columns = buildColumns(source, NUM_COLS, 5);
+  // 画面いっぱいの「動画の壁」感を出すため大幅増量
+  // (lg 画面で 7 カラム × 8 タイル = 56 スロット)
+  const NUM_COLS = 7;
+  const columns = buildColumns(source, NUM_COLS, 8);
 
-  // 列ごとの流れる方向 (上下交互、速度も少しずつ変える)
+  // 列ごとの流れる方向 (上下交互、速度を散らして単調さを回避)
   const animClasses = [
     "animate-marquee-vertical-slow",
     "animate-marquee-vertical-reverse",
-    "animate-marquee-vertical-slow",
-    "animate-marquee-vertical-reverse-slow",
     "animate-marquee-vertical",
+    "animate-marquee-vertical-reverse-slow",
+    "animate-marquee-vertical-slow",
+    "animate-marquee-vertical-reverse",
+    "animate-marquee-vertical-reverse-slow",
   ];
 
   return (
@@ -98,8 +102,8 @@ export function RandomGallery({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-32 bg-gradient-to-b from-neon-midnight-deep to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-32 bg-gradient-to-t from-neon-midnight-deep to-transparent" />
 
-      <div className="relative h-[760px] overflow-hidden">
-        <div className="mx-auto grid h-full max-w-container grid-cols-2 gap-3 px-3 sm:grid-cols-3 sm:gap-4 sm:px-4 md:grid-cols-4 lg:grid-cols-5">
+      <div className="relative h-[100vh] min-h-[760px] overflow-hidden">
+        <div className="mx-auto grid h-full max-w-[1600px] grid-cols-3 gap-2 px-2 sm:grid-cols-4 sm:gap-3 sm:px-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
           {columns.map((col, i) => (
             <VideoColumn key={i} tiles={col} animClass={animClasses[i]} />
           ))}
@@ -130,6 +134,22 @@ function VideoColumn({
   );
 }
 
+// 動画ロード前/失敗時の placeholder グラデーション (URL ハッシュで決定)
+const PLACEHOLDER_GRADIENTS = [
+  "linear-gradient(135deg, #ff4d9d, #9d5cff)",
+  "linear-gradient(135deg, #4dd5f7, #9d5cff)",
+  "linear-gradient(135deg, #9d5cff, #5b2dd1)",
+  "linear-gradient(135deg, #ffae3b, #ff4d9d)",
+  "linear-gradient(135deg, #e83fae, #5b2dd1)",
+  "linear-gradient(135deg, #ff4d9d, #4dd5f7)",
+];
+
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
 function VideoTile({ tile }: { tile: Tile }) {
   const aspectClass =
     tile.aspect === "vertical"
@@ -138,9 +158,15 @@ function VideoTile({ tile }: { tile: Tile }) {
         ? "aspect-square"
         : "aspect-video";
 
+  // タイル URL から決定的にグラデーションを選び、動画が表示されるまでも
+  // 「空タイル」に見えないようにする
+  const gradient =
+    PLACEHOLDER_GRADIENTS[hashStr(tile.src) % PLACEHOLDER_GRADIENTS.length];
+
   return (
     <div
-      className={`relative ${aspectClass} w-full overflow-hidden rounded-2xl border border-white/10 bg-neon-midnight shadow-[0_20px_40px_-15px_rgba(0,0,0,0.6)]`}
+      className={`relative ${aspectClass} w-full overflow-hidden rounded-2xl border border-white/10 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.6)]`}
+      style={{ background: gradient }}
     >
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
