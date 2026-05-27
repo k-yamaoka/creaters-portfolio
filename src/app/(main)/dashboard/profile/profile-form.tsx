@@ -2,13 +2,24 @@
 
 import { useState } from "react";
 import { updateProfile } from "./actions";
-import { GENRES, SKILLS } from "@/lib/constants";
+import {
+  GENRES,
+  VIDEO_LENGTHS,
+  STRENGTHS,
+  MAX_STRENGTHS,
+} from "@/lib/constants";
 import type { CurrentUser } from "@/lib/supabase/queries";
 
 export function ProfileForm({ user }: { user: CurrentUser }) {
   const cp = user.creator_profile;
   const [selectedGenres, setSelectedGenres] = useState<string[]>(
     cp?.genres ?? []
+  );
+  const [selectedLengths, setSelectedLengths] = useState<string[]>(
+    cp?.video_lengths ?? []
+  );
+  const [selectedStrengths, setSelectedStrengths] = useState<string[]>(
+    cp?.strengths ?? []
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,11 +30,34 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
     );
   };
 
+  const toggleLength = (length: string) => {
+    setSelectedLengths((prev) =>
+      prev.includes(length)
+        ? prev.filter((l) => l !== length)
+        : [...prev, length]
+    );
+  };
+
+  const toggleStrength = (s: string) => {
+    setSelectedStrengths((prev) => {
+      if (prev.includes(s)) return prev.filter((x) => x !== s);
+      // 最大2件まで
+      if (prev.length >= MAX_STRENGTHS) return prev;
+      return [...prev, s];
+    });
+  };
+
+  const strengthsAtLimit =
+    selectedStrengths.length >= MAX_STRENGTHS;
+
   const handleSubmit = async (formData: FormData) => {
     setSaving(true);
     setError(null);
-    // Append selected genres
     selectedGenres.forEach((g) => formData.append("genres", g));
+    selectedLengths.forEach((l) => formData.append("video_lengths", l));
+    selectedStrengths
+      .slice(0, MAX_STRENGTHS)
+      .forEach((s) => formData.append("strengths", s));
     const result = await updateProfile(formData);
     if (result?.error) {
       setError(result.error);
@@ -98,23 +132,11 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
         </div>
       </section>
 
-      {/* Bio */}
-      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-6 text-lg font-bold text-[#222]">自己紹介</h2>
-        <textarea
-          name="bio"
-          rows={5}
-          defaultValue={cp?.bio ?? ""}
-          placeholder="あなたの経歴、得意分野、制作への想いなどを書いてください"
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-        />
-      </section>
-
       {/* Genres */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-2 text-lg font-bold text-[#222]">得意ジャンル</h2>
         <p className="mb-4 text-sm text-[#828282]">
-          該当するジャンルを選択してください（複数選択可）
+          該当するジャンルを選択してください(複数選択可)
         </p>
         <div className="flex flex-wrap gap-2">
           {GENRES.map((genre) => (
@@ -134,29 +156,90 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
         </div>
       </section>
 
-      {/* Skills */}
+      {/* Video Lengths */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-2 text-lg font-bold text-[#222]">スキル</h2>
+        <h2 className="mb-2 text-lg font-bold text-[#222]">得意映像尺</h2>
         <p className="mb-4 text-sm text-[#828282]">
-          カンマ区切りで入力してください
+          得意な動画の長さを選択してください(複数選択可)
         </p>
-        <input
-          name="skills"
-          type="text"
-          defaultValue={cp?.skills?.join(", ") ?? ""}
-          placeholder="例: Premiere Pro, After Effects, カラーグレーディング"
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-        />
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {SKILLS.map((skill) => (
-            <span
-              key={skill}
-              className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#828282]"
+        <div className="flex flex-wrap gap-2">
+          {VIDEO_LENGTHS.map((length) => (
+            <button
+              key={length}
+              type="button"
+              onClick={() => toggleLength(length)}
+              className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
+                selectedLengths.includes(length)
+                  ? "border-neon-cyan bg-gradient-to-r from-neon-cyan to-neon-purple text-white"
+                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-cyan"
+              }`}
             >
-              {skill}
-            </span>
+              {length}
+            </button>
           ))}
         </div>
+      </section>
+
+      {/* Strengths */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <div className="mb-2 flex items-baseline justify-between gap-3">
+          <h2 className="text-lg font-bold text-[#222]">強み</h2>
+          <span
+            className={`text-xs font-bold ${
+              strengthsAtLimit ? "text-neon-pink" : "text-[#828282]"
+            }`}
+          >
+            {selectedStrengths.length} / {MAX_STRENGTHS}
+          </span>
+        </div>
+        <p className="mb-4 text-sm text-[#828282]">
+          最大 {MAX_STRENGTHS} つまで選択できます。AIの中でも自分を選ぶ理由を絞り込みます。
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {STRENGTHS.map((s) => {
+            const active = selectedStrengths.includes(s);
+            const disabled = !active && strengthsAtLimit;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => toggleStrength(s)}
+                disabled={disabled}
+                aria-pressed={active}
+                className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "border-neon-pink bg-neon-pink text-white shadow-[0_0_14px_rgba(255,77,157,0.4)]"
+                    : disabled
+                      ? "cursor-not-allowed border-[#E0E0E0] text-[#BDBDBD] opacity-60"
+                      : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-pink"
+                }`}
+                title={disabled ? `最大${MAX_STRENGTHS}つまで` : undefined}
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+        {strengthsAtLimit && (
+          <p className="mt-3 text-xs text-neon-purple-deep">
+            ✓ {MAX_STRENGTHS}つ選択済み。変更する場合はチェック済みを外してください。
+          </p>
+        )}
+      </section>
+
+      {/* Bio (最下部) */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <h2 className="mb-2 text-lg font-bold text-[#222]">自己紹介</h2>
+        <p className="mb-4 text-sm text-[#828282]">
+          あなたの強み・使用AIツール・実績・制作への想いなどを記入してください
+        </p>
+        <textarea
+          name="bio"
+          rows={6}
+          defaultValue={cp?.bio ?? ""}
+          placeholder="例: 元・広告代理店プランナー。Meta広告のAB案を1週間で50案出すスタイル。Sora 2 + Runway での合成編集が得意で、コスメD2C・SaaS業界での実績多数。"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+        />
       </section>
 
       {/* Submit */}

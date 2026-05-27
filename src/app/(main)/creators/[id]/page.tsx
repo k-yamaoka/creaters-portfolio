@@ -180,20 +180,43 @@ export default async function CreatorDetailPage({
               )}
             </div>
 
-            {/* AI Tools / Skills */}
-            {creator.skills.length > 0 && (
+            {/* 強み */}
+            {creator.strengths.length > 0 && (
+              <div className="rounded-xl border-2 border-ink/10 bg-white p-6 shadow-pop sm:p-8">
+                <h2 className="text-lg font-black text-ink">
+                  <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle" />
+                  強み
+                </h2>
+                <p className="mt-1 text-xs text-ink-muted">
+                  AIクリエイターの中で「この人を選ぶ理由」
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {creator.strengths.map((s) => (
+                    <span
+                      key={s}
+                      className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-[0_0_12px_rgba(255,77,157,0.35)]"
+                    >
+                      ✦ {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 得意映像尺 */}
+            {creator.video_lengths.length > 0 && (
               <div className="rounded-xl border-2 border-ink/10 bg-white p-6 shadow-pop sm:p-8">
                 <h2 className="text-lg font-black text-ink">
                   <span className="inline-block h-2 w-2 rounded-full bg-neon-cyan mr-2 align-middle" />
-                  使用AIツール・スキル
+                  得意映像尺
                 </h2>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {creator.skills.map((skill) => (
+                  {creator.video_lengths.map((l) => (
                     <span
-                      key={skill}
-                      className="rounded-pill bg-neon-midnight-deep px-3 py-1.5 text-xs font-bold text-white"
+                      key={l}
+                      className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-purple-deep"
                     >
-                      {skill}
+                      {l}
                     </span>
                   ))}
                 </div>

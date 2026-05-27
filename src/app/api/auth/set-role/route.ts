@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
       await supabase.from("creator_profiles").insert({
         user_id: user.id,
         bio: "",
-        skills: [],
+        video_lengths: [],
+        strengths: [],
         genres: [],
         years_of_experience: 0,
       });

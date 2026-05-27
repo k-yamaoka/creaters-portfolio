@@ -31,7 +31,8 @@ export function CreatorsPageClient({
         (c) =>
           (c.profiles.display_name ?? "").toLowerCase().includes(kw) ||
           (c.bio ?? "").toLowerCase().includes(kw) ||
-          (c.skills ?? []).some((s) => s.toLowerCase().includes(kw)) ||
+          (c.strengths ?? []).some((s) => s.toLowerCase().includes(kw)) ||
+          (c.video_lengths ?? []).some((l) => l.toLowerCase().includes(kw)) ||
           (c.genres ?? []).some((g) => g.toLowerCase().includes(kw))
       );
     }
@@ -39,16 +40,6 @@ export function CreatorsPageClient({
     if (filters.genres && filters.genres.length > 0) {
       result = result.filter((c) =>
         filters.genres!.some((g) => c.genres.includes(g))
-      );
-    }
-
-    if (filters.platforms && filters.platforms.length > 0) {
-      result = result.filter((c) =>
-        filters.platforms!.some(
-          (p) =>
-            c.genres.some((g) => g.toLowerCase().includes(p.toLowerCase())) ||
-            c.skills.some((s) => s.toLowerCase().includes(p.toLowerCase()))
-        )
       );
     }
 
@@ -388,23 +379,28 @@ function CreatorRow({
             </p>
           )}
 
-          {(creator.genres.length > 0 || creator.skills.length > 0) && (
+          {(creator.genres.length > 0 ||
+            creator.strengths.length > 0 ||
+            creator.video_lengths.length > 0) && (
             <div className="mt-3 flex flex-wrap gap-1.5">
-              {creator.genres.slice(0, 4).map((g) => (
+              {creator.strengths.slice(0, 2).map((s) => (
+                <span
+                  key={`st-${s}`}
+                  className="inline-flex items-center gap-1 rounded-pill bg-neon-pink/15 px-2.5 py-1 text-[11px] font-bold text-neon-pink"
+                >
+                  ✦ {s}
+                </span>
+              ))}
+              {creator.genres.slice(0, 3).map((g) => (
                 <span key={`g-${g}`} className="chip">
                   {g}
                 </span>
               ))}
-              {creator.skills.slice(0, 4).map((s) => (
-                <span key={`s-${s}`} className="chip-outline">
-                  {s}
+              {creator.video_lengths.slice(0, 2).map((l) => (
+                <span key={`l-${l}`} className="chip-outline">
+                  {l}
                 </span>
               ))}
-              {creator.skills.length + creator.genres.length > 8 && (
-                <span className="text-xs text-ink-soft">
-                  +{creator.skills.length + creator.genres.length - 8}
-                </span>
-              )}
             </div>
           )}
         </div>

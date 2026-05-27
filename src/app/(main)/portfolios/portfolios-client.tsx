@@ -25,7 +25,8 @@ export function PortfoliosPageClient({
         (c) =>
           (c.profiles.display_name ?? "").toLowerCase().includes(kw) ||
           (c.bio ?? "").toLowerCase().includes(kw) ||
-          (c.skills ?? []).some((s) => s.toLowerCase().includes(kw)) ||
+          (c.strengths ?? []).some((s) => s.toLowerCase().includes(kw)) ||
+          (c.video_lengths ?? []).some((l) => l.toLowerCase().includes(kw)) ||
           (c.genres ?? []).some((g) => g.toLowerCase().includes(kw))
       );
     }
@@ -33,16 +34,6 @@ export function PortfoliosPageClient({
     if (filters.genres && filters.genres.length > 0) {
       result = result.filter((c) =>
         filters.genres!.some((g) => c.genres.includes(g))
-      );
-    }
-
-    if (filters.platforms && filters.platforms.length > 0) {
-      result = result.filter((c) =>
-        filters.platforms!.some(
-          (p) =>
-            c.genres.some((g) => g.toLowerCase().includes(p.toLowerCase())) ||
-            c.skills.some((s) => s.toLowerCase().includes(p.toLowerCase()))
-        )
       );
     }
 

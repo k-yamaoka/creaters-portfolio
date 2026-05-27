@@ -17,11 +17,14 @@ export async function updateProfile(formData: FormData) {
   const years_of_experience = parseInt(
     (formData.get("years_of_experience") as string) || "0"
   );
-  const skills = (formData.get("skills") as string)
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
   const genres = formData.getAll("genres") as string[];
+  const video_lengths = formData.getAll("video_lengths") as string[];
+  const strengths_raw = formData.getAll("strengths") as string[];
+  // 強みは最大2つまで(DB制約と二重に防御)
+  if (strengths_raw.length > 2) {
+    return { error: "強みは最大2つまで選択できます" };
+  }
+  const strengths = strengths_raw.slice(0, 2);
 
   // Update profile (display_name)
   const { error: profileError } = await supabase
@@ -40,32 +43,28 @@ export async function updateProfile(formData: FormData) {
     .eq("user_id", user.id)
     .single();
 
+  const payload = {
+    bio,
+    video_lengths,
+    strengths,
+    genres,
+    location: location || null,
+    years_of_experience,
+  };
+
   if (existing) {
-    // Update
     const { error } = await supabase
       .from("creator_profiles")
-      .update({
-        bio,
-        skills,
-        genres,
-        location: location || null,
-        years_of_experience,
-      })
+      .update(payload)
       .eq("user_id", user.id);
 
     if (error) {
       return { error: "クリエイタープロフィールの更新に失敗しました" };
     }
   } else {
-    // Insert
-    const { error } = await supabase.from("creator_profiles").insert({
-      user_id: user.id,
-      bio,
-      skills,
-      genres,
-      location: location || null,
-      years_of_experience,
-    });
+    const { error } = await supabase
+      .from("creator_profiles")
+      .insert({ user_id: user.id, ...payload });
 
     if (error) {
       return { error: "クリエイタープロフィールの作成に失敗しました" };

@@ -6,7 +6,8 @@ export type Creator = {
   display_name: string;
   avatar_url: string | null;
   bio: string;
-  skills: string[];
+  video_lengths: string[];
+  strengths: string[];
   genres: string[];
   location: string | null;
   years_of_experience: number;
@@ -76,7 +77,6 @@ export type Message = {
 export type CreatorSearchFilters = {
   keyword?: string;
   genres?: string[];
-  platforms?: string[];
   budgetMin?: number;
   budgetMax?: number;
   deliveryDays?: number;
@@ -86,7 +86,6 @@ export type CreatorSearchFilters = {
 export type JobSearchFilters = {
   keyword?: string;
   genres?: string[];
-  platforms?: string[];
   statusFilter?: "all" | "open";
   sortBy?: "newest" | "popular" | "price_high" | "deadline";
 };

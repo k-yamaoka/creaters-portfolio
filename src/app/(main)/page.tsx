@@ -5,6 +5,7 @@ import {
   Blob,
 } from "@/components/ui/illustrations";
 import { NeonStar, RetroSun } from "@/components/ui/illustrations-retrowave";
+import { RandomGallery } from "@/components/home/random-gallery";
 
 const AI_TOOLS = [
   { name: "Sora 2", category: "Video", color: "from-neon-pink to-neon-purple" },
@@ -337,7 +338,10 @@ export default async function HomePage() {
                   "linear-gradient(135deg, #9d5cff 0%, #5b2dd1 100%)",
                   "linear-gradient(135deg, #ffae3b 0%, #ff4d9d 100%)",
                 ];
-                const skills = c.skills?.slice(0, 3) ?? [];
+                const skills = (c.strengths?.length
+                  ? c.strengths
+                  : c.video_lengths?.slice(0, 2)
+                ) ?? [];
                 const minPrice = c.service_packages
                   ?.filter((p) => p.is_active)
                   .reduce<number | null>(
@@ -653,6 +657,11 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* =================================================
+          Random Gallery — 全クリエイターの作品を散らばり配置
+          ================================================= */}
+      <RandomGallery creators={allCreators} maxItems={18} />
 
       {/* =================================================
           Closing CTA

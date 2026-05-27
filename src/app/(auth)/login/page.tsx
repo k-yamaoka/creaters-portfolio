@@ -42,9 +42,26 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
       <div className="pointer-events-none absolute -left-32 top-0 h-[300px] w-[300px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
       <div className="pointer-events-none absolute -right-24 bottom-0 h-[260px] w-[260px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+
+      {/* Close button → top */}
+      <Link
+        href="/"
+        aria-label="閉じてトップへ戻る"
+        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/10 hover:text-neon-pink"
+      >
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </Link>
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">

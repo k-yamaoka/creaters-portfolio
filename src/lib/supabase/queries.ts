@@ -4,7 +4,8 @@ export type CreatorWithRelations = {
   id: string;
   user_id: string;
   bio: string;
-  skills: string[];
+  video_lengths: string[];
+  strengths: string[];
   genres: string[];
   location: string | null;
   years_of_experience: number;
@@ -26,6 +27,7 @@ export type CreatorWithRelations = {
     video_platform: string;
     image_url: string | null;
     thumbnail_url: string | null;
+    aspect_ratio: "vertical" | "horizontal" | "square";
     genre: string | null;
     tags: string[];
     is_featured?: boolean;
@@ -56,7 +58,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, genre, tags
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, genre, tags
       ),
       service_packages (
         id, name, description, price, delivery_days, revisions, features, is_active
@@ -89,7 +91,7 @@ export async function getCreatorById(
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, genre, tags
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, genre, tags
       ),
       service_packages (
         id, name, description, price, delivery_days, revisions, features, is_active
@@ -117,7 +119,8 @@ export type CurrentUser = {
   creator_profile?: {
     id: string;
     bio: string;
-    skills: string[];
+    video_lengths: string[];
+    strengths: string[];
     genres: string[];
     location: string | null;
     years_of_experience: number;
@@ -175,7 +178,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (profile.role === "creator") {
     const { data } = await supabase
       .from("creator_profiles")
-      .select("id, bio, skills, genres, location, years_of_experience, rating, review_count")
+      .select("id, bio, video_lengths, strengths, genres, location, years_of_experience, rating, review_count")
       .eq("user_id", user.id)
       .single();
     creator_profile = data ?? undefined;

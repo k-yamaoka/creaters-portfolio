@@ -100,7 +100,22 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
+      <div className="relative flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
+        <Link
+          href="/"
+          aria-label="閉じてトップへ戻る"
+          className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/10 hover:text-neon-pink"
+        >
+          <svg
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Link>
         <div className="w-full max-w-md">
           <div className="rounded-2xl bg-white p-8 text-center shadow-card">
             <div className="mb-4 text-4xl">✉️</div>
@@ -145,7 +160,23 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4 py-12">
+      {/* Close button → top */}
+      <Link
+        href="/"
+        aria-label="閉じてトップへ戻る"
+        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/10 hover:text-neon-pink"
+      >
+        <svg
+          className="h-5 w-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2}
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </Link>
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">

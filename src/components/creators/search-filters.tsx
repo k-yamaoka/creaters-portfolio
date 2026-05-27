@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GENRES, PLATFORMS } from "@/lib/constants";
+import { GENRES } from "@/lib/constants";
 import type { CreatorSearchFilters } from "@/types/database";
 
 type SearchFiltersProps = {
@@ -88,7 +88,6 @@ export function SearchFilters({
   resultCount,
 }: SearchFiltersProps) {
   const [genreOpen, setGenreOpen] = useState(true);
-  const [platformOpen, setPlatformOpen] = useState(true);
 
   const updateFilter = (update: Partial<CreatorSearchFilters>) => {
     onFilterChange({ ...filters, ...update });
@@ -102,22 +101,12 @@ export function SearchFilters({
     updateFilter({ genres: updated.length > 0 ? updated : undefined });
   };
 
-  const togglePlatform = (platform: string) => {
-    const current = filters.platforms || [];
-    const updated = current.includes(platform)
-      ? current.filter((p) => p !== platform)
-      : [...current, platform];
-    updateFilter({ platforms: updated.length > 0 ? updated : undefined });
-  };
-
   const clearFilters = () => {
     onFilterChange({ sortBy: "recommended" });
   };
 
   const hasActiveFilters =
-    filters.keyword ||
-    (filters.genres && filters.genres.length > 0) ||
-    (filters.platforms && filters.platforms.length > 0);
+    filters.keyword || (filters.genres && filters.genres.length > 0);
 
   return (
     <aside className="w-full shrink-0 lg:w-[260px]">
@@ -162,53 +151,6 @@ export function SearchFilters({
                     }`}
                   >
                     {genre}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Platform */}
-        <div className="rounded-2xl bg-white p-5 shadow-card">
-          <button
-            type="button"
-            onClick={() => setPlatformOpen(!platformOpen)}
-            className="flex w-full items-center justify-between"
-          >
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
-              プラットフォーム
-            </h3>
-            <svg
-              className={`h-4 w-4 text-[#BDBDBD] transition-transform ${platformOpen ? "rotate-180" : ""}`}
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m19.5 8.25-7.5 7.5-7.5-7.5"
-              />
-            </svg>
-          </button>
-          {platformOpen && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {PLATFORMS.map((platform) => {
-                const isActive = filters.platforms?.includes(platform);
-                return (
-                  <button
-                    key={platform}
-                    type="button"
-                    onClick={() => togglePlatform(platform)}
-                    className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
-                      isActive
-                        ? "border-neon-pink bg-neon-pink text-white"
-                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-pink hover:text-neon-pink"
-                    }`}
-                  >
-                    {platform}
                   </button>
                 );
               })}

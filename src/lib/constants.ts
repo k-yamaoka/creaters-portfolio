@@ -1,35 +1,56 @@
+// AILIER 制作ジャンル (13項目 / 2026-05 リブランド)
 export const GENRES = [
-  "広告・SNS動画",
-  "ショート",
-  "解説ビデオ",
-  "ファミリー・トラベルビデオ",
-  "ゲーム動画",
-  "ウェディング・イベントビデオ",
-  "コーポレートビデオ",
+  "SNS広告動画",
+  "ブランドムービー",
+  "採用動画",
+  "プロダクト紹介動画",
+  "サービス解説動画(Explainer)",
+  "LP用ヒーロー動画",
   "ミュージックビデオ",
-  "プロフィールムービー",
-  "VR ・ 360°動画",
+  "新商品ローンチ動画",
+  "展示会・イベント映像",
+  "AIアバター・キャラクター動画",
+  "多言語ローカライズ動画",
+  "ショートフィルム・アート映像",
+  "その他カスタム動画",
 ] as const;
 
-export const PLATFORMS = [
-  "SNS",
-  "Youtube",
-  "Instagram",
-  "Tiktok",
+// 得意映像尺 (8項目、複数選択)
+export const VIDEO_LENGTHS = [
+  "〜6秒",
+  "〜15秒(SNS広告標準)",
+  "〜30秒(SNS広告長め)",
+  "〜60秒",
+  "1〜3分(解説動画 / ショートドラマ)",
+  "3〜10分(長尺解説 / ドキュメンタリー)",
+  "10分以上(長尺コンテンツ)",
+  "ループ動画(無限再生用 / GIF代替)",
 ] as const;
 
-export const SKILLS = [
-  "Premiere Pro",
-  "After Effects",
-  "DaVinci Resolve",
-  "Final Cut Pro",
-  "モーショングラフィックス",
-  "カラーグレーディング",
-  "サウンドデザイン",
-  "3DCG",
-  "ドローン撮影",
-  "撮影ディレクション",
+// 強み (11項目、最大2つまで選択)
+export const STRENGTHS = [
+  "土日対応可能",
+  "夜間対応可",
+  "1時間以内返信",
+  "スピード納品",
+  "緊急案件対応可",
+  "多言語ローカライズ対応",
+  "気軽に相談OK",
+  "映像制作会社出身",
+  "こだわり高品質型",
+  "トレンド先取り型",
+  "大手企業実績あり",
 ] as const;
+export const MAX_STRENGTHS = 2;
+
+// ポートフォリオ検索用フォーマット(アスペクト比) - 4項目
+export const PORTFOLIO_FORMATS = [
+  { value: "all", label: "全て" },
+  { value: "vertical", label: "縦型(9:16)" },
+  { value: "horizontal", label: "横型(16:9)" },
+  { value: "square", label: "正方形" },
+] as const;
+export type PortfolioFormat = (typeof PORTFOLIO_FORMATS)[number]["value"];
 
 export const RATING_LEVELS = [
   { value: 3, label: "満足", emoji: "😊" },
