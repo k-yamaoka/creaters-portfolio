@@ -48,6 +48,11 @@ export default async function HomePage() {
   return (
     <>
       {/* =================================================
+          Random Gallery — トップ最上部に配置(訪問者の最初の体験)
+          ================================================= */}
+      <RandomGallery creators={allCreators} maxItems={30} />
+
+      {/* =================================================
           HERO — Dark midnight neon
           ================================================= */}
       <section className="relative overflow-hidden bg-neon-midnight-deep text-white">
@@ -657,11 +662,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* =================================================
-          Random Gallery — 全クリエイターの作品を散らばり配置
-          ================================================= */}
-      <RandomGallery creators={allCreators} maxItems={18} />
 
       {/* =================================================
           Closing CTA
