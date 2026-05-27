@@ -18,21 +18,17 @@ type Tile = {
 // MP4 直リンク (DB 由来 or フォールバック) でない動画は除外
 const MP4_RE = /\.mp4(\?|$)/i;
 
-// DB が空のときに使うフォールバック (CC ライセンス)
+// DB が空のときに使うフォールバック (CC ライセンス、公開 CDN で 200 確認済み)
 const FALLBACK_VIDEOS: Tile[] = [
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", aspect: "vertical" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", aspect: "vertical" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", aspect: "vertical" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4", aspect: "horizontal" },
-  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4", aspect: "square" },
+  { src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4", aspect: "horizontal" },
+  { src: "https://media.w3.org/2010/05/sintel/trailer.mp4", aspect: "horizontal" },
+  { src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4", aspect: "vertical" },
+  { src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", aspect: "vertical" },
+  { src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_5MB.mp4", aspect: "vertical" },
+  { src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4", aspect: "horizontal" },
+  { src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4", aspect: "horizontal" },
+  { src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/Jellyfish_1080_10s_5MB.mp4", aspect: "horizontal" },
+  { src: "https://www.w3schools.com/html/mov_bbb.mp4", aspect: "square" },
 ];
 
 function extractTiles(creators: CreatorWithRelations[]): Tile[] {
@@ -154,7 +150,7 @@ function VideoTile({ tile }: { tile: Tile }) {
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="auto"
         className="h-full w-full object-cover"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neon-midnight-deep/30" />
