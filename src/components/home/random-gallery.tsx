@@ -1,64 +1,78 @@
+import type { CreatorWithRelations } from "@/lib/supabase/queries";
+
 /**
  * トップ最上部の縦スクロール ビデオウォール。
  * - 5 カラムの動画が縦方向にゆっくり流れる(列ごとに上下方向を反転)
- * - 全カラムは autoplay loop muted で常時ループ再生
+ * - 各タイルは autoplay loop muted で常時ループ再生
  * - 見出し/CTA は持たない(完全装飾セクション)
- * - サンプル動画は公開 CDN (Google sample bucket) の CC ライセンス物を使用
+ * - DB に登録された MP4 ポートフォリオから自動取得
+ * - DB が空のときは公開 CDN のサンプルにフォールバック
  */
 
 type Tile = {
   src: string;
-  poster?: string;
+  poster?: string | null;
   aspect: "vertical" | "horizontal" | "square";
 };
 
-// 公開 CC ライセンス サンプル動画 (Google sample bucket / Cloudflare)
-// 本番ではクリエイター実作品 (Cloudflare Stream 等) に差し替え予定
-const SAMPLE_VIDEOS: string[] = [
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+// MP4 直リンク (DB 由来 or フォールバック) でない動画は除外
+const MP4_RE = /\.mp4(\?|$)/i;
+
+// DB が空のときに使うフォールバック (CC ライセンス)
+const FALLBACK_VIDEOS: Tile[] = [
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", aspect: "vertical" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4", aspect: "vertical" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4", aspect: "vertical" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4", aspect: "horizontal" },
+  { src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4", aspect: "square" },
 ];
 
-// 5 カラム × 5 タイル の見せ場 (列ごとにアスペクト比を散らす)
-const COLUMN_PATTERNS: Tile["aspect"][][] = [
-  ["vertical", "horizontal", "square", "vertical", "horizontal"],
-  ["horizontal", "vertical", "vertical", "square", "horizontal"],
-  ["square", "horizontal", "vertical", "horizontal", "vertical"],
-  ["vertical", "square", "horizontal", "vertical", "square"],
-  ["horizontal", "vertical", "square", "horizontal", "vertical"],
-];
-
-function buildColumn(colIdx: number, sampleOffset: number): Tile[] {
-  const pattern = COLUMN_PATTERNS[colIdx % COLUMN_PATTERNS.length];
-  return pattern.map((aspect, i) => ({
-    src: SAMPLE_VIDEOS[
-      (sampleOffset + colIdx * pattern.length + i) % SAMPLE_VIDEOS.length
-    ],
-    aspect,
-  }));
+function extractTiles(creators: CreatorWithRelations[]): Tile[] {
+  const tiles: Tile[] = [];
+  for (const creator of creators) {
+    for (const p of creator.portfolio_items) {
+      if (p.media_type !== "video") continue;
+      if (!p.video_url || !MP4_RE.test(p.video_url)) continue;
+      tiles.push({
+        src: p.video_url,
+        poster: p.thumbnail_url,
+        aspect: p.aspect_ratio,
+      });
+    }
+  }
+  return tiles;
 }
 
-export function RandomGallery() {
-  const columns: Tile[][] = [
-    buildColumn(0, 0),
-    buildColumn(1, 3),
-    buildColumn(2, 6),
-    buildColumn(3, 1),
-    buildColumn(4, 8),
-  ];
+// 列ごとに 5 枚ずつ配るシンプルなラウンドロビン
+function buildColumns(tiles: Tile[], numColumns: number, perColumn = 5): Tile[][] {
+  const columns: Tile[][] = Array.from({ length: numColumns }, () => []);
+  if (tiles.length === 0) return columns;
+  for (let i = 0; i < numColumns * perColumn; i++) {
+    columns[i % numColumns].push(tiles[i % tiles.length]);
+  }
+  return columns;
+}
 
-  // 列ごとの流れる方向 (上下交互)
+export function RandomGallery({
+  creators = [],
+}: {
+  creators?: CreatorWithRelations[];
+}) {
+  const dbTiles = extractTiles(creators);
+  const source = dbTiles.length >= 5 ? dbTiles : FALLBACK_VIDEOS;
+
+  const NUM_COLS = 5;
+  const columns = buildColumns(source, NUM_COLS, 5);
+
+  // 列ごとの流れる方向 (上下交互、速度も少しずつ変える)
   const animClasses = [
     "animate-marquee-vertical-slow",
     "animate-marquee-vertical-reverse",
@@ -84,11 +98,10 @@ export function RandomGallery() {
         }}
       />
 
-      {/* 上下のフェード(セクション端と背景を馴染ませる) */}
+      {/* 上下のフェード */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-32 bg-gradient-to-b from-neon-midnight-deep to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-32 bg-gradient-to-t from-neon-midnight-deep to-transparent" />
 
-      {/* 縦カラム ビデオウォール */}
       <div className="relative h-[760px] overflow-hidden">
         <div className="mx-auto grid h-full max-w-container grid-cols-2 gap-3 px-3 sm:grid-cols-3 sm:gap-4 sm:px-4 md:grid-cols-4 lg:grid-cols-5">
           {columns.map((col, i) => (
@@ -107,7 +120,8 @@ function VideoColumn({
   tiles: Tile[];
   animClass: string;
 }) {
-  // ループのため2倍化
+  if (tiles.length === 0) return <div />;
+  // ループ用に2倍化
   const doubled = [...tiles, ...tiles];
   return (
     <div className="relative overflow-hidden">
@@ -135,7 +149,7 @@ function VideoTile({ tile }: { tile: Tile }) {
       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video
         src={tile.src}
-        poster={tile.poster}
+        poster={tile.poster ?? undefined}
         autoPlay
         loop
         muted
@@ -143,7 +157,6 @@ function VideoTile({ tile }: { tile: Tile }) {
         preload="metadata"
         className="h-full w-full object-cover"
       />
-      {/* subtle dark overlay for cohesion with the dark theme */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neon-midnight-deep/30" />
     </div>
   );
