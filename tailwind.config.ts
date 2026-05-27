@@ -116,6 +116,14 @@ const config: Config = {
           "0%": { transform: "translateX(-50%)" },
           "100%": { transform: "translateX(0)" },
         },
+        "marquee-vertical": {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-50%)" },
+        },
+        "marquee-vertical-reverse": {
+          "0%": { transform: "translateY(-50%)" },
+          "100%": { transform: "translateY(0)" },
+        },
         "toast-in": {
           "0%": { transform: "translateX(20px)", opacity: "0" },
           "100%": { transform: "translateX(0)", opacity: "1" },
@@ -139,6 +147,10 @@ const config: Config = {
         "marquee-slow": "marquee 80s linear infinite",
         "marquee-reverse": "marquee-reverse 60s linear infinite",
         "marquee-reverse-slow": "marquee-reverse 100s linear infinite",
+        "marquee-vertical": "marquee-vertical 45s linear infinite",
+        "marquee-vertical-slow": "marquee-vertical 80s linear infinite",
+        "marquee-vertical-reverse": "marquee-vertical-reverse 55s linear infinite",
+        "marquee-vertical-reverse-slow": "marquee-vertical-reverse 90s linear infinite",
         "toast-in": "toast-in 220ms ease-out",
         wiggle: "wiggle 4s ease-in-out infinite",
         float: "float 6s ease-in-out infinite",

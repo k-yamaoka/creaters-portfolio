@@ -50,7 +50,7 @@ export default async function HomePage() {
       {/* =================================================
           Random Gallery — トップ最上部に配置(訪問者の最初の体験)
           ================================================= */}
-      <RandomGallery creators={allCreators} maxItems={30} />
+      <RandomGallery />
 
       {/* =================================================
           HERO — Dark midnight neon
