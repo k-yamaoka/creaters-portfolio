@@ -18,17 +18,15 @@ type Tile = {
 // MP4 直リンク (DB 由来 or フォールバック) でない動画は除外
 const MP4_RE = /\.mp4(\?|$)/i;
 
-// DB が空のときに使うフォールバック (CC ライセンス、公開 CDN で 200 確認済み)
+// DB が空のときに使うフォールバック
+// (test-videos.co.uk と MDN のみ採用 — 最も再生信頼性が高い)
 const FALLBACK_VIDEOS: Tile[] = [
   { src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4", aspect: "horizontal" },
-  { src: "https://media.w3.org/2010/05/sintel/trailer.mp4", aspect: "horizontal" },
   { src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4", aspect: "vertical" },
-  { src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", aspect: "vertical" },
-  { src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_5MB.mp4", aspect: "vertical" },
   { src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4", aspect: "horizontal" },
+  { src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", aspect: "vertical" },
   { src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4", aspect: "horizontal" },
-  { src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/Jellyfish_1080_10s_5MB.mp4", aspect: "horizontal" },
-  { src: "https://www.w3schools.com/html/mov_bbb.mp4", aspect: "square" },
+  { src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_2MB.mp4", aspect: "square" },
 ];
 
 function extractTiles(creators: CreatorWithRelations[]): Tile[] {
@@ -65,20 +63,16 @@ export function RandomGallery({
   const dbTiles = extractTiles(creators);
   const source = dbTiles.length >= 5 ? dbTiles : FALLBACK_VIDEOS;
 
-  // 画面いっぱいの「動画の壁」感を出すため大幅増量
-  // (lg 画面で 7 カラム × 8 タイル = 56 スロット)
-  const NUM_COLS = 7;
-  const columns = buildColumns(source, NUM_COLS, 8);
+  const NUM_COLS = 5;
+  const columns = buildColumns(source, NUM_COLS, 5);
 
   // 列ごとの流れる方向 (上下交互、速度を散らして単調さを回避)
   const animClasses = [
     "animate-marquee-vertical-slow",
     "animate-marquee-vertical-reverse",
-    "animate-marquee-vertical",
-    "animate-marquee-vertical-reverse-slow",
     "animate-marquee-vertical-slow",
-    "animate-marquee-vertical-reverse",
     "animate-marquee-vertical-reverse-slow",
+    "animate-marquee-vertical",
   ];
 
   return (
@@ -102,8 +96,8 @@ export function RandomGallery({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-32 bg-gradient-to-b from-neon-midnight-deep to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-32 bg-gradient-to-t from-neon-midnight-deep to-transparent" />
 
-      <div className="relative h-[100vh] min-h-[760px] overflow-hidden">
-        <div className="mx-auto grid h-full max-w-[1600px] grid-cols-3 gap-2 px-2 sm:grid-cols-4 sm:gap-3 sm:px-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
+      <div className="relative h-[760px] overflow-hidden">
+        <div className="mx-auto grid h-full max-w-container grid-cols-2 gap-3 px-3 sm:grid-cols-3 sm:gap-4 sm:px-4 md:grid-cols-4 lg:grid-cols-5">
           {columns.map((col, i) => (
             <VideoColumn key={i} tiles={col} animClass={animClasses[i]} />
           ))}
