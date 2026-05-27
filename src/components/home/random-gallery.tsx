@@ -12,11 +12,6 @@ type GalleryItem = {
   aspectRatio: "vertical" | "horizontal" | "square";
 };
 
-/**
- * 全クリエイターのポートフォリオから画像/サムネを集めて散らばり風に表示する。
- * 完全ランダムだと SSR <-> Client で順序がブレるので、items 順をそのまま使い
- * インデックスベースで配置パターンを循環させる。
- */
 function flattenItems(creators: CreatorWithRelations[]): GalleryItem[] {
   const items: GalleryItem[] = [];
   for (const creator of creators) {
@@ -37,64 +32,95 @@ function flattenItems(creators: CreatorWithRelations[]): GalleryItem[] {
   return items;
 }
 
-// インデックスを「散らばり感」のあるパターンに変換
-function getTileStyle(idx: number, ratio: GalleryItem["aspectRatio"]) {
-  // 縦方向の微妙なズレ (連続行で互い違いに)
-  const yOffsets = [0, 24, -16, 32, -24, 12, -32, 20];
-  const yShift = yOffsets[idx % yOffsets.length];
-
-  // 軽い傾き (固定パターンで自然な散らばり)
-  const rotates = [-1.5, 1, -0.5, 2, -2, 0.5, 1.5, -1];
-  const rotate = rotates[idx % rotates.length];
-
-  // アスペクト比 → グリッドスパン
-  const spanClasses =
-    ratio === "vertical"
-      ? "row-span-2 aspect-[9/16]"
-      : ratio === "square"
-        ? "row-span-1 aspect-square"
-        : "row-span-1 aspect-video";
-
-  return {
-    transform: `translateY(${yShift}px) rotate(${rotate}deg)`,
-    className: spanClasses,
-  };
+/**
+ * インデックスをハッシュ的にシャッフルして「ランダムっぽい順序」にするが、
+ * SSR/Client で同じ結果を返すために決定的にする。
+ */
+function shuffleStable<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    // 決定的疑似乱数 (インデックスベース)
+    const j = (i * 9301 + 49297) % (i + 1);
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
 }
 
+/**
+ * Framer 風の多段マーキー + 3D パースペクティブ ギャラリー。
+ * - 3行のタイルが反対方向にゆっくり流れる
+ * - 全体を rotateX で奥行きを出し、3D 空間っぽく見せる
+ * - ホバーでタイルが浮き上がる
+ * - 端をフェードアウトしてシームレスな印象
+ */
 export function RandomGallery({
   creators,
-  maxItems = 18,
+  maxItems = 30,
 }: {
   creators: CreatorWithRelations[];
   maxItems?: number;
 }) {
-  const items = flattenItems(creators).slice(0, maxItems);
+  const all = flattenItems(creators);
+  if (all.length === 0) return null;
 
-  if (items.length === 0) return null;
+  const shuffled = shuffleStable(all).slice(0, maxItems);
+
+  // 3 行に分配
+  const rows: GalleryItem[][] = [[], [], []];
+  shuffled.forEach((item, i) => {
+    rows[i % 3].push(item);
+  });
+
+  // 各行が空にならないようにフォールバック
+  const fallback = shuffled[0];
+  rows.forEach((row, i) => {
+    if (row.length === 0 && fallback) rows[i] = [fallback];
+  });
 
   return (
-    <section className="relative overflow-hidden bg-paper-deep py-24">
-      {/* Decorative neon glow blobs */}
-      <div className="pointer-events-none absolute -left-32 top-12 h-[400px] w-[400px] rounded-full bg-neon-pink opacity-10 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-24 bottom-12 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-15 blur-[120px]" />
+    <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
+      {/* Glow blobs */}
+      <div className="pointer-events-none absolute -left-40 top-0 h-[600px] w-[600px] rounded-full bg-neon-pink opacity-25 blur-[140px]" />
+      <div className="pointer-events-none absolute -right-32 top-40 h-[500px] w-[500px] rounded-full bg-neon-cyan opacity-20 blur-[120px]" />
+      <div className="pointer-events-none absolute left-1/2 -bottom-32 h-[400px] w-[800px] -translate-x-1/2 rounded-full bg-neon-purple opacity-20 blur-[120px]" />
 
-      <div className="relative mx-auto max-w-container px-6 lg:px-10">
-        <div className="mb-12 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+      {/* Grid background */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage:
+            "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+        }}
+      />
+
+      {/* Section header */}
+      <div className="relative mx-auto mb-16 max-w-container px-6 lg:px-10">
+        <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div>
-            <p className="eyebrow">AI クリエイティブ ギャラリー</p>
-            <h2 className="mt-4 text-[2rem] font-black leading-[1.2] tracking-tight sm:text-[2.75rem]">
-              無数の<span className="underline-yellow">AI生成作品</span>から、
+            <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+              AI CREATIVE GALLERY
+            </p>
+            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.1] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
+              無数の
+              <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                AI 作品
+              </span>
+              から、
               <br className="hidden sm:block" />
               次の一本に出会う。
             </h2>
-            <p className="mt-4 max-w-xl text-sm leading-[1.85] text-ink-muted">
-              AILIER に登録された AI クリエイターの作品から、ピックアップして並べました。
-              気になるタイルをクリックして、クリエイターのページへ。
+            <p className="mt-5 max-w-xl text-sm leading-[1.85] text-white/60">
+              AILIER に登録された AI クリエイターの作品が、流れるように。
+              気になるタイルにホバーして、クリエイターのページへ。
             </p>
           </div>
           <Link
             href="/portfolios"
-            className="group inline-flex items-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
+            className="group inline-flex items-center gap-2 rounded-pill border border-white/30 bg-white/5 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
           >
             すべての作品を見る
             <span className="transition-transform group-hover:translate-x-1">
@@ -102,51 +128,115 @@ export function RandomGallery({
             </span>
           </Link>
         </div>
+      </div>
 
-        {/* Scattered grid */}
-        <div className="grid auto-rows-[120px] grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-          {items.map((item, idx) => {
-            const { transform, className } = getTileStyle(idx, item.aspectRatio);
-            return (
-              <Link
-                key={item.key}
-                href={`/creators/${item.creatorId}`}
-                className={`group relative overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-pop transition-all duration-500 hover:-translate-y-2 hover:rotate-0 hover:shadow-[10px_10px_0_0_rgba(255,77,157,0.35)] ${className}`}
-                style={{ transform }}
-                aria-label={`${item.creatorName} の作品: ${item.alt}`}
-              >
-                <Image
-                  src={item.src}
-                  alt={item.alt}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"
-                />
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep/90 via-neon-midnight-deep/30 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                <div className="absolute bottom-2 left-2 right-2 translate-y-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                  <p className="line-clamp-2 text-[11px] font-bold text-white">
-                    {item.alt}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-white/70">
-                    by {item.creatorName}
-                  </p>
-                </div>
-                {/* Format badge */}
-                <span
-                  className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[9px] font-black text-white ${
-                    item.isImage
-                      ? "bg-gradient-to-r from-neon-cyan to-neon-purple"
-                      : "bg-neon-midnight-deep/80"
-                  }`}
-                >
-                  {item.isImage ? "AI画像" : "AI動画"}
-                </span>
-              </Link>
-            );
-          })}
+      {/* 3D Perspective stage */}
+      <div
+        className="relative"
+        style={{ perspective: "1400px", perspectiveOrigin: "center 30%" }}
+      >
+        {/* Edge fades (left/right) */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-32 bg-gradient-to-r from-neon-midnight-deep to-transparent sm:w-48" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-32 bg-gradient-to-l from-neon-midnight-deep to-transparent sm:w-48" />
+
+        <div
+          className="space-y-5"
+          style={{
+            transform: "rotateX(8deg) rotateY(-1deg)",
+            transformStyle: "preserve-3d",
+          }}
+        >
+          <MarqueeRow items={rows[0]} direction="left" speed="slow" />
+          <MarqueeRow items={rows[1]} direction="right" speed="slow" />
+          <MarqueeRow items={rows[2]} direction="left" speed="slow" />
         </div>
       </div>
     </section>
+  );
+}
+
+function MarqueeRow({
+  items,
+  direction,
+  speed,
+}: {
+  items: GalleryItem[];
+  direction: "left" | "right";
+  speed: "fast" | "slow";
+}) {
+  if (items.length === 0) return null;
+
+  // ループのため2倍化(translateX(-50%) で1セット分流れる設計)
+  const doubled = [...items, ...items];
+
+  const animClass =
+    direction === "left"
+      ? speed === "slow"
+        ? "animate-marquee-slow"
+        : "animate-marquee"
+      : speed === "slow"
+        ? "animate-marquee-reverse-slow"
+        : "animate-marquee-reverse";
+
+  return (
+    <div className="overflow-hidden">
+      <div className={`flex w-max gap-5 ${animClass}`}>
+        {doubled.map((item, i) => (
+          <GalleryTile key={`${item.key}-${i}`} item={item} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GalleryTile({ item }: { item: GalleryItem }) {
+  // アスペクト比 → サイズ (高さ固定、幅が変動)
+  const sizeClass =
+    item.aspectRatio === "vertical"
+      ? "h-[260px] w-[150px]"
+      : item.aspectRatio === "square"
+        ? "h-[260px] w-[260px]"
+        : "h-[260px] w-[460px]";
+
+  return (
+    <Link
+      href={`/creators/${item.creatorId}`}
+      className={`group relative shrink-0 ${sizeClass} overflow-hidden rounded-2xl border border-white/10 bg-neon-midnight shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:border-neon-pink/50 hover:shadow-[0_25px_80px_-15px_rgba(255,77,157,0.4)]`}
+      aria-label={`${item.creatorName} の作品: ${item.alt}`}
+    >
+      {/* Browser-chrome top bar */}
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center gap-1.5 bg-neon-midnight-deep/95 px-3 py-2 backdrop-blur-sm">
+        <span className="h-2 w-2 rounded-full bg-red-400/70" />
+        <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
+        <span className="h-2 w-2 rounded-full bg-green-400/70" />
+        <span className="ml-2 truncate text-[9px] font-mono text-white/40">
+          {item.creatorName}.ailier.jp
+        </span>
+        <span
+          className={`ml-auto rounded-full px-1.5 py-0.5 text-[8px] font-black ${
+            item.isImage
+              ? "bg-gradient-to-r from-neon-cyan to-neon-purple text-white"
+              : "bg-neon-pink/20 text-neon-pink"
+          }`}
+        >
+          {item.isImage ? "IMG" : "VIDEO"}
+        </span>
+      </div>
+
+      {/* Image */}
+      <Image
+        src={item.src}
+        alt={item.alt}
+        fill
+        className="object-cover transition-transform duration-500 group-hover:scale-110"
+        sizes="(max-width: 640px) 50vw, 25vw"
+      />
+
+      {/* Hover overlay: title + creator */}
+      <div className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/70 to-transparent p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+        <p className="line-clamp-2 text-xs font-bold text-white">{item.alt}</p>
+        <p className="mt-1 text-[10px] text-white/60">by {item.creatorName}</p>
+      </div>
+    </Link>
   );
 }
