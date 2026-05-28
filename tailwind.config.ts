@@ -140,6 +140,14 @@ const config: Config = {
           "0%, 100%": { transform: "rotate(-3deg)" },
           "50%": { transform: "rotate(3deg)" },
         },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.15", transform: "scale(1)" },
+          "50%": { opacity: "0.3", transform: "scale(1.1)" },
+        },
+        shimmer: {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         scroll: "scroll 30s linear infinite",
@@ -155,6 +163,9 @@ const config: Config = {
         wiggle: "wiggle 4s ease-in-out infinite",
         float: "float 6s ease-in-out infinite",
         sway: "sway 5s ease-in-out infinite",
+        "glow-pulse": "glow-pulse 8s ease-in-out infinite",
+        "glow-pulse-slow": "glow-pulse 14s ease-in-out infinite",
+        shimmer: "shimmer 3s linear infinite",
       },
       letterSpacing: {
         "tightest-x": "-0.02em",

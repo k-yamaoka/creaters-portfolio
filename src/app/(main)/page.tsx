@@ -226,29 +226,37 @@ export default async function HomePage() {
       {/* =================================================
           WHY AI VIDEO
           ================================================= */}
-      <section className="relative overflow-hidden bg-paper py-28">
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -left-10 top-32 text-neon-pink/20"
-        >
-          <Blob size={200} />
-        </span>
-        <span
-          aria-hidden
-          className="pointer-events-none absolute right-10 bottom-24 text-neon-cyan/30"
-        >
-          <Blob size={160} />
-        </span>
+      <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
+        {/* Glow blobs */}
+        <div className="pointer-events-none absolute -left-40 top-0 h-[500px] w-[500px] rounded-full bg-neon-pink opacity-20 blur-[140px] animate-glow-pulse" />
+        <div className="pointer-events-none absolute -right-32 bottom-0 h-[450px] w-[450px] rounded-full bg-neon-cyan opacity-15 blur-[120px] animate-glow-pulse-slow" />
+        {/* Grid overlay */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 40%, transparent 80%)",
+          }}
+        />
 
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <div className="text-center">
-            <p className="eyebrow justify-center">なぜAI動画なのか</p>
-            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
-              <span className="underline-yellow">広告クリエイティブ</span>は、
+            <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
+              WHY AI VIDEO
+            </p>
+            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.1] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
+              <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                広告クリエイティブ
+              </span>
+              は、
               <br />
               量と速さで決まる時代。
             </h2>
-            <p className="mx-auto mt-6 max-w-2xl text-sm leading-[2] text-ink-muted">
+            <p className="mx-auto mt-6 max-w-2xl text-sm leading-[2] text-white/65">
               Meta/TikTok広告で勝つには、AB案を高速で回せることが必須。
               <br />
               AILIERのAIクリエイターなら、撮影なし・低コストで、毎週新しいクリエイティブを生み出せます。
@@ -261,42 +269,58 @@ export default async function HomePage() {
                 no: "01",
                 title: "撮影費・人件費ゼロ",
                 body: "ロケ・スタジオ・出演者・機材費すべて不要。AI生成だけで完結。従来制作の1/5のコストで同等品質を実現。",
-                accent: "bg-neon-pink",
+                gradient: "from-neon-pink to-neon-purple",
+                glow: "rgba(255,77,157,0.35)",
                 badge: "Cost",
               },
               {
                 no: "02",
                 title: "AB案を10倍量産",
                 body: "1日10本の高速イテレーション。広告効果を見ながら毎週新クリエイティブを投入。勝ちパターンを発見しやすい。",
-                accent: "bg-neon-cyan",
+                gradient: "from-neon-cyan to-neon-purple",
+                glow: "rgba(77,213,247,0.35)",
                 badge: "Speed",
               },
               {
                 no: "03",
                 title: "クリエイターの専門知識",
                 body: "プロンプト力・ツール選定・ブランド整合性は人間の判断。「AI使うだけ」のフリーランスとは段違いの仕上がり。",
-                accent: "bg-neon-purple",
+                gradient: "from-neon-purple to-neon-magenta",
+                glow: "rgba(157,92,255,0.35)",
                 badge: "Quality",
               },
             ].map((item) => (
               <article
                 key={item.no}
-                className="group relative overflow-hidden rounded-xl border-2 border-ink bg-white p-8 shadow-pop transition-all hover:-translate-x-1 hover:-translate-y-1 hover:shadow-[10px_10px_0_0_rgba(42,42,50,1)] sm:p-10"
+                className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-8 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-white/25 sm:p-10"
+                style={{
+                  boxShadow: `0 20px 50px -15px ${item.glow}`,
+                }}
               >
-                <div className="flex items-center justify-between">
+                {/* Top gradient bar */}
+                <div
+                  className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${item.gradient} opacity-60`}
+                />
+                {/* Bottom glow on hover */}
+                <div
+                  className={`pointer-events-none absolute inset-x-0 -bottom-1/2 h-1/2 bg-gradient-to-t ${item.gradient} opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-30`}
+                />
+
+                <div className="relative flex items-center justify-between">
                   <span
-                    className={`inline-flex h-12 w-12 items-center justify-center rounded-pill text-white ${item.accent}`}
+                    className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.gradient} text-base font-black text-white shadow-[0_0_24px_var(--glow)]`}
+                    style={{ ["--glow" as string]: item.glow }}
                   >
-                    <span className="text-base font-black">{item.no}</span>
+                    {item.no}
                   </span>
-                  <span className="rounded-pill bg-neon-midnight-deep px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                  <span className="rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-white/80 backdrop-blur-sm">
                     {item.badge}
                   </span>
                 </div>
-                <h3 className="mt-6 text-2xl font-black sm:text-[1.7rem]">
+                <h3 className="relative mt-7 text-2xl font-black sm:text-[1.75rem]">
                   {item.title}
                 </h3>
-                <p className="mt-4 text-sm leading-[2] text-ink-muted">
+                <p className="relative mt-4 text-sm leading-[2] text-white/65">
                   {item.body}
                 </p>
               </article>
@@ -309,16 +333,25 @@ export default async function HomePage() {
           Featured creators (real Supabase data)
           ================================================= */}
       {featuredCreators.length > 0 && (
-        <section className="relative overflow-hidden bg-paper-deep py-28">
+        <section className="relative overflow-hidden bg-neon-midnight py-28 text-white">
+          <div className="pointer-events-none absolute -right-40 top-12 h-[480px] w-[480px] rounded-full bg-neon-cyan opacity-20 blur-[140px] animate-glow-pulse-slow" />
+          <div className="pointer-events-none absolute -left-32 bottom-12 h-[420px] w-[420px] rounded-full bg-neon-purple opacity-20 blur-[120px] animate-glow-pulse" />
+
           <div className="relative mx-auto max-w-container px-6 lg:px-10">
             <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
               <div>
-                <p className="eyebrow">注目のAIクリエイター</p>
-                <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem]">
+                <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+                  FEATURED CREATORS
+                </p>
+                <h2 className="mt-6 text-[2.25rem] font-black leading-[1.1] tracking-tight sm:text-[3rem]">
                   厳選された、
-                  <span className="underline-yellow">専門家</span>たち。
+                  <span className="bg-gradient-to-r from-neon-cyan via-neon-purple to-neon-pink bg-clip-text text-transparent">
+                    専門家
+                  </span>
+                  たち。
                 </h2>
-                <p className="mt-6 max-w-xl text-sm leading-[2] text-ink-muted">
+                <p className="mt-6 max-w-xl text-sm leading-[2] text-white/65">
                   各クリエイターは「使うAIツール」「得意ジャンル」「料金レンジ」が明確。
                   <br />
                   プロンプト力だけでなく、広告ディレクション力で選ばれた精鋭。
@@ -326,7 +359,7 @@ export default async function HomePage() {
               </div>
               <Link
                 href="/creators"
-                className="group inline-flex items-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
+                className="group inline-flex items-center gap-2 rounded-pill border border-white/30 bg-white/5 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
               >
                 すべて見る
                 <span className="transition-transform group-hover:translate-x-1">
@@ -358,7 +391,7 @@ export default async function HomePage() {
                   <Link
                     key={c.id}
                     href={`/creators/${c.id}`}
-                    className="group block overflow-hidden rounded-xl border-2 border-ink bg-white shadow-pop transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0_0_rgba(42,42,50,1)]"
+                    className="group block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]"
                   >
                     <div
                       className="relative aspect-[4/3] w-full"
@@ -368,8 +401,8 @@ export default async function HomePage() {
                           : gradients[idx % gradients.length],
                       }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-                      <div className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
+                      <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/30 to-transparent" />
+                      <div className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_0_12px_rgba(255,77,157,0.6)]">
                         AI
                       </div>
                       <div className="absolute bottom-3 left-3 right-3">
@@ -377,14 +410,14 @@ export default async function HomePage() {
                           {c.profiles?.display_name ?? "AIクリエイター"}
                         </p>
                         {c.location && (
-                          <p className="line-clamp-1 text-[11px] font-bold text-white/80">
+                          <p className="line-clamp-1 text-[11px] font-bold text-white/70">
                             {c.location}
                           </p>
                         )}
                       </div>
                     </div>
                     <div className="p-4">
-                      <p className="line-clamp-2 text-sm font-bold text-ink">
+                      <p className="line-clamp-2 text-sm font-bold text-white/90">
                         {c.bio || "AIクリエイター"}
                       </p>
                       {skills.length > 0 && (
@@ -392,7 +425,7 @@ export default async function HomePage() {
                           {skills.map((tool) => (
                             <span
                               key={tool}
-                              className="rounded-full bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white"
+                              className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-white/80"
                             >
                               {tool}
                             </span>
@@ -400,11 +433,11 @@ export default async function HomePage() {
                         </div>
                       )}
                       {minPrice !== null && minPrice !== undefined && (
-                        <div className="mt-4 flex items-baseline justify-between border-t border-rule pt-3">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
+                        <div className="mt-4 flex items-baseline justify-between border-t border-white/10 pt-3">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
                             from
                           </span>
-                          <span className="text-base font-black text-neon-purple-deep">
+                          <span className="text-base font-black text-neon-pink">
                             ¥{minPrice.toLocaleString()}〜
                           </span>
                         </div>
@@ -468,15 +501,24 @@ export default async function HomePage() {
       {/* =================================================
           Pricing — Packaged plans
           ================================================= */}
-      <section className="relative overflow-hidden bg-paper py-28">
+      <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
+        <div className="pointer-events-none absolute -left-32 top-12 h-[500px] w-[500px] rounded-full bg-neon-pink opacity-20 blur-[140px] animate-glow-pulse" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-[420px] w-[420px] rounded-full bg-neon-cyan opacity-15 blur-[120px] animate-glow-pulse-slow" />
+
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <div className="text-center">
-            <p className="eyebrow justify-center">パッケージ料金</p>
-            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
+            <p className="inline-flex items-center gap-2 rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-purple">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-purple" />
+              PRICING
+            </p>
+            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.1] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
               発注前に
-              <span className="underline-yellow">総額が見える</span>。
+              <span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">
+                総額が見える
+              </span>
+              。
             </h2>
-            <p className="mx-auto mt-6 max-w-xl text-sm leading-[2] text-ink-muted">
+            <p className="mx-auto mt-6 max-w-xl text-sm leading-[2] text-white/65">
               追加費用なし。シンプルな3プラン。
               <br />
               SNS広告動画の標準パッケージで、すぐに見積もり判断できる。
@@ -496,8 +538,9 @@ export default async function HomePage() {
                   "修正2回まで",
                   "3営業日納品",
                 ],
-                style: "bg-white border-ink",
-                priceColor: "text-ink",
+                gradient: "from-white/20 to-white/5",
+                glow: "rgba(157,92,255,0.25)",
+                priceColor: "text-white",
               },
               {
                 name: "スタンダード",
@@ -511,8 +554,8 @@ export default async function HomePage() {
                   "1週間納品",
                   "効果分析レポート",
                 ],
-                style:
-                  "bg-neon-midnight-deep border-neon-pink text-white shadow-[0_0_40px_rgba(255,77,157,0.3)]",
+                gradient: "from-neon-pink/30 to-neon-purple/30",
+                glow: "rgba(255,77,157,0.5)",
                 priceColor: "text-neon-pink",
                 featured: true,
               },
@@ -529,58 +572,57 @@ export default async function HomePage() {
                   "月次戦略MTG",
                   "クリエイターと直接やり取り",
                 ],
-                style: "bg-white border-ink",
-                priceColor: "text-ink",
+                gradient: "from-neon-cyan/20 to-neon-purple/20",
+                glow: "rgba(77,213,247,0.3)",
+                priceColor: "text-neon-cyan",
               },
             ].map((plan) => (
               <article
                 key={plan.name}
-                className={`relative overflow-hidden rounded-xl border-2 p-8 transition-all hover:-translate-y-1 ${plan.style} ${
-                  plan.featured ? "lg:-translate-y-4" : ""
+                className={`group relative overflow-hidden rounded-2xl border bg-white/[0.04] p-8 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 ${
+                  plan.featured
+                    ? "border-neon-pink/40 lg:-translate-y-4"
+                    : "border-white/10 hover:border-white/25"
                 }`}
+                style={{ boxShadow: `0 20px 50px -15px ${plan.glow}` }}
               >
+                {/* Decorative gradient overlay */}
+                <div
+                  className={`pointer-events-none absolute inset-x-0 -top-1/3 h-2/3 bg-gradient-to-b ${plan.gradient} opacity-50 blur-3xl`}
+                />
+
                 {plan.featured && (
-                  <div className="absolute right-6 top-6 rounded-pill bg-neon-pink px-3 py-1 text-[10px] font-black text-white">
+                  <div className="absolute right-6 top-6 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-1 text-[10px] font-black text-white shadow-[0_0_14px_rgba(255,77,157,0.6)]">
                     {plan.tag}
                   </div>
                 )}
                 {!plan.featured && (
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-ink-muted">
+                  <p className="relative text-[11px] font-bold uppercase tracking-wider text-white/50">
                     {plan.tag}
                   </p>
                 )}
-                <h3
-                  className={`mt-3 text-2xl font-black ${
-                    plan.featured ? "text-white" : "text-ink"
-                  }`}
-                >
+                <h3 className="relative mt-3 text-2xl font-black text-white">
                   {plan.name}
                 </h3>
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-sm">¥</span>
+                <div className="relative mt-6 flex items-baseline gap-1">
+                  <span className="text-sm text-white/70">¥</span>
                   <span
                     className={`text-5xl font-black tracking-tight ${plan.priceColor}`}
                   >
                     {plan.price}
                   </span>
-                  <span
-                    className={`text-xs ${plan.featured ? "text-white/60" : "text-ink-muted"}`}
-                  >
-                    〜
-                  </span>
+                  <span className="text-xs text-white/50">〜</span>
                 </div>
-                <ul className="mt-8 space-y-3">
+                <ul className="relative mt-8 space-y-3">
                   {plan.features.map((f) => (
                     <li
                       key={f}
-                      className={`flex items-start gap-2 text-sm ${
-                        plan.featured ? "text-white/90" : "text-ink"
-                      }`}
+                      className="flex items-start gap-2 text-sm text-white/85"
                     >
                       <span
                         className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full text-center text-[10px] font-bold leading-4 ${
                           plan.featured
-                            ? "bg-neon-pink text-white"
+                            ? "bg-neon-pink text-white shadow-[0_0_8px_rgba(255,77,157,0.7)]"
                             : "bg-neon-cyan text-neon-midnight-deep"
                         }`}
                       >
@@ -592,10 +634,10 @@ export default async function HomePage() {
                 </ul>
                 <Link
                   href="/creators"
-                  className={`mt-8 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
+                  className={`relative mt-8 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
                     plan.featured
-                      ? "bg-neon-pink text-white hover:bg-neon-pink-soft"
-                      : "border-2 border-ink bg-paper text-ink hover:bg-ink hover:text-paper"
+                      ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_20px_rgba(255,77,157,0.5)]"
+                      : "border border-white/30 bg-white/5 text-white backdrop-blur-sm hover:border-white/60 hover:bg-white/10"
                   }`}
                 >
                   <span>このプランで選ぶ</span>
@@ -610,17 +652,29 @@ export default async function HomePage() {
       {/* =================================================
           How it works
           ================================================= */}
-      <section id="how" className="relative overflow-hidden bg-paper-deep py-28">
-        <div className="mx-auto max-w-container px-6 lg:px-10">
+      <section id="how" className="relative overflow-hidden bg-neon-midnight py-28 text-white">
+        <div className="pointer-events-none absolute -right-32 top-12 h-[480px] w-[480px] rounded-full bg-neon-purple opacity-20 blur-[140px] animate-glow-pulse-slow" />
+        <div className="pointer-events-none absolute -left-24 bottom-0 h-[380px] w-[380px] rounded-full bg-neon-pink opacity-15 blur-[120px] animate-glow-pulse" />
+
+        <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <div className="text-center">
-            <p className="eyebrow justify-center">制作フロー</p>
-            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem]">
+            <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+              HOW IT WORKS
+            </p>
+            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.1] tracking-tight sm:text-[3rem]">
               依頼から納品まで
-              <span className="underline-yellow">最短2日</span>。
+              <span className="bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">
+                最短2日
+              </span>
+              。
             </h2>
           </div>
 
-          <div className="mt-16 grid gap-6 lg:grid-cols-4">
+          <div className="relative mt-16 grid gap-6 lg:grid-cols-4">
+            {/* Connecting line (decorative) */}
+            <div className="pointer-events-none absolute left-0 right-0 top-8 hidden h-px bg-gradient-to-r from-transparent via-neon-pink/40 to-transparent lg:block" />
+
             {[
               {
                 step: "STEP 1",
@@ -645,16 +699,17 @@ export default async function HomePage() {
             ].map((s, i) => (
               <div
                 key={s.step}
-                className="relative rounded-xl border-2 border-ink bg-white p-6 shadow-pop"
+                className="group relative rounded-2xl border border-white/10 bg-white/[0.04] p-6 pt-9 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)]"
               >
-                <span className="absolute -left-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-pill bg-gradient-to-br from-neon-pink to-neon-purple text-sm font-black text-white shadow-[0_0_15px_rgba(255,77,157,0.5)]">
+                {/* Step number bubble */}
+                <span className="absolute -top-6 left-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-pink to-neon-purple text-base font-black text-white shadow-[0_0_20px_rgba(255,77,157,0.6)]">
                   {i + 1}
                 </span>
-                <p className="text-[10px] font-bold tracking-[0.16em] text-neon-purple-deep">
+                <p className="text-[10px] font-bold tracking-[0.18em] text-neon-cyan">
                   {s.step}
                 </p>
-                <h3 className="mt-3 text-lg font-black">{s.title}</h3>
-                <p className="mt-2 text-sm leading-[1.85] text-ink-muted">
+                <h3 className="mt-3 text-lg font-black text-white">{s.title}</h3>
+                <p className="mt-2 text-sm leading-[1.85] text-white/65">
                   {s.body}
                 </p>
               </div>
