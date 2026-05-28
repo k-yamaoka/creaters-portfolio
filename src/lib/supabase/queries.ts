@@ -6,6 +6,7 @@ export type CreatorWithRelations = {
   bio: string;
   video_lengths: string[];
   strengths: string[];
+  ai_tools: string[];
   genres: string[];
   location: string | null;
   years_of_experience: number;
@@ -121,6 +122,7 @@ export type CurrentUser = {
     bio: string;
     video_lengths: string[];
     strengths: string[];
+    ai_tools: string[];
     genres: string[];
     location: string | null;
     years_of_experience: number;
@@ -178,7 +180,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (profile.role === "creator") {
     const { data } = await supabase
       .from("creator_profiles")
-      .select("id, bio, video_lengths, strengths, genres, location, years_of_experience, rating, review_count")
+      .select("id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count")
       .eq("user_id", user.id)
       .single();
     creator_profile = data ?? undefined;

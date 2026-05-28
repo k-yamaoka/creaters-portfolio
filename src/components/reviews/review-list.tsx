@@ -23,7 +23,10 @@ function getRatingDisplay(rating: number) {
 export function ReviewList({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) {
     return (
-      <p className="text-sm text-[#828282]">まだレビューはありません</p>
+      <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-5 text-sm text-white/60">
+        <span className="text-xl">🌱</span>
+        <span>まだレビューがありません。初回依頼で次の顧客に役立つ評価を残せます。</span>
+      </div>
     );
   }
 
@@ -36,29 +39,32 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
         const ratingDisplay = getRatingDisplay(review.rating);
 
         return (
-          <div key={review.id} className="border-b border-[#F2F2F2] pb-4 last:border-0">
+          <div
+            key={review.id}
+            className="border-b border-white/10 pb-4 last:border-0"
+          >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F2F2F2] text-xs font-bold text-[#828282]">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
                   {clientName[0]}
                 </div>
-                <span className="text-sm font-medium text-[#222]">
+                <span className="text-sm font-medium text-white">
                   {clientName}
                 </span>
               </div>
-              <span className="text-xs text-[#BDBDBD]">
+              <span className="text-xs text-white/50">
                 {formatDateJP(review.created_at)}
               </span>
             </div>
             {/* Emoji rating */}
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xl">{ratingDisplay.emoji}</span>
-              <span className="text-sm font-medium text-[#4F4F4F]">
+              <span className="text-sm font-medium text-white/80">
                 {ratingDisplay.label}
               </span>
             </div>
             {review.comment && (
-              <p className="mt-2 text-sm leading-relaxed text-[#4F4F4F]">
+              <p className="mt-2 text-sm leading-relaxed text-white/75">
                 {review.comment}
               </p>
             )}

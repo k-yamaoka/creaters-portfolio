@@ -19,6 +19,7 @@ export async function updateProfile(formData: FormData) {
   );
   const genres = formData.getAll("genres") as string[];
   const video_lengths = formData.getAll("video_lengths") as string[];
+  const ai_tools = formData.getAll("ai_tools") as string[];
   const strengths_raw = formData.getAll("strengths") as string[];
   // 強みは最大2つまで(DB制約と二重に防御)
   if (strengths_raw.length > 2) {
@@ -47,6 +48,7 @@ export async function updateProfile(formData: FormData) {
     bio,
     video_lengths,
     strengths,
+    ai_tools,
     genres,
     location: location || null,
     years_of_experience,

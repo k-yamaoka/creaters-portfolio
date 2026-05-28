@@ -187,6 +187,13 @@
   .text-balance {
     text-wrap: balance;
   }
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
   .shape-blob {
     border-radius: 48% 52% 70% 30% / 40% 50% 50% 60%;
   }

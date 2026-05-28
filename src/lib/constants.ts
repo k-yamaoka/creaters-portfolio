@@ -27,6 +27,46 @@ export const VIDEO_LENGTHS = [
   "ループ動画(無限再生用 / GIF代替)",
 ] as const;
 
+// 使用 AI ツール (カテゴリ別、複数選択可)
+export const AI_TOOLS: { name: string; category: string }[] = [
+  // Video
+  { name: "Sora 2", category: "Video" },
+  { name: "Veo 3", category: "Video" },
+  { name: "Runway Gen-4", category: "Video" },
+  { name: "Kling 2.x", category: "Video" },
+  { name: "Pika 2.0", category: "Video" },
+  { name: "Luma Dream Machine", category: "Video" },
+  { name: "Higgsfield", category: "Video" },
+  // Image
+  { name: "Midjourney", category: "Image" },
+  { name: "Stable Diffusion", category: "Image" },
+  { name: "DALL·E 3", category: "Image" },
+  { name: "Flux", category: "Image" },
+  { name: "Adobe Firefly", category: "Image" },
+  { name: "Leonardo", category: "Image" },
+  // Audio / Voice
+  { name: "ElevenLabs", category: "Audio" },
+  { name: "Suno", category: "Music" },
+  { name: "Udio", category: "Music" },
+  // Editing
+  { name: "After Effects", category: "Edit" },
+  { name: "Premiere Pro", category: "Edit" },
+  { name: "DaVinci Resolve", category: "Edit" },
+  { name: "CapCut Pro", category: "Edit" },
+  // Upscale / Other
+  { name: "Topaz Video AI", category: "Upscale" },
+  { name: "Magnific", category: "Upscale" },
+];
+
+export const AI_TOOL_CATEGORIES = [
+  "Video",
+  "Image",
+  "Audio",
+  "Music",
+  "Edit",
+  "Upscale",
+] as const;
+
 // 強み (11項目、最大2つまで選択)
 export const STRENGTHS = [
   "土日対応可能",
