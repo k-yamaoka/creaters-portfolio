@@ -3,11 +3,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCreatorById, getCreators } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/utils";
 import { ReviewList } from "@/components/reviews/review-list";
 import { SectionTabs } from "@/components/creators/section-tabs";
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";
+import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 
 export default async function CreatorDetailPage({
   params,
@@ -440,105 +440,51 @@ export default async function CreatorDetailPage({
             </div>
           </div>
 
-          {/* Right Column: Packages */}
-          <div id="pricing" className="scroll-mt-32 space-y-6">
-            <div className="sticky top-40">
-              <h2 className="mb-4 text-lg font-black text-white">
-                <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle shadow-[0_0_8px_rgba(255,77,157,0.7)]" />
-                料金プラン
-              </h2>
-              <div className="space-y-4">
-                {activePackages.map((pkg, index) => {
-                  const isFeatured = index === 0;
-                  return (
-                  <div
-                    key={pkg.id}
-                    className={`relative overflow-hidden rounded-2xl border backdrop-blur-sm transition-all ${
-                      isFeatured
-                        ? "border-neon-pink/50 bg-gradient-to-br from-neon-pink/15 to-neon-purple/15 shadow-[0_20px_50px_-10px_rgba(255,77,157,0.4)]"
-                        : "border-white/10 bg-white/[0.04] shadow-[0_15px_40px_-15px_rgba(0,0,0,0.4)]"
-                    }`}
-                  >
-                    {isFeatured && (
-                      <div className="bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-wider text-white">
-                        ⭐ もっとも人気
-                      </div>
+          {/* Right Column: 最低対応金額 + AI 見積もり + CTA */}
+          <div id="pricing" className="scroll-mt-32 space-y-5">
+            <div className="sticky top-40 space-y-5">
+              {/* Minimum price card */}
+              <div className="overflow-hidden rounded-2xl border border-neon-pink/40 bg-gradient-to-br from-neon-pink/15 to-neon-purple/15 backdrop-blur-sm shadow-[0_20px_50px_-10px_rgba(255,77,157,0.4)]">
+                <div className="bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                  最低対応金額
+                </div>
+                <div className="p-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-sm text-white/70">¥</span>
+                    <span className="text-4xl font-black tracking-tight text-neon-pink sm:text-5xl">
+                      {minPackagePrice !== null
+                        ? minPackagePrice.toLocaleString()
+                        : "応相談"}
+                    </span>
+                    {minPackagePrice !== null && (
+                      <span className="text-xs text-white/60">〜</span>
                     )}
-                    <div className="p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-base font-black text-white">
-                          {pkg.name}
-                        </h3>
-                        <p
-                          className={`text-xl font-black ${
-                            isFeatured ? "text-neon-pink" : "text-neon-cyan"
-                          }`}
-                        >
-                          {formatPrice(pkg.price)}
-                        </p>
-                      </div>
-                      <p className="mt-2 text-sm leading-[1.85] text-white/65">
-                        {pkg.description}
-                      </p>
-
-                      <div className="mt-4 flex gap-4 text-xs text-white/60">
-                        <span className="inline-flex items-center gap-1">
-                          <span>⏱</span>
-                          納期 {pkg.delivery_days}日
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span>↻</span>
-                          修正 {pkg.revisions}回
-                        </span>
-                      </div>
-
-                      <ul className="mt-4 space-y-2">
-                        {pkg.features.map((feature) => (
-                          <li
-                            key={feature}
-                            className="flex items-start gap-2 text-sm text-white/85"
-                          >
-                            <span
-                              className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full text-center text-[10px] font-bold leading-4 ${
-                                isFeatured
-                                  ? "bg-neon-pink text-white shadow-[0_0_8px_rgba(255,77,157,0.7)]"
-                                  : "bg-neon-cyan text-neon-midnight-deep"
-                              }`}
-                            >
-                              ✓
-                            </span>
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-
-                      <Link
-                        href={`/dashboard/orders/new?creator_id=${creator.id}&package_id=${pkg.id}`}
-                        className={`mt-6 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
-                          isFeatured
-                            ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
-                            : "border border-white/30 bg-white/5 text-white backdrop-blur-sm hover:border-white/60 hover:bg-white/10"
-                        }`}
-                      >
-                        <span>このプランで依頼</span>
-                        <span>→</span>
-                      </Link>
-                    </div>
                   </div>
-                  );
-                })}
+                  <p className="mt-2 text-xs leading-[1.85] text-white/65">
+                    上記は最安パッケージ価格です。実際の金額は依頼内容によって変動します。詳細は下の AI に聞くか、メッセージでご相談ください。
+                  </p>
+
+                  <Link
+                    href={orderHref}
+                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
+                  >
+                    <span>💼 このクリエイターに依頼</span>
+                    <span>→</span>
+                  </Link>
+
+                  {canMessageCreator && (
+                    <Link
+                      href={`/dashboard/messages/${creator.user_id}`}
+                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-pill border border-white/30 bg-white/5 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
+                    >
+                      💬 メッセージで相談
+                    </Link>
+                  )}
+                </div>
               </div>
 
-              {canMessageCreator && (
-                <div className="mt-6">
-                  <Link
-                    href={`/dashboard/messages/${creator.user_id}`}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-pill border border-white/30 bg-white/5 px-5 py-3 text-sm font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
-                  >
-                    💬 メッセージを送る
-                  </Link>
-                </div>
-              )}
+              {/* AI 見積もりチャット */}
+              <EstimateChatBot creatorId={creator.id} />
             </div>
           </div>
         </div>
