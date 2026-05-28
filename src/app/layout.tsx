@@ -62,7 +62,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
-      <body className="min-h-screen bg-paper font-sans text-ink">
+      <body className="min-h-screen bg-neon-midnight-deep font-sans text-ink">
         {children}
       </body>
     </html>

@@ -455,15 +455,16 @@ export default async function HomePage() {
           AI tools we support
           ================================================= */}
       <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
-        <div className="absolute -left-32 top-12 h-[400px] w-[400px] rounded-full bg-neon-purple opacity-25 blur-[120px]" />
-        <div className="absolute -right-24 bottom-0 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+        <div className="pointer-events-none absolute -left-32 top-12 h-[400px] w-[400px] rounded-full bg-neon-purple opacity-25 blur-[120px] animate-glow-pulse" />
+        <div className="pointer-events-none absolute -right-24 bottom-0 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-20 blur-[100px] animate-glow-pulse-slow" />
 
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <div className="text-center">
             <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+              <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
               SUPPORTED AI TOOLS
             </p>
-            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
+            <h2 className="mt-6 text-[2.25rem] font-black leading-[1.1] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
               主要AIツール、
               <br />
               <span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">
@@ -481,9 +482,9 @@ export default async function HomePage() {
             {AI_TOOLS.map((tool) => (
               <div
                 key={tool.name}
-                className={`group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br ${tool.color} p-6 transition-all hover:scale-105`}
+                className={`group relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br ${tool.color} p-6 transition-all duration-500 hover:scale-[1.03] hover:border-white/30 hover:shadow-[0_15px_40px_-10px_rgba(255,77,157,0.4)]`}
               >
-                <div className="absolute inset-0 bg-neon-midnight-deep/40" />
+                <div className="absolute inset-0 bg-neon-midnight-deep/40 transition-opacity duration-500 group-hover:bg-neon-midnight-deep/20" />
                 <div className="relative">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">
                     {tool.category}
