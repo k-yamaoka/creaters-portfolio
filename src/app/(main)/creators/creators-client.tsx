@@ -78,12 +78,6 @@ export function CreatorsPageClient({
     return filteredCreators.filter((c) => c.id !== viewerCreatorId);
   }, [filteredCreators, isCreatorViewer, viewerCreatorId]);
 
-  const heading = isCreatorViewer
-    ? "AIクリエイター一覧"
-    : "AIクリエイターを探す";
-  const subheading = isCreatorViewer
-    ? "他のAIクリエイターのプロフィール・作品・料金をチェックして、自分のページのブラッシュアップに役立てましょう。"
-    : "Sora・Veo・Runwayを使いこなす精鋭から、用途に合うクリエイターを発見。";
 
   return (
     <>
@@ -103,29 +97,12 @@ export function CreatorsPageClient({
         <div className="absolute -right-20 bottom-0 h-[280px] w-[280px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
 
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
-            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
-            AI CREATORS
-          </p>
-          <h1 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[3rem]">
+          <h1 className="text-[2rem] font-black leading-[1.2] sm:text-[3rem] lg:text-[3.5rem]">
             <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
               専門家
             </span>
-            を、ツールから選ぶ。
+            をツールから選ぶ。
           </h1>
-          <p className="mt-4 max-w-xl text-sm leading-[2] text-white/70">
-            {subheading}
-            <br className="hidden sm:block" />
-            <span className="hidden sm:inline">
-              作品サムネで探すなら{" "}
-              <Link
-                href="/portfolios"
-                className="font-bold text-neon-cyan underline-offset-4 hover:underline"
-              >
-                ポートフォリオを見る →
-              </Link>
-            </span>
-          </p>
           {isCreatorViewer && (
             <div className="mt-5 inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft">
               <span aria-hidden>★</span>
@@ -142,17 +119,12 @@ export function CreatorsPageClient({
       </section>
 
       <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
-        {/* Page Title for context */}
-        <div className="mb-8 flex items-end justify-between">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight text-ink sm:text-3xl">
-            {heading}
-          </h2>
-        </div>
+        {/* Mobile filter button */}
+        <div className="mb-6 flex items-center justify-end">
         <button
           type="button"
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="flex items-center gap-2 rounded-pill border border-ink/20 bg-white px-4 py-2.5 text-sm font-bold text-ink lg:hidden"
+          className="flex items-center gap-2 rounded-pill border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm lg:hidden"
         >
           <svg
             className="h-4 w-4"
@@ -311,23 +283,37 @@ function CreatorRow({
   return (
     <Link
       href={`/creators/${creator.id}`}
-      className="group block overflow-hidden rounded-xl border-2 border-ink/10 bg-white shadow-pop transition-all hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[8px_8px_0_0_rgba(255,77,157,0.25)]"
+      className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]"
     >
+      {/* 認証済みバッジ (オレンジ、絶対配置 右上) */}
+      {profiles.is_verified && (
+        <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-sunset to-neon-pink px-2.5 py-1 text-[10px] font-black text-white shadow-[0_0_12px_rgba(255,174,59,0.6)]">
+          <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+            <path
+              fillRule="evenodd"
+              d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+              clipRule="evenodd"
+            />
+          </svg>
+          認証済み
+        </span>
+      )}
+
       {/* === 情報行 === */}
       <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
-        {/* 左: アバター */}
-        <div className="col-span-2 sm:col-span-1">
-          <div className="relative aspect-square overflow-hidden rounded-pill bg-paper-deep">
+        {/* 左: アバター (大型化) */}
+        <div className="col-span-3 sm:col-span-2">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-neon-midnight">
             {profiles.avatar_url ? (
               <Image
                 src={profiles.avatar_url}
                 alt={profiles.display_name}
                 fill
                 className="object-cover"
-                sizes="64px"
+                sizes="(max-width: 640px) 96px, 128px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-lg font-black text-white">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-4xl font-black text-white sm:text-5xl">
                 {profiles.display_name[0]}
               </div>
             )}
@@ -335,95 +321,80 @@ function CreatorRow({
         </div>
 
         {/* 中央: 名前・bio・タグ */}
-        <div className="col-span-10 min-w-0 sm:col-span-8">
+        <div className="col-span-9 min-w-0 sm:col-span-7">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-black text-ink sm:text-lg">
+            <h3 className="text-lg font-black text-white sm:text-xl">
               {profiles.display_name}
             </h3>
-            <span className="inline-flex items-center gap-0.5 rounded-pill bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-black text-white">
-              AI
-            </span>
-            {profiles.is_verified && (
-              <span className="inline-flex items-center gap-0.5 rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
-                <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                認証済み
-              </span>
-            )}
             {creator.review_count > 0 ? (
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-ink-muted">
-                <span className="text-neon-pink">★</span>
-                {creator.rating.toFixed(1)}
-                <span className="text-ink-soft">({creator.review_count})</span>
+              <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-0.5 text-xs font-bold text-white">
+                <span className="text-neon-pink">👍</span>
+                {creator.review_count}
               </span>
             ) : (
-              <span className="text-xs text-ink-soft">
-                まだ評価がありません。
-              </span>
+              <span className="text-xs text-white/45">いいねまだなし</span>
             )}
             {creator.years_of_experience > 0 && (
-              <span className="chip-outline">
+              <span className="rounded-pill border border-white/15 bg-white/5 px-2.5 py-0.5 text-[11px] font-bold text-white/75">
                 経験 {creator.years_of_experience} 年
               </span>
             )}
           </div>
 
           {creator.bio && (
-            <p className="mt-2 line-clamp-2 text-sm leading-[1.85] text-ink-muted">
+            <p className="mt-2 line-clamp-2 text-sm leading-[1.75] text-white/65">
               {creator.bio}
             </p>
           )}
 
-          {(creator.genres.length > 0 ||
-            creator.strengths.length > 0 ||
-            creator.video_lengths.length > 0) && (
+          {/* 強み (強調表示) */}
+          {creator.strengths.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {creator.strengths.slice(0, 2).map((s) => (
                 <span
                   key={`st-${s}`}
-                  className="inline-flex items-center gap-1 rounded-pill bg-neon-pink/15 px-2.5 py-1 text-[11px] font-bold text-neon-pink"
+                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/25 to-neon-purple/25 px-3 py-1 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,77,157,0.25)]"
                 >
                   ✦ {s}
                 </span>
               ))}
-              {creator.genres.slice(0, 3).map((g) => (
-                <span key={`g-${g}`} className="chip">
+            </div>
+          )}
+
+          {/* 制作ジャンル */}
+          {creator.genres.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {creator.genres.slice(0, 4).map((g) => (
+                <span
+                  key={`g-${g}`}
+                  className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple"
+                >
                   {g}
-                </span>
-              ))}
-              {creator.video_lengths.slice(0, 2).map((l) => (
-                <span key={`l-${l}`} className="chip-outline">
-                  {l}
                 </span>
               ))}
             </div>
           )}
         </div>
 
-        {/* 右: 料金 + CTA (クリエイター閲覧時は単価を出さず作品数で代替) */}
+        {/* 右: 料金 + CTA */}
         <div className="col-span-12 flex flex-row items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-end sm:justify-start sm:gap-2">
           <div className="text-right">
             {isCreatorViewer ? (
               <>
-                <p className="text-[11px] font-bold tracking-wider text-ink-soft">
+                <p className="text-[11px] font-bold tracking-wider text-white/45">
                   公開作品
                 </p>
-                <p className="mt-1 text-base font-black text-neon-purple-deep sm:text-xl">
+                <p className="mt-1 text-base font-black text-neon-cyan sm:text-xl">
                   {creator.portfolio_items.length}
-                  <span className="ml-1 text-xs font-bold text-ink-soft">件</span>
+                  <span className="ml-1 text-xs font-bold text-white/45">件</span>
                 </p>
               </>
             ) : (
               <>
-                <p className="text-[11px] font-bold tracking-wider text-ink-soft">
-                  1本単価
+                <p className="text-[11px] font-bold tracking-wider text-white/45">
+                  最低対応金額
                 </p>
-                <p className="mt-1 text-base font-black text-neon-purple-deep sm:text-xl">
+                <p className="mt-1 text-base font-black text-neon-pink sm:text-xl">
                   {unitPrice ?? "—"}
                 </p>
               </>
@@ -436,43 +407,100 @@ function CreatorRow({
         </div>
       </div>
 
-      {/* === サムネイル行 (大きく表示) === */}
+      {/* === サムネイル行 (ホバー再生対応) === */}
       {thumbs.length > 0 && (
-        <div className="grid grid-cols-2 gap-1 border-t border-ink/5 bg-white p-1 sm:grid-cols-4">
-          {thumbs.map((t) => {
-            const isVertical =
-              t.video_platform === "youtube_short" ||
-              t.video_platform === "tiktok" ||
-              t.video_platform === "instagram";
-            return (
-              <div
-                key={t.id}
-                className="relative aspect-video overflow-hidden rounded-md bg-white"
-              >
-                {t.thumbnail_url && (
-                  <Image
-                    src={t.thumbnail_url}
-                    alt={t.title}
-                    fill
-                    className={`${
-                      isVertical ? "object-contain" : "object-cover"
-                    } transition-transform duration-300 group-hover:scale-105`}
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                )}
-                {/* 縦型動画はホスト動画と同じ縦長サムネ → 16:9枠だと左右に余白が出るが
-                    枠を切らずに全画面で見せる方が情報量が多いので object-contain にしている */}
-                {/* タイトルオーバーレイ (hover時) */}
-                <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-ink/85 via-ink/30 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 group-hover:translate-y-0">
-                  <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
-                    {t.title}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-2 gap-1 border-t border-white/10 bg-neon-midnight/40 p-1 sm:grid-cols-4">
+          {thumbs.map((t) => (
+            <ThumbnailCard key={t.id} item={t} />
+          ))}
         </div>
       )}
     </Link>
+  );
+}
+
+/**
+ * 個別のサムネタイル。
+ * - video_platform === 'mp4' のときカード hover で <video> を再生 (ループ・無音)
+ * - それ以外は静止サムネを表示
+ * - 右上にフォーマットバッジ
+ */
+function ThumbnailCard({
+  item,
+}: {
+  item: CreatorWithRelations["portfolio_items"][0];
+}) {
+  const isMp4 = item.video_platform === "mp4" && !!item.video_url;
+  const aspect = item.aspect_ratio;
+  const formatLabel =
+    aspect === "vertical"
+      ? "縦型"
+      : aspect === "square"
+        ? "正方形"
+        : "横型";
+  const formatGradient =
+    aspect === "vertical"
+      ? "from-neon-pink to-neon-purple"
+      : aspect === "square"
+        ? "from-neon-cyan to-neon-purple"
+        : "from-neon-cyan to-neon-pink";
+
+  const objectFit = aspect === "vertical" ? "object-contain" : "object-cover";
+
+  return (
+    <div className="relative aspect-video overflow-hidden rounded-md bg-neon-midnight-deep">
+      {/* 静止サムネ (常時表示) */}
+      {item.thumbnail_url && (
+        <Image
+          src={item.thumbnail_url}
+          alt={item.title}
+          fill
+          className={`${objectFit} transition-transform duration-300 group-hover:scale-105`}
+          sizes="(max-width: 640px) 50vw, 25vw"
+        />
+      )}
+
+      {/* MP4 動画 (ホバー時にカード全体の group-hover で表示&再生) */}
+      {isMp4 && (
+        <video
+          src={item.video_url ?? undefined}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          ref={(el) => {
+            if (!el) return;
+            // 親 Link の group-hover に同期して再生/停止
+            const parent = el.closest<HTMLAnchorElement>("a.group");
+            if (!parent) return;
+            const onEnter = () => {
+              el.currentTime = 0;
+              void el.play().catch(() => {});
+            };
+            const onLeave = () => {
+              el.pause();
+              el.currentTime = 0;
+            };
+            parent.addEventListener("mouseenter", onEnter);
+            parent.addEventListener("mouseleave", onLeave);
+          }}
+          className={`absolute inset-0 h-full w-full ${objectFit} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+        />
+      )}
+
+      {/* フォーマット (アスペクト比) バッジ — 右上 */}
+      <span
+        className={`absolute right-1.5 top-1.5 rounded-full bg-gradient-to-r ${formatGradient} px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.4)]`}
+      >
+        {formatLabel}
+      </span>
+
+      {/* タイトルオーバーレイ (hover時) */}
+      <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/40 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 group-hover:translate-y-0">
+        <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
+          {item.title}
+        </p>
+      </div>
+    </div>
   );
 }
