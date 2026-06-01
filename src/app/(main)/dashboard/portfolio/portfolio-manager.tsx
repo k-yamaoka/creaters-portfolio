@@ -44,61 +44,95 @@ function detectAspect(width: number, height: number): VideoAspect {
  * 動画ファイルから 1 フレームを JPEG として抽出する (クライアント側で完結)。
  * - 全体の 25% (最大 3 秒) の地点をスナップショット
  * - 長辺 1280px にダウンスケール (送信サイズを抑える)
- * - 失敗時は null
+ * - 失敗時は null。理由は console.warn に出力。
  */
 async function extractVideoThumbnail(file: File): Promise<Blob | null> {
   return new Promise((resolve) => {
     const video = document.createElement("video");
     const url = URL.createObjectURL(file);
     let resolved = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const cleanup = () => {
-      URL.revokeObjectURL(url);
-      video.removeAttribute("src");
-      video.load();
+      if (timeoutId) clearTimeout(timeoutId);
+      try {
+        URL.revokeObjectURL(url);
+        video.removeAttribute("src");
+        video.load();
+      } catch {
+        // ignore
+      }
     };
-    const done = (blob: Blob | null) => {
+    const done = (blob: Blob | null, reason?: string) => {
       if (resolved) return;
       resolved = true;
+      if (!blob) {
+        console.warn("[thumb] 抽出失敗:", reason ?? "unknown");
+      }
       cleanup();
       resolve(blob);
     };
 
     video.muted = true;
     video.playsInline = true;
+    // blob URL は same-origin なので crossOrigin は不要 (むしろ干渉する)
     video.preload = "auto";
-    video.crossOrigin = "anonymous";
 
-    video.onloadedmetadata = () => {
-      const target = Math.min(Math.max(0.1, video.duration * 0.25), 3);
-      video.currentTime = isFinite(target) ? target : 0.1;
-    };
-    video.onseeked = () => {
+    const drawFrame = () => {
       try {
-        const maxSide = 1280;
         const w = video.videoWidth;
         const h = video.videoHeight;
-        if (w === 0 || h === 0) return done(null);
+        if (w === 0 || h === 0) return done(null, "videoWidth/Height=0");
+        const maxSide = 1280;
         const scale = Math.min(1, maxSide / Math.max(w, h));
-        const cw = Math.round(w * scale);
-        const ch = Math.round(h * scale);
+        const cw = Math.max(1, Math.round(w * scale));
+        const ch = Math.max(1, Math.round(h * scale));
         const canvas = document.createElement("canvas");
         canvas.width = cw;
         canvas.height = ch;
         const ctx = canvas.getContext("2d");
-        if (!ctx) return done(null);
+        if (!ctx) return done(null, "canvas 2d context null");
         ctx.drawImage(video, 0, 0, cw, ch);
         canvas.toBlob(
-          (blob) => done(blob),
+          (blob) => done(blob, blob ? undefined : "toBlob returned null"),
           "image/jpeg",
           0.85
         );
-      } catch {
-        done(null);
+      } catch (e) {
+        done(null, `drawImage exception: ${(e as Error).message}`);
       }
     };
-    video.onerror = () => done(null);
+
+    let seeked = false;
+    video.onloadedmetadata = () => {
+      const dur = video.duration;
+      // duration が 不明/0/Infinity の動画もあるので fallback
+      const target = isFinite(dur) && dur > 0
+        ? Math.min(Math.max(0.1, dur * 0.25), 3)
+        : 0.1;
+      try {
+        video.currentTime = target;
+      } catch {
+        drawFrame();
+      }
+    };
+    video.onseeked = () => {
+      if (seeked) return;
+      seeked = true;
+      drawFrame();
+    };
+    // 一部ブラウザ (iOS Safari 等) で seeked が来ないケース用フォールバック
+    video.onloadeddata = () => {
+      // 800ms 待っても seeked が来なければそのまま描画
+      setTimeout(() => {
+        if (!seeked && !resolved) {
+          seeked = true;
+          drawFrame();
+        }
+      }, 800);
+    };
+    video.onerror = () => done(null, `video error: ${video.error?.code}`);
     // 30 秒で諦める
-    setTimeout(() => done(null), 30_000);
+    timeoutId = setTimeout(() => done(null, "30s timeout"), 30_000);
     video.src = url;
   });
 }
@@ -138,6 +172,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [videoSubMode, setVideoSubMode] = useState<VideoSubMode>("url");
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [extractingThumb, setExtractingThumb] = useState(false);
   const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
   const [uploadedVideoAspect, setUploadedVideoAspect] =
     useState<VideoAspect | null>(null);
@@ -232,11 +267,15 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
 
       setUploadedVideoUrl(signData.publicUrl);
       setUploadedVideoAspect(aspect);
+      setUploadingVideo(false);
 
       // 3) サムネ自動抽出 + アップロード (失敗してもメイン処理は止めない)
+      setExtractingThumb(true);
       try {
         const thumbBlob = await extractVideoThumbnail(file);
-        if (thumbBlob) {
+        if (!thumbBlob) {
+          console.warn("[thumb] 抽出 blob が null");
+        } else {
           const tfd = new FormData();
           const thumbFile = new File([thumbBlob], "auto-thumb.jpg", {
             type: "image/jpeg",
@@ -252,11 +291,15 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           };
           if (tres.ok && tdata.url) {
             setUploadedThumbUrl(tdata.url);
+          } else {
+            console.warn("[thumb] アップロード失敗:", tdata.error);
           }
         }
-      } catch {
-        // thumb 失敗は致命的でないので無視
+      } catch (e) {
+        console.warn("[thumb] 例外:", (e as Error).message);
       }
+      setExtractingThumb(false);
+      return;
     } catch (e) {
       setError(e instanceof Error ? e.message : "アップロードに失敗しました");
     }
@@ -644,6 +687,10 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                             alt="自動抽出サムネ"
                             className="h-16 w-16 shrink-0 rounded-md border border-green-200 object-cover"
                           />
+                        ) : extractingThumb ? (
+                          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-green-200 bg-white">
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-pink/30 border-t-neon-pink" />
+                          </div>
                         ) : (
                           <span className="text-xl">🎬</span>
                         )}
@@ -655,7 +702,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                             アスペクト比: {uploadedVideoAspect ?? "判定不可"}
                             {uploadedThumbUrl
                               ? " / サムネ自動抽出済"
-                              : ""}
+                              : extractingThumb
+                                ? " / サムネ生成中…"
+                                : " / サムネ生成失敗(動画は保存されます)"}
                           </p>
                         </div>
                         <button
