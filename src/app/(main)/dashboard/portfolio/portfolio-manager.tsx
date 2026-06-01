@@ -40,6 +40,69 @@ function detectAspect(width: number, height: number): VideoAspect {
 }
 
 /**
+ * 動画ファイルから 1 フレームを JPEG として抽出する (クライアント側で完結)。
+ * - 全体の 25% (最大 3 秒) の地点をスナップショット
+ * - 長辺 1280px にダウンスケール (送信サイズを抑える)
+ * - 失敗時は null
+ */
+async function extractVideoThumbnail(file: File): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    const url = URL.createObjectURL(file);
+    let resolved = false;
+    const cleanup = () => {
+      URL.revokeObjectURL(url);
+      video.removeAttribute("src");
+      video.load();
+    };
+    const done = (blob: Blob | null) => {
+      if (resolved) return;
+      resolved = true;
+      cleanup();
+      resolve(blob);
+    };
+
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+    video.crossOrigin = "anonymous";
+
+    video.onloadedmetadata = () => {
+      const target = Math.min(Math.max(0.1, video.duration * 0.25), 3);
+      video.currentTime = isFinite(target) ? target : 0.1;
+    };
+    video.onseeked = () => {
+      try {
+        const maxSide = 1280;
+        const w = video.videoWidth;
+        const h = video.videoHeight;
+        if (w === 0 || h === 0) return done(null);
+        const scale = Math.min(1, maxSide / Math.max(w, h));
+        const cw = Math.round(w * scale);
+        const ch = Math.round(h * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = cw;
+        canvas.height = ch;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return done(null);
+        ctx.drawImage(video, 0, 0, cw, ch);
+        canvas.toBlob(
+          (blob) => done(blob),
+          "image/jpeg",
+          0.85
+        );
+      } catch {
+        done(null);
+      }
+    };
+    video.onerror = () => done(null);
+    // 30 秒で諦める
+    setTimeout(() => done(null), 30_000);
+    video.src = url;
+  });
+}
+
+/**
  * URLからプラットフォーム種別を推測する。
  * 編集UIで video_url を貼り付けたら自動で video_platform セレクトが
  * 切り替わるようにするために使う。
@@ -166,6 +229,31 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
 
       setUploadedVideoUrl(signData.publicUrl);
       setUploadedVideoAspect(aspect);
+
+      // 3) サムネ自動抽出 + アップロード (失敗してもメイン処理は止めない)
+      try {
+        const thumbBlob = await extractVideoThumbnail(file);
+        if (thumbBlob) {
+          const tfd = new FormData();
+          const thumbFile = new File([thumbBlob], "auto-thumb.jpg", {
+            type: "image/jpeg",
+          });
+          tfd.append("file", thumbFile);
+          const tres = await fetch("/api/upload/thumbnail", {
+            method: "POST",
+            body: tfd,
+          });
+          const tdata = (await tres.json()) as {
+            url?: string;
+            error?: string;
+          };
+          if (tres.ok && tdata.url) {
+            setUploadedThumbUrl(tdata.url);
+          }
+        }
+      } catch {
+        // thumb 失敗は致命的でないので無視
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "アップロードに失敗しました");
     }
@@ -546,14 +634,25 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   {uploadedVideoUrl ? (
                     <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-3">
                       <div className="flex items-center gap-3">
-                        <span className="text-xl">🎬</span>
+                        {uploadedThumbUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={uploadedThumbUrl}
+                            alt="自動抽出サムネ"
+                            className="h-16 w-16 shrink-0 rounded-md border border-green-200 object-cover"
+                          />
+                        ) : (
+                          <span className="text-xl">🎬</span>
+                        )}
                         <div className="flex-1">
                           <p className="text-sm font-medium text-green-700">
                             アップロード完了
                           </p>
                           <p className="mt-0.5 text-xs text-green-600/80">
                             アスペクト比: {uploadedVideoAspect ?? "判定不可"}
-                            (本番では Cloudflare Stream に移行予定)
+                            {uploadedThumbUrl
+                              ? " / サムネ自動抽出済"
+                              : ""}
                           </p>
                         </div>
                         <button
@@ -561,6 +660,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                           onClick={() => {
                             setUploadedVideoUrl(null);
                             setUploadedVideoAspect(null);
+                            setUploadedThumbUrl(null);
                           }}
                           className="text-xs text-[#828282] hover:text-red-500"
                         >
