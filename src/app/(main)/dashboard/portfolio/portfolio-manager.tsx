@@ -120,10 +120,27 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     });
 
     try {
-      const fd = new FormData();
-      fd.append("file", file);
+      // 1) サーバーから署名付きアップロード URL を発行
+      const signRes = await fetch("/api/upload/video/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType: file.type,
+          size: file.size,
+        }),
+      });
+      const signData = (await signRes.json()) as {
+        signedUrl?: string;
+        publicUrl?: string;
+        error?: string;
+      };
+      if (!signRes.ok || !signData.signedUrl || !signData.publicUrl) {
+        throw new Error(signData.error ?? "署名URL取得失敗");
+      }
 
-      const url = await new Promise<string>((resolve, reject) => {
+      // 2) ブラウザから Supabase Storage に直接 PUT (Vercel を経由しない)
+      await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.upload.addEventListener("progress", (e) => {
           if (e.lengthComputable) {
@@ -131,28 +148,23 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           }
         });
         xhr.addEventListener("load", () => {
-          try {
-            const data = JSON.parse(xhr.responseText) as {
-              url?: string;
-              error?: string;
-            };
-            if (xhr.status >= 200 && xhr.status < 300 && data.url) {
-              resolve(data.url);
-            } else {
-              reject(new Error(data.error ?? "アップロード失敗"));
-            }
-          } catch {
-            reject(new Error("レスポンス解析失敗"));
-          }
+          if (xhr.status >= 200 && xhr.status < 300) resolve();
+          else
+            reject(
+              new Error(
+                `Supabase Storage アップロード失敗 (HTTP ${xhr.status})`
+              )
+            );
         });
         xhr.addEventListener("error", () =>
           reject(new Error("ネットワークエラー"))
         );
-        xhr.open("POST", "/api/upload/video");
-        xhr.send(fd);
+        xhr.open("PUT", signData.signedUrl!);
+        xhr.setRequestHeader("Content-Type", file.type);
+        xhr.send(file);
       });
 
-      setUploadedVideoUrl(url);
+      setUploadedVideoUrl(signData.publicUrl);
       setUploadedVideoAspect(aspect);
     } catch (e) {
       setError(e instanceof Error ? e.message : "アップロードに失敗しました");
