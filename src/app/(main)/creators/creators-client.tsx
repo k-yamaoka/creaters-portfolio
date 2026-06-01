@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
@@ -164,13 +164,13 @@ export function CreatorsPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-paper p-6">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-neon-midnight-deep/95 p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-black text-ink">絞り込み</h2>
+                <h2 className="text-lg font-black text-white">絞り込み</h2>
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-paper-deep text-ink-muted"
+                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-white/10 text-white/70"
                 >
                   <svg
                     className="h-5 w-5"
@@ -285,19 +285,23 @@ function CreatorRow({
       href={`/creators/${creator.id}`}
       className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]"
     >
-      {/* 認証済みバッジ (オレンジ、絶対配置 右上) */}
+      {/* 認証済みリボン (右上ナナメ折り込み、オレンジ) */}
       {profiles.is_verified && (
-        <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-sunset to-neon-pink px-2.5 py-1 text-[10px] font-black text-white shadow-[0_0_12px_rgba(255,174,59,0.6)]">
-          <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-              clipRule="evenodd"
-            />
-          </svg>
-          認証済み
-        </span>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-1 -top-1 z-10 h-[110px] w-[110px] overflow-hidden"
+        >
+          {/* ナナメ折り込みリボン本体 */}
+          <div className="absolute right-[-44px] top-[18px] w-[170px] rotate-45 bg-gradient-to-r from-neon-sunset via-neon-pink to-neon-sunset py-1 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_4px_12px_rgba(255,174,59,0.55)]">
+            ✓ 認証済
+          </div>
+          {/* リボン下部の折り影 */}
+          <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-neon-sunset/80 shadow-[0_0_8px_rgba(255,174,59,0.4)]" />
+        </div>
       )}
+      <span className="sr-only">
+        {profiles.is_verified ? "認証済みクリエイター" : ""}
+      </span>
 
       {/* === 情報行 === */}
       <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
@@ -339,6 +343,11 @@ function CreatorRow({
                 経験 {creator.years_of_experience} 年
               </span>
             )}
+            {/* 作品数 (経験年数の横に配置、認証リボンとの被りを避ける) */}
+            <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
+              <span aria-hidden>🎬</span>
+              作品 {creator.portfolio_items.length} 件
+            </span>
           </div>
 
           {creator.bio && (
@@ -376,29 +385,15 @@ function CreatorRow({
           )}
         </div>
 
-        {/* 右: 料金 + CTA */}
-        <div className="col-span-12 flex flex-row items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-end sm:justify-start sm:gap-2">
+        {/* 右: 最低対応金額 + CTA (viewer 種別に関わらず常時表示) */}
+        <div className="col-span-12 flex flex-row items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-end sm:justify-start sm:gap-2.5">
           <div className="text-right">
-            {isCreatorViewer ? (
-              <>
-                <p className="text-[11px] font-bold tracking-wider text-white/45">
-                  公開作品
-                </p>
-                <p className="mt-1 text-base font-black text-neon-cyan sm:text-xl">
-                  {creator.portfolio_items.length}
-                  <span className="ml-1 text-xs font-bold text-white/45">件</span>
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-[11px] font-bold tracking-wider text-white/45">
-                  最低対応金額
-                </p>
-                <p className="mt-1 text-base font-black text-neon-pink sm:text-xl">
-                  {unitPrice ?? "—"}
-                </p>
-              </>
-            )}
+            <p className="text-[11px] font-bold tracking-wider text-white/45">
+              最低対応金額
+            </p>
+            <p className="mt-1 text-base font-black text-neon-pink sm:text-xl">
+              {unitPrice ?? "応相談"}
+            </p>
           </div>
           <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-xs font-bold text-white transition-all group-hover:shadow-[0_0_16px_rgba(255,77,157,0.5)]">
             {isCreatorViewer ? "作品を見る" : "プロフィール"}
@@ -421,15 +416,18 @@ function CreatorRow({
 
 /**
  * 個別のサムネタイル。
- * - video_platform === 'mp4' のときカード hover で <video> を再生 (ループ・無音)
- * - それ以外は静止サムネを表示
- * - 右上にフォーマットバッジ
+ * - **タイル自身**にホバーすると scale-110 + z-30 で前面に拡大
+ * - MP4 はホバー時に自動再生(ループ・無音)
+ * - z-index で周囲のテキストより手前にせり出す
  */
 function ThumbnailCard({
   item,
 }: {
   item: CreatorWithRelations["portfolio_items"][0];
 }) {
+  const [hover, setHover] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const isMp4 = item.video_platform === "mp4" && !!item.video_url;
   const aspect = item.aspect_ratio;
   const formatLabel =
@@ -447,56 +445,70 @@ function ThumbnailCard({
 
   const objectFit = aspect === "vertical" ? "object-contain" : "object-cover";
 
+  // hover state と動画再生を同期
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v || !isMp4) return;
+    if (hover) {
+      v.currentTime = 0;
+      void v.play().catch(() => {});
+    } else {
+      v.pause();
+      v.currentTime = 0;
+    }
+  }, [hover, isMp4]);
+
   return (
-    <div className="relative aspect-video overflow-hidden rounded-md bg-neon-midnight-deep">
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+      className={`group/tile relative aspect-video overflow-hidden rounded-md bg-neon-midnight-deep transition-all duration-300 ease-out ${
+        hover
+          ? "z-30 scale-[1.08] shadow-[0_25px_60px_-10px_rgba(255,77,157,0.55)]"
+          : "z-0"
+      }`}
+    >
       {/* 静止サムネ (常時表示) */}
       {item.thumbnail_url && (
         <Image
           src={item.thumbnail_url}
           alt={item.title}
           fill
-          className={`${objectFit} transition-transform duration-300 group-hover:scale-105`}
+          className={`${objectFit} transition-transform duration-300`}
           sizes="(max-width: 640px) 50vw, 25vw"
         />
       )}
 
-      {/* MP4 動画 (ホバー時にカード全体の group-hover で表示&再生) */}
+      {/* MP4 動画 (タイル hover 時に再生 + 表示) */}
       {isMp4 && (
         <video
+          ref={videoRef}
           src={item.video_url ?? undefined}
           muted
           loop
           playsInline
           preload="metadata"
-          ref={(el) => {
-            if (!el) return;
-            // 親 Link の group-hover に同期して再生/停止
-            const parent = el.closest<HTMLAnchorElement>("a.group");
-            if (!parent) return;
-            const onEnter = () => {
-              el.currentTime = 0;
-              void el.play().catch(() => {});
-            };
-            const onLeave = () => {
-              el.pause();
-              el.currentTime = 0;
-            };
-            parent.addEventListener("mouseenter", onEnter);
-            parent.addEventListener("mouseleave", onLeave);
-          }}
-          className={`absolute inset-0 h-full w-full ${objectFit} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+          className={`absolute inset-0 h-full w-full ${objectFit} transition-opacity duration-300 ${
+            hover ? "opacity-100" : "opacity-0"
+          }`}
         />
       )}
 
       {/* フォーマット (アスペクト比) バッジ — 右上 */}
       <span
-        className={`absolute right-1.5 top-1.5 rounded-full bg-gradient-to-r ${formatGradient} px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.4)]`}
+        className={`pointer-events-none absolute right-1.5 top-1.5 z-10 rounded-full bg-gradient-to-r ${formatGradient} px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.4)]`}
       >
         {formatLabel}
       </span>
 
       {/* タイトルオーバーレイ (hover時) */}
-      <div className="absolute inset-x-0 bottom-0 translate-y-full bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/40 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 group-hover:translate-y-0">
+      <div
+        className={`pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/40 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 ${
+          hover ? "translate-y-0" : "translate-y-full"
+        }`}
+      >
         <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
           {item.title}
         </p>
