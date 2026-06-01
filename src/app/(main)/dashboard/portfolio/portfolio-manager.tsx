@@ -9,6 +9,7 @@ import {
   updatePortfolioThumbnail,
 } from "./actions";
 import { GENRES } from "@/lib/constants";
+import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 
 type PortfolioItem = {
   id: string;
@@ -183,7 +184,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     });
 
     try {
-      // 1) サーバーから署名付きアップロード URL を発行
+      // 1) サーバーから署名付きアップロード token + path を発行
       const signRes = await fetch("/api/upload/video/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -194,38 +195,32 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         }),
       });
       const signData = (await signRes.json()) as {
-        signedUrl?: string;
+        token?: string;
+        path?: string;
         publicUrl?: string;
         error?: string;
       };
-      if (!signRes.ok || !signData.signedUrl || !signData.publicUrl) {
+      if (!signRes.ok || !signData.token || !signData.path || !signData.publicUrl) {
         throw new Error(signData.error ?? "署名URL取得失敗");
       }
 
-      // 2) ブラウザから Supabase Storage に直接 PUT (Vercel を経由しない)
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            setUploadProgress(Math.round((e.loaded / e.total) * 100));
-          }
+      // 2) Supabase SDK の uploadToSignedUrl を使用 (ブラウザから直接 PUT)
+      //    XHR の生 PUT は Supabase のリクエスト形式と差異があり 400 になるため。
+      setUploadProgress(50); // SDK は progress イベントを出さないので疑似表示
+      const browserSupabase = createBrowserSupabase();
+      const { error: uploadError } = await browserSupabase.storage
+        .from("portfolio-videos")
+        .uploadToSignedUrl(signData.path, signData.token, file, {
+          contentType: file.type,
+          upsert: false,
         });
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) resolve();
-          else
-            reject(
-              new Error(
-                `Supabase Storage アップロード失敗 (HTTP ${xhr.status})`
-              )
-            );
-        });
-        xhr.addEventListener("error", () =>
-          reject(new Error("ネットワークエラー"))
+      setUploadProgress(100);
+
+      if (uploadError) {
+        throw new Error(
+          `Supabase Storage アップロード失敗: ${uploadError.message}`
         );
-        xhr.open("PUT", signData.signedUrl!);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.send(file);
-      });
+      }
 
       setUploadedVideoUrl(signData.publicUrl);
       setUploadedVideoAspect(aspect);
