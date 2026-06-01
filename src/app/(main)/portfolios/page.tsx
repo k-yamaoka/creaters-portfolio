@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCreators } from "@/lib/supabase/queries";
 import { fixMissingThumbnails } from "@/lib/video-thumbnail";
+import { createClient } from "@/lib/supabase/server";
 import { PortfoliosPageClient } from "./portfolios-client";
 
 export const metadata: Metadata = {
@@ -9,11 +10,33 @@ export const metadata: Metadata = {
     "Sora / Veo / Runway / Midjourney を使いこなすAIクリエイターのAI動画作品を、プラットフォーム別に一覧で探せます。",
 };
 
-export const revalidate = 60;
+// いいね状態が一覧に反映されるよう動的レンダリング
+export const dynamic = "force-dynamic";
 
 export default async function PortfoliosPage() {
   await fixMissingThumbnails();
   const creators = await getCreators();
 
-  return <PortfoliosPageClient creators={creators} />;
+  // 現在のユーザーが「いいね」した portfolio_item_id 一覧
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let likedIds: string[] = [];
+  if (user) {
+    const { data } = await supabase
+      .from("portfolio_likes")
+      .select("portfolio_item_id")
+      .eq("user_id", user.id);
+    likedIds = (data ?? []).map((r) => r.portfolio_item_id as string);
+  }
+
+  return (
+    <PortfoliosPageClient
+      creators={creators}
+      likedIds={likedIds}
+      isAuthed={!!user}
+    />
+  );
 }

@@ -2,8 +2,13 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
+import { LikeButton } from "@/components/portfolio/like-button";
+import {
+  VideoModal,
+  type VideoModalItem,
+  type VideoModalCreator,
+} from "@/components/portfolio/video-modal";
 import { PORTFOLIO_FORMATS, type PortfolioFormat } from "@/lib/constants";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 
@@ -22,10 +27,15 @@ function matchFormat(
 
 export function PortfolioThumbnailGrid({
   creators,
+  likedIds,
+  isAuthed,
 }: {
   creators: CreatorWithRelations[];
+  likedIds?: Set<string>;
+  isAuthed?: boolean;
 }) {
   const [selectedFormat, setSelectedFormat] = useState<PortfolioFormat>("all");
+  const [modalEntry, setModalEntry] = useState<PortfolioEntry | null>(null);
 
   const allPortfolios: PortfolioEntry[] = useMemo(
     () =>
@@ -35,7 +45,6 @@ export function PortfolioThumbnailGrid({
     [creators]
   );
 
-  // Count per aspect ratio for badges
   const counts = useMemo(() => {
     const c: Record<PortfolioFormat, number> = {
       all: allPortfolios.length,
@@ -60,7 +69,6 @@ export function PortfolioThumbnailGrid({
     [allPortfolios, selectedFormat]
   );
 
-  // Group by aspect for display
   const horizontalItems = filtered.filter(
     ({ portfolio }) => portfolio.aspect_ratio === "horizontal"
   );
@@ -71,9 +79,38 @@ export function PortfolioThumbnailGrid({
     ({ portfolio }) => portfolio.aspect_ratio === "square"
   );
 
+  const openModal = (entry: PortfolioEntry) => setModalEntry(entry);
+  const closeModal = () => setModalEntry(null);
+
+  const modalItem: VideoModalItem | null = useMemo(() => {
+    if (!modalEntry) return null;
+    const p = modalEntry.portfolio;
+    return {
+      id: p.id,
+      title: p.title,
+      description: p.description,
+      media_type: p.media_type,
+      video_url: p.video_url,
+      video_platform: p.video_platform,
+      image_url: p.image_url,
+      thumbnail_url: p.thumbnail_url,
+      aspect_ratio: p.aspect_ratio,
+      like_count: p.like_count,
+      liked: likedIds?.has(p.id) ?? false,
+    };
+  }, [modalEntry, likedIds]);
+
+  const modalCreator: VideoModalCreator | null = modalEntry
+    ? {
+        id: modalEntry.creator.id,
+        display_name: modalEntry.creator.profiles.display_name,
+        avatar_url: modalEntry.creator.profiles.avatar_url,
+      }
+    : null;
+
   return (
     <div className="space-y-6">
-      {/* Format tabs (single selection) */}
+      {/* Format tabs */}
       <div className="flex flex-wrap gap-2">
         {PORTFOLIO_FORMATS.map((tab) => {
           const count = counts[tab.value];
@@ -87,13 +124,13 @@ export function PortfolioThumbnailGrid({
               className={`inline-flex items-center gap-2 rounded-pill border px-4 py-2 text-sm font-bold transition-all ${
                 isActive
                   ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_14px_rgba(255,77,157,0.35)]"
-                  : "border-[#E0E0E0] bg-white text-[#4F4F4F] hover:border-neon-pink hover:text-neon-pink"
+                  : "border-white/15 bg-white/5 text-white/80 backdrop-blur-sm hover:border-neon-pink/40 hover:bg-white/10"
               }`}
             >
               {tab.label}
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  isActive ? "bg-white/20 text-white" : "bg-[#F2F2F2] text-[#828282]"
+                  isActive ? "bg-white/20 text-white" : "bg-white/10 text-white/70"
                 }`}
               >
                 {count}
@@ -103,68 +140,76 @@ export function PortfolioThumbnailGrid({
         })}
       </div>
 
-      {/* Empty state */}
       {filtered.length === 0 && (
-        <div className="py-12 text-center text-sm text-[#828282]">
+        <div className="py-12 text-center text-sm text-white/60">
           該当する作品がありません
         </div>
       )}
 
-      {/* Horizontal */}
       {horizontalItems.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {horizontalItems.map(({ portfolio, creator }) => (
+          {horizontalItems.map((entry) => (
             <PortfolioCardTile
-              key={portfolio.id}
-              portfolio={portfolio}
-              creator={creator}
+              key={entry.portfolio.id}
+              entry={entry}
               aspectClass="aspect-video"
               imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              likedIds={likedIds}
+              isAuthed={isAuthed ?? false}
+              onOpen={openModal}
             />
           ))}
         </div>
       )}
 
-      {/* Square */}
       {squareItems.length > 0 && (
         <div>
           {(horizontalItems.length > 0 || verticalItems.length > 0) &&
-            selectedFormat === "all" && (
-              <SectionDivider label="正方形" />
-            )}
+            selectedFormat === "all" && <SectionDivider label="正方形" />}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {squareItems.map(({ portfolio, creator }) => (
+            {squareItems.map((entry) => (
               <PortfolioCardTile
-                key={portfolio.id}
-                portfolio={portfolio}
-                creator={creator}
+                key={entry.portfolio.id}
+                entry={entry}
                 aspectClass="aspect-square"
                 imageSizes="(max-width: 640px) 50vw, 25vw"
+                likedIds={likedIds}
+                isAuthed={isAuthed ?? false}
+                onOpen={openModal}
               />
             ))}
           </div>
         </div>
       )}
 
-      {/* Vertical */}
       {verticalItems.length > 0 && (
         <div>
           {(horizontalItems.length > 0 || squareItems.length > 0) &&
-            selectedFormat === "all" && (
-              <SectionDivider label="縦型 (9:16)" />
-            )}
+            selectedFormat === "all" && <SectionDivider label="縦型 (9:16)" />}
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-            {verticalItems.map(({ portfolio, creator }) => (
+            {verticalItems.map((entry) => (
               <PortfolioCardTile
-                key={portfolio.id}
-                portfolio={portfolio}
-                creator={creator}
+                key={entry.portfolio.id}
+                entry={entry}
                 aspectClass="aspect-[9/16]"
                 imageSizes="(max-width: 640px) 33vw, 20vw"
+                likedIds={likedIds}
+                isAuthed={isAuthed ?? false}
+                onOpen={openModal}
               />
             ))}
           </div>
         </div>
+      )}
+
+      {/* Modal */}
+      {modalEntry && modalItem && modalCreator && (
+        <VideoModal
+          item={modalItem}
+          creator={modalCreator}
+          isAuthed={isAuthed ?? false}
+          onClose={closeModal}
+        />
       )}
     </div>
   );
@@ -173,32 +218,48 @@ export function PortfolioThumbnailGrid({
 function SectionDivider({ label }: { label: string }) {
   return (
     <div className="mb-4 flex items-center gap-2">
-      <div className="h-px flex-1 bg-[#E0E0E0]" />
-      <span className="text-xs font-bold text-[#828282]">{label}</span>
-      <div className="h-px flex-1 bg-[#E0E0E0]" />
+      <div className="h-px flex-1 bg-white/15" />
+      <span className="text-xs font-bold text-white/70">{label}</span>
+      <div className="h-px flex-1 bg-white/15" />
     </div>
   );
 }
 
 function PortfolioCardTile({
-  portfolio,
-  creator,
+  entry,
   aspectClass,
   imageSizes,
+  likedIds,
+  isAuthed,
+  onOpen,
 }: {
-  portfolio: PortfolioEntry["portfolio"];
-  creator: PortfolioEntry["creator"];
+  entry: PortfolioEntry;
   aspectClass: string;
   imageSizes: string;
+  likedIds?: Set<string>;
+  isAuthed: boolean;
+  onOpen: (entry: PortfolioEntry) => void;
 }) {
+  const { portfolio, creator } = entry;
   const isImage = portfolio.media_type === "image";
   const imageSrc = portfolio.image_url || portfolio.thumbnail_url;
+  const liked = likedIds?.has(portfolio.id) ?? false;
+
+  // 左上に表示する小バッジ (AIツール優先、なければジャンル)
+  const topBadge =
+    creator.ai_tools[0] ??
+    portfolio.genre ??
+    creator.genres[0] ??
+    null;
 
   return (
-    <Link
-      href={`/creators/${creator.id}`}
-      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl shadow-card transition-all duration-300 hover:shadow-card-hover hover:ring-2 hover:ring-neon-pink/40`}
+    <button
+      type="button"
+      onClick={() => onOpen(entry)}
+      aria-label={`${portfolio.title} を再生`}
+      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-neon-midnight text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)]`}
     >
+      {/* Media */}
       {isImage ? (
         imageSrc ? (
           <Image
@@ -209,7 +270,7 @@ function PortfolioCardTile({
             sizes={imageSizes}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[#F2F2F2] text-xs text-[#828282]">
+          <div className="flex h-full w-full items-center justify-center bg-neon-midnight-deep text-xs text-white/60">
             画像なし
           </div>
         )
@@ -224,27 +285,66 @@ function PortfolioCardTile({
           showPlayIcon={false}
         />
       )}
-      {/* Format badge */}
-      <div
-        className={`pointer-events-none absolute left-2 bottom-2 z-10 rounded px-1.5 py-0.5 text-[10px] font-bold text-white ${
+
+      {/* Top-left tag badge (AI tool / genre) */}
+      {topBadge && (
+        <span className="pointer-events-none absolute left-2 top-2 z-10 inline-flex max-w-[60%] items-center gap-1 rounded-pill border border-white/20 bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+          <span className="inline-block h-1 w-1 rounded-full bg-neon-cyan" />
+          <span className="truncate">{topBadge}</span>
+        </span>
+      )}
+
+      {/* Top-right format badge */}
+      <span
+        className={`pointer-events-none absolute right-2 top-2 z-10 rounded-full px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.4)] ${
           isImage
             ? "bg-gradient-to-r from-neon-cyan to-neon-purple"
             : "bg-black/60"
         }`}
       >
-        {isImage ? "AI画像" : portfolio.aspect_ratio === "vertical" ? "縦型" : "横型"}
-      </div>
-      {creator.profiles.is_verified && (
-        <div className="pointer-events-none absolute right-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-neon-pink">
-          <svg className="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fillRule="evenodd"
-              d="M16.403 12.652a3 3 0 0 0 0-5.304 3 3 0 0 0-3.75-3.751 3 3 0 0 0-5.305 0 3 3 0 0 0-3.751 3.75 3 3 0 0 0 0 5.305 3 3 0 0 0 3.75 3.751 3 3 0 0 0 5.305 0 3 3 0 0 0 3.751-3.75Zm-2.546-4.46a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-              clipRule="evenodd"
+        {isImage
+          ? "AI画像"
+          : portfolio.aspect_ratio === "vertical"
+            ? "縦型"
+            : portfolio.aspect_ratio === "square"
+              ? "正方形"
+              : "横型"}
+      </span>
+
+      {/* Hover overlay: creator info + like button */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 translate-y-full bg-gradient-to-t from-black/95 via-black/70 to-transparent px-3 pb-3 pt-10 transition-transform duration-300 group-hover:translate-y-0">
+        <div className="flex items-end justify-between gap-2">
+          <div className="pointer-events-auto flex min-w-0 items-center gap-2">
+            <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/20 bg-neon-midnight">
+              {creator.profiles.avatar_url ? (
+                <Image
+                  src={creator.profiles.avatar_url}
+                  alt={creator.profiles.display_name}
+                  fill
+                  className="object-cover"
+                  sizes="28px"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
+                  {creator.profiles.display_name[0]}
+                </div>
+              )}
+            </div>
+            <span className="truncate text-[11px] font-bold text-white">
+              {creator.profiles.display_name}
+            </span>
+          </div>
+          <div className="pointer-events-auto shrink-0">
+            <LikeButton
+              portfolioItemId={portfolio.id}
+              initialLiked={liked}
+              initialCount={portfolio.like_count}
+              isAuthed={isAuthed}
+              variant="overlay"
             />
-          </svg>
+          </div>
         </div>
-      )}
-    </Link>
+      </div>
+    </button>
   );
 }

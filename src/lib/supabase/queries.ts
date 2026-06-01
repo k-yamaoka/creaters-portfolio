@@ -29,6 +29,7 @@ export type CreatorWithRelations = {
     image_url: string | null;
     thumbnail_url: string | null;
     aspect_ratio: "vertical" | "horizontal" | "square";
+    like_count: number;
     genre: string | null;
     tags: string[];
     is_featured?: boolean;
@@ -59,7 +60,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, genre, tags
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags
       ),
       service_packages (
         id, name, description, price, delivery_days, revisions, features, is_active
@@ -92,7 +93,7 @@ export async function getCreatorById(
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, genre, tags
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags
       ),
       service_packages (
         id, name, description, price, delivery_days, revisions, features, is_active

@@ -407,6 +407,13 @@ export function Header({
                         ダッシュボード
                       </Link>
                       <Link
+                        href="/dashboard/likes"
+                        className="block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        ❤️ いいねした動画
+                      </Link>
+                      <Link
                         href="/settings"
                         className="block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink"
                         onClick={() => setUserMenuOpen(false)}

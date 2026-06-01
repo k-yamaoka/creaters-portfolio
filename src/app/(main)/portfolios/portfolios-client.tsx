@@ -8,9 +8,14 @@ import type { CreatorSearchFilters } from "@/types/database";
 
 export function PortfoliosPageClient({
   creators,
+  likedIds = [],
+  isAuthed = false,
 }: {
   creators: CreatorWithRelations[];
+  likedIds?: string[];
+  isAuthed?: boolean;
 }) {
+  const likedIdSet = useMemo(() => new Set(likedIds), [likedIds]);
   const [filters, setFilters] = useState<CreatorSearchFilters>({
     sortBy: "recommended",
   });
@@ -72,10 +77,10 @@ export function PortfoliosPageClient({
       {/* Page Header */}
       <div className="mb-8 flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-ink sm:text-[2.5rem]">
+          <h1 className="text-3xl font-black tracking-tight text-white sm:text-[2.5rem]">
             AI動画ポートフォリオ
           </h1>
-          <p className="mt-3 text-sm text-ink-muted">
+          <p className="mt-3 text-sm text-white/65">
             Sora / Veo / Runway / Midjourney などを使いこなすAIクリエイターの作品一覧。気になる作品から詳細へ。
           </p>
         </div>
@@ -83,7 +88,7 @@ export function PortfoliosPageClient({
         <button
           type="button"
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="flex items-center gap-2 rounded-pill border border-ink/20 bg-white px-4 py-2.5 text-sm font-bold text-ink lg:hidden"
+          className="flex items-center gap-2 rounded-pill border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm lg:hidden"
         >
           <svg
             className="h-4 w-4"
@@ -123,13 +128,13 @@ export function PortfoliosPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl bg-paper p-6">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-neon-midnight-deep/95 p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-black text-ink">絞り込み</h2>
+                <h2 className="text-lg font-black text-white">絞り込み</h2>
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-paper-deep text-ink-muted"
+                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-white/10 text-white/70"
                 >
                   <svg
                     className="h-5 w-5"
@@ -166,11 +171,15 @@ export function PortfoliosPageClient({
 
         <div className="min-w-0 flex-1">
           {filteredCreators.length > 0 ? (
-            <PortfolioThumbnailGrid creators={filteredCreators} />
+            <PortfolioThumbnailGrid
+              creators={filteredCreators}
+              likedIds={likedIdSet}
+              isAuthed={isAuthed}
+            />
           ) : (
             <div className="mt-20 text-center">
               <svg
-                className="mx-auto h-16 w-16 text-ink/20"
+                className="mx-auto h-16 w-16 text-white/20"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1}
@@ -182,10 +191,10 @@ export function PortfoliosPageClient({
                   d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                 />
               </svg>
-              <h3 className="mt-6 text-xl font-black text-ink">
+              <h3 className="mt-6 text-xl font-black text-white">
                 該当する作品が見つかりませんでした
               </h3>
-              <p className="mt-2 text-sm text-ink-muted">
+              <p className="mt-2 text-sm text-white/65">
                 検索条件を変更して、もう一度お試しください
               </p>
               <button

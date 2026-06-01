@@ -125,6 +125,12 @@ export default async function CreatorDetailPage({
     .filter((x) => x.score > 0)
     .map((x) => x.c);
 
+  // 総いいね数 (このクリエイターの全 portfolio_items の合計)
+  const totalLikes = creator.portfolio_items.reduce(
+    (sum, p) => sum + (p.like_count ?? 0),
+    0
+  );
+
   const hasReviews = creator.review_count > 0;
   const minPackagePrice =
     activePackages.length > 0
@@ -226,6 +232,10 @@ export default async function CreatorDetailPage({
                 <span className="inline-flex items-center gap-1.5">
                   <span className="text-neon-pink">✦</span>
                   作品 {creator.portfolio_items.length} 件
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="text-neon-pink">❤️</span>
+                  総いいね {totalLikes}
                 </span>
               </div>
 
