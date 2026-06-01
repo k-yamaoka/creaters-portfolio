@@ -21,7 +21,9 @@ import { createClient } from "@/lib/supabase/server";
  *   4. クライアント → portfolio_items に publicUrl を登録
  */
 
-const MAX_SIZE = 100 * 1024 * 1024; // 100MB
+// Supabase Free tier の制約により 50MB が上限
+// (Pro 以上にアップしたらここを 100MB or 500MB に拡張)
+const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 
 const ALLOWED_MIME: Record<string, string> = {
   "video/mp4": "mp4",
@@ -48,7 +50,7 @@ export async function POST(req: Request) {
 
   if (size <= 0 || size > MAX_SIZE) {
     return NextResponse.json(
-      { error: "ファイルサイズが 0 〜 100MB の範囲外です" },
+      { error: "ファイルサイズが 50MB を超えています (Supabase Free tier 制約)" },
       { status: 400 }
     );
   }

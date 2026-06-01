@@ -162,6 +162,14 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
    * - XHR で /api/upload/video に POST し progress を表示
    */
   const handleVideoUpload = async (file: File) => {
+    // 早期チェック: 50MB 制限 (Supabase Free tier)
+    if (file.size > 50 * 1024 * 1024) {
+      setError(
+        `ファイルサイズが 50MB を超えています (現在: ${Math.round(file.size / 1024 / 1024)}MB)。動画を圧縮してから再度お試しください。`
+      );
+      return;
+    }
+
     setUploadingVideo(true);
     setError(null);
     setUploadProgress(0);
@@ -712,7 +720,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                               クリックして動画を選択
                             </span>
                             <span className="text-[10px] text-[#BDBDBD]">
-                              MP4 / WebM / MOV (100MB 以下)
+                              MP4 / WebM / MOV (50MB 以下)
                             </span>
                           </>
                         )}
