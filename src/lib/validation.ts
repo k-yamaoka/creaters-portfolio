@@ -80,6 +80,8 @@ const VIDEO_URL_PATTERNS: { platform: string; re: RegExp }[] = [
   { platform: "vimeo", re: /^https?:\/\/(www\.)?vimeo\.com\// },
   { platform: "tiktok", re: /^https?:\/\/(www\.)?tiktok\.com\// },
   { platform: "instagram", re: /^https?:\/\/(www\.)?instagram\.com\// },
+  // 自前アップロード (Supabase Storage の portfolio-videos バケット)
+  { platform: "mp4", re: /^https?:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/portfolio-videos\// },
 ];
 
 export function isAllowedVideoUrl(url: string): boolean {
@@ -92,6 +94,7 @@ export const VIDEO_PLATFORMS = [
   "vimeo",
   "tiktok",
   "instagram",
+  "mp4",
   "other",
 ] as const;
 export type VideoPlatform = (typeof VIDEO_PLATFORMS)[number];

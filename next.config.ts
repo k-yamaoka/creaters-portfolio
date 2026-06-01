@@ -52,6 +52,15 @@ const SECURITY_HEADERS = [
 ];
 
 const nextConfig: NextConfig = {
+  // 動画アップロード用に Server Actions の body 上限を引き上げ
+  // (Next.js 15: 既定 1MB → 100MB)
+  // 動画は /api/upload/video の Route Handler 経由なので Server Actions
+  // とは別だが、formData 経由の他用途のためにも引き上げておく。
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "100mb",
+    },
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "img.youtube.com" },

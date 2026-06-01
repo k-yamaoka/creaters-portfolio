@@ -5,6 +5,14 @@ import {
   detectVideoKindByMagic,
 } from "@/lib/upload-validation";
 
+// Vercel Functions: 動画アップロード用に長め
+export const maxDuration = 120;
+export const runtime = "nodejs";
+
+// Next.js 15: route segment config で body サイズ上限を明示
+// (Vercel Pro: 100MB まで実質可。Hobby は 4.5MB なので注意)
+export const dynamic = "force-dynamic";
+
 const MAX_SIZE = 100 * 1024 * 1024; // 100MB
 const ALLOWED_MIME = new Set([
   "video/mp4",

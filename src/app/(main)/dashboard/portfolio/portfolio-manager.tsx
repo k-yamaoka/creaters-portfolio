@@ -27,6 +27,17 @@ type PortfolioItem = {
 
 type ThumbnailMode = "auto" | "url" | "upload";
 type MediaType = "video" | "image";
+type VideoSubMode = "url" | "upload";
+
+type VideoAspect = "vertical" | "horizontal" | "square";
+
+function detectAspect(width: number, height: number): VideoAspect {
+  if (height === 0) return "horizontal";
+  const ratio = width / height;
+  if (ratio < 0.75) return "vertical";
+  if (ratio > 1.3) return "horizontal";
+  return "square";
+}
 
 /**
  * URLからプラットフォーム種別を推測する。
@@ -60,6 +71,12 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [uploadedThumbUrl, setUploadedThumbUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [videoSubMode, setVideoSubMode] = useState<VideoSubMode>("url");
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadedVideoUrl, setUploadedVideoUrl] = useState<string | null>(null);
+  const [uploadedVideoAspect, setUploadedVideoAspect] =
+    useState<VideoAspect | null>(null);
   const [hasPublishPermission, setHasPublishPermission] = useState(false);
 
   const resetFormState = () => {
@@ -68,7 +85,79 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setThumbnailMode("auto");
     setUploadedThumbUrl(null);
     setUploadedImageUrl(null);
+    setVideoSubMode("url");
+    setUploadedVideoUrl(null);
+    setUploadedVideoAspect(null);
+    setUploadProgress(0);
     setHasPublishPermission(false);
+  };
+
+  /**
+   * 動画ファイルアップロード。
+   * - クライアント側で video element に load してアスペクト比を検出
+   * - XHR で /api/upload/video に POST し progress を表示
+   */
+  const handleVideoUpload = async (file: File) => {
+    setUploadingVideo(true);
+    setError(null);
+    setUploadProgress(0);
+
+    // アスペクト比を先に検出
+    const aspect = await new Promise<VideoAspect>((resolve) => {
+      const video = document.createElement("video");
+      const url = URL.createObjectURL(file);
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        const a = detectAspect(video.videoWidth, video.videoHeight);
+        URL.revokeObjectURL(url);
+        resolve(a);
+      };
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve("horizontal");
+      };
+      video.src = url;
+    });
+
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+
+      const url = await new Promise<string>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.upload.addEventListener("progress", (e) => {
+          if (e.lengthComputable) {
+            setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        });
+        xhr.addEventListener("load", () => {
+          try {
+            const data = JSON.parse(xhr.responseText) as {
+              url?: string;
+              error?: string;
+            };
+            if (xhr.status >= 200 && xhr.status < 300 && data.url) {
+              resolve(data.url);
+            } else {
+              reject(new Error(data.error ?? "アップロード失敗"));
+            }
+          } catch {
+            reject(new Error("レスポンス解析失敗"));
+          }
+        });
+        xhr.addEventListener("error", () =>
+          reject(new Error("ネットワークエラー"))
+        );
+        xhr.open("POST", "/api/upload/video");
+        xhr.send(fd);
+      });
+
+      setUploadedVideoUrl(url);
+      setUploadedVideoAspect(aspect);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "アップロードに失敗しました");
+    }
+    setUploadingVideo(false);
   };
 
   const handleImageUpload = async (file: File) => {
@@ -147,8 +236,24 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         return;
       }
       formData.set("image_url", uploadedImageUrl);
+    } else if (videoSubMode === "upload") {
+      // 動画ファイルアップロードモード: 先にアップロード済みの URL を使う
+      if (!uploadedVideoUrl) {
+        setError("動画ファイルをアップロードしてください");
+        setSaving(false);
+        return;
+      }
+      formData.set("video_url", uploadedVideoUrl);
+      formData.set("video_platform", "mp4");
+      if (uploadedVideoAspect) {
+        formData.set("aspect_ratio", uploadedVideoAspect);
+      }
+      // サムネ任意 (動画から自動生成は将来対応、現状は無しでも OK)
+      if (uploadedThumbUrl) {
+        formData.set("thumbnail_url", uploadedThumbUrl);
+      }
     } else {
-      // 動画アイテム: 既存のバリデーション
+      // 動画 URL モード: 既存のバリデーション
       const videoUrl = formData.get("video_url") as string;
 
       if (
@@ -388,6 +493,129 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               </>
             ) : (
               <>
+            {/* 動画ソース サブ切替: ファイル / URL */}
+            <div>
+              <p className="mb-2 text-sm font-medium text-[#4F4F4F]">
+                動画ソース <span className="text-red-500">*</span>
+              </p>
+              <div className="inline-flex gap-1 rounded-pill bg-[#F2F2F2] p-1">
+                <button
+                  type="button"
+                  onClick={() => setVideoSubMode("upload")}
+                  className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
+                    videoSubMode === "upload"
+                      ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.4)]"
+                      : "text-[#828282] hover:text-[#222]"
+                  }`}
+                >
+                  📁 ファイルをアップロード
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVideoSubMode("url")}
+                  className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
+                    videoSubMode === "url"
+                      ? "bg-gradient-to-r from-neon-cyan to-neon-purple text-white shadow-[0_0_12px_rgba(77,213,247,0.4)]"
+                      : "text-[#828282] hover:text-[#222]"
+                  }`}
+                >
+                  🔗 SNS / YouTube URL
+                </button>
+              </div>
+            </div>
+
+            {videoSubMode === "upload" ? (
+              <>
+                {/* === 動画ファイルアップロード === */}
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+                    動画ファイル <span className="text-red-500">*</span>
+                  </label>
+                  {uploadedVideoUrl ? (
+                    <div className="space-y-3 rounded-lg border border-green-300 bg-green-50 p-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">🎬</span>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-green-700">
+                            アップロード完了
+                          </p>
+                          <p className="mt-0.5 text-xs text-green-600/80">
+                            アスペクト比: {uploadedVideoAspect ?? "判定不可"}
+                            (本番では Cloudflare Stream に移行予定)
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUploadedVideoUrl(null);
+                            setUploadedVideoAspect(null);
+                          }}
+                          className="text-xs text-[#828282] hover:text-red-500"
+                        >
+                          取り消し
+                        </button>
+                      </div>
+                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      <video
+                        src={uploadedVideoUrl}
+                        controls
+                        muted
+                        playsInline
+                        className="w-full rounded-md bg-black"
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void handleVideoUpload(file);
+                        }}
+                        disabled={uploadingVideo}
+                        className="hidden"
+                        id="portfolio-video-input"
+                      />
+                      <label
+                        htmlFor="portfolio-video-input"
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-neon-pink/40 bg-neon-pink/5 px-4 py-10 text-center transition-colors hover:border-neon-pink hover:bg-neon-pink/10 ${
+                          uploadingVideo ? "pointer-events-none opacity-50" : ""
+                        }`}
+                      >
+                        {uploadingVideo ? (
+                          <>
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neon-pink/30 border-t-neon-pink" />
+                            <span className="text-xs font-bold text-neon-purple-deep">
+                              アップロード中... {uploadProgress}%
+                            </span>
+                            {uploadProgress > 0 && (
+                              <div className="h-1.5 w-48 overflow-hidden rounded-full bg-neon-pink/20">
+                                <div
+                                  className="h-full bg-gradient-to-r from-neon-pink to-neon-purple transition-all"
+                                  style={{ width: `${uploadProgress}%` }}
+                                />
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-3xl">🎬</span>
+                            <span className="text-sm font-bold text-neon-purple-deep">
+                              クリックして動画を選択
+                            </span>
+                            <span className="text-[10px] text-[#BDBDBD]">
+                              MP4 / WebM / MOV (100MB 以下)
+                            </span>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
               <div className="flex items-start gap-2">
                 <svg
@@ -404,7 +632,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   />
                 </svg>
                 <p className="text-xs text-blue-700">
-                  著作権保護のため、動画ファイルの直接アップロードには対応していません。YouTube、Vimeo、TikTok、Instagramの埋め込みURLを入力してください。
+                  YouTube / Vimeo / TikTok / Instagram の埋め込み URL を入力してください。
                 </p>
               </div>
             </div>
@@ -417,7 +645,6 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 <input
                   name="video_url"
                   type="url"
-                  required
                   onChange={(e) => handleVideoUrlChange(e.target.value)}
                   className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                   placeholder="https://youtube.com/watch?v=..."
@@ -432,7 +659,6 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 </label>
                 <select
                   name="video_platform"
-                  required
                   value={selectedPlatform}
                   onChange={(e) => handlePlatformChange(e.target.value)}
                   className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
@@ -448,8 +674,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 </select>
               </div>
             </div>
+              </>
+            )}
 
-            {/* Thumbnail section */}
+            {/* Thumbnail section (URL モードのみ) */}
+            {videoSubMode === "url" && (
             <div>
               <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#4F4F4F]">
                 サムネイル
@@ -616,6 +845,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 </div>
               )}
             </div>
+            )}
               </>
             )}
 

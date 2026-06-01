@@ -134,6 +134,13 @@ export async function addPortfolioItem(formData: FormData) {
     finalThumbnail = await getInstagramThumbnail(video_url);
   }
 
+  // aspect_ratio (主に mp4 アップロード時にクライアントから渡される)
+  const aspect_raw = parseText(formData.get("aspect_ratio"), 16);
+  const aspect_ratio: "vertical" | "horizontal" | "square" | null =
+    aspect_raw === "vertical" || aspect_raw === "horizontal" || aspect_raw === "square"
+      ? aspect_raw
+      : null;
+
   const { error } = await supabase.from("portfolio_items").insert({
     creator_id: creator.id,
     title,
@@ -142,6 +149,7 @@ export async function addPortfolioItem(formData: FormData) {
     video_url,
     video_platform,
     thumbnail_url: finalThumbnail,
+    ...(aspect_ratio ? { aspect_ratio } : {}),
     genre: genre || null,
     tags,
     has_publish_permission: true,
