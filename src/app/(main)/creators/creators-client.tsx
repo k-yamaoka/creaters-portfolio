@@ -544,6 +544,16 @@ function ThumbnailCard({
           loop
           playsInline
           preload="metadata"
+          // onLoadedMetadata で 0.001s にシークして first frame を強制描画
+          // (Firefox/Safari は preload=metadata だけでは何も表示しないため)
+          onLoadedMetadata={(e) => {
+            const v = e.currentTarget;
+            try {
+              v.currentTime = 0.001;
+            } catch {
+              // ignore
+            }
+          }}
           className={`absolute inset-0 h-full w-full ${objectFit} transition-opacity duration-300 ${
             item.thumbnail_url
               ? hover

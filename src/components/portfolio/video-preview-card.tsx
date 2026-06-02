@@ -94,7 +94,8 @@ export function VideoPreviewCard({
       )}
 
       {/* MP4 video (preloaded, plays on hover)
-          サムネ無しの場合は first frame をポスター代わりに常時表示。 */}
+          サムネ無しの場合は first frame をポスター代わりに常時表示。
+          0.001s シークで Firefox/Safari でも first frame を強制描画。 */}
       {hasVideo && (
         <video
           ref={videoRef}
@@ -103,6 +104,13 @@ export function VideoPreviewCard({
           loop
           playsInline
           preload="metadata"
+          onLoadedMetadata={(e) => {
+            try {
+              e.currentTarget.currentTime = 0.001;
+            } catch {
+              // ignore
+            }
+          }}
           onLoadedData={() => setMediaLoaded(true)}
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
             thumbnailUrl
