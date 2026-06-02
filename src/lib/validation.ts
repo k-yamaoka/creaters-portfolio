@@ -74,13 +74,9 @@ export function parseDate(
  * 動画 URL ホワイトリスト。
  * クライアント側で打ち込まれた任意 URL を拒否し、許容ホスト + パスパターンのみ通す。
  */
+// SNS 埋め込みは AILIER で廃止。動画は Supabase Storage の portfolio-videos
+// バケットへの直接アップロード (mp4) のみ許可する。
 const VIDEO_URL_PATTERNS: { platform: string; re: RegExp }[] = [
-  { platform: "youtube", re: /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\// },
-  { platform: "youtube_short", re: /^https?:\/\/(www\.)?(youtube\.com\/shorts\/|youtu\.be\/shorts\/)/ },
-  { platform: "vimeo", re: /^https?:\/\/(www\.)?vimeo\.com\// },
-  { platform: "tiktok", re: /^https?:\/\/(www\.)?tiktok\.com\// },
-  { platform: "instagram", re: /^https?:\/\/(www\.)?instagram\.com\// },
-  // 自前アップロード (Supabase Storage の portfolio-videos バケット)
   { platform: "mp4", re: /^https?:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/portfolio-videos\// },
 ];
 
@@ -88,6 +84,7 @@ export function isAllowedVideoUrl(url: string): boolean {
   return VIDEO_URL_PATTERNS.some((p) => p.re.test(url));
 }
 
+// 既存データ互換のため SNS 系の enum 値も残置 (新規登録は mp4 のみ)
 export const VIDEO_PLATFORMS = [
   "youtube",
   "youtube_short",

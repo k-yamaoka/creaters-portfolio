@@ -26,9 +26,7 @@ type PortfolioItem = {
   created_at: string;
 };
 
-type ThumbnailMode = "auto" | "url" | "upload";
 type MediaType = "video" | "image";
-type VideoSubMode = "url" | "upload";
 
 type VideoAspect = "vertical" | "horizontal" | "square";
 
@@ -137,39 +135,15 @@ async function extractVideoThumbnail(file: File): Promise<Blob | null> {
   });
 }
 
-/**
- * URLからプラットフォーム種別を推測する。
- * 編集UIで video_url を貼り付けたら自動で video_platform セレクトが
- * 切り替わるようにするために使う。
- */
-function detectPlatform(url: string): string | null {
-  const u = url.toLowerCase();
-  if (u.includes("youtube.com/shorts/") || u.includes("youtu.be/shorts/")) {
-    return "youtube_short";
-  }
-  if (u.includes("youtube.com/") || u.includes("youtu.be/")) return "youtube";
-  if (u.includes("vimeo.com/")) return "vimeo";
-  if (u.includes("tiktok.com/")) return "tiktok";
-  if (u.includes("instagram.com/")) return "instagram";
-  return null;
-}
-
-/** 自動サムネ取得が信頼できないプラットフォーム */
-const MANUAL_THUMB_PLATFORMS = new Set(["tiktok", "instagram"]);
-
 export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mediaType, setMediaType] = useState<MediaType>("video");
-  const [selectedPlatform, setSelectedPlatform] = useState("youtube");
-  const [thumbnailMode, setThumbnailMode] = useState<ThumbnailMode>("auto");
-  const [uploadingThumb, setUploadingThumb] = useState(false);
   const [uploadedThumbUrl, setUploadedThumbUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
-  const [videoSubMode, setVideoSubMode] = useState<VideoSubMode>("url");
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [extractingThumb, setExtractingThumb] = useState(false);
@@ -180,11 +154,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
 
   const resetFormState = () => {
     setMediaType("video");
-    setSelectedPlatform("youtube");
-    setThumbnailMode("auto");
     setUploadedThumbUrl(null);
     setUploadedImageUrl(null);
-    setVideoSubMode("url");
     setUploadedVideoUrl(null);
     setUploadedVideoAspect(null);
     setUploadProgress(0);
@@ -328,45 +299,6 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setUploadingImage(false);
   };
 
-  const platformNeedsManualThumb = MANUAL_THUMB_PLATFORMS.has(selectedPlatform);
-
-  // プラットフォーム変更時: 手動サムネ必須プラットフォームなら upload モードに自動切替
-  const handlePlatformChange = (next: string) => {
-    setSelectedPlatform(next);
-    if (MANUAL_THUMB_PLATFORMS.has(next) && thumbnailMode === "auto") {
-      setThumbnailMode("upload");
-    }
-  };
-
-  // 動画URL変更時: プラットフォームを自動推測し、対応するモードに切替
-  const handleVideoUrlChange = (url: string) => {
-    const detected = detectPlatform(url);
-    if (!detected || detected === selectedPlatform) return;
-    handlePlatformChange(detected);
-  };
-
-  const handleThumbUpload = async (file: File) => {
-    setUploadingThumb(true);
-    setError(null);
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const res = await fetch("/api/upload/thumbnail", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.error) {
-        setError(data.error);
-      } else {
-        setUploadedThumbUrl(data.url);
-      }
-    } catch {
-      setError("サムネイルのアップロードに失敗しました");
-    }
-    setUploadingThumb(false);
-  };
-
   const handleAdd = async (formData: FormData) => {
     setSaving(true);
     setError(null);
@@ -382,8 +314,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         return;
       }
       formData.set("image_url", uploadedImageUrl);
-    } else if (videoSubMode === "upload") {
-      // 動画ファイルアップロードモード: 先にアップロード済みの URL を使う
+    } else {
+      // 動画アイテム: 必ずアップロード済み MP4 を使用 (SNS 埋め込みは廃止)
       if (!uploadedVideoUrl) {
         setError("動画ファイルをアップロードしてください");
         setSaving(false);
@@ -394,45 +326,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       if (uploadedVideoAspect) {
         formData.set("aspect_ratio", uploadedVideoAspect);
       }
-      // サムネ任意 (動画から自動生成は将来対応、現状は無しでも OK)
+      // サムネは自動抽出で uploadedThumbUrl がセットされる
       if (uploadedThumbUrl) {
         formData.set("thumbnail_url", uploadedThumbUrl);
-      }
-    } else {
-      // 動画 URL モード: 既存のバリデーション
-      const videoUrl = formData.get("video_url") as string;
-
-      if (
-        !videoUrl ||
-        (!videoUrl.includes("youtube.com") &&
-          !videoUrl.includes("youtu.be") &&
-          !videoUrl.includes("vimeo.com") &&
-          !videoUrl.includes("tiktok.com") &&
-          !videoUrl.includes("instagram.com"))
-      ) {
-        setError(
-          "YouTube、Vimeo、TikTok、InstagramのURLを入力してください"
-        );
-        setSaving(false);
-        return;
-      }
-
-      if (thumbnailMode === "upload" && uploadedThumbUrl) {
-        formData.set("thumbnail_url", uploadedThumbUrl);
-      }
-
-      // TikTok/Instagram は手動サムネが必須
-      if (platformNeedsManualThumb) {
-        const hasThumb =
-          (thumbnailMode === "upload" && uploadedThumbUrl) ||
-          (thumbnailMode === "url" && (formData.get("thumbnail_url") as string));
-        if (!hasThumb) {
-          setError(
-            "TikTok / Instagram は自動取得が不安定なため、サムネイル画像をアップロードしてください。"
-          );
-          setSaving(false);
-          return;
-        }
       }
     }
 
@@ -639,40 +535,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               </>
             ) : (
               <>
-            {/* 動画ソース サブ切替: ファイル / URL */}
-            <div>
-              <p className="mb-2 text-sm font-medium text-[#4F4F4F]">
-                動画ソース <span className="text-red-500">*</span>
-              </p>
-              <div className="inline-flex gap-1 rounded-pill bg-[#F2F2F2] p-1">
-                <button
-                  type="button"
-                  onClick={() => setVideoSubMode("upload")}
-                  className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
-                    videoSubMode === "upload"
-                      ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.4)]"
-                      : "text-[#828282] hover:text-[#222]"
-                  }`}
-                >
-                  📁 ファイルをアップロード
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVideoSubMode("url")}
-                  className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
-                    videoSubMode === "url"
-                      ? "bg-gradient-to-r from-neon-cyan to-neon-purple text-white shadow-[0_0_12px_rgba(77,213,247,0.4)]"
-                      : "text-[#828282] hover:text-[#222]"
-                  }`}
-                >
-                  🔗 SNS / YouTube URL
-                </button>
-              </div>
-            </div>
-
-            {videoSubMode === "upload" ? (
-              <>
-                {/* === 動画ファイルアップロード === */}
+                {/* === 動画ファイルアップロード (SNS 埋め込みは廃止) === */}
                 <div>
                   <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
                     動画ファイル <span className="text-red-500">*</span>
@@ -777,239 +640,6 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                     </div>
                   )}
                 </div>
-              </>
-            ) : (
-              <>
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <div className="flex items-start gap-2">
-                <svg
-                  className="mt-0.5 h-4 w-4 shrink-0 text-blue-500"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
-                  />
-                </svg>
-                <p className="text-xs text-blue-700">
-                  YouTube / Vimeo / TikTok / Instagram の埋め込み URL を入力してください。
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  動画URL <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="video_url"
-                  type="url"
-                  onChange={(e) => handleVideoUrlChange(e.target.value)}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                  placeholder="https://youtube.com/watch?v=..."
-                />
-                <p className="mt-1 text-xs text-[#BDBDBD]">
-                  URLを貼り付けるとプラットフォームを自動判定します
-                </p>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  プラットフォーム <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="video_platform"
-                  value={selectedPlatform}
-                  onChange={(e) => handlePlatformChange(e.target.value)}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                >
-                  <option value="youtube">YouTube</option>
-                  <option value="youtube_short">
-                    YouTube ショート（縦型）
-                  </option>
-                  <option value="vimeo">Vimeo</option>
-                  <option value="tiktok">TikTok（縦型）</option>
-                  <option value="instagram">Instagram（縦型）</option>
-                  <option value="other">その他</option>
-                </select>
-              </div>
-            </div>
-              </>
-            )}
-
-            {/* Thumbnail section (URL モードのみ) */}
-            {videoSubMode === "url" && (
-            <div>
-              <label className="mb-2 flex items-center gap-2 text-sm font-medium text-[#4F4F4F]">
-                サムネイル
-                {platformNeedsManualThumb ? (
-                  <span className="rounded bg-red-50 px-1.5 py-0.5 text-[10px] font-bold text-red-500">
-                    アップロード必須
-                  </span>
-                ) : (
-                  <span className="text-xs font-normal text-[#BDBDBD]">
-                    YouTube/Vimeoは自動取得可
-                  </span>
-                )}
-              </label>
-
-              {platformNeedsManualThumb && (
-                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-relaxed text-amber-800">
-                  TikTok / Instagram
-                  は公開APIの制約でサムネイルを安定取得できません。
-                  作品画像（推奨: 1280×720 横長 or 720×1280 縦長）を
-                  アップロードしてください。
-                </div>
-              )}
-
-              {/* Thumbnail mode tabs */}
-              <div className="mb-3 flex gap-1 rounded-lg bg-[#F2F2F2] p-1">
-                <button
-                  type="button"
-                  onClick={() => setThumbnailMode("auto")}
-                  disabled={platformNeedsManualThumb}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    thumbnailMode === "auto"
-                      ? "bg-white text-[#222] shadow-sm"
-                      : "text-[#828282]"
-                  } ${
-                    platformNeedsManualThumb
-                      ? "cursor-not-allowed opacity-40"
-                      : ""
-                  }`}
-                >
-                  自動取得
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setThumbnailMode("upload")}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    thumbnailMode === "upload"
-                      ? "bg-white text-[#222] shadow-sm"
-                      : "text-[#828282]"
-                  }`}
-                >
-                  画像アップロード
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setThumbnailMode("url")}
-                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                    thumbnailMode === "url"
-                      ? "bg-white text-[#222] shadow-sm"
-                      : "text-[#828282]"
-                  }`}
-                >
-                  URL入力
-                </button>
-              </div>
-
-              {thumbnailMode === "auto" && !platformNeedsManualThumb && (
-                <div className="rounded-lg border border-[#E0E0E0] bg-[#F8F8F8] px-4 py-3 text-sm text-[#828282]">
-                  YouTube / Vimeo は動画から自動取得します
-                  <input type="hidden" name="thumbnail_url" value="" />
-                </div>
-              )}
-
-              {thumbnailMode === "url" && (
-                <input
-                  name="thumbnail_url"
-                  type="url"
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                  placeholder="サムネイル画像のURLを入力"
-                />
-              )}
-
-              {thumbnailMode === "upload" && (
-                <div>
-                  {uploadedThumbUrl ? (
-                    <div className="flex items-center gap-3 rounded-lg border border-green-300 bg-green-50 px-4 py-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={uploadedThumbUrl}
-                        alt="サムネイル"
-                        className="h-16 w-16 rounded object-cover"
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-green-700">
-                          アップロード完了
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setUploadedThumbUrl(null)}
-                        className="text-xs text-[#828282] hover:text-red-500"
-                      >
-                        取り消し
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) handleThumbUpload(file);
-                        }}
-                        disabled={uploadingThumb}
-                        className="hidden"
-                        id="thumb-file-input"
-                      />
-                      <label
-                        htmlFor="thumb-file-input"
-                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-[#E0E0E0] px-4 py-6 text-center transition-colors hover:border-neon-pink hover:bg-neon-pink/10/30 ${
-                          uploadingThumb
-                            ? "pointer-events-none opacity-50"
-                            : ""
-                        }`}
-                      >
-                        {uploadingThumb ? (
-                          <>
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neon-purple/30 border-t-neon-pink" />
-                            <span className="text-xs text-[#828282]">
-                              アップロード中...
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <svg
-                              className="h-6 w-6 text-[#BDBDBD]"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              strokeWidth={1.5}
-                              stroke="currentColor"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
-                              />
-                            </svg>
-                            <span className="text-xs font-medium text-[#4F4F4F]">
-                              クリックして画像を選択
-                            </span>
-                            <span className="text-[10px] text-[#BDBDBD]">
-                              JPG / PNG / WebP（5MB以下）
-                            </span>
-                          </>
-                        )}
-                      </label>
-                    </div>
-                  )}
-                  <input
-                    type="hidden"
-                    name="thumbnail_url"
-                    value={uploadedThumbUrl || ""}
-                  />
-                </div>
-              )}
-            </div>
-            )}
               </>
             )}
 

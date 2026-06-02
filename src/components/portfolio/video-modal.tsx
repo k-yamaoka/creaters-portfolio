@@ -55,26 +55,8 @@ export function VideoModal({
     };
   }, [onClose]);
 
-  const isMp4 = item.media_type === "video" && item.video_platform === "mp4";
+  const isVideo = item.media_type === "video" && !!item.video_url;
   const isImage = item.media_type === "image";
-
-  // YouTube/Vimeo 埋め込み URL 変換
-  const embedUrl = (() => {
-    const u = item.video_url ?? "";
-    if (item.video_platform === "youtube") {
-      const m = u.match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{11})/);
-      return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1` : null;
-    }
-    if (item.video_platform === "youtube_short") {
-      const m = u.match(/shorts\/([\w-]{11})/);
-      return m ? `https://www.youtube.com/embed/${m[1]}?autoplay=1&mute=1` : null;
-    }
-    if (item.video_platform === "vimeo") {
-      const m = u.match(/vimeo\.com\/(\d+)/);
-      return m ? `https://player.vimeo.com/video/${m[1]}?autoplay=1&muted=1` : null;
-    }
-    return null;
-  })();
 
   const aspectClass =
     item.aspect_ratio === "vertical"
@@ -126,32 +108,14 @@ export function VideoModal({
                 sizes="(max-width: 1024px) 100vw, 70vw"
               />
             )}
-            {!isImage && isMp4 && item.video_url && (
+            {!isImage && isVideo && (
               <video
-                src={item.video_url}
+                src={item.video_url ?? undefined}
                 autoPlay
                 controls
                 loop
                 playsInline
                 className="h-full w-full object-contain"
-              />
-            )}
-            {!isImage && !isMp4 && embedUrl && (
-              <iframe
-                src={embedUrl}
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-                className="absolute inset-0 h-full w-full"
-                title={item.title}
-              />
-            )}
-            {!isImage && !isMp4 && !embedUrl && item.thumbnail_url && (
-              <Image
-                src={item.thumbnail_url}
-                alt={item.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 70vw"
               />
             )}
           </div>

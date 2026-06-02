@@ -13,79 +13,36 @@ type VideoPreviewCardProps = {
   showPlayIcon?: boolean;
 };
 
-function getEmbedUrl(videoUrl: string, platform: string): string | null {
-  if (platform === "youtube" || platform === "youtube_short") {
-    const match = videoUrl.match(
-      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-    );
-    if (match) {
-      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${match[1]}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1`;
-    }
-  }
-
-  if (platform === "vimeo") {
-    const match = videoUrl.match(/vimeo\.com\/(\d+)/);
-    if (match) {
-      return `https://player.vimeo.com/video/${match[1]}?autoplay=1&muted=1&loop=1&background=1`;
-    }
-  }
-
-  // TikTok embed
-  if (platform === "tiktok") {
-    const match = videoUrl.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
-    if (match) {
-      return `https://www.tiktok.com/embed/v2/${match[1]}?autoplay=1`;
-    }
-  }
-
-  return null;
-}
-
-function isDirectVideo(platform: string): boolean {
-  return platform === "mp4" || platform === "direct" || platform === "other";
-}
-
-function isVideoFileUrl(url: string): boolean {
-  return /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(url);
-}
-
-function isVertical(platform: string, url: string): boolean {
-  return (
-    platform === "youtube_short" ||
-    platform === "tiktok" ||
-    platform === "instagram" ||
-    url.includes("youtube.com/shorts/") ||
-    url.includes("tiktok.com") ||
-    url.includes("instagram.com/reel")
-  );
-}
-
+/**
+ * MP4 動画用プレビューカード。
+ * - SNS 埋め込み (YouTube / Vimeo / TikTok / Instagram) は廃止
+ * - hover 時に <video> を再生
+ * - サムネ画像が読み込めない場合は背景のみ表示
+ */
 export function VideoPreviewCard({
   thumbnailUrl,
   videoUrl,
-  videoPlatform,
+  videoPlatform: _videoPlatform,
   alt,
   sizes = "(max-width: 640px) 100vw, 50vw",
   className = "",
   showPlayIcon = true,
 }: VideoPreviewCardProps) {
+  void _videoPlatform; // 互換維持で受け取るだけ
   const [isHovering, setIsHovering] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const embedUrl = getEmbedUrl(videoUrl, videoPlatform);
-  const isMP4 = isDirectVideo(videoPlatform) || isVideoFileUrl(videoUrl);
-  const isVerticalVideo = isVertical(videoPlatform, videoUrl);
-  const isExternalOnly = videoPlatform === "tiktok" || videoPlatform === "instagram";
+  const hasVideo = !!videoUrl;
 
   const handleMouseEnter = () => {
     timeoutRef.current = setTimeout(() => {
       setIsHovering(true);
-      if (isMP4 && videoRef.current) {
+      if (videoRef.current) {
         videoRef.current.play().catch(() => {});
       }
-    }, 300);
+    }, 200);
   };
 
   const handleMouseLeave = () => {
@@ -95,7 +52,7 @@ export function VideoPreviewCard({
     }
     setIsHovering(false);
     setMediaLoaded(false);
-    if (isMP4 && videoRef.current) {
+    if (videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
@@ -103,7 +60,7 @@ export function VideoPreviewCard({
 
   return (
     <div
-      className={`relative overflow-hidden bg-[#F2F2F2] ${className}`}
+      className={`relative overflow-hidden bg-neon-midnight-deep ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -119,7 +76,7 @@ export function VideoPreviewCard({
           sizes={sizes}
         />
       ) : (
-        <div className="flex h-full items-center justify-center text-[#BDBDBD]">
+        <div className="flex h-full items-center justify-center text-white/40">
           <svg
             className="h-12 w-12"
             fill="none"
@@ -136,8 +93,8 @@ export function VideoPreviewCard({
         </div>
       )}
 
-      {/* MP4/direct video (preloaded, plays on hover) */}
-      {isMP4 && (
+      {/* MP4 video (preloaded, plays on hover) */}
+      {hasVideo && (
         <video
           ref={videoRef}
           src={videoUrl}
@@ -152,55 +109,12 @@ export function VideoPreviewCard({
         />
       )}
 
-      {/* iframe for YouTube/Vimeo/TikTok (loads on hover) */}
-      {!isMP4 && isHovering && embedUrl && (
-        <>
-          <iframe
-            src={embedUrl}
-            className={`pointer-events-none absolute border-0 ${
-              isVerticalVideo
-                ? "inset-0 h-full w-full scale-[2.5] origin-center"
-                : "inset-0 h-full w-full"
-            }`}
-            allow="autoplay; encrypted-media"
-            onLoad={() => setMediaLoaded(true)}
-          />
-          {/* Transparent overlay to hide YouTube title/controls on hover */}
-          <div className="pointer-events-none absolute inset-0 z-10" />
-        </>
-      )}
-
-      {/* External platform hover overlay (TikTok/Instagram) */}
-      {isExternalOnly && isHovering && (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/50">
-          <a
-            href={videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="pointer-events-auto flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-[#222] shadow-lg transition-transform hover:scale-105"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {videoPlatform === "tiktok" ? (
-              <>
-                <span className="text-lg">♪</span>
-                TikTokで見る
-              </>
-            ) : (
-              <>
-                <span className="text-lg">📷</span>
-                Instagramで見る
-              </>
-            )}
-          </a>
-        </div>
-      )}
-
-      {/* Play icon overlay */}
-      {showPlayIcon && !isExternalOnly && !(isHovering && mediaLoaded) && (
+      {/* Play icon */}
+      {showPlayIcon && !(isHovering && mediaLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
           <div className="scale-0 rounded-full bg-white/90 p-3.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
             <svg
-              className="h-5 w-5 text-primary-500"
+              className="h-5 w-5 text-neon-purple-deep"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -211,7 +125,7 @@ export function VideoPreviewCard({
       )}
 
       {/* Loading indicator */}
-      {isHovering && !isExternalOnly && (embedUrl || isMP4) && !mediaLoaded && (
+      {isHovering && hasVideo && !mediaLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         </div>
