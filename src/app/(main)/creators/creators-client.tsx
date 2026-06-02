@@ -523,7 +523,7 @@ function ThumbnailCard({
           : "z-0"
       }`}
     >
-      {/* 静止サムネ (常時表示)。読み込み失敗時はタイル全体を非表示。 */}
+      {/* 静止サムネ (thumbnail_url が存在する場合)。読み込み失敗時はタイル全体を非表示。 */}
       {item.thumbnail_url && (
         <Image
           src={item.thumbnail_url}
@@ -535,7 +535,7 @@ function ThumbnailCard({
         />
       )}
 
-      {/* MP4 動画 (タイル hover 時に再生 + 表示) */}
+      {/* MP4 動画 — サムネ無しなら常時表示で first frame をポスター代わりに */}
       {isMp4 && (
         <video
           ref={videoRef}
@@ -545,7 +545,11 @@ function ThumbnailCard({
           playsInline
           preload="metadata"
           className={`absolute inset-0 h-full w-full ${objectFit} transition-opacity duration-300 ${
-            hover ? "opacity-100" : "opacity-0"
+            item.thumbnail_url
+              ? hover
+                ? "opacity-100"
+                : "opacity-0"
+              : "opacity-100"
           }`}
         />
       )}

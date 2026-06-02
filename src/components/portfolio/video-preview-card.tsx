@@ -93,7 +93,8 @@ export function VideoPreviewCard({
         </div>
       )}
 
-      {/* MP4 video (preloaded, plays on hover) */}
+      {/* MP4 video (preloaded, plays on hover)
+          サムネ無しの場合は first frame をポスター代わりに常時表示。 */}
       {hasVideo && (
         <video
           ref={videoRef}
@@ -104,7 +105,11 @@ export function VideoPreviewCard({
           preload="metadata"
           onLoadedData={() => setMediaLoaded(true)}
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            isHovering && mediaLoaded ? "opacity-100" : "opacity-0"
+            thumbnailUrl
+              ? isHovering && mediaLoaded
+                ? "opacity-100"
+                : "opacity-0"
+              : "opacity-100"
           }`}
         />
       )}
