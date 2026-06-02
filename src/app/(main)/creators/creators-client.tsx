@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
+import { LikeButton } from "@/components/portfolio/like-button";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
 
@@ -11,11 +12,16 @@ export function CreatorsPageClient({
   creators,
   viewerRole,
   viewerCreatorId,
+  likedIds = [],
+  isAuthed = false,
 }: {
   creators: CreatorWithRelations[];
   viewerRole?: "creator" | "client" | "admin" | null;
   viewerCreatorId?: string | null;
+  likedIds?: string[];
+  isAuthed?: boolean;
 }) {
+  const likedIdSet = useMemo(() => new Set(likedIds), [likedIds]);
   const isCreatorViewer = viewerRole === "creator";
   const [filters, setFilters] = useState<CreatorSearchFilters>({
     sortBy: "recommended",
@@ -208,7 +214,12 @@ export function CreatorsPageClient({
             <ul className="space-y-4">
               {visibleCreators.map((c) => (
                 <li key={c.id}>
-                  <CreatorRow creator={c} isCreatorViewer={isCreatorViewer} />
+                  <CreatorRow
+                    creator={c}
+                    isCreatorViewer={isCreatorViewer}
+                    likedIds={likedIdSet}
+                    isAuthed={isAuthed}
+                  />
                 </li>
               ))}
             </ul>
@@ -264,12 +275,36 @@ function formatUnitPrice(pkgs: CreatorWithRelations["service_packages"]) {
 function CreatorRow({
   creator,
   isCreatorViewer,
+  likedIds,
+  isAuthed = false,
 }: {
   creator: CreatorWithRelations;
   isCreatorViewer?: boolean;
+  likedIds?: Set<string>;
+  isAuthed?: boolean;
 }) {
   const { profiles } = creator;
   const unitPrice = formatUnitPrice(creator.service_packages);
+  // 総いいね数 = portfolio_items の like_count 合計 (評価スコア)
+  const totalLikes = creator.portfolio_items.reduce(
+    (sum, p) => sum + (p.like_count ?? 0),
+    0
+  );
+  // ティア判定
+  const tier: "gold" | "silver" | "normal" =
+    totalLikes >= 100 ? "gold" : totalLikes >= 50 ? "silver" : "normal";
+  const tierRing =
+    tier === "gold"
+      ? "border-neon-sunset/60 hover:border-neon-sunset/80 hover:shadow-[0_25px_60px_-15px_rgba(255,174,59,0.55)]"
+      : tier === "silver"
+        ? "border-neon-cyan/40 hover:border-neon-cyan/60 hover:shadow-[0_25px_60px_-15px_rgba(77,213,247,0.45)]"
+        : "border-white/10 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]";
+  const tierBg =
+    tier === "gold"
+      ? "bg-neon-sunset/[0.07]"
+      : tier === "silver"
+        ? "bg-neon-cyan/[0.05]"
+        : "bg-white/[0.04]";
   // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
   // is_featured カラム未マイグレーションでも壊れないよう optional 扱い。
   const featured = creator.portfolio_items.filter(
@@ -283,8 +318,20 @@ function CreatorRow({
   return (
     <Link
       href={`/creators/${creator.id}`}
-      className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm transition-all hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]"
+      className={`group relative block overflow-hidden rounded-2xl border backdrop-blur-sm transition-all hover:-translate-y-1 ${tierBg} ${tierRing}`}
     >
+      {/* 人気クリエイターバッジ (gold/silver のみ) — 左上に表示、認証リボンの逆側 */}
+      {tier !== "normal" && (
+        <span
+          className={`absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[10px] font-black text-white shadow-[0_0_10px_rgba(0,0,0,0.3)] ${
+            tier === "gold"
+              ? "bg-gradient-to-r from-neon-sunset to-neon-pink shadow-[0_0_14px_rgba(255,174,59,0.55)]"
+              : "bg-gradient-to-r from-neon-cyan to-neon-purple shadow-[0_0_14px_rgba(77,213,247,0.45)]"
+          }`}
+        >
+          {tier === "gold" ? "⭐ 人気" : "✨ 注目"} ❤️ {totalLikes}
+        </span>
+      )}
       {/* 認証済みリボン (右上ナナメ折り込み、オレンジ) */}
       {profiles.is_verified && (
         <div
@@ -330,10 +377,16 @@ function CreatorRow({
             <h3 className="text-lg font-black text-white sm:text-xl">
               {profiles.display_name}
             </h3>
-            {creator.review_count > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-0.5 text-xs font-bold text-white">
-                <span className="text-neon-pink">👍</span>
-                {creator.review_count}
+            {totalLikes > 0 ? (
+              <span
+                className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-white ${
+                  tier === "gold"
+                    ? "bg-neon-sunset/25 text-neon-sunset"
+                    : "bg-white/10"
+                }`}
+              >
+                <span className="text-neon-pink">❤️</span>
+                {totalLikes}
               </span>
             ) : (
               <span className="text-xs text-white/45">いいねまだなし</span>
@@ -343,10 +396,14 @@ function CreatorRow({
                 経験 {creator.years_of_experience} 年
               </span>
             )}
-            {/* 作品数 (経験年数の横に配置、認証リボンとの被りを避ける) */}
+            {/* 作品数 + 作品を見る/プロフィール CTA (横並び) */}
             <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
               <span aria-hidden>🎬</span>
               作品 {creator.portfolio_items.length} 件
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[11px] font-bold text-white transition-all group-hover:shadow-[0_0_14px_rgba(255,77,157,0.5)]">
+              {isCreatorViewer ? "作品を見る" : "プロフィール"}
+              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
             </span>
           </div>
 
@@ -385,20 +442,16 @@ function CreatorRow({
           )}
         </div>
 
-        {/* 右: 最低対応金額 + CTA (viewer 種別に関わらず常時表示) */}
-        <div className="col-span-12 flex flex-row items-center justify-between gap-3 sm:col-span-3 sm:flex-col sm:items-end sm:justify-start sm:gap-2.5">
-          <div className="text-right">
-            <p className="text-[11px] font-bold tracking-wider text-white/45">
+        {/* 右: 最低対応金額 (認証リボンとの被りを避けるため下寄せ) */}
+        <div className="col-span-12 flex items-end justify-end sm:col-span-3 sm:justify-end">
+          <div className="rounded-2xl border border-neon-pink/30 bg-neon-pink/5 px-4 py-2.5 text-right backdrop-blur-sm">
+            <p className="text-[10px] font-bold tracking-wider text-white/50">
               最低対応金額
             </p>
-            <p className="mt-1 text-base font-black text-neon-pink sm:text-xl">
+            <p className="mt-0.5 text-lg font-black text-neon-pink sm:text-xl">
               {unitPrice ?? "応相談"}
             </p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-xs font-bold text-white transition-all group-hover:shadow-[0_0_16px_rgba(255,77,157,0.5)]">
-            {isCreatorViewer ? "作品を見る" : "プロフィール"}
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-          </span>
         </div>
       </div>
 
@@ -406,7 +459,12 @@ function CreatorRow({
       {thumbs.length > 0 && (
         <div className="grid grid-cols-2 gap-1 border-t border-white/10 bg-neon-midnight/40 p-1 sm:grid-cols-4">
           {thumbs.map((t) => (
-            <ThumbnailCard key={t.id} item={t} />
+            <ThumbnailCard
+              key={t.id}
+              item={t}
+              liked={likedIds?.has(t.id) ?? false}
+              isAuthed={isAuthed}
+            />
           ))}
         </div>
       )}
@@ -422,28 +480,23 @@ function CreatorRow({
  */
 function ThumbnailCard({
   item,
+  liked = false,
+  isAuthed = false,
 }: {
   item: CreatorWithRelations["portfolio_items"][0];
+  liked?: boolean;
+  isAuthed?: boolean;
 }) {
   const [hover, setHover] = useState(false);
+  const [broken, setBroken] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const isMp4 = item.video_platform === "mp4" && !!item.video_url;
   const aspect = item.aspect_ratio;
-  const formatLabel =
-    aspect === "vertical"
-      ? "縦型"
-      : aspect === "square"
-        ? "正方形"
-        : "横型";
-  const formatGradient =
-    aspect === "vertical"
-      ? "from-neon-pink to-neon-purple"
-      : aspect === "square"
-        ? "from-neon-cyan to-neon-purple"
-        : "from-neon-cyan to-neon-pink";
-
   const objectFit = aspect === "vertical" ? "object-contain" : "object-cover";
+
+  // サムネ画像が読み込めない場合はタイル自体を非表示にする
+  if (broken) return null;
 
   // hover state と動画再生を同期
   useEffect(() => {
@@ -470,7 +523,7 @@ function ThumbnailCard({
           : "z-0"
       }`}
     >
-      {/* 静止サムネ (常時表示) */}
+      {/* 静止サムネ (常時表示)。読み込み失敗時はタイル全体を非表示。 */}
       {item.thumbnail_url && (
         <Image
           src={item.thumbnail_url}
@@ -478,6 +531,7 @@ function ThumbnailCard({
           fill
           className={`${objectFit} transition-transform duration-300`}
           sizes="(max-width: 640px) 50vw, 25vw"
+          onError={() => setBroken(true)}
         />
       )}
 
@@ -496,12 +550,16 @@ function ThumbnailCard({
         />
       )}
 
-      {/* フォーマット (アスペクト比) バッジ — 右上 */}
-      <span
-        className={`pointer-events-none absolute right-1.5 top-1.5 z-10 rounded-full bg-gradient-to-r ${formatGradient} px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.4)]`}
-      >
-        {formatLabel}
-      </span>
+      {/* いいねボタン — 右上 (評価スコアと連動) */}
+      <div className="absolute right-1.5 top-1.5 z-10">
+        <LikeButton
+          portfolioItemId={item.id}
+          initialLiked={liked}
+          initialCount={item.like_count}
+          isAuthed={isAuthed}
+          variant="overlay"
+        />
+      </div>
 
       {/* タイトルオーバーレイ (hover時) */}
       <div

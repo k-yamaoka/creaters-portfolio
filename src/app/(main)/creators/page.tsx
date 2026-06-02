@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCreators, getCurrentUser } from "@/lib/supabase/queries";
 import { fixMissingThumbnails } from "@/lib/video-thumbnail";
+import { createClient } from "@/lib/supabase/server";
 import { CreatorsPageClient } from "./creators-client";
 
 export const metadata: Metadata = {
@@ -21,11 +22,28 @@ export default async function CreatorsPage() {
     getCurrentUser(),
   ]);
 
+  // 現在ユーザーが「いいね」した portfolio_item_id 一覧 (サムネのハート反映用)
+  const supabase = await createClient();
+  const {
+    data: { user: authUser },
+  } = await supabase.auth.getUser();
+
+  let likedIds: string[] = [];
+  if (authUser) {
+    const { data } = await supabase
+      .from("portfolio_likes")
+      .select("portfolio_item_id")
+      .eq("user_id", authUser.id);
+    likedIds = (data ?? []).map((r) => r.portfolio_item_id as string);
+  }
+
   return (
     <CreatorsPageClient
       creators={creators}
       viewerRole={user?.role ?? null}
       viewerCreatorId={user?.creator_profile?.id ?? null}
+      likedIds={likedIds}
+      isAuthed={!!authUser}
     />
   );
 }
