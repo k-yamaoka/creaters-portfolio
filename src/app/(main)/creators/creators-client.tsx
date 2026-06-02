@@ -7,6 +7,8 @@ import { SearchFilters, SearchTopBar } from "@/components/creators/search-filter
 import { LikeButton } from "@/components/portfolio/like-button";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
+import { useInViewport } from "@/hooks/use-in-viewport";
+import { derivePosterUrl } from "@/lib/video-poster";
 
 export function CreatorsPageClient({
   creators,
@@ -489,19 +491,20 @@ function ThumbnailCard({
 }) {
   const [hover, setHover] = useState(false);
   const [broken, setBroken] = useState(false);
+  const { ref: rootRef, inView } = useInViewport<HTMLDivElement>("300px");
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const isMp4 = item.video_platform === "mp4" && !!item.video_url;
   const aspect = item.aspect_ratio;
   const objectFit = aspect === "vertical" ? "object-contain" : "object-cover";
+  // Cloudinary 由来の動画は拡張子 .jpg で first frame を即取得できる
+  const posterUrl = derivePosterUrl(item.video_url);
+  const shouldRenderVideo = isMp4 && inView;
 
-  // サムネ画像が読み込めない場合はタイル自体を非表示にする
-  if (broken) return null;
-
-  // hover state と動画再生を同期
+  // hover state と動画再生を同期 (video が mount された時のみ意味を持つ)
   useEffect(() => {
     const v = videoRef.current;
-    if (!v || !isMp4) return;
+    if (!v || !shouldRenderVideo) return;
     if (hover) {
       v.currentTime = 0;
       void v.play().catch(() => {});
@@ -509,10 +512,14 @@ function ThumbnailCard({
       v.pause();
       v.currentTime = 0;
     }
-  }, [hover, isMp4]);
+  }, [hover, shouldRenderVideo]);
+
+  // サムネ画像が読み込めない場合はタイル自体を非表示にする
+  if (broken) return null;
 
   return (
     <div
+      ref={rootRef}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
@@ -535,11 +542,24 @@ function ThumbnailCard({
         />
       )}
 
-      {/* MP4 動画 — サムネ無しなら常時表示で first frame をポスター代わりに */}
-      {isMp4 && (
+      {/* Cloudinary poster — video が mount される前から first frame を出す
+          (next/image は CDN allowlist が必要なので素の <img> を使う) */}
+      {!item.thumbnail_url && posterUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={posterUrl}
+          alt={item.title}
+          className={`absolute inset-0 h-full w-full ${objectFit}`}
+          loading="lazy"
+        />
+      )}
+
+      {/* MP4 動画 — viewport に入ったタイミングで mount し、初期表示を軽くする */}
+      {shouldRenderVideo && (
         <video
           ref={videoRef}
           src={item.video_url ?? undefined}
+          poster={posterUrl ?? undefined}
           muted
           loop
           playsInline
@@ -555,7 +575,7 @@ function ThumbnailCard({
             }
           }}
           className={`absolute inset-0 h-full w-full ${objectFit} transition-opacity duration-300 ${
-            item.thumbnail_url
+            item.thumbnail_url || posterUrl
               ? hover
                 ? "opacity-100"
                 : "opacity-0"

@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import Image from "next/image";
+import { useInViewport } from "@/hooks/use-in-viewport";
+import { derivePosterUrl } from "@/lib/video-poster";
 
 type VideoPreviewCardProps = {
   thumbnailUrl: string | null;
@@ -18,6 +20,8 @@ type VideoPreviewCardProps = {
  * - SNS 埋め込み (YouTube / Vimeo / TikTok / Instagram) は廃止
  * - hover 時に <video> を再生
  * - サムネ画像が読み込めない場合は背景のみ表示
+ * - <video> は viewport (+300px) に入ったタイミングで mount し、初期表示を軽くする
+ * - Cloudinary 動画は拡張子 .jpg で first frame をポスター画像として即取得
  */
 export function VideoPreviewCard({
   thumbnailUrl,
@@ -33,8 +37,11 @@ export function VideoPreviewCard({
   const [mediaLoaded, setMediaLoaded] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const { ref: rootRef, inView } = useInViewport<HTMLDivElement>("300px");
 
   const hasVideo = !!videoUrl;
+  const posterUrl = derivePosterUrl(videoUrl);
+  const shouldRenderVideo = hasVideo && inView;
 
   const handleMouseEnter = () => {
     timeoutRef.current = setTimeout(() => {
@@ -60,6 +67,7 @@ export function VideoPreviewCard({
 
   return (
     <div
+      ref={rootRef}
       className={`relative overflow-hidden bg-neon-midnight-deep ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -74,6 +82,17 @@ export function VideoPreviewCard({
             isHovering && mediaLoaded ? "opacity-0" : "opacity-100"
           }`}
           sizes={sizes}
+        />
+      ) : posterUrl ? (
+        // Cloudinary poster (next/image は CDN allowlist 不要にしたいので素の <img>)
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={posterUrl}
+          alt={alt}
+          className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${
+            isHovering && mediaLoaded ? "opacity-0" : "opacity-100"
+          }`}
+          loading="lazy"
         />
       ) : (
         <div className="flex h-full items-center justify-center text-white/40">
@@ -93,13 +112,14 @@ export function VideoPreviewCard({
         </div>
       )}
 
-      {/* MP4 video (preloaded, plays on hover)
-          サムネ無しの場合は first frame をポスター代わりに常時表示。
-          0.001s シークで Firefox/Safari でも first frame を強制描画。 */}
-      {hasVideo && (
+      {/* MP4 video (viewport に入ったときだけ mount。
+          サムネ無し かつ poster も無い場合は first frame をポスター代わりに常時表示。
+          0.001s シークで Firefox/Safari でも first frame を強制描画。) */}
+      {shouldRenderVideo && (
         <video
           ref={videoRef}
           src={videoUrl}
+          poster={posterUrl ?? undefined}
           muted
           loop
           playsInline
@@ -113,7 +133,7 @@ export function VideoPreviewCard({
           }}
           onLoadedData={() => setMediaLoaded(true)}
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            thumbnailUrl
+            thumbnailUrl || posterUrl
               ? isHovering && mediaLoaded
                 ? "opacity-100"
                 : "opacity-0"
