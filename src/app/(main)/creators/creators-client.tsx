@@ -224,7 +224,6 @@ export function CreatorsPageClient({
                 <li key={c.id}>
                   <CreatorRow
                     creator={c}
-                    isCreatorViewer={isCreatorViewer}
                     likedIds={likedIdSet}
                     isAuthed={isAuthed}
                   />
@@ -282,12 +281,10 @@ function formatUnitPrice(pkgs: CreatorWithRelations["service_packages"]) {
 
 function CreatorRow({
   creator,
-  isCreatorViewer,
   likedIds,
   isAuthed = false,
 }: {
   creator: CreatorWithRelations;
-  isCreatorViewer?: boolean;
   likedIds?: Set<string>;
   isAuthed?: boolean;
 }) {
@@ -413,21 +410,10 @@ function CreatorRow({
               <span className="text-neon-pink">❤️</span>
               {totalLikes === 0 && <span>0</span>}
             </span>
-            {creator.years_of_experience > 0 && (
-              <span className="rounded-pill border border-white/15 bg-white/5 px-2.5 py-0.5 text-[11px] font-bold text-white/75">
-                経験 {creator.years_of_experience} 年
-              </span>
-            )}
-            {/* 作品数 + 作品を見る CTA は wrap で離れないよう単一の inline-flex で密結合 */}
-            <span className="inline-flex flex-wrap items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
-                <span aria-hidden>🎬</span>
-                作品 {creator.portfolio_items.length} 件
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[11px] font-bold text-white transition-all group-hover:shadow-[0_0_14px_rgba(255,77,157,0.5)]">
-                {isCreatorViewer ? "作品を見る" : "プロフィール"}
-                <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-              </span>
+            {/* 作品数のみ表示 (経験年数バッジと作品を見る CTA は撤去) */}
+            <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
+              <span aria-hidden>🎬</span>
+              作品 {creator.portfolio_items.length} 件
             </span>
           </div>
 

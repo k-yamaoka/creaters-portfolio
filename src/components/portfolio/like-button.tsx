@@ -14,6 +14,7 @@ export function LikeButton({
   initialCount,
   isAuthed,
   variant = "overlay",
+  showCount = false,
   onLikeChange,
 }: {
   portfolioItemId: string;
@@ -22,6 +23,8 @@ export function LikeButton({
   isAuthed: boolean;
   /** overlay = thumb 上の小さい表示 / inline = やや大きめ */
   variant?: "overlay" | "inline";
+  /** true: ♥ の横に数字を表示 (ポートフォリオ一覧で使用) */
+  showCount?: boolean;
   /**
    * いいねが追加(+1)/取り消し(-1)されたタイミングで親に delta を通知。
    * 親側 (例: クリエイター行) は集計値 (総いいね数) をこの delta で再計算する。
@@ -100,9 +103,8 @@ export function LikeButton({
       >
         {liked ? "❤️" : "🤍"}
       </span>
-      {/* 数字表示は廃止。集計値はクリエイター行の総いいねバッジ側で表現する。
-          (count state は変動検知 / アクセシビリティラベルのために保持) */}
-      <span className="sr-only">{count}</span>
+      {/* showCount=true のときだけ数字を出す。それ以外は sr-only で a11y のみ。 */}
+      {showCount ? <span>{count}</span> : <span className="sr-only">{count}</span>}
     </button>
   );
 }

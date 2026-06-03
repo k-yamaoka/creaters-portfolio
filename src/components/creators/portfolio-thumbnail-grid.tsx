@@ -9,21 +9,12 @@ import {
   type VideoModalItem,
   type VideoModalCreator,
 } from "@/components/portfolio/video-modal";
-import { PORTFOLIO_FORMATS, type PortfolioFormat } from "@/lib/constants";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 
 type PortfolioEntry = {
   portfolio: CreatorWithRelations["portfolio_items"][0];
   creator: CreatorWithRelations;
 };
-
-function matchFormat(
-  aspect: PortfolioEntry["portfolio"]["aspect_ratio"],
-  tab: PortfolioFormat
-): boolean {
-  if (tab === "all") return true;
-  return aspect === tab;
-}
 
 export function PortfolioThumbnailGrid({
   creators,
@@ -34,7 +25,6 @@ export function PortfolioThumbnailGrid({
   likedIds?: Set<string>;
   isAuthed?: boolean;
 }) {
-  const [selectedFormat, setSelectedFormat] = useState<PortfolioFormat>("all");
   const [modalEntry, setModalEntry] = useState<PortfolioEntry | null>(null);
 
   const allPortfolios: PortfolioEntry[] = useMemo(
@@ -45,39 +35,9 @@ export function PortfolioThumbnailGrid({
     [creators]
   );
 
-  const counts = useMemo(() => {
-    const c: Record<PortfolioFormat, number> = {
-      all: allPortfolios.length,
-      vertical: 0,
-      horizontal: 0,
-      square: 0,
-    };
-    for (const { portfolio } of allPortfolios) {
-      const a = portfolio.aspect_ratio;
-      if (a === "vertical") c.vertical++;
-      else if (a === "horizontal") c.horizontal++;
-      else if (a === "square") c.square++;
-    }
-    return c;
-  }, [allPortfolios]);
-
-  const filtered = useMemo(
-    () =>
-      allPortfolios.filter(({ portfolio }) =>
-        matchFormat(portfolio.aspect_ratio, selectedFormat)
-      ),
-    [allPortfolios, selectedFormat]
-  );
-
-  const horizontalItems = filtered.filter(
-    ({ portfolio }) => portfolio.aspect_ratio === "horizontal"
-  );
-  const verticalItems = filtered.filter(
-    ({ portfolio }) => portfolio.aspect_ratio === "vertical"
-  );
-  const squareItems = filtered.filter(
-    ({ portfolio }) => portfolio.aspect_ratio === "square"
-  );
+  // カテゴリ分け (フォーマットタブ / 縦横区切り見出し) は撤去。
+  // ユーザー判断: 顧客は作品単位で発見すれば十分。
+  const filtered = allPortfolios;
 
   const openModal = (entry: PortfolioEntry) => setModalEntry(entry);
   const closeModal = () => setModalEntry(null);
@@ -110,95 +70,36 @@ export function PortfolioThumbnailGrid({
 
   return (
     <div className="space-y-6">
-      {/* Format tabs */}
-      <div className="flex flex-wrap gap-2">
-        {PORTFOLIO_FORMATS.map((tab) => {
-          const count = counts[tab.value];
-          if (tab.value !== "all" && count === 0) return null;
-          const isActive = selectedFormat === tab.value;
-          return (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => setSelectedFormat(tab.value)}
-              className={`inline-flex items-center gap-2 rounded-pill border px-4 py-2 text-sm font-bold transition-all ${
-                isActive
-                  ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_14px_rgba(255,77,157,0.35)]"
-                  : "border-white/15 bg-white/5 text-white/80 backdrop-blur-sm hover:border-neon-pink/40 hover:bg-white/10"
-              }`}
-            >
-              {tab.label}
-              <span
-                className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  isActive ? "bg-white/20 text-white" : "bg-white/10 text-white/70"
-                }`}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {filtered.length === 0 && (
         <div className="py-12 text-center text-sm text-white/60">
           該当する作品がありません
         </div>
       )}
 
-      {horizontalItems.length > 0 && (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-          {horizontalItems.map((entry) => (
-            <PortfolioCardTile
-              key={entry.portfolio.id}
-              entry={entry}
-              aspectClass="aspect-video"
-              imageSizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              likedIds={likedIds}
-              isAuthed={isAuthed ?? false}
-              onOpen={openModal}
-            />
-          ))}
-        </div>
-      )}
-
-      {squareItems.length > 0 && (
-        <div>
-          {(horizontalItems.length > 0 || verticalItems.length > 0) &&
-            selectedFormat === "all" && <SectionDivider label="正方形" />}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {squareItems.map((entry) => (
+      {/* アスペクト比に応じて aspect-* を切り替えつつ、単一グリッドに統合。
+          縦型・横型・正方形を混在させた masonry 風の自然な並びにする。 */}
+      {filtered.length > 0 && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {filtered.map((entry) => {
+            const a = entry.portfolio.aspect_ratio;
+            const aspectClass =
+              a === "vertical"
+                ? "aspect-[9/16]"
+                : a === "square"
+                  ? "aspect-square"
+                  : "aspect-video";
+            return (
               <PortfolioCardTile
                 key={entry.portfolio.id}
                 entry={entry}
-                aspectClass="aspect-square"
-                imageSizes="(max-width: 640px) 50vw, 25vw"
+                aspectClass={aspectClass}
+                imageSizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                 likedIds={likedIds}
                 isAuthed={isAuthed ?? false}
                 onOpen={openModal}
               />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {verticalItems.length > 0 && (
-        <div>
-          {(horizontalItems.length > 0 || squareItems.length > 0) &&
-            selectedFormat === "all" && <SectionDivider label="縦型 (9:16)" />}
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
-            {verticalItems.map((entry) => (
-              <PortfolioCardTile
-                key={entry.portfolio.id}
-                entry={entry}
-                aspectClass="aspect-[9/16]"
-                imageSizes="(max-width: 640px) 33vw, 20vw"
-                likedIds={likedIds}
-                isAuthed={isAuthed ?? false}
-                onOpen={openModal}
-              />
-            ))}
-          </div>
+            );
+          })}
         </div>
       )}
 
@@ -211,16 +112,6 @@ export function PortfolioThumbnailGrid({
           onClose={closeModal}
         />
       )}
-    </div>
-  );
-}
-
-function SectionDivider({ label }: { label: string }) {
-  return (
-    <div className="mb-4 flex items-center gap-2">
-      <div className="h-px flex-1 bg-white/15" />
-      <span className="text-xs font-bold text-white/70">{label}</span>
-      <div className="h-px flex-1 bg-white/15" />
     </div>
   );
 }
@@ -245,15 +136,19 @@ function PortfolioCardTile({
   const imageSrc = portfolio.image_url || portfolio.thumbnail_url;
   const liked = likedIds?.has(portfolio.id) ?? false;
 
-  // 左上に表示する小バッジ (ジャンルのみ — AI ツールは UI から廃止)
-  const topBadge = portfolio.genre ?? creator.genres[0] ?? null;
-
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onOpen(entry)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(entry);
+        }
+      }}
       aria-label={`${portfolio.title} を再生`}
-      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-neon-midnight text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)]`}
+      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-neon-midnight text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-neon-pink`}
     >
       {/* Media */}
       {isImage ? (
@@ -282,65 +177,46 @@ function PortfolioCardTile({
         />
       )}
 
-      {/* Top-left tag badge (AI tool / genre) */}
-      {topBadge && (
-        <span className="pointer-events-none absolute left-2 top-2 z-10 inline-flex max-w-[60%] items-center gap-1 rounded-pill border border-white/20 bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-          <span className="inline-block h-1 w-1 rounded-full bg-neon-cyan" />
-          <span className="truncate">{topBadge}</span>
-        </span>
-      )}
-
-      {/* Top-right format badge */}
-      <span
-        className={`pointer-events-none absolute right-2 top-2 z-10 rounded-full px-1.5 py-0.5 text-[9px] font-black text-white shadow-[0_0_8px_rgba(0,0,0,0.4)] ${
-          isImage
-            ? "bg-gradient-to-r from-neon-cyan to-neon-purple"
-            : "bg-black/60"
-        }`}
+      {/* Top-right: いいねボタン (常時表示 + count を併記)。
+          縦横/カテゴリのラベル類は撤去済 (ユーザー判断: 各動画にラベル不要)。
+          button 内に button をネストしないよう pointer-events を分離。 */}
+      <div
+        className="pointer-events-auto absolute right-2 top-2 z-10"
+        onClick={(e) => e.stopPropagation()}
       >
-        {isImage
-          ? "AI画像"
-          : portfolio.aspect_ratio === "vertical"
-            ? "縦型"
-            : portfolio.aspect_ratio === "square"
-              ? "正方形"
-              : "横型"}
-      </span>
+        <LikeButton
+          portfolioItemId={portfolio.id}
+          initialLiked={liked}
+          initialCount={portfolio.like_count}
+          isAuthed={isAuthed}
+          variant="overlay"
+          showCount
+        />
+      </div>
 
-      {/* Hover overlay: creator info + like button */}
+      {/* Hover overlay: creator info のみ (LikeButton は外に出した) */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 translate-y-full bg-gradient-to-t from-black/95 via-black/70 to-transparent px-3 pb-3 pt-10 transition-transform duration-300 group-hover:translate-y-0">
-        <div className="flex items-end justify-between gap-2">
-          <div className="pointer-events-auto flex min-w-0 items-center gap-2">
-            <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/20 bg-neon-midnight">
-              {creator.profiles.avatar_url ? (
-                <Image
-                  src={creator.profiles.avatar_url}
-                  alt={creator.profiles.display_name}
-                  fill
-                  className="object-cover"
-                  sizes="28px"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
-                  {creator.profiles.display_name[0]}
-                </div>
-              )}
-            </div>
-            <span className="truncate text-[11px] font-bold text-white">
-              {creator.profiles.display_name}
-            </span>
+        <div className="pointer-events-auto flex min-w-0 items-center gap-2">
+          <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/20 bg-neon-midnight">
+            {creator.profiles.avatar_url ? (
+              <Image
+                src={creator.profiles.avatar_url}
+                alt={creator.profiles.display_name}
+                fill
+                className="object-cover"
+                sizes="28px"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
+                {creator.profiles.display_name[0]}
+              </div>
+            )}
           </div>
-          <div className="pointer-events-auto shrink-0">
-            <LikeButton
-              portfolioItemId={portfolio.id}
-              initialLiked={liked}
-              initialCount={portfolio.like_count}
-              isAuthed={isAuthed}
-              variant="overlay"
-            />
-          </div>
+          <span className="truncate text-[11px] font-bold text-white">
+            {creator.profiles.display_name}
+          </span>
         </div>
       </div>
-    </button>
+    </div>
   );
 }
