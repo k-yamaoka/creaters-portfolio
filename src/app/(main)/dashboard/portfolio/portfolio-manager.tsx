@@ -440,7 +440,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
                 placeholder={
                   mediaType === "image"
-                    ? "使用AIツール・コンセプト・制作背景など"
+                    ? "作品のコンセプト・制作背景など"
                     : "作品の概要や制作の背景"
                 }
               />

@@ -245,12 +245,8 @@ function PortfolioCardTile({
   const imageSrc = portfolio.image_url || portfolio.thumbnail_url;
   const liked = likedIds?.has(portfolio.id) ?? false;
 
-  // 左上に表示する小バッジ (AIツール優先、なければジャンル)
-  const topBadge =
-    creator.ai_tools[0] ??
-    portfolio.genre ??
-    creator.genres[0] ??
-    null;
+  // 左上に表示する小バッジ (ジャンルのみ — AI ツールは UI から廃止)
+  const topBadge = portfolio.genre ?? creator.genres[0] ?? null;
 
   return (
     <button

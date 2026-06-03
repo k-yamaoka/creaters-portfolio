@@ -46,10 +46,8 @@ export async function POST(
 # このクリエイターの情報
 - 名前: ${creator.profiles.display_name}
 - 自己紹介: ${creator.bio || "(未記入)"}
-- 所在地: ${creator.location || "(未記入)"}
 - 経験年数: ${creator.years_of_experience}年
 - 得意ジャンル: ${creator.genres.join(", ") || "(未記入)"}
-- 使用 AI ツール: ${creator.ai_tools.join(", ") || "(未記入)"}
 - 強み: ${creator.strengths.join(", ") || "(未記入)"}
 - 得意映像尺: ${creator.video_lengths.join(", ") || "(未記入)"}
 - 評価: ${creator.review_count > 0 ? `★${creator.rating.toFixed(1)} (${creator.review_count}件)` : "評価数 0"}
@@ -66,7 +64,7 @@ ${minPrice !== null ? `# 最低対応金額\n${formatPrice(minPrice)}〜` : ""}
 4. 過去実績や絶対値の約束はしない(「目安です」と書く)
 5. 営業トーンにせず、フラットで誠実なトーンで
 6. 最後に必ず「正確な見積もりはメッセージで直接ご相談ください」と1行添える
-7. このクリエイターの info に無いツール・スキルを勝手に補足しない(例:「Sora 3 も対応」など書かない)
+7. クリエイターの info に無いスキルや使用ツールを勝手に補足しない(具体的な AI ツール名 〔Sora / Runway / Veo 等〕も挙げない — 流動的で陳腐化しやすいため)
 8. 依頼内容と関係ない雑談・違法・センシティブな質問には「見積もり以外はお答えできません」と短く返す`;
 
   const modelMessages = await convertToModelMessages(messages);

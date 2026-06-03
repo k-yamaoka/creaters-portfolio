@@ -4,11 +4,11 @@ import Link from "next/link";
 import { getCreatorById, getCreators } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { ReviewList } from "@/components/reviews/review-list";
-import { SectionTabs } from "@/components/creators/section-tabs";
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";
 import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
+// SectionTabs はクリエイター詳細の上部からは撤去 (ユーザー判断: タブナビ不要)
 
 export default async function CreatorDetailPage({
   params,
@@ -147,10 +147,13 @@ export default async function CreatorDetailPage({
     : creator.portfolio_items;
 
   const hasReviews = creator.review_count > 0;
-  const minPackagePrice =
+  // 最安パッケージ自体を抽出 — 価格に加え「何が含まれるか」を
+  // Hero 直下に開示してミニマム発注のイメージを湧かせる。
+  const minPackage =
     activePackages.length > 0
-      ? Math.min(...activePackages.map((p) => p.price))
+      ? [...activePackages].sort((a, b) => a.price - b.price)[0]
       : null;
+  const minPackagePrice = minPackage?.price ?? null;
   const firstPackageId = activePackages[0]?.id;
   const orderHref = firstPackageId
     ? `/dashboard/orders/new?creator_id=${creator.id}&package_id=${firstPackageId}`
@@ -309,7 +312,7 @@ export default async function CreatorDetailPage({
               className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-sm font-bold text-white shadow-[0_0_24px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_32px_rgba(255,77,157,0.6)]"
             >
               <span>
-                💼 このクリエイターに依頼
+                💼 このクリエイターに依頼を相談
                 {minPackagePrice !== null && (
                   <span className="ml-2 text-xs font-bold text-white/80">
                     ¥{minPackagePrice.toLocaleString()}〜
@@ -330,18 +333,64 @@ export default async function CreatorDetailPage({
               </span>
             </Link>
           </div>
+
+          {/* 最低対応金額の "中身" を Hero 直下に開示。
+              「ミニマムで何が頼めるか」を即理解させ、相談の心理ハードルを下げる。 */}
+          {minPackage && (
+            <div className="mt-6 rounded-2xl border border-neon-pink/30 bg-neon-pink/[0.08] p-5 backdrop-blur-md shadow-[0_18px_40px_-15px_rgba(255,77,157,0.35)]">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <span className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[10px] font-black tracking-wider text-white">
+                  最低対応プラン
+                </span>
+                <span className="text-xl font-black text-neon-pink sm:text-2xl">
+                  ¥{minPackage.price.toLocaleString()}
+                  <span className="ml-1 text-xs font-bold text-white/60">
+                    〜 から相談可
+                  </span>
+                </span>
+                <span className="text-sm font-bold text-white">
+                  {minPackage.name}
+                </span>
+              </div>
+
+              {minPackage.description && (
+                <p className="mt-3 whitespace-pre-line text-sm leading-[1.85] text-white/80">
+                  {minPackage.description}
+                </p>
+              )}
+
+              {/* 含まれる内容 (features) と納期/修正回数 */}
+              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr,auto] sm:items-start">
+                {minPackage.features.length > 0 && (
+                  <ul className="flex flex-wrap gap-1.5">
+                    {minPackage.features.map((f) => (
+                      <li
+                        key={f}
+                        className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/85"
+                      >
+                        <span className="text-neon-cyan">✓</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="flex shrink-0 flex-wrap gap-2 text-[11px] font-bold text-white/75">
+                  <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-1">
+                    🕐 納期 {minPackage.delivery_days} 日
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-1">
+                    🔁 修正 {minPackage.revisions} 回
+                  </span>
+                </div>
+              </div>
+
+              <p className="mt-3 text-[11px] text-white/55">
+                ※ 仕様/尺/AB案数で見積もりは変動します。「依頼を相談」から具体条件をすり合わせできます。
+              </p>
+            </div>
+          )}
         </div>
       </section>
-
-      {/* Section Tabs (sticky) */}
-      <SectionTabs
-        tabs={[
-          { id: "profile", label: "プロフィール", emoji: "👤" },
-          { id: "portfolio", label: "作品", emoji: "🎬" },
-          { id: "pricing", label: "料金", emoji: "💰" },
-          { id: "reviews", label: "レビュー", emoji: "⭐" },
-        ]}
-      />
 
       <div className="relative mx-auto max-w-container px-6 py-12 lg:px-10">
         {/* Glow blobs */}
@@ -382,30 +431,6 @@ export default async function CreatorDetailPage({
                 </div>
               )}
             </div>
-
-            {/* 使用 AI ツール */}
-            {creator.ai_tools.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(157,92,255,0.15)] sm:p-8">
-                <h2 className="text-lg font-black text-white">
-                  <span className="inline-block h-2 w-2 rounded-full bg-neon-purple mr-2 align-middle shadow-[0_0_8px_rgba(157,92,255,0.7)]" />
-                  使用 AI ツール
-                </h2>
-                <p className="mt-1 text-xs text-white/55">
-                  Sora / Veo / Runway / Midjourney などを使いこなせます
-                </p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {creator.ai_tools.map((tool) => (
-                    <span
-                      key={tool}
-                      className="inline-flex items-center gap-1.5 rounded-pill border border-neon-purple/40 bg-gradient-to-r from-neon-purple/15 to-neon-pink/15 px-3 py-1.5 text-xs font-bold text-white"
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-neon-purple shadow-[0_0_6px_rgba(157,92,255,0.8)]" />
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* 強み */}
             {creator.strengths.length > 0 && (
@@ -577,7 +602,6 @@ export default async function CreatorDetailPage({
                   "linear-gradient(135deg, #9d5cff 0%, #5b2dd1 100%)",
                   "linear-gradient(135deg, #ffae3b 0%, #ff4d9d 100%)",
                 ];
-                const tools = c.ai_tools.slice(0, 3);
                 return (
                   <Link
                     key={c.id}
@@ -593,32 +617,16 @@ export default async function CreatorDetailPage({
                       }}
                     >
                       <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/30 to-transparent" />
-                      <div className="absolute right-3 top-3 rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_0_12px_rgba(255,77,157,0.6)]">
-                        AI
-                      </div>
                       <div className="absolute bottom-3 left-3 right-3">
                         <p className="text-base font-black text-white">
-                          {c.profiles?.display_name ?? "AIクリエイター"}
+                          {c.profiles?.display_name ?? "クリエイター"}
                         </p>
                       </div>
                     </div>
                     <div className="p-4">
-                      {tools.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {tools.map((t) => (
-                            <span
-                              key={t}
-                              className="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-white/80"
-                            >
-                              {t}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="line-clamp-2 text-xs text-white/65">
-                          {c.bio || "AIクリエイター"}
-                        </p>
-                      )}
+                      <p className="line-clamp-2 text-xs text-white/65">
+                        {c.bio || "クリエイター"}
+                      </p>
                     </div>
                   </Link>
                 );

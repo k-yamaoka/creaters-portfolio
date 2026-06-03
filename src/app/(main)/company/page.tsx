@@ -62,7 +62,7 @@ export default function CompanyPage() {
           {[
             {
               title: "透明性",
-              desc: "使用AIツール・プロンプト方針・料金・評価をすべて可視化。情報の非対称性をなくします。",
+              desc: "作品・料金・評価をすべて可視化。情報の非対称性をなくします。",
             },
             {
               title: "安全性",

@@ -7,8 +7,6 @@ import {
   VIDEO_LENGTHS,
   STRENGTHS,
   MAX_STRENGTHS,
-  AI_TOOLS,
-  AI_TOOL_CATEGORIES,
 } from "@/lib/constants";
 import type { CurrentUser } from "@/lib/supabase/queries";
 
@@ -23,15 +21,6 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
   const [selectedStrengths, setSelectedStrengths] = useState<string[]>(
     cp?.strengths ?? []
   );
-  const [selectedAiTools, setSelectedAiTools] = useState<string[]>(
-    cp?.ai_tools ?? []
-  );
-
-  const toggleAiTool = (tool: string) => {
-    setSelectedAiTools((prev) =>
-      prev.includes(tool) ? prev.filter((t) => t !== tool) : [...prev, tool]
-    );
-  };
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,7 +55,6 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
     setError(null);
     selectedGenres.forEach((g) => formData.append("genres", g));
     selectedLengths.forEach((l) => formData.append("video_lengths", l));
-    selectedAiTools.forEach((t) => formData.append("ai_tools", t));
     selectedStrengths
       .slice(0, MAX_STRENGTHS)
       .forEach((s) => formData.append("strengths", s));
@@ -192,46 +180,6 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
         </div>
       </section>
 
-      {/* AI Tools */}
-      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-2 text-lg font-bold text-[#222]">使用 AI ツール</h2>
-        <p className="mb-4 text-sm text-[#828282]">
-          使いこなせる AI ツールをカテゴリ別に選択(複数選択可)
-        </p>
-        <div className="space-y-4">
-          {AI_TOOL_CATEGORIES.map((cat) => {
-            const tools = AI_TOOLS.filter((t) => t.category === cat);
-            if (tools.length === 0) return null;
-            return (
-              <div key={cat}>
-                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.16em] text-neon-purple-deep">
-                  {cat}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {tools.map((tool) => {
-                    const active = selectedAiTools.includes(tool.name);
-                    return (
-                      <button
-                        key={tool.name}
-                        type="button"
-                        onClick={() => toggleAiTool(tool.name)}
-                        className={`rounded-pill border px-3 py-1.5 text-xs font-bold transition-colors ${
-                          active
-                            ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white"
-                            : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-pink"
-                        }`}
-                      >
-                        {tool.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* Strengths */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <div className="mb-2 flex items-baseline justify-between gap-3">
@@ -283,7 +231,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-2 text-lg font-bold text-[#222]">自己紹介</h2>
         <p className="mb-4 text-sm text-[#828282]">
-          あなたの強み・使用AIツール・実績・制作への想いなどを記入してください
+          あなたの強み・得意ジャンル・実績・制作への想いなどを記入してください
         </p>
         <textarea
           name="bio"
