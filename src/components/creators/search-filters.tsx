@@ -85,8 +85,9 @@ export function SearchTopBar({
 export function SearchFilters({
   filters,
   onFilterChange,
-  resultCount,
+  resultCount: _resultCount,
 }: SearchFiltersProps) {
+  void _resultCount; // 件数表示は SearchTopBar 側に一本化したため未使用
   const [genreOpen, setGenreOpen] = useState(true);
 
   const updateFilter = (update: Partial<CreatorSearchFilters>) => {
@@ -158,27 +159,19 @@ export function SearchFilters({
           )}
         </div>
 
-        {/* 件数表示 + クリア */}
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)]">
-          <p className="text-xs font-bold uppercase tracking-wider text-white/60">
-            該当するクリエイター
-          </p>
-          <p className="mt-2 text-2xl font-black text-white">
-            <span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">
-              {resultCount}
-            </span>
-            <span className="ml-1 text-xs font-bold text-white/60">人</span>
-          </p>
-          {hasActiveFilters && (
+        {/* 該当クリエイター件数の表示は撤去 (件数自体は SearchTopBar の "N 件" に集約)。
+            active filter が存在するときだけクリアボタンを残す。 */}
+        {hasActiveFilters && (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-md shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)]">
             <button
               type="button"
               onClick={clearFilters}
-              className="mt-3 w-full rounded-pill border border-white/20 bg-white/5 py-2 text-xs font-bold text-white/80 transition-colors hover:border-neon-pink/40 hover:bg-white/10"
+              className="w-full rounded-pill border border-white/20 bg-white/5 py-2 text-xs font-bold text-white/80 transition-colors hover:border-neon-pink/40 hover:bg-white/10"
             >
               フィルターをクリア
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </aside>
   );
