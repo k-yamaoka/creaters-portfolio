@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
@@ -293,9 +293,20 @@ function CreatorRow({
 }) {
   const { profiles } = creator;
   const unitPrice = formatUnitPrice(creator.service_packages);
-  // 総いいね数 = portfolio_items の like_count 合計 (評価スコア)
+
+  // ポートフォリオごとの いいね delta — LikeButton から子→親に通知され、
+  // 総いいね数を即時 (= ページ再読み込みなしで) 反映する。
+  const [likeDeltas, setLikeDeltas] = useState<Record<string, number>>({});
+  const applyLikeDelta = useCallback((itemId: string, delta: number) => {
+    setLikeDeltas((prev) => ({
+      ...prev,
+      [itemId]: (prev[itemId] ?? 0) + delta,
+    }));
+  }, []);
+
+  // 総いいね数 = portfolio_items の like_count 合計 + ローカル delta
   const totalLikes = creator.portfolio_items.reduce(
-    (sum, p) => sum + (p.like_count ?? 0),
+    (sum, p) => sum + (p.like_count ?? 0) + (likeDeltas[p.id] ?? 0),
     0
   );
   // ティア判定
@@ -477,6 +488,7 @@ function CreatorRow({
               item={t}
               liked={likedIds?.has(t.id) ?? false}
               isAuthed={isAuthed}
+              onLikeChange={(delta) => applyLikeDelta(t.id, delta)}
             />
           ))}
         </div>
@@ -495,10 +507,13 @@ function ThumbnailCard({
   item,
   liked = false,
   isAuthed = false,
+  onLikeChange,
 }: {
   item: CreatorWithRelations["portfolio_items"][0];
   liked?: boolean;
   isAuthed?: boolean;
+  /** いいね数の delta を親 (CreatorRow) に伝搬 */
+  onLikeChange?: (delta: number) => void;
 }) {
   const [hover, setHover] = useState(false);
   const [broken, setBroken] = useState(false);
@@ -603,6 +618,7 @@ function ThumbnailCard({
           initialCount={item.like_count}
           isAuthed={isAuthed}
           variant="overlay"
+          onLikeChange={onLikeChange}
         />
       </div>
     </div>

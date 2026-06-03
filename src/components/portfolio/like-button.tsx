@@ -14,6 +14,7 @@ export function LikeButton({
   initialCount,
   isAuthed,
   variant = "overlay",
+  onLikeChange,
 }: {
   portfolioItemId: string;
   initialLiked: boolean;
@@ -21,6 +22,11 @@ export function LikeButton({
   isAuthed: boolean;
   /** overlay = thumb 上の小さい表示 / inline = やや大きめ */
   variant?: "overlay" | "inline";
+  /**
+   * いいねが追加(+1)/取り消し(-1)されたタイミングで親に delta を通知。
+   * 親側 (例: クリエイター行) は集計値 (総いいね数) をこの delta で再計算する。
+   */
+  onLikeChange?: (delta: number) => void;
 }) {
   const router = useRouter();
   const [liked, setLiked] = useState(initialLiked);
@@ -41,8 +47,10 @@ export function LikeButton({
     // 楽観更新
     const prevLiked = liked;
     const prevCount = count;
+    const delta = prevLiked ? -1 : 1;
     setLiked(!prevLiked);
     setCount(prevLiked ? Math.max(prevCount - 1, 0) : prevCount + 1);
+    onLikeChange?.(delta);
 
     startTransition(async () => {
       try {
@@ -55,10 +63,15 @@ export function LikeButton({
         const data = (await res.json()) as { liked: boolean; count: number };
         setLiked(data.liked);
         setCount(data.count);
+        // サーバ側 count が楽観更新と一致しないケース (他者が同時に押した等)
+        // を吸収するため、サーバ確定値との差分を追加で親に伝える。
+        const serverDelta = data.count - (prevCount + delta);
+        if (serverDelta !== 0) onLikeChange?.(serverDelta);
       } catch {
         // 失敗時は元に戻す
         setLiked(prevLiked);
         setCount(prevCount);
+        onLikeChange?.(-delta);
       }
     });
   };
@@ -87,8 +100,9 @@ export function LikeButton({
       >
         {liked ? "❤️" : "🤍"}
       </span>
-      {/* 0 のときだけ "♥0" を出し、他者が押した後 (count>0) は数字を隠す */}
-      {count === 0 && <span>{count}</span>}
+      {/* 数字表示は廃止。集計値はクリエイター行の総いいねバッジ側で表現する。
+          (count state は変動検知 / アクセシビリティラベルのために保持) */}
+      <span className="sr-only">{count}</span>
     </button>
   );
 }
