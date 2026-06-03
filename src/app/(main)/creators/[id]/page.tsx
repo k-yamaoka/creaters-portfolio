@@ -36,7 +36,7 @@ export default async function CreatorDetailPage({
       .maybeSingle();
     viewerRole = (viewerProfile?.role as string | undefined) ?? null;
   }
-  const canMessageCreator = viewerRole === "client" || viewerRole === "admin";
+  void viewerRole; // role 情報は今後の権限分岐用に保持
 
   // ===== アクティビティ シグナル(過去90日分) =====
   const ninetyDaysAgo = new Date(
@@ -146,7 +146,6 @@ export default async function CreatorDetailPage({
     ? creator.portfolio_items.filter((p) => p.id !== mainWork.id)
     : creator.portfolio_items;
 
-  const hasReviews = creator.review_count > 0;
   // 最安パッケージ自体を抽出 — 価格に加え「何が含まれるか」を
   // Hero 直下に開示してミニマム発注のイメージを湧かせる。
   const minPackage =
@@ -158,9 +157,6 @@ export default async function CreatorDetailPage({
   const orderHref = firstPackageId
     ? `/dashboard/orders/new?creator_id=${creator.id}&package_id=${firstPackageId}`
     : `/dashboard/orders/new?creator_id=${creator.id}`;
-  const messageHref = viewer
-    ? `/dashboard/messages/${creator.user_id}`
-    : `/login?redirect=/creators/${creator.id}`;
 
   return (
     <>
@@ -194,94 +190,91 @@ export default async function CreatorDetailPage({
             <ShareButton creatorName={displayName} />
           </div>
 
-          {/* Avatar + 名前/ステータス + メイン作品の 3 カラム
-              (狭い画面では縦積み、lg で 3 カラム) */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[auto,1fr,minmax(280px,360px)] lg:items-center">
-            {/* Avatar */}
-            <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-neon-midnight shadow-[0_0_24px_rgba(255,77,157,0.4)]">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt={displayName}
-                  fill
-                  className="object-cover"
-                  sizes="112px"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-3xl font-black text-white">
-                  {displayName[0]}
-                </div>
-              )}
-            </div>
+          {/* 左: Avatar + 名前/ステータス、 右: 代表作。
+              名前ブロックと代表作の間は gap を 0 にしてサムネを目一杯大きく見せる。
+              (狭い画面では縦積み) */}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-0">
+            {/* 左ブロック: Avatar + 名前/ステータス (内部 gap-6 で密結合) */}
+            <div className="flex flex-1 items-center gap-6">
+              {/* Avatar */}
+              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-neon-midnight shadow-[0_0_24px_rgba(255,77,157,0.4)]">
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={displayName}
+                    fill
+                    className="object-cover"
+                    sizes="112px"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-3xl font-black text-white">
+                    {displayName[0]}
+                  </div>
+                )}
+              </div>
 
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="min-w-0 flex-1">
                 {isVerified && (
-                  <span className="rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-cyan">
-                    認証済み
-                  </span>
+                  <div>
+                    <span className="rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-cyan">
+                      認証済み
+                    </span>
+                  </div>
                 )}
-                {hasReviews && (
-                  <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-0.5 text-xs font-bold text-white">
-                    <span className="text-neon-pink">★</span>
-                    {creator.rating.toFixed(1)}
-                    <span className="text-white/60">({creator.review_count})</span>
-                  </span>
-                )}
-              </div>
-              <h1 className="mt-3 text-3xl font-black sm:text-[2.5rem]">
-                {displayName}
-              </h1>
-              <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
-                {creator.years_of_experience > 0 && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="text-neon-purple">◆</span>
-                    経験 {creator.years_of_experience} 年
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-neon-pink">✦</span>
-                  作品 {creator.portfolio_items.length} 件
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <span className="text-neon-pink">❤️</span>
-                  総いいね {totalLikes}
-                </span>
-              </div>
-
-              {/* Activity signals */}
-              <div className="mt-4 flex flex-wrap gap-2">
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-[11px] font-bold ${
-                    isFresh
-                      ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan"
-                      : "border-white/15 bg-white/5 text-white/70"
-                  }`}
-                >
-                  {isFresh && (
-                    <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+                <h1 className="mt-3 text-3xl font-black sm:text-[2.5rem]">
+                  {displayName}
+                </h1>
+                <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
+                  {creator.years_of_experience > 0 && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="text-neon-purple">◆</span>
+                      経験 {creator.years_of_experience} 年
+                    </span>
                   )}
-                  {activityLabel}
-                </span>
-                {replyRate !== null && (
-                  <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/80">
-                    💬 返信率 {replyRate}%
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="text-neon-pink">✦</span>
+                    作品 {creator.portfolio_items.length} 件
                   </span>
-                )}
-                {receivedCount !== null && receivedCount !== undefined && (
-                  <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/70">
-                    過去90日 {receivedCount}件の問い合わせ
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="text-neon-pink">❤️</span>
+                    総いいね {totalLikes}
                   </span>
-                )}
+                </div>
+
+                {/* Activity signals */}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-[11px] font-bold ${
+                      isFresh
+                        ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan"
+                        : "border-white/15 bg-white/5 text-white/70"
+                    }`}
+                  >
+                    {isFresh && (
+                      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+                    )}
+                    {activityLabel}
+                  </span>
+                  {replyRate !== null && (
+                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/80">
+                      💬 返信率 {replyRate}%
+                    </span>
+                  )}
+                  {receivedCount !== null && receivedCount !== undefined && (
+                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/70">
+                      過去90日 {receivedCount}件の問い合わせ
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* メイン作品 — 名前の右側に配置。
+            {/* 右: メイン作品 — 名前ブロックに完全密着、横幅大きめ (最大 520px / 名前ブロック幅相応)。
                 ホバーで再生、クリックでポートフォリオセクションへスクロール。 */}
             {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
               <Link
                 href="#portfolio"
-                className="group/main relative block aspect-video w-full overflow-hidden rounded-2xl border border-white/15 bg-neon-midnight-deep shadow-[0_18px_40px_-15px_rgba(255,77,157,0.45)] transition-transform hover:-translate-y-0.5"
+                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-neon-midnight-deep shadow-[0_18px_40px_-15px_rgba(255,77,157,0.45)] transition-transform hover:-translate-y-0.5 lg:w-[clamp(380px,40vw,480px)]"
                 aria-label="代表作を見る"
               >
                 <VideoPreviewCard
@@ -289,7 +282,7 @@ export default async function CreatorDetailPage({
                   videoUrl={mainWork.video_url ?? ""}
                   videoPlatform={mainWork.video_platform ?? "mp4"}
                   alt={mainWork.title}
-                  sizes="(max-width: 1024px) 100vw, 360px"
+                  sizes="(max-width: 1024px) 100vw, 520px"
                   className="absolute inset-0 h-full w-full"
                   showPlayIcon
                 />
@@ -319,15 +312,6 @@ export default async function CreatorDetailPage({
                   </span>
                 )}
               </span>
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-            <Link
-              href={messageHref}
-              className="group inline-flex items-center justify-between gap-3 rounded-pill border border-white/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
-            >
-              <span>💬 メッセージで相談</span>
               <span className="transition-transform group-hover:translate-x-1">
                 →
               </span>
@@ -542,18 +526,9 @@ export default async function CreatorDetailPage({
                     href={orderHref}
                     className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
                   >
-                    <span>💼 このクリエイターに依頼</span>
+                    <span>💼 このクリエイターに依頼を相談</span>
                     <span>→</span>
                   </Link>
-
-                  {canMessageCreator && (
-                    <Link
-                      href={`/dashboard/messages/${creator.user_id}`}
-                      className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-pill border border-white/30 bg-white/5 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
-                    >
-                      💬 メッセージで相談
-                    </Link>
-                  )}
                 </div>
               </div>
 
@@ -650,17 +625,10 @@ export default async function CreatorDetailPage({
             </p>
           </div>
           <Link
-            href={messageHref}
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-pill border border-white/30 bg-white/5 text-base text-white backdrop-blur-sm"
-            aria-label="メッセージで相談"
-          >
-            💬
-          </Link>
-          <Link
             href={orderHref}
             className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.45)]"
           >
-            依頼する
+            依頼を相談
             <span>→</span>
           </Link>
         </div>
