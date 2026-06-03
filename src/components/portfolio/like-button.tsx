@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useLikeDeltaApply } from "@/components/portfolio/like-delta-context";
 
 /**
  * ポートフォリオ作品のいいねボタン。
@@ -35,6 +36,9 @@ export function LikeButton({
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [pending, startTransition] = useTransition();
+  // Context が無い文脈 (一覧など) でも安全 (undefined になるだけ)。
+  // 詳細ページのように LikeDeltaProvider で囲まれていれば、Hero の総いいねへ delta が伝搬する。
+  const ctxApply = useLikeDeltaApply();
 
   const onClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,6 +58,7 @@ export function LikeButton({
     setLiked(!prevLiked);
     setCount(prevLiked ? Math.max(prevCount - 1, 0) : prevCount + 1);
     onLikeChange?.(delta);
+    ctxApply?.(portfolioItemId, delta);
 
     startTransition(async () => {
       try {
@@ -69,12 +74,16 @@ export function LikeButton({
         // サーバ側 count が楽観更新と一致しないケース (他者が同時に押した等)
         // を吸収するため、サーバ確定値との差分を追加で親に伝える。
         const serverDelta = data.count - (prevCount + delta);
-        if (serverDelta !== 0) onLikeChange?.(serverDelta);
+        if (serverDelta !== 0) {
+          onLikeChange?.(serverDelta);
+          ctxApply?.(portfolioItemId, serverDelta);
+        }
       } catch {
         // 失敗時は元に戻す
         setLiked(prevLiked);
         setCount(prevCount);
         onLikeChange?.(-delta);
+        ctxApply?.(portfolioItemId, -delta);
       }
     });
   };

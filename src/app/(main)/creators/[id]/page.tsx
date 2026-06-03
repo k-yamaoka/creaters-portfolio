@@ -8,6 +8,8 @@ import { PortfolioFilterable } from "@/components/creators/portfolio-filterable"
 import { ShareButton } from "@/components/creators/share-button";
 import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
+import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
+import { TotalLikesBadge } from "@/components/creators/total-likes-badge";
 // SectionTabs はクリエイター詳細の上部からは撤去 (ユーザー判断: タブナビ不要)
 
 export default async function CreatorDetailPage({
@@ -159,7 +161,7 @@ export default async function CreatorDetailPage({
     : `/dashboard/orders/new?creator_id=${creator.id}`;
 
   return (
-    <>
+    <LikeDeltaProvider>
       {/* =================================================
           HERO BAND
           ================================================= */}
@@ -235,10 +237,7 @@ export default async function CreatorDetailPage({
                     <span className="text-neon-pink">✦</span>
                     作品 {creator.portfolio_items.length} 件
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="text-neon-pink">❤️</span>
-                    総いいね {totalLikes}
-                  </span>
+                  <TotalLikesBadge initialTotal={totalLikes} />
                 </div>
 
                 {/* Activity signals */}
@@ -633,6 +632,6 @@ export default async function CreatorDetailPage({
           </Link>
         </div>
       </div>
-    </>
+    </LikeDeltaProvider>
   );
 }
