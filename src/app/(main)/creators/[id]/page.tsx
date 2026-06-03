@@ -8,6 +8,7 @@ import { SectionTabs } from "@/components/creators/section-tabs";
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";
 import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
+import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 
 export default async function CreatorDetailPage({
   params,
@@ -131,6 +132,20 @@ export default async function CreatorDetailPage({
     0
   );
 
+  // メイン作品 = 名前の右隣に大きく出す代表作。
+  // 1) is_featured かつ video_url or thumbnail_url がある先頭、
+  // 2) なければ video_url/thumbnail_url がある先頭、
+  // 3) どちらもなければ null。
+  const hasVisual = (p: (typeof creator.portfolio_items)[number]) =>
+    !!p.video_url || !!p.thumbnail_url;
+  const mainWork =
+    creator.portfolio_items.find((p) => p.is_featured && hasVisual(p)) ??
+    creator.portfolio_items.find(hasVisual) ??
+    null;
+  const otherWorks = mainWork
+    ? creator.portfolio_items.filter((p) => p.id !== mainWork.id)
+    : creator.portfolio_items;
+
   const hasReviews = creator.review_count > 0;
   const minPackagePrice =
     activePackages.length > 0
@@ -176,7 +191,9 @@ export default async function CreatorDetailPage({
             <ShareButton creatorName={displayName} />
           </div>
 
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+          {/* Avatar + 名前/ステータス + メイン作品の 3 カラム
+              (狭い画面では縦積み、lg で 3 カラム) */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[auto,1fr,minmax(280px,360px)] lg:items-center">
             {/* Avatar */}
             <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-neon-midnight shadow-[0_0_24px_rgba(255,77,157,0.4)]">
               {avatarUrl ? (
@@ -194,12 +211,8 @@ export default async function CreatorDetailPage({
               )}
             </div>
 
-            <div className="flex-1">
+            <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-bold tracking-[0.16em] text-neon-pink-soft">
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
-                  AI CREATOR
-                </span>
                 {isVerified && (
                   <span className="rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-cyan">
                     認証済み
@@ -217,12 +230,6 @@ export default async function CreatorDetailPage({
                 {displayName}
               </h1>
               <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
-                {creator.location && (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="text-neon-cyan">◉</span>
-                    {creator.location}
-                  </span>
-                )}
                 {creator.years_of_experience > 0 && (
                   <span className="inline-flex items-center gap-1.5">
                     <span className="text-neon-purple">◆</span>
@@ -265,6 +272,34 @@ export default async function CreatorDetailPage({
                 )}
               </div>
             </div>
+
+            {/* メイン作品 — 名前の右側に配置。
+                ホバーで再生、クリックでポートフォリオセクションへスクロール。 */}
+            {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
+              <Link
+                href="#portfolio"
+                className="group/main relative block aspect-video w-full overflow-hidden rounded-2xl border border-white/15 bg-neon-midnight-deep shadow-[0_18px_40px_-15px_rgba(255,77,157,0.45)] transition-transform hover:-translate-y-0.5"
+                aria-label="代表作を見る"
+              >
+                <VideoPreviewCard
+                  thumbnailUrl={mainWork.thumbnail_url}
+                  videoUrl={mainWork.video_url ?? ""}
+                  videoPlatform={mainWork.video_platform ?? "mp4"}
+                  alt={mainWork.title}
+                  sizes="(max-width: 1024px) 100vw, 360px"
+                  className="absolute inset-0 h-full w-full"
+                  showPlayIcon
+                />
+                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_0_10px_rgba(255,77,157,0.5)]">
+                  ★ 代表作
+                </span>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/60 to-transparent px-3 pb-2 pt-8">
+                  <p className="line-clamp-1 text-xs font-bold text-white">
+                    {mainWork.title}
+                  </p>
+                </div>
+              </Link>
+            )}
           </div>
 
           {/* Hero CTAs */}
@@ -424,8 +459,12 @@ export default async function CreatorDetailPage({
                 <h2 className="mb-6 text-lg font-black text-white">
                   <span className="inline-block h-2 w-2 rounded-full bg-neon-purple mr-2 align-middle shadow-[0_0_8px_rgba(157,92,255,0.7)]" />
                   ポートフォリオ
+                  <span className="ml-2 text-xs font-bold text-white/50">
+                    (代表作は上部に表示中)
+                  </span>
                 </h2>
-                <PortfolioFilterable items={creator.portfolio_items} />
+                {/* 代表作はヒーローに出しているため、ここでは除外 */}
+                <PortfolioFilterable items={otherWorks} />
               </div>
             )}
 
@@ -561,11 +600,6 @@ export default async function CreatorDetailPage({
                         <p className="text-base font-black text-white">
                           {c.profiles?.display_name ?? "AIクリエイター"}
                         </p>
-                        {c.location && (
-                          <p className="line-clamp-1 text-[11px] font-bold text-white/70">
-                            {c.location}
-                          </p>
-                        )}
                       </div>
                     </div>
                     <div className="p-4">

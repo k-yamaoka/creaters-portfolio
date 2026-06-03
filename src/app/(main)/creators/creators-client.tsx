@@ -63,17 +63,21 @@ export function CreatorsPageClient({
         result.sort((a, b) => b.rating - a.rating);
         break;
       case "price_low":
-        result.sort(
-          (a, b) =>
-            minPrice(a.service_packages) - minPrice(b.service_packages)
-        );
+      case "price_high": {
+        // 価格未設定 (= 応相談) は方向によらず常に末尾に固める
+        const dir = filters.sortBy === "price_low" ? 1 : -1;
+        result.sort((a, b) => {
+          const pa = minPrice(a.service_packages);
+          const pb = minPrice(b.service_packages);
+          const ai = !isFinite(pa);
+          const bi = !isFinite(pb);
+          if (ai && bi) return 0;
+          if (ai) return 1;
+          if (bi) return -1;
+          return (pa - pb) * dir;
+        });
         break;
-      case "price_high":
-        result.sort(
-          (a, b) =>
-            minPrice(b.service_packages) - minPrice(a.service_packages)
-        );
-        break;
+      }
     }
 
     return result;
@@ -111,22 +115,24 @@ export function CreatorsPageClient({
             </span>
             をツールから選ぶ。
           </h1>
-          {isCreatorViewer && (
-            <div className="mt-5 inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft">
-              <span aria-hidden>★</span>
-              自分のプロフィールを編集する場合は
-              <Link
-                href="/dashboard/profile"
-                className="text-neon-cyan underline underline-offset-4"
-              >
-                マイプロフィール →
-              </Link>
-            </div>
-          )}
         </div>
       </section>
 
-      <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
+      <div className="mx-auto max-w-container px-6 pb-10 pt-6 lg:px-10">
+        {/* クリエイター本人向け案内 — search bar 直上に密着させ、Hero との余白を埋める */}
+        {isCreatorViewer && (
+          <div className="mb-4 inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft">
+            <span aria-hidden>★</span>
+            自分のプロフィールを編集する場合は
+            <Link
+              href="/dashboard/profile"
+              className="text-neon-cyan underline underline-offset-4"
+            >
+              マイプロフィール →
+            </Link>
+          </div>
+        )}
+
         {/* Mobile filter button */}
         <div className="mb-6 flex items-center justify-end">
         <button
@@ -309,12 +315,16 @@ function CreatorRow({
         : "bg-white/[0.04]";
   // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
   // is_featured カラム未マイグレーションでも壊れないよう optional 扱い。
+  // thumbnail_url が無くても video_url があれば ThumbnailCard 側で first frame /
+  // Cloudinary poster を出せるので、video_url 単独でも表示対象に含める。
+  const hasVisual = (p: CreatorWithRelations["portfolio_items"][0]) =>
+    !!p.thumbnail_url || !!p.video_url;
   const featured = creator.portfolio_items.filter(
-    (p) => p.is_featured === true && p.thumbnail_url
+    (p) => p.is_featured === true && hasVisual(p)
   );
   const thumbs = (featured.length > 0
     ? featured
-    : creator.portfolio_items.filter((p) => p.thumbnail_url)
+    : creator.portfolio_items.filter(hasVisual)
   ).slice(0, 4);
 
   return (
@@ -379,33 +389,34 @@ function CreatorRow({
             <h3 className="text-lg font-black text-white sm:text-xl">
               {profiles.display_name}
             </h3>
-            {totalLikes > 0 ? (
-              <span
-                className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-white ${
-                  tier === "gold"
-                    ? "bg-neon-sunset/25 text-neon-sunset"
-                    : "bg-white/10"
-                }`}
-              >
-                <span className="text-neon-pink">❤️</span>
-                {totalLikes}
-              </span>
-            ) : (
-              <span className="text-xs text-white/45">いいねまだなし</span>
-            )}
+            {/* いいね: 0 件のときだけ "♥0"、他者が押した後は数字を隠して ♥ のみ */}
+            <span
+              className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-white ${
+                tier === "gold"
+                  ? "bg-neon-sunset/25 text-neon-sunset"
+                  : totalLikes > 0
+                    ? "bg-white/10"
+                    : "bg-white/5 text-white/60"
+              }`}
+            >
+              <span className="text-neon-pink">❤️</span>
+              {totalLikes === 0 && <span>0</span>}
+            </span>
             {creator.years_of_experience > 0 && (
               <span className="rounded-pill border border-white/15 bg-white/5 px-2.5 py-0.5 text-[11px] font-bold text-white/75">
                 経験 {creator.years_of_experience} 年
               </span>
             )}
-            {/* 作品数 + 作品を見る/プロフィール CTA (横並び) */}
-            <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
-              <span aria-hidden>🎬</span>
-              作品 {creator.portfolio_items.length} 件
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[11px] font-bold text-white transition-all group-hover:shadow-[0_0_14px_rgba(255,77,157,0.5)]">
-              {isCreatorViewer ? "作品を見る" : "プロフィール"}
-              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+            {/* 作品数 + 作品を見る CTA は wrap で離れないよう単一の inline-flex で密結合 */}
+            <span className="inline-flex flex-wrap items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
+                <span aria-hidden>🎬</span>
+                作品 {creator.portfolio_items.length} 件
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[11px] font-bold text-white transition-all group-hover:shadow-[0_0_14px_rgba(255,77,157,0.5)]">
+                {isCreatorViewer ? "作品を見る" : "プロフィール"}
+                <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+              </span>
             </span>
           </div>
 
@@ -444,13 +455,13 @@ function CreatorRow({
           )}
         </div>
 
-        {/* 右: 最低対応金額 (認証リボンとの被りを避けるため下寄せ) */}
-        <div className="col-span-12 flex items-end justify-end sm:col-span-3 sm:justify-end">
-          <div className="rounded-2xl border border-neon-pink/30 bg-neon-pink/5 px-4 py-2.5 text-right backdrop-blur-sm">
+        {/* 右: 最低対応金額 (上下中央寄せ、認証リボンと被らないよう mt-8 確保) */}
+        <div className="col-span-12 flex items-center justify-end sm:col-span-3 sm:mt-8">
+          <div className="rounded-2xl border border-neon-pink/30 bg-neon-pink/5 px-5 py-4 text-right backdrop-blur-sm">
             <p className="text-[10px] font-bold tracking-wider text-white/50">
               最低対応金額
             </p>
-            <p className="mt-0.5 text-lg font-black text-neon-pink sm:text-xl">
+            <p className="mt-1 text-xl font-black text-neon-pink sm:text-2xl">
               {unitPrice ?? "応相談"}
             </p>
           </div>
@@ -593,17 +604,6 @@ function ThumbnailCard({
           isAuthed={isAuthed}
           variant="overlay"
         />
-      </div>
-
-      {/* タイトルオーバーレイ (hover時) */}
-      <div
-        className={`pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/40 to-transparent px-3 pb-2 pt-8 transition-transform duration-300 ${
-          hover ? "translate-y-0" : "translate-y-full"
-        }`}
-      >
-        <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
-          {item.title}
-        </p>
       </div>
     </div>
   );

@@ -87,7 +87,8 @@ export function LikeButton({
       >
         {liked ? "❤️" : "🤍"}
       </span>
-      {count > 0 && <span>{count}</span>}
+      {/* 0 のときだけ "♥0" を出し、他者が押した後 (count>0) は数字を隠す */}
+      {count === 0 && <span>{count}</span>}
     </button>
   );
 }
