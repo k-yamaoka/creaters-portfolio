@@ -6,6 +6,7 @@ import { GENRES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { EditingRequirementsFields } from "@/components/jobs/editing-requirements-fields";
 import { VisualStyleSelector } from "@/components/jobs/visual-style-selector";
+import { DateFieldWithCalendar } from "@/components/jobs/date-field-with-calendar";
 
 function toNum(s: string): number | null {
   const n = Number(s);
@@ -329,34 +330,16 @@ export function JobForm() {
           />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label
-                htmlFor="deadline"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                応募締切日
-              </label>
-              <input
-                id="deadline"
-                name="deadline"
-                type="date"
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="delivery_deadline"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                納品希望日
-              </label>
-              <input
-                id="delivery_deadline"
-                name="delivery_deadline"
-                type="date"
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-              />
-            </div>
+            <DateFieldWithCalendar
+              id="deadline"
+              name="deadline"
+              label="応募締切日"
+            />
+            <DateFieldWithCalendar
+              id="delivery_deadline"
+              name="delivery_deadline"
+              label="納品希望日"
+            />
           </div>
         </div>
       </section>
