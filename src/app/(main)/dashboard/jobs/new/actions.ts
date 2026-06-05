@@ -97,6 +97,8 @@ export async function createJob(formData: FormData) {
   // 納品形式は enum (既定セット) と「その他」自由入力の混在 → 文字列パススルーに統一
   const delivery_formats = parseStringList(formData.getAll("delivery_formats"));
   void DELIVERY_FORMATS; // 旧 enum は廃止。constants はリストの正規セットとしてのみ参照される
+  // アスペクト比: horizontal / vertical / 自由入力。30字×5件まで。
+  const aspect_ratios = parseStringList(formData.getAll("aspect_ratios"), 30, 5);
   const reference_url = parseText(formData.get("reference_url"), 2000);
   if (!reference_url) {
     return { error: "参考動画 URL を 1 件以上入力してください" };
@@ -136,6 +138,7 @@ export async function createJob(formData: FormData) {
     revision_count: null,
     software_options,
     delivery_formats,
+    aspect_ratios,
     delivery_days: null,
     reference_url,
     is_recurring,

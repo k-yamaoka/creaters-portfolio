@@ -24,12 +24,17 @@ export default async function DashboardLayout({
   const role = user?.role ?? "client";
 
   return (
-    <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
-      <div className="flex gap-10">
-        <div className="hidden md:block">
-          <Sidebar role={role} />
+    // ダッシュボード全体をライトテーマ化 (作業時の視認性優先)。
+    // 背景: bg-gray-50、テキスト: text-gray-900。
+    // 親 main は padding を持たないため、ここで全幅の背景 → 内側で中央寄せ。
+    <div className="min-h-[calc(100vh-5rem)] bg-gray-50 text-gray-900">
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
+        <div className="flex gap-10">
+          <div className="hidden md:block">
+            <Sidebar role={role} />
+          </div>
+          <div className="min-w-0 flex-1">{children}</div>
         </div>
-        <div className="min-w-0 flex-1">{children}</div>
       </div>
     </div>
   );

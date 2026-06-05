@@ -5,6 +5,7 @@ import {
   EDIT_SOFTWARE_OPTIONS,
   EDIT_DELIVERY_FORMATS,
   CLIENT_TYPES,
+  JOB_ASPECT_RATIOS,
 } from "@/lib/constants";
 
 /**
@@ -60,6 +61,9 @@ type Props = {
 export function EditingRequirementsFields({ onCountChange, onValidityChange }: Props) {
   const [software, setSoftware] = useState<string[]>([]);
   const [deliveryFormats, setDeliveryFormats] = useState<string[]>([]);
+  const [aspectRatios, setAspectRatios] = useState<string[]>([]);
+  const [aspectRatioOtherShow, setAspectRatioOtherShow] = useState(false);
+  const [aspectRatioOther, setAspectRatioOther] = useState("");
   const [finishBucket, setFinishBucket] = useState<string>("");
   // 参考動画URL: 複数行
   const [referenceUrls, setReferenceUrls] = useState<string[]>([""]);
@@ -310,6 +314,55 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
               type="hidden"
               name="delivery_formats"
               value={deliveryFormatsOther.trim()}
+            />
+          )}
+        </div>
+
+        {/* アスペクト比 (任意・複数選択可) — 納品形式の下に配置 */}
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+            アスペクト比（任意・複数選択可）
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {JOB_ASPECT_RATIOS.map((a) => {
+              const isActive = aspectRatios.includes(a.value);
+              return (
+                <button
+                  key={a.value}
+                  type="button"
+                  onClick={() => toggleIn(aspectRatios, setAspectRatios, a.value)}
+                  className={pillClass(isActive)}
+                >
+                  {a.label}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setAspectRatioOtherShow((v) => !v)}
+              className={pillClass(aspectRatioOtherShow)}
+            >
+              + その他
+            </button>
+          </div>
+          {aspectRatioOtherShow && (
+            <input
+              type="text"
+              value={aspectRatioOther}
+              onChange={(e) => setAspectRatioOther(e.target.value)}
+              className={`mt-2 ${fieldInputClass}`}
+              placeholder="自由入力（例: 1:1、4:5、2.39:1 など）"
+              maxLength={30}
+            />
+          )}
+          {aspectRatios.map((a) => (
+            <input key={`ar-${a}`} type="hidden" name="aspect_ratios" value={a} />
+          ))}
+          {aspectRatioOtherShow && aspectRatioOther.trim() && (
+            <input
+              type="hidden"
+              name="aspect_ratios"
+              value={aspectRatioOther.trim()}
             />
           )}
         </div>

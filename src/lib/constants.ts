@@ -133,7 +133,12 @@ export const EDIT_DELIVERY_FORMATS = [
   "MP4 1080p",
   "4K",
   "ProRes",
-  "プロジェクトファイル含む",
+] as const;
+
+// 案件のアスペクト比 (2026-06-03 追加)
+export const JOB_ASPECT_RATIOS = [
+  { value: "horizontal", label: "横型（16:9）" },
+  { value: "vertical", label: "縦型（9:16）" },
 ] as const;
 
 export const CLIENT_TYPES = [

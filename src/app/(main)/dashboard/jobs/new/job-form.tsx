@@ -23,7 +23,8 @@ export function JobForm() {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [unitPrice, setUnitPrice] = useState("");
+  // 入力は「全体見積もり (budget)」に変更。1 本単価は本数下限から自動算出する。
+  const [budgetInput, setBudgetInput] = useState("");
   const [countMin, setCountMin] = useState<number | null>(null);
   const [countMax, setCountMax] = useState<number | null>(null);
   const [editingValid, setEditingValid] = useState(false);
@@ -40,12 +41,29 @@ export function JobForm() {
     setEditingValid(valid);
   }, []);
 
-  const u = toNum(unitPrice);
+  const totalBudget = toNum(budgetInput);
   const effectiveMaxCount = countMax ?? countMin;
 
-  const budgetMin = u !== null && countMin !== null ? u * countMin : null;
-  const budgetMax =
-    u !== null && effectiveMaxCount !== null ? u * effectiveMaxCount : null;
+  // 1 本あたり単価 = 全体見積もり / 本数。
+  // 範囲 (min/max) が違う場合は単価レンジ (高い〜安い) を返す。
+  //   - 高い側: budget / min (本数少なめのときの単価)
+  //   - 安い側: budget / max (本数多めのときの単価)
+  const unitHigh =
+    totalBudget !== null && countMin !== null && countMin > 0
+      ? Math.floor(totalBudget / countMin)
+      : null;
+  const unitLow =
+    totalBudget !== null &&
+    effectiveMaxCount !== null &&
+    effectiveMaxCount > 0
+      ? Math.floor(totalBudget / effectiveMaxCount)
+      : null;
+
+  // 送信用 (1 本単価): 範囲があれば最小値 (= unitLow) を保存。
+  // サーバの LIMITS.UNIT_PRICE (9,999,999) でも検証される。
+  const computedUnitPrice = unitLow ?? unitHigh;
+  // 全体見積もりは budget_min = budget_max = totalBudget で保存。
+  const budgetForSave = totalBudget;
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
@@ -73,7 +91,10 @@ export function JobForm() {
     selectedGenres.length > 0 ||
     (genresOtherShow && genresOther.trim().length > 0);
 
-  const canSubmit = !saving && genresFilled && editingValid;
+  // 全体見積もり と 本数下限が決まらないと unit_price を確定できないため、
+  // 単価が算出済 (= computedUnitPrice が出ている) ことを送信条件に含める。
+  const canSubmit =
+    !saving && genresFilled && editingValid && computedUnitPrice !== null;
 
   return (
     <form action={handleSubmit} className="space-y-8">
@@ -237,62 +258,70 @@ export function JobForm() {
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-6 text-lg font-bold text-[#222]">見積もり・スケジュール</h2>
         <div className="space-y-5">
-          {/* 1本単価 */}
+          {/* 全体見積もり (入力) — 入力すると 1 本単価を自動算出する */}
           <div>
             <label
-              htmlFor="unit_price"
+              htmlFor="total_budget"
               className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
             >
-              1本あたりの単価（円）
+              全体見積もり（円）
               <RequiredMark />
             </label>
             <input
-              id="unit_price"
-              name="unit_price"
+              id="total_budget"
               type="number"
               inputMode="numeric"
               min={0}
-              max={9999999}
+              max={9999999999}
               required
-              value={unitPrice}
+              value={budgetInput}
               onChange={(e) =>
-                setUnitPrice(
-                  e.target.value.replace(/[^0-9]/g, "").slice(0, 7)
+                setBudgetInput(
+                  e.target.value.replace(/[^0-9]/g, "").slice(0, 10)
                 )
               }
               className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-              placeholder="50000"
+              placeholder="500000"
             />
           </div>
 
-          {/* 単価 × 本数 → 自動集計 */}
-          {(budgetMin !== null || budgetMax !== null) && (
+          {/* 自動算出: 1 本あたりの単価 */}
+          {(unitHigh !== null || unitLow !== null) && (
             <div className="rounded-lg bg-neon-purple/10 px-4 py-4">
-              <p className="text-xs text-[#828282]">見積もり金額（自動集計）</p>
+              <p className="text-xs text-[#828282]">1 本あたりの単価（自動算出）</p>
               <p className="mt-1 text-lg font-bold text-neon-purple-deep">
-                {budgetMin !== null && budgetMax !== null && budgetMin === budgetMax
-                  ? formatPrice(budgetMin)
-                  : budgetMin !== null && budgetMax !== null
-                    ? `${formatPrice(budgetMin)} 〜 ${formatPrice(budgetMax)}`
-                    : budgetMin !== null
-                      ? `${formatPrice(budgetMin)}〜`
-                      : `〜 ${formatPrice(budgetMax!)}`}
+                {unitHigh !== null && unitLow !== null && unitHigh === unitLow
+                  ? formatPrice(unitHigh)
+                  : unitHigh !== null && unitLow !== null
+                    ? `${formatPrice(unitLow)} 〜 ${formatPrice(unitHigh)}`
+                    : `${formatPrice((unitHigh ?? unitLow)!)}`}
               </p>
               <p className="mt-1 text-[11px] text-[#828282]">
-                1本単価 × 発注本数 で自動算出
+                全体見積もり ÷ 発注本数 で自動算出。実際の支払いは発注本数で確定します。
               </p>
             </div>
           )}
+          {totalBudget !== null && countMin === null && (
+            <p className="text-xs text-[#828282]">
+              ※ 「本数」を入力すると 1 本あたりの単価が自動算出されます。
+            </p>
+          )}
 
+          {/* hidden: サーバへは budget と unit_price を別々に送る */}
+          <input
+            type="hidden"
+            name="unit_price"
+            value={computedUnitPrice !== null ? String(computedUnitPrice) : ""}
+          />
           <input
             type="hidden"
             name="budget_min"
-            value={budgetMin !== null ? String(budgetMin) : ""}
+            value={budgetForSave !== null ? String(budgetForSave) : ""}
           />
           <input
             type="hidden"
             name="budget_max"
-            value={budgetMax !== null ? String(budgetMax) : ""}
+            value={budgetForSave !== null ? String(budgetForSave) : ""}
           />
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

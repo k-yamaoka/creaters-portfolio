@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
 
 const StripeConnectButton = dynamic(
   () =>
@@ -19,33 +20,22 @@ export default async function DashboardPage() {
   const hasCreatorProfile = !!user.creator_profile;
   const hasClientProfile = !!user.client_profile;
 
+  const roleLabel =
+    (isCreator ? "クリエイター" : isAdmin ? "管理者" : "依頼者") + "アカウント";
+
   return (
-    <div>
-      {/* Welcome card */}
-      <div className="rounded-2xl bg-gradient-to-r from-neon-pink to-neon-purple p-6 text-white sm:p-8">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 text-2xl font-bold">
-            {user.display_name[0]}
-          </div>
-          <div>
-            <h1 className="text-xl font-bold sm:text-2xl">
-              ようこそ、{user.display_name}さん
-            </h1>
-            <p className="mt-1 text-sm text-white/70">
-              {isCreator ? "クリエイター" : isAdmin ? "管理者" : "依頼者"}アカウント
-              {isAdmin && (
-                <span className="ml-2 rounded bg-white/20 px-2 py-0.5 text-[11px] font-bold">
-                  ADMIN
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="text-gray-900">
+      {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor */}
+      <BasicInfoEditor
+        userId={user.id}
+        initialDisplayName={user.display_name}
+        initialAvatarUrl={user.avatar_url ?? null}
+        roleLabel={roleLabel + (isAdmin ? "  [ADMIN]" : "")}
+      />
 
       {/* Admin quick link */}
       {isAdmin && (
-        <div className="mt-6 rounded-2xl border-2 border-neon-purple/30 bg-neon-purple/10 p-6">
+        <div className="mt-6 rounded-2xl border border-neon-purple/30 bg-neon-purple/5 p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neon-purple/15">
               <svg className="h-5 w-5 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -53,8 +43,8 @@ export default async function DashboardPage() {
               </svg>
             </div>
             <div className="flex-1">
-              <h2 className="font-bold text-[#222]">管理画面</h2>
-              <p className="text-sm text-[#828282]">ユーザー管理・取引管理・売上サマリー</p>
+              <h2 className="font-bold text-gray-900">管理画面</h2>
+              <p className="text-sm text-gray-500">ユーザー管理・取引管理・売上サマリー</p>
             </div>
             <Link href="/admin" className="btn-primary text-sm">
               開く
@@ -69,8 +59,8 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-3">
             <span className="text-3xl">🎬</span>
             <div className="flex-1">
-              <h2 className="font-bold text-[#222]">クリエイタープロフィールを作成しましょう</h2>
-              <p className="mt-1 text-sm text-[#828282]">プロフィールを設定すると、クライアントからの検索結果に表示されます</p>
+              <h2 className="font-bold text-gray-900">クリエイタープロフィールを作成しましょう</h2>
+              <p className="mt-1 text-sm text-gray-500">プロフィールを設定すると、クライアントからの検索結果に表示されます</p>
             </div>
           </div>
           <Link href="/dashboard/profile" className="btn-primary mt-4 inline-block text-sm">
@@ -85,8 +75,8 @@ export default async function DashboardPage() {
           <div className="flex items-center gap-3">
             <span className="text-3xl">🏢</span>
             <div className="flex-1">
-              <h2 className="font-bold text-[#222]">企業情報を登録しましょう</h2>
-              <p className="mt-1 text-sm text-[#828282]">企業情報を登録すると、クリエイターへの依頼がスムーズになります</p>
+              <h2 className="font-bold text-gray-900">企業情報を登録しましょう</h2>
+              <p className="mt-1 text-sm text-gray-500">企業情報を登録すると、クリエイターへの依頼がスムーズになります</p>
             </div>
           </div>
           <Link href="/dashboard/profile" className="btn-primary mt-4 inline-block text-sm">
@@ -95,12 +85,13 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Creator stats */}
+      {/* Creator stats — レビュー数 と 経験年数 を 1 つのカードに集約してスペース節約 */}
       {isCreator && hasCreatorProfile && (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-2xl bg-white p-6 shadow-card">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* 評価 (満足/普通/不満) */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-[#828282]">評価</p>
+              <p className="text-sm font-medium text-gray-500">評価</p>
               {user.creator_profile!.review_count > 0 && (
                 <span className="text-2xl">
                   {user.creator_profile!.rating >= 2.5
@@ -113,46 +104,43 @@ export default async function DashboardPage() {
             </div>
             {user.creator_profile!.review_count > 0 ? (
               <>
-                <p className="mt-2 text-2xl font-bold text-[#222]">
+                <p className="mt-2 text-2xl font-bold text-gray-900">
                   {user.creator_profile!.rating >= 2.5
                     ? "満足"
                     : user.creator_profile!.rating >= 1.5
                       ? "普通"
                       : "不満"}
                 </p>
-                <p className="mt-1 text-xs text-[#BDBDBD]">
+                <p className="mt-1 text-xs text-gray-400">
                   {user.creator_profile!.review_count}件のレビュー
                 </p>
               </>
             ) : (
-              <p className="mt-2 text-sm text-[#828282]">
+              <p className="mt-2 text-sm text-gray-500">
                 まだ評価がありません。
               </p>
             )}
           </div>
-          <div className="rounded-2xl bg-white p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-[#828282]">レビュー数</p>
-              <svg className="h-5 w-5 text-[#BDBDBD]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-              </svg>
+
+          {/* レビュー数 + 経験年数 を 1 カードに */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+            <p className="text-sm font-medium text-gray-500">サマリー</p>
+            <div className="mt-2 grid grid-cols-2 gap-4">
+              <div className="border-r border-gray-200 pr-4">
+                <p className="text-xs text-gray-500">レビュー数</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900">
+                  {user.creator_profile!.review_count}
+                  <span className="ml-1 text-sm font-normal text-gray-400">件</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">経験年数</p>
+                <p className="mt-1 text-2xl font-bold text-gray-900">
+                  {user.creator_profile!.years_of_experience}
+                  <span className="ml-1 text-sm font-normal text-gray-400">年</span>
+                </p>
+              </div>
             </div>
-            <p className="mt-2 text-2xl font-bold text-[#222]">
-              {user.creator_profile!.review_count}
-              <span className="ml-1 text-sm font-normal text-[#BDBDBD]">件</span>
-            </p>
-          </div>
-          <div className="rounded-2xl bg-white p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-[#828282]">経験年数</p>
-              <svg className="h-5 w-5 text-[#BDBDBD]" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-              </svg>
-            </div>
-            <p className="mt-2 text-2xl font-bold text-[#222]">
-              {user.creator_profile!.years_of_experience}
-              <span className="ml-1 text-sm font-normal text-[#BDBDBD]">年</span>
-            </p>
           </div>
         </div>
       )}
@@ -167,15 +155,15 @@ export default async function DashboardPage() {
       {/* Client stats */}
       {!isCreator && !isAdmin && hasClientProfile && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl bg-white p-6 shadow-card">
-            <p className="text-sm text-[#828282]">会社名</p>
-            <p className="mt-1 text-lg font-bold text-[#222]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+            <p className="text-sm text-gray-500">会社名</p>
+            <p className="mt-1 text-lg font-bold text-gray-900">
               {user.client_profile!.company_name || "未設定"}
             </p>
           </div>
-          <div className="rounded-2xl bg-white p-6 shadow-card">
-            <p className="text-sm text-[#828282]">業種</p>
-            <p className="mt-1 text-lg font-bold text-[#222]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
+            <p className="text-sm text-gray-500">業種</p>
+            <p className="mt-1 text-lg font-bold text-gray-900">
               {user.client_profile!.industry || "未設定"}
             </p>
           </div>
@@ -183,13 +171,13 @@ export default async function DashboardPage() {
       )}
 
       {/* Quick links */}
-      <h2 className="mt-8 mb-4 text-lg font-bold text-[#222]">クイックアクセス</h2>
+      <h2 className="mt-8 mb-4 text-lg font-bold text-gray-900">クイックアクセス</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {isCreator && (
           <>
             <Link
               href="/dashboard/portfolio"
-              className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
                 <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -197,13 +185,13 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-[#222]">ポートフォリオ管理</h3>
-                <p className="mt-0.5 text-sm text-[#828282]">作品の追加・編集・削除</p>
+                <h3 className="font-bold text-gray-900">ポートフォリオ管理</h3>
+                <p className="mt-0.5 text-sm text-gray-500">作品の追加・編集・削除</p>
               </div>
             </Link>
             <Link
               href="/dashboard/packages"
-              className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
                 <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -211,13 +199,13 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-[#222]">料金プラン管理</h3>
-                <p className="mt-0.5 text-sm text-[#828282]">サービスパッケージの設定</p>
+                <h3 className="font-bold text-gray-900">料金プラン管理</h3>
+                <p className="mt-0.5 text-sm text-gray-500">サービスパッケージの設定</p>
               </div>
             </Link>
             <Link
               href="/dashboard/applications"
-              className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
                 <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -225,8 +213,8 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-[#222]">応募済み案件</h3>
-                <p className="mt-0.5 text-sm text-[#828282]">応募した案件の状況確認</p>
+                <h3 className="font-bold text-gray-900">応募済み案件</h3>
+                <p className="mt-0.5 text-sm text-gray-500">応募した案件の状況確認</p>
               </div>
             </Link>
           </>
@@ -235,7 +223,7 @@ export default async function DashboardPage() {
           <>
             <Link
               href="/creators"
-              className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
                 <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -243,13 +231,13 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-[#222]">クリエイターを探す</h3>
-                <p className="mt-0.5 text-sm text-[#828282]">最適なクリエイターを検索</p>
+                <h3 className="font-bold text-gray-900">クリエイターを探す</h3>
+                <p className="mt-0.5 text-sm text-gray-500">最適なクリエイターを検索</p>
               </div>
             </Link>
             <Link
               href="/dashboard/jobs"
-              className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
                 <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -257,15 +245,15 @@ export default async function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <h3 className="font-bold text-[#222]">案件を掲載する</h3>
-                <p className="mt-0.5 text-sm text-[#828282]">新しい募集案件を作成</p>
+                <h3 className="font-bold text-gray-900">案件を掲載する</h3>
+                <p className="mt-0.5 text-sm text-gray-500">新しい募集案件を作成</p>
               </div>
             </Link>
           </>
         )}
         <Link
           href="/dashboard/orders"
-          className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+          className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
         >
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
             <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -273,13 +261,13 @@ export default async function DashboardPage() {
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-[#222]">取引管理</h3>
-            <p className="mt-0.5 text-sm text-[#828282]">進行中の取引を確認</p>
+            <h3 className="font-bold text-gray-900">取引管理</h3>
+            <p className="mt-0.5 text-sm text-gray-500">進行中の取引を確認</p>
           </div>
         </Link>
         <Link
           href="/dashboard/profile"
-          className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+          className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
         >
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
             <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -287,10 +275,10 @@ export default async function DashboardPage() {
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-[#222]">
+            <h3 className="font-bold text-gray-900">
               {isCreator ? "プロフィール編集" : "企業情報編集"}
             </h3>
-            <p className="mt-0.5 text-sm text-[#828282]">基本情報の確認・更新</p>
+            <p className="mt-0.5 text-sm text-gray-500">基本情報の確認・更新</p>
           </div>
         </Link>
       </div>

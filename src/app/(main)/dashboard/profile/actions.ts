@@ -2,6 +2,68 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+
+/**
+ * ダッシュボード上部の「基本情報」(表示名 + アバター) のみを更新するアクション。
+ *
+ * - 表示名: 1〜40 文字。空文字は弾く。
+ * - avatar_url: アップロード後のクライアントが Storage の public URL を渡す。
+ *   "" を渡すとアバターを解除 (null 保存)。
+ * - profiles テーブルのみ更新 (creator_profiles などは触らない)。
+ *
+ * 楽観更新で UI が即時反映されるよう、エラー時は { error } を返す。
+ * 成功時は呼び出し元 path を revalidate して /dashboard と /creators の
+ * SSR データを最新化する。
+ */
+export async function updateBasicInfo(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "ログインが必要です" };
+
+  const rawName = String(formData.get("display_name") ?? "").trim();
+  if (!rawName) return { error: "表示名を入力してください" };
+  if (rawName.length > 40) return { error: "表示名は 40 文字以内で入力してください" };
+
+  // avatar_url は signed-URL アップロード後の public URL を受け取る形にする。
+  // "__keep__" を渡すと既存値を維持、"" を渡すと null 化 (アバター解除)。
+  const rawAvatar = formData.get("avatar_url");
+  const avatarParam =
+    typeof rawAvatar === "string" ? rawAvatar : undefined;
+
+  const updates: Record<string, unknown> = { display_name: rawName };
+  if (avatarParam !== undefined && avatarParam !== "__keep__") {
+    // 簡易ホワイトリスト: 自社 Supabase Storage の URL のみ受け付ける
+    if (avatarParam === "") {
+      updates.avatar_url = null;
+    } else if (
+      /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/avatars\//.test(
+        avatarParam
+      )
+    ) {
+      updates.avatar_url = avatarParam;
+    } else {
+      return { error: "アバター画像 URL の形式が不正です" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", user.id);
+
+  if (error) {
+    return { error: "基本情報の更新に失敗しました" };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profile");
+  return { ok: true as const };
+}
+
+
 
 export async function updateProfile(formData: FormData) {
   const supabase = await createClient();
