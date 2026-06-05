@@ -5,6 +5,7 @@ import { createJob } from "./actions";
 import { GENRES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
 import { EditingRequirementsFields } from "@/components/jobs/editing-requirements-fields";
+import { VisualStyleSelector } from "@/components/jobs/visual-style-selector";
 
 function toNum(s: string): number | null {
   const n = Number(s);
@@ -124,6 +125,9 @@ export function JobForm() {
           placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
         />
       </section>
+
+      {/* 想定するビジュアル — タイル UI のスタイル選択 (タイトル直下に配置) */}
+      <VisualStyleSelector />
 
       {/* 制作ジャンル */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
