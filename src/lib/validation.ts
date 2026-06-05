@@ -108,13 +108,14 @@ export function isHttpUrl(s: string): boolean {
 
 /**
  * 金額の上限値。
- * 単発予算は最大 9 桁 (1億未満)、単価は最大 6 桁 (100万未満)。
+ * - UNIT_PRICE: 1本単価 (最大 7 桁 / 9,999,999 円)
+ * - BUDGET: 単価 × 本数の合計が収まる範囲 (10 桁)
  */
 export const LIMITS = {
   TITLE_LEN: 200,
   DESCRIPTION_LEN: 5000,
-  BUDGET: 999_999_999,
-  UNIT_PRICE: 999_999,
+  BUDGET: 9_999_999_999,
+  UNIT_PRICE: 9_999_999,
   FOOTAGE_MINUTES: 999,
   FINISH_DURATION: 9999,
   DELIVERY_DAYS: 999,

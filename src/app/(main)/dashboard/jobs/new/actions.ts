@@ -13,25 +13,16 @@ import {
 
 const FINISH_DURATION_UNIT = ["sec", "min"] as const;
 const CLIENT_TYPE = ["company", "individual"] as const;
-const WORK_TYPES = [
-  "cut_edit",
-  "telop",
-  "se",
-  "color",
-  "motion",
-  "vfx",
-  "thumbnail",
-] as const;
-const SOFTWARE = [
-  "premiere",
-  "final_cut",
-  "davinci",
-  "after_effects",
-  "capcut",
-  "vrew",
-  "other",
-] as const;
 const DELIVERY_FORMATS = ["mp4", "mov", "youtube_upload", "drive", "wetransfer"] as const;
+
+// software_options / 納品形式 の「その他」自由入力を許容するための
+// 文字列パススルー (60 字 / 20 件まで)
+function parseStringList(raws: FormDataEntryValue[], maxLen = 60, maxCount = 20): string[] {
+  return raws
+    .map((r) => String(r).trim())
+    .filter((s) => s.length > 0 && s.length <= maxLen)
+    .slice(0, maxCount);
+}
 
 export async function createJob(formData: FormData) {
   const supabase = await createClient();
@@ -86,9 +77,8 @@ export async function createJob(formData: FormData) {
   const deadline = parseDate(formData.get("deadline"));
   const delivery_deadline = parseDate(formData.get("delivery_deadline"));
 
-  const footage_minutes = parseIntInRange(formData.get("footage_minutes"), {
-    max: LIMITS.FOOTAGE_MINUTES,
-  });
+  // 素材時間 / 作業内容 / 修正回数 / 納期 は UI から撤去 (2026-06-03)。
+  // 互換のため DB へは null で投入する。
   const finish_duration_unit = parseEnum(
     formData.get("finish_duration_unit"),
     FINISH_DURATION_UNIT
@@ -102,22 +92,15 @@ export async function createJob(formData: FormData) {
     { max: LIMITS.FINISH_DURATION }
   );
 
-  const work_types = parseEnumList(formData.getAll("work_types"), WORK_TYPES);
-  const revision_count = parseIntInRange(formData.get("revision_count"), {
-    max: LIMITS.REVISION_COUNT,
-  });
-  const software_options = parseEnumList(
-    formData.getAll("software_options"),
-    SOFTWARE
-  );
-  const delivery_formats = parseEnumList(
-    formData.getAll("delivery_formats"),
-    DELIVERY_FORMATS
-  );
-  const delivery_days = parseIntInRange(formData.get("delivery_days"), {
-    max: LIMITS.DELIVERY_DAYS,
-  });
+  // 使用ソフトは AI 動画生成系 + 自由記入のため文字列パススルー
+  const software_options = parseStringList(formData.getAll("software_options"));
+  // 納品形式は enum (既定セット) と「その他」自由入力の混在 → 文字列パススルーに統一
+  const delivery_formats = parseStringList(formData.getAll("delivery_formats"));
+  void DELIVERY_FORMATS; // 旧 enum は廃止。constants はリストの正規セットとしてのみ参照される
   const reference_url = parseText(formData.get("reference_url"), 2000);
+  if (!reference_url) {
+    return { error: "参考動画 URL を 1 件以上入力してください" };
+  }
   const is_recurring = !!formData.get("is_recurring");
   const monthly_count = parseIntInRange(formData.get("monthly_count"), {
     max: LIMITS.MONTHLY_COUNT,
@@ -144,15 +127,16 @@ export async function createJob(formData: FormData) {
     deadline,
     delivery_deadline,
     status: "open",
-    footage_minutes,
+    // UI 撤去済フィールドは互換のため null で投入
+    footage_minutes: null,
     finish_duration_unit,
     finish_duration_min,
     finish_duration_max,
-    work_types,
-    revision_count,
+    work_types: [] as string[],
+    revision_count: null,
     software_options,
     delivery_formats,
-    delivery_days,
+    delivery_days: null,
     reference_url,
     is_recurring,
     monthly_count: is_recurring ? monthly_count : null,

@@ -12,7 +12,6 @@ export const GENRES = [
   "AIアバター・キャラクター動画",
   "多言語ローカライズ動画",
   "ショートフィルム・アート映像",
-  "その他カスタム動画",
 ] as const;
 
 // 得意映像尺 (8項目、複数選択)
@@ -118,14 +117,16 @@ export const EDIT_WORK_TYPE_DESCRIPTIONS: Record<string, string> = {
   MA: "効果音の挿入・声のバランスを調整する作業（音声整音／ミックス）",
 };
 
+// 使用ソフト (AI 動画生成系のみに刷新、2026-06-03)
 export const EDIT_SOFTWARE_OPTIONS = [
-  "Premiere Pro",
-  "DaVinci",
-  "AfterEffects",
-  "Final Cut",
-  "Photoshop",
-  "Illustrator",
-  "特に指定なし",
+  "Seedance",
+  "Veo",
+  "Sora",
+  "Runway",
+  "google omni",
+  "Kling AI",
+  "Hailuo AI",
+  "Pika",
 ] as const;
 
 export const EDIT_DELIVERY_FORMATS = [

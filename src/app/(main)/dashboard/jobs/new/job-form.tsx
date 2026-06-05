@@ -75,13 +75,6 @@ export function JobForm() {
 
   const canSubmit = !saving && genresFilled && editingValid;
 
-  const pillClass = (active: boolean) =>
-    `rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-      active
-        ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white"
-        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-pink hover:text-neon-pink"
-    }`;
-
   return (
     <form action={handleSubmit} className="space-y-8">
       {error && (
@@ -90,27 +83,25 @@ export function JobForm() {
         </div>
       )}
 
-      {/* 基本情報 (タイトルのみ) */}
+      {/* 案件タイトル — 旧「基本情報」セクションを撤去し、タイトル単独で
+          ページ最上部の主役として強調 (大きめラベル + 余白広め) */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-6 text-lg font-bold text-[#222]">基本情報</h2>
-        <div>
-          <label
-            htmlFor="title"
-            className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]"
-          >
-            案件タイトル
-            <RequiredMark />
-          </label>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            required
-            maxLength={50}
-            className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-            placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
-          />
-        </div>
+        <label
+          htmlFor="title"
+          className="mb-3 flex items-center text-lg font-bold text-[#222]"
+        >
+          案件タイトル
+          <RequiredMark />
+        </label>
+        <input
+          id="title"
+          name="title"
+          type="text"
+          required
+          maxLength={50}
+          className="w-full rounded-lg border-2 border-[#E0E0E0] px-4 py-4 text-base font-medium outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
+        />
       </section>
 
       {/* 制作ジャンル */}
@@ -167,26 +158,52 @@ export function JobForm() {
               </label>
             );
           })}
-        </div>
-        <div className="mt-3">
+          {/* 「その他」も他のジャンルタイルと同じ見た目・同じ高さに揃える */}
           <button
             type="button"
             onClick={() => setGenresOtherShow((v) => !v)}
-            className={pillClass(genresOtherShow)}
+            className={`flex items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm transition-colors ${
+              genresOtherShow
+                ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
+                : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
+            }`}
           >
-            + その他
+            <div
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
+                genresOtherShow
+                  ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
+                  : "border-[#BDBDBD]"
+              }`}
+            >
+              {genresOtherShow && (
+                <svg
+                  className="h-3 w-3 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={3}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="m4.5 12.75 6 6 9-13.5"
+                  />
+                </svg>
+              )}
+            </div>
+            <span className="font-medium">その他</span>
           </button>
-          {genresOtherShow && (
-            <input
-              type="text"
-              value={genresOther}
-              onChange={(e) => setGenresOther(e.target.value)}
-              className="mt-2 w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-              placeholder="自由入力（例: 学校紹介、医療系インタビュー など）"
-              maxLength={60}
-            />
-          )}
         </div>
+        {genresOtherShow && (
+          <input
+            type="text"
+            value={genresOther}
+            onChange={(e) => setGenresOther(e.target.value)}
+            className="mt-3 w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+            placeholder="自由入力（例: 学校紹介、医療系インタビュー など）"
+            maxLength={60}
+          />
+        )}
       </section>
 
       {/* 編集要件 */}
@@ -235,20 +252,17 @@ export function JobForm() {
               type="number"
               inputMode="numeric"
               min={0}
-              max={999999}
+              max={9999999}
               required
               value={unitPrice}
               onChange={(e) =>
                 setUnitPrice(
-                  e.target.value.replace(/[^0-9]/g, "").slice(0, 6)
+                  e.target.value.replace(/[^0-9]/g, "").slice(0, 7)
                 )
               }
               className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
               placeholder="50000"
             />
-            <p className="mt-1 text-xs text-[#828282]">
-              ※ 半角数字6桁まで（最大 999,999 円）。動画1本あたりの概算単価を入力してください。
-            </p>
           </div>
 
           {/* 単価 × 本数 → 自動集計 */}
