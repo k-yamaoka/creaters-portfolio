@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
+import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
@@ -22,6 +23,21 @@ export default async function DashboardPage() {
 
   const roleLabel =
     (isCreator ? "クリエイター" : isAdmin ? "管理者" : "依頼者") + "アカウント";
+
+  // 総いいね数 = このクリエイターの全 portfolio_items の like_count 合計。
+  // creator_profile を持つ場合のみ実行。
+  let totalLikes = 0;
+  if (isCreator && hasCreatorProfile) {
+    const supabase = await createClient();
+    const { data: rows } = await supabase
+      .from("portfolio_items")
+      .select("like_count")
+      .eq("creator_id", user.creator_profile!.id);
+    totalLikes = (rows ?? []).reduce(
+      (sum, r) => sum + ((r as { like_count: number | null }).like_count ?? 0),
+      0
+    );
+  }
 
   return (
     <div className="text-gray-900">
@@ -85,10 +101,13 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Creator stats — レビュー数 と 経験年数 を 1 つのカードに集約してスペース節約 */}
+      {/* Creator stats
+          - 経験年数は削除 (ユーザー判断: ダッシュボード上では情報量過多)
+          - 評価 と レビュー数 は同じカードに統合
+          - 空いた右側に 総いいね数 を新規表示 */}
       {isCreator && hasCreatorProfile && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* 評価 (満足/普通/不満) */}
+          {/* 評価 + レビュー数 を 1 カードに */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-500">評価</p>
@@ -103,18 +122,27 @@ export default async function DashboardPage() {
               )}
             </div>
             {user.creator_profile!.review_count > 0 ? (
-              <>
-                <p className="mt-2 text-2xl font-bold text-gray-900">
-                  {user.creator_profile!.rating >= 2.5
-                    ? "満足"
-                    : user.creator_profile!.rating >= 1.5
-                      ? "普通"
-                      : "不満"}
-                </p>
-                <p className="mt-1 text-xs text-gray-400">
-                  {user.creator_profile!.review_count}件のレビュー
-                </p>
-              </>
+              <div className="mt-2 grid grid-cols-2 items-end gap-4">
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {user.creator_profile!.rating >= 2.5
+                      ? "満足"
+                      : user.creator_profile!.rating >= 1.5
+                        ? "普通"
+                        : "不満"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">レーティング</p>
+                </div>
+                <div className="border-l border-gray-200 pl-4">
+                  <p className="text-2xl font-bold text-gray-900">
+                    {user.creator_profile!.review_count}
+                    <span className="ml-1 text-sm font-normal text-gray-400">
+                      件
+                    </span>
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400">レビュー数</p>
+                </div>
+              </div>
             ) : (
               <p className="mt-2 text-sm text-gray-500">
                 まだ評価がありません。
@@ -122,25 +150,19 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          {/* レビュー数 + 経験年数 を 1 カードに */}
+          {/* 総いいね数 (新規) — 全ポートフォリオの like_count 合計 */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
-            <p className="text-sm font-medium text-gray-500">サマリー</p>
-            <div className="mt-2 grid grid-cols-2 gap-4">
-              <div className="border-r border-gray-200 pr-4">
-                <p className="text-xs text-gray-500">レビュー数</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900">
-                  {user.creator_profile!.review_count}
-                  <span className="ml-1 text-sm font-normal text-gray-400">件</span>
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">経験年数</p>
-                <p className="mt-1 text-2xl font-bold text-gray-900">
-                  {user.creator_profile!.years_of_experience}
-                  <span className="ml-1 text-sm font-normal text-gray-400">年</span>
-                </p>
-              </div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-500">総いいね数</p>
+              <span className="text-2xl">❤️</span>
             </div>
+            <p className="mt-2 text-3xl font-bold text-gray-900">
+              {totalLikes.toLocaleString()}
+              <span className="ml-1 text-sm font-normal text-gray-400">件</span>
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              ポートフォリオ動画が獲得したいいねの合計
+            </p>
           </div>
         </div>
       )}

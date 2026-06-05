@@ -1,8 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { addPackage, deletePackage, togglePackageActive } from "./actions";
+import {
+  addPackage,
+  updatePackage,
+  deletePackage,
+  togglePackageActive,
+} from "./actions";
 import { formatPrice } from "@/lib/utils";
+import { PackageFormFields } from "./package-form-fields";
+import {
+  PLANNING_SUPPORT_OPTIONS,
+  VOICEOVER_OPTIONS,
+  RESOLUTION_OPTIONS,
+  COMMERCIAL_USE_OPTIONS,
+} from "@/lib/constants";
 
 type ServicePackage = {
   id: string;
@@ -14,12 +26,39 @@ type ServicePackage = {
   features: string[];
   is_active: boolean;
   created_at: string;
+  // 詳細設定 (00048)
+  planning_support?: string | null;
+  revisions_unlimited?: boolean;
+  tools?: string[];
+  voiceover_type?: string | null;
+  bgm_policy?: string | null;
+  resolution?: string | null;
+  project_files_included?: boolean;
+  commercial_use?: string | null;
+  commercial_use_note?: string | null;
+  duration_target?: string | null;
+  rush_available?: boolean;
+  rush_delivery_days?: number | null;
+  rush_surcharge?: number | null;
 };
+
+function labelOf<T extends { value: string; label: string }>(
+  list: readonly T[],
+  v: string | null | undefined
+): string | null {
+  if (!v) return null;
+  return list.find((x) => x.value === v)?.label ?? v;
+}
 
 export function PackageManager({ packages }: { packages: ServicePackage[] }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const editingPkg = editingId
+    ? packages.find((p) => p.id === editingId) ?? null
+    : null;
 
   const handleAdd = async (formData: FormData) => {
     setSaving(true);
@@ -29,6 +68,18 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
       setError(result.error);
     } else {
       setShowForm(false);
+    }
+    setSaving(false);
+  };
+
+  const handleUpdate = (id: string) => async (formData: FormData) => {
+    setSaving(true);
+    setError(null);
+    const result = await updatePackage(id, formData);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setEditingId(null);
     }
     setSaving(false);
   };
@@ -51,7 +102,7 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
         </div>
       )}
 
-      {!showForm && (
+      {!showForm && !editingId && (
         <button
           type="button"
           onClick={() => setShowForm(true)}
@@ -65,95 +116,12 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
       {showForm && (
         <form
           action={handleAdd}
-          className="rounded-2xl bg-white p-6 shadow-card sm:p-8"
+          className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8"
         >
           <h2 className="mb-6 text-lg font-bold text-[#222]">
             新しい料金プラン
           </h2>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  プラン名 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="name"
-                  type="text"
-                  required
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                  placeholder="例: スタンダード"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  料金（円） <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="price"
-                  type="number"
-                  required
-                  min={0}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                  placeholder="300000"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                説明 <span className="text-red-500">*</span>
-              </label>
-              <input
-                name="description"
-                type="text"
-                required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                placeholder="例: 企業紹介動画（3分以内）"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  納期（日） <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="delivery_days"
-                  type="number"
-                  required
-                  min={1}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                  placeholder="14"
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                  修正回数 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  name="revisions"
-                  type="number"
-                  required
-                  min={0}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                  placeholder="2"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-                含まれる内容（1行に1つ）
-              </label>
-              <textarea
-                name="features"
-                rows={4}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-                placeholder={"企画構成\n撮影1日\n編集\nBGM選定\n修正2回"}
-              />
-            </div>
-          </div>
-
+          <PackageFormFields />
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
@@ -198,72 +166,237 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {packages.map((pkg) => (
-            <div
-              key={pkg.id}
-              className={`rounded-2xl bg-white p-6 shadow-card ${
-                !pkg.is_active ? "opacity-60" : ""
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-bold text-[#222]">
-                      {pkg.name}
-                    </h3>
-                    {!pkg.is_active && (
-                      <span className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#828282]">
-                        非公開
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-sm text-[#828282]">
-                    {pkg.description}
-                  </p>
-                </div>
-                <p className="text-xl font-bold text-neon-purple-deep">
-                  {formatPrice(pkg.price)}
-                </p>
-              </div>
-
-              <div className="mt-3 flex gap-4 text-xs text-[#828282]">
-                <span>納期 {pkg.delivery_days}日</span>
-                <span>修正 {pkg.revisions}回</span>
-              </div>
-
-              {pkg.features.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {pkg.features.map((f) => (
-                    <span
-                      key={f}
-                      className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#4F4F4F]"
+          {packages.map((pkg) => {
+            const isEditing = editingId === pkg.id;
+            if (isEditing && editingPkg) {
+              return (
+                <form
+                  key={pkg.id}
+                  action={handleUpdate(pkg.id)}
+                  className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8"
+                >
+                  <h2 className="mb-6 text-lg font-bold text-[#222]">
+                    プランを編集
+                  </h2>
+                  <PackageFormFields
+                    initial={{
+                      name: editingPkg.name,
+                      description: editingPkg.description,
+                      price: editingPkg.price,
+                      delivery_days: editingPkg.delivery_days,
+                      revisions: editingPkg.revisions,
+                      features: editingPkg.features,
+                      planning_support: editingPkg.planning_support,
+                      revisions_unlimited: editingPkg.revisions_unlimited,
+                      tools: editingPkg.tools,
+                      voiceover_type: editingPkg.voiceover_type,
+                      bgm_policy: editingPkg.bgm_policy,
+                      resolution: editingPkg.resolution,
+                      project_files_included: editingPkg.project_files_included,
+                      commercial_use: editingPkg.commercial_use,
+                      commercial_use_note: editingPkg.commercial_use_note,
+                      duration_target: editingPkg.duration_target,
+                      rush_available: editingPkg.rush_available,
+                      rush_delivery_days: editingPkg.rush_delivery_days,
+                      rush_surcharge: editingPkg.rush_surcharge,
+                    }}
+                  />
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(null)}
+                      className="btn-white text-sm"
                     >
-                      {f}
-                    </span>
-                  ))}
-                </div>
-              )}
+                      キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="btn-primary text-sm disabled:opacity-50"
+                    >
+                      {saving ? "保存中..." : "保存する"}
+                    </button>
+                  </div>
+                </form>
+              );
+            }
 
-              <div className="mt-4 flex justify-end gap-3 border-t border-[#F2F2F2] pt-4">
-                <button
-                  type="button"
-                  onClick={() => handleToggle(pkg.id, pkg.is_active)}
-                  className="text-sm text-[#828282] hover:text-[#4F4F4F]"
+            return (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                onEdit={() => setEditingId(pkg.id)}
+                onToggle={() => handleToggle(pkg.id, pkg.is_active)}
+                onDelete={() => handleDelete(pkg.id)}
+              />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+ *  カード表示 (閲覧モード)
+ * ============================================================ */
+function PackageCard({
+  pkg,
+  onEdit,
+  onToggle,
+  onDelete,
+}: {
+  pkg: ServicePackage;
+  onEdit: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  const planning = labelOf(PLANNING_SUPPORT_OPTIONS, pkg.planning_support);
+  const voiceover = labelOf(VOICEOVER_OPTIONS, pkg.voiceover_type);
+  const resolution = labelOf(RESOLUTION_OPTIONS, pkg.resolution);
+  const commercial = labelOf(COMMERCIAL_USE_OPTIONS, pkg.commercial_use);
+  const revisionsLabel = pkg.revisions_unlimited
+    ? "無制限"
+    : `${pkg.revisions}回`;
+
+  return (
+    <div
+      className={`rounded-2xl border border-gray-200 bg-white p-6 shadow-card ${
+        !pkg.is_active ? "opacity-60" : ""
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-bold text-[#222]">{pkg.name}</h3>
+            {!pkg.is_active && (
+              <span className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#828282]">
+                非公開
+              </span>
+            )}
+          </div>
+          <p className="mt-1 text-sm text-[#828282]">{pkg.description}</p>
+        </div>
+        <p className="shrink-0 text-xl font-bold text-neon-purple-deep">
+          {formatPrice(pkg.price)}
+        </p>
+      </div>
+
+      {/* 基本メタ */}
+      <div className="mt-3 flex flex-wrap gap-4 text-xs text-[#828282]">
+        <span>納期 {pkg.delivery_days} 日</span>
+        <span>修正 {revisionsLabel}</span>
+        {pkg.duration_target && <span>尺 {pkg.duration_target}</span>}
+        {resolution && <span>{resolution}</span>}
+      </div>
+
+      {/* 詳細メタ — 2026-06-03 追加 */}
+      {(planning ||
+        voiceover ||
+        commercial ||
+        pkg.project_files_included ||
+        pkg.rush_available ||
+        (pkg.tools && pkg.tools.length > 0) ||
+        pkg.bgm_policy ||
+        pkg.commercial_use_note) && (
+        <div className="mt-4 space-y-2.5 border-t border-gray-100 pt-4">
+          {pkg.tools && pkg.tools.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neon-purple-deep">
+                Tools
+              </span>
+              {pkg.tools.map((t) => (
+                <span
+                  key={t}
+                  className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple-deep"
                 >
-                  {pkg.is_active ? "非公開にする" : "公開する"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(pkg.id)}
-                  className="text-sm text-red-500 hover:text-red-700"
-                >
-                  削除
-                </button>
-              </div>
+                  {t}
+                </span>
+              ))}
             </div>
+          )}
+          <div className="grid gap-2 text-xs text-[#4F4F4F] sm:grid-cols-2">
+            {planning && (
+              <p>
+                <span className="text-[#828282]">企画・絵コンテ:</span>{" "}
+                {planning}
+              </p>
+            )}
+            {voiceover && (
+              <p>
+                <span className="text-[#828282]">ナレーション:</span> {voiceover}
+              </p>
+            )}
+            {pkg.bgm_policy && (
+              <p>
+                <span className="text-[#828282]">BGM:</span> {pkg.bgm_policy}
+              </p>
+            )}
+            {commercial && (
+              <p>
+                <span className="text-[#828282]">商用利用:</span> {commercial}
+              </p>
+            )}
+            {pkg.project_files_included && (
+              <p className="text-emerald-600">
+                ✓ プロジェクトファイル納品あり
+              </p>
+            )}
+            {pkg.rush_available && (
+              <p className="text-neon-pink">
+                ⚡ 特急対応:{" "}
+                {pkg.rush_delivery_days && `${pkg.rush_delivery_days} 日 / `}
+                {pkg.rush_surcharge != null
+                  ? `+${formatPrice(pkg.rush_surcharge)}`
+                  : "別途"}
+              </p>
+            )}
+          </div>
+          {pkg.commercial_use_note && (
+            <p className="text-[11px] text-[#828282]">
+              ※ {pkg.commercial_use_note}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* features chips */}
+      {pkg.features.length > 0 && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {pkg.features.map((f) => (
+            <span
+              key={f}
+              className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#4F4F4F]"
+            >
+              {f}
+            </span>
           ))}
         </div>
       )}
+
+      <div className="mt-4 flex justify-end gap-3 border-t border-[#F2F2F2] pt-4">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="text-sm font-bold text-neon-purple-deep hover:text-neon-pink"
+        >
+          編集
+        </button>
+        <button
+          type="button"
+          onClick={onToggle}
+          className="text-sm text-[#828282] hover:text-[#4F4F4F]"
+        >
+          {pkg.is_active ? "非公開にする" : "公開する"}
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          className="text-sm text-red-500 hover:text-red-700"
+        >
+          削除
+        </button>
+      </div>
     </div>
   );
 }

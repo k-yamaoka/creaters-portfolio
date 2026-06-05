@@ -258,6 +258,74 @@ export const JOB_VISUAL_STYLES = [
 
 export type JobVisualStyleValue = (typeof JOB_VISUAL_STYLES)[number]["value"];
 
+/* =============================================================
+ *  料金プラン (service_packages) の詳細設定 — 2026-06-03 追加
+ * ============================================================= */
+
+// 企画・構成・絵コンテの対応
+export const PLANNING_SUPPORT_OPTIONS = [
+  { value: "included", label: "プランに含む" },
+  { value: "optional", label: "オプション対応" },
+  { value: "client_supplied", label: "クライアント支給" },
+  { value: "not_included", label: "対応なし" },
+] as const;
+
+// 使用ソフト / 生成 AI ツール (複数選択)
+export const PACKAGE_TOOLS = [
+  "Sora",
+  "Veo",
+  "Runway",
+  "Luma",
+  "Pika",
+  "Kling",
+  "Hailuo",
+  "Midjourney",
+  "Stable Diffusion",
+  "Flux",
+  "Premiere Pro",
+  "After Effects",
+  "DaVinci Resolve",
+  "Final Cut Pro",
+  "CapCut",
+  "Photoshop",
+  "Illustrator",
+] as const;
+
+// ナレーション・音声の対応
+export const VOICEOVER_OPTIONS = [
+  { value: "none", label: "なし" },
+  { value: "ai_voice", label: "AI 音声合成 (ElevenLabs 等)" },
+  { value: "human", label: "人間ナレーション" },
+  { value: "client_supplied", label: "クライアント支給" },
+] as const;
+
+// 納品解像度
+export const RESOLUTION_OPTIONS = [
+  { value: "fhd", label: "フル HD (1920×1080)" },
+  { value: "4k", label: "4K (3840×2160)" },
+  { value: "social_vertical", label: "縦型 SNS (1080×1920)" },
+  { value: "square", label: "正方形 (1080×1080)" },
+] as const;
+
+// 商用利用 / 著作権の扱い
+export const COMMERCIAL_USE_OPTIONS = [
+  { value: "web_only", label: "Web 商用利用可" },
+  { value: "commercial", label: "全媒体での商用利用可" },
+  { value: "transfer", label: "著作権譲渡" },
+  { value: "custom", label: "カスタム (備考に記載)" },
+] as const;
+
+// 提供する映像尺の目安
+export const DURATION_TARGET_OPTIONS = [
+  "〜15 秒",
+  "〜30 秒",
+  "〜60 秒",
+  "1〜3 分",
+  "3〜10 分",
+  "10 分以上",
+  "ループ動画",
+] as const;
+
 export const CLIENT_TYPES = [
   { value: "individual", label: "個人" },
   { value: "sme", label: "中小企業" },

@@ -43,6 +43,20 @@ export type CreatorWithRelations = {
     revisions: number;
     features: string[];
     is_active: boolean;
+    // ===== 2026-06-03 追加: 詳細設定 (00048 migration) =====
+    planning_support?: string | null;
+    revisions_unlimited?: boolean;
+    tools?: string[];
+    voiceover_type?: string | null;
+    bgm_policy?: string | null;
+    resolution?: string | null;
+    project_files_included?: boolean;
+    commercial_use?: string | null;
+    commercial_use_note?: string | null;
+    duration_target?: string | null;
+    rush_available?: boolean;
+    rush_delivery_days?: number | null;
+    rush_surcharge?: number | null;
   }[];
 };
 
