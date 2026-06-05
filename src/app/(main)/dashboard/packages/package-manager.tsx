@@ -29,7 +29,9 @@ type ServicePackage = {
   // 詳細設定 (00048)
   planning_support?: string | null;
   revisions_unlimited?: boolean;
-  tools?: string[];
+  // 2026-06-03 分割 (00049)
+  used_softwares?: string[];
+  used_ai_tools?: string[];
   voiceover_type?: string | null;
   bgm_policy?: string | null;
   resolution?: string | null;
@@ -188,7 +190,8 @@ export function PackageManager({ packages }: { packages: ServicePackage[] }) {
                       features: editingPkg.features,
                       planning_support: editingPkg.planning_support,
                       revisions_unlimited: editingPkg.revisions_unlimited,
-                      tools: editingPkg.tools,
+                      used_softwares: editingPkg.used_softwares,
+                      used_ai_tools: editingPkg.used_ai_tools,
                       voiceover_type: editingPkg.voiceover_type,
                       bgm_policy: editingPkg.bgm_policy,
                       resolution: editingPkg.resolution,
@@ -296,19 +299,36 @@ function PackageCard({
         commercial ||
         pkg.project_files_included ||
         pkg.rush_available ||
-        (pkg.tools && pkg.tools.length > 0) ||
+        (pkg.used_softwares && pkg.used_softwares.length > 0) ||
+        (pkg.used_ai_tools && pkg.used_ai_tools.length > 0) ||
         pkg.bgm_policy ||
         pkg.commercial_use_note) && (
         <div className="mt-4 space-y-2.5 border-t border-gray-100 pt-4">
-          {pkg.tools && pkg.tools.length > 0 && (
+          {/* 使用ソフト (cyan) と 生成 AI (pink) を別グループで表示 */}
+          {pkg.used_softwares && pkg.used_softwares.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-neon-purple-deep">
-                Tools
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neon-cyan">
+                使用ソフト
               </span>
-              {pkg.tools.map((t) => (
+              {pkg.used_softwares.map((t) => (
                 <span
-                  key={t}
-                  className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple-deep"
+                  key={`sw-${t}`}
+                  className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+          {pkg.used_ai_tools && pkg.used_ai_tools.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neon-pink">
+                生成 AI ツール
+              </span>
+              {pkg.used_ai_tools.map((t) => (
+                <span
+                  key={`ai-${t}`}
+                  className="rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-pink"
                 >
                   {t}
                 </span>

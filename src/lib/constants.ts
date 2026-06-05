@@ -270,25 +270,42 @@ export const PLANNING_SUPPORT_OPTIONS = [
   { value: "not_included", label: "対応なし" },
 ] as const;
 
-// 使用ソフト / 生成 AI ツール (複数選択)
-export const PACKAGE_TOOLS = [
-  "Sora",
-  "Veo",
-  "Runway",
-  "Luma",
-  "Pika",
-  "Kling",
-  "Hailuo",
-  "Midjourney",
-  "Stable Diffusion",
-  "Flux",
-  "Premiere Pro",
-  "After Effects",
+// 旧 PACKAGE_TOOLS は 2026-06-03 に分割。
+// 移行: PACKAGE_SOFTWARES (編集ソフト) と PACKAGE_AI_TOOLS (生成 AI) に分離。
+
+// 使用ソフト (編集・制作ツール)
+export const PACKAGE_SOFTWARES = [
+  "Adobe Premiere Pro",
+  "Adobe After Effects",
   "DaVinci Resolve",
   "Final Cut Pro",
   "CapCut",
-  "Photoshop",
-  "Illustrator",
+  "Adobe Photoshop",
+  "Adobe Illustrator",
+  "Figma",
+] as const;
+
+// 使用 生成 AI ツール
+export const PACKAGE_AI_TOOLS = [
+  "Sora",
+  "Veo",
+  "Runway",
+  "Luma Dream Machine",
+  "Luma AI",
+  "Kling",
+  "Hailuo",
+  "Pika",
+  "Midjourney",
+  "Stable Diffusion",
+  "Flux",
+  "DALL·E",
+  "Adobe Firefly",
+  "ElevenLabs",
+  "Suno",
+  "Udio",
+  "ChatGPT",
+  "Claude",
+  "Gemini",
 ] as const;
 
 // ナレーション・音声の対応

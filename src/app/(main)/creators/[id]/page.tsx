@@ -362,10 +362,52 @@ export default async function CreatorDetailPage({
                     🕐 納期 {minPackage.delivery_days} 日
                   </span>
                   <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-1">
-                    🔁 修正 {minPackage.revisions} 回
+                    🔁 修正{" "}
+                    {minPackage.revisions_unlimited
+                      ? "無制限"
+                      : `${minPackage.revisions} 回`}
                   </span>
                 </div>
               </div>
+
+              {/* 使用ソフト と 生成 AI ツール — 別グループで表示 */}
+              {((minPackage.used_softwares?.length ?? 0) > 0 ||
+                (minPackage.used_ai_tools?.length ?? 0) > 0) && (
+                <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
+                  {minPackage.used_softwares &&
+                    minPackage.used_softwares.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-neon-cyan">
+                          使用ソフト
+                        </span>
+                        {minPackage.used_softwares.map((t) => (
+                          <span
+                            key={`sw-${t}`}
+                            className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  {minPackage.used_ai_tools &&
+                    minPackage.used_ai_tools.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-neon-pink-soft">
+                          生成 AI ツール
+                        </span>
+                        {minPackage.used_ai_tools.map((t) => (
+                          <span
+                            key={`ai-${t}`}
+                            className="rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-pink-soft"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                </div>
+              )}
 
               <p className="mt-3 text-[11px] text-white/55">
                 ※ 仕様/尺/AB案数で見積もりは変動します。「依頼を相談」から具体条件をすり合わせできます。

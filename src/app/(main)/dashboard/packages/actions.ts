@@ -35,7 +35,12 @@ function buildPayloadFromFormData(formData: FormData) {
   // ===== 詳細項目 =====
   const planning_support = (formData.get("planning_support") as string) || null;
   const revisions_unlimited = formData.get("revisions_unlimited") === "1";
-  const tools = (formData.getAll("tools") as string[])
+  // 2026-06-03 分割: tools → used_softwares (編集ソフト) + used_ai_tools (生成 AI)
+  const used_softwares = (formData.getAll("used_softwares") as string[])
+    .map((t) => String(t).trim())
+    .filter(Boolean)
+    .slice(0, 30);
+  const used_ai_tools = (formData.getAll("used_ai_tools") as string[])
     .map((t) => String(t).trim())
     .filter(Boolean)
     .slice(0, 30);
@@ -74,7 +79,8 @@ function buildPayloadFromFormData(formData: FormData) {
     features,
     planning_support,
     revisions_unlimited,
-    tools,
+    used_softwares,
+    used_ai_tools,
     voiceover_type,
     bgm_policy,
     resolution,

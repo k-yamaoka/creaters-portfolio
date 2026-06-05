@@ -46,7 +46,9 @@ export type CreatorWithRelations = {
     // ===== 2026-06-03 追加: 詳細設定 (00048 migration) =====
     planning_support?: string | null;
     revisions_unlimited?: boolean;
-    tools?: string[];
+    // 2026-06-03 分割 (00049): used_softwares + used_ai_tools
+    used_softwares?: string[];
+    used_ai_tools?: string[];
     voiceover_type?: string | null;
     bgm_policy?: string | null;
     resolution?: string | null;

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import {
   PLANNING_SUPPORT_OPTIONS,
-  PACKAGE_TOOLS,
+  PACKAGE_SOFTWARES,
+  PACKAGE_AI_TOOLS,
   VOICEOVER_OPTIONS,
   RESOLUTION_OPTIONS,
   COMMERCIAL_USE_OPTIONS,
@@ -19,7 +20,8 @@ export type PackageFormInitial = {
   features?: string[];
   planning_support?: string | null;
   revisions_unlimited?: boolean;
-  tools?: string[];
+  used_softwares?: string[];
+  used_ai_tools?: string[];
   voiceover_type?: string | null;
   bgm_policy?: string | null;
   resolution?: string | null;
@@ -44,7 +46,12 @@ export function PackageFormFields({
 }: {
   initial?: PackageFormInitial;
 }) {
-  const [tools, setTools] = useState<string[]>(initial.tools ?? []);
+  const [usedSoftwares, setUsedSoftwares] = useState<string[]>(
+    initial.used_softwares ?? []
+  );
+  const [usedAiTools, setUsedAiTools] = useState<string[]>(
+    initial.used_ai_tools ?? []
+  );
   const [revisionsUnlimited, setRevisionsUnlimited] = useState<boolean>(
     initial.revisions_unlimited ?? false
   );
@@ -55,10 +62,13 @@ export function PackageFormFields({
     initial.rush_available ?? false
   );
 
-  const toggleTool = (t: string) =>
-    setTools((prev) =>
-      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-    );
+  const toggleIn =
+    (setter: (fn: (prev: string[]) => string[]) => void) => (v: string) =>
+      setter((prev) =>
+        prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]
+      );
+  const toggleSoftware = toggleIn(setUsedSoftwares);
+  const toggleAiTool = toggleIn(setUsedAiTools);
 
   const label = "mb-1.5 block text-sm font-medium text-[#4F4F4F]";
   const input =
@@ -210,20 +220,55 @@ export function PackageFormFields({
         </div>
       </div>
 
-      {/* ============ AI / ツール ============ */}
+      {/* ============ 使用ソフト (編集・制作ツール) ============ */}
       <div>
-        <p className={sectionTitle}>使用ソフト / 生成 AI ツール</p>
+        <p className={sectionTitle}>使用ソフト（編集・制作ツール）</p>
         <p className="mt-1 text-xs text-[#828282]">
-          実際に使用するツールを選んでください（複数選択可）
+          編集や制作で実際に使用する従来型ソフトを選択してください（複数選択可）
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {PACKAGE_TOOLS.map((t) => {
-            const isActive = tools.includes(t);
+          {PACKAGE_SOFTWARES.map((t) => {
+            const isActive = usedSoftwares.includes(t);
             return (
               <button
                 key={t}
                 type="button"
-                onClick={() => toggleTool(t)}
+                onClick={() => toggleSoftware(t)}
+                className={`rounded-pill border px-3 py-1.5 text-xs font-bold transition-colors ${
+                  isActive
+                    ? "border-neon-cyan bg-gradient-to-r from-neon-cyan to-neon-purple text-white"
+                    : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-cyan hover:text-neon-cyan"
+                }`}
+              >
+                {t}
+              </button>
+            );
+          })}
+        </div>
+        {usedSoftwares.map((t) => (
+          <input
+            key={`sw-${t}`}
+            type="hidden"
+            name="used_softwares"
+            value={t}
+          />
+        ))}
+      </div>
+
+      {/* ============ 使用 生成 AI ツール ============ */}
+      <div>
+        <p className={sectionTitle}>使用 生成 AI ツール</p>
+        <p className="mt-1 text-xs text-[#828282]">
+          動画 / 画像 / 音声 / 文章生成に使用する AI ツールを選択してください（複数選択可）
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {PACKAGE_AI_TOOLS.map((t) => {
+            const isActive = usedAiTools.includes(t);
+            return (
+              <button
+                key={t}
+                type="button"
+                onClick={() => toggleAiTool(t)}
                 className={`rounded-pill border px-3 py-1.5 text-xs font-bold transition-colors ${
                   isActive
                     ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white"
@@ -235,8 +280,13 @@ export function PackageFormFields({
             );
           })}
         </div>
-        {tools.map((t) => (
-          <input key={`tool-${t}`} type="hidden" name="tools" value={t} />
+        {usedAiTools.map((t) => (
+          <input
+            key={`ai-${t}`}
+            type="hidden"
+            name="used_ai_tools"
+            value={t}
+          />
         ))}
       </div>
 
