@@ -100,16 +100,17 @@ export default async function ApplicationsPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="truncate text-sm font-bold text-[#222]">
+                        {/* 案件タイトルを 1-2 段階アップ (sm → lg/xl) */}
+                        <h3 className="truncate text-lg font-bold text-[#222] sm:text-xl">
                           {job?.title}
                         </h3>
                         <span
-                          className={`shrink-0 rounded-pill px-2.5 py-0.5 text-[11px] font-bold ${appStatus.color}`}
+                          className={`shrink-0 rounded-pill px-2.5 py-0.5 text-xs font-bold ${appStatus.color}`}
                         >
                           {appStatus.label}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-[#828282]">
+                      <p className="mt-1 text-sm text-[#828282]">
                         {clientName}
                       </p>
                       <div className="mt-2 flex flex-wrap gap-1.5">
@@ -125,12 +126,14 @@ export default async function ApplicationsPage() {
                     </div>
                     <div className="shrink-0 text-right">
                       {app.proposed_price && (
-                        <p className="text-sm font-bold text-neon-purple-deep">
+                        // 金額: sm → lg
+                        <p className="text-lg font-bold text-neon-purple-deep">
                           {formatPrice(app.proposed_price)}
                         </p>
                       )}
-                      <p className="mt-1 text-xs text-[#BDBDBD]">
-                        {formatDateJP(app.created_at)}
+                      {/* 日付: xs → sm */}
+                      <p className="mt-1 text-sm text-[#828282]">
+                        応募日 {formatDateJP(app.created_at)}
                       </p>
                     </div>
                   </div>

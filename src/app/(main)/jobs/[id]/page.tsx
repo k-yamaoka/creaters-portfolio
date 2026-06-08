@@ -88,31 +88,34 @@ export default async function JobDetailPage({
   }
 
   return (
-    <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
+    // 案件詳細はライトテーマ (bg-gray-50 + text-gray-900) で全幅を覆い、
+    // 内側の card 群とコントラストを揃える。body の dark midnight bg を上書きする。
+    <div className="min-h-[calc(100vh-5rem)] bg-gray-50 text-gray-900">
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
       {/* Breadcrumb */}
-      <nav className="mb-8 text-sm text-[#828282]">
+      <nav className="mb-8 text-sm text-gray-500">
         <Link href="/jobs" className="hover:text-neon-purple-deep">
           AI動画案件を探す
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-[#222]">{job.title}</span>
+        <span className="text-gray-900">{job.title}</span>
       </nav>
 
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
         {/* Left: Job detail */}
         <div className="space-y-8 lg:col-span-2">
           {/* Title */}
-          <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <h1 className="truncate text-2xl font-bold text-[#222] sm:text-3xl" title={job.title}>
+                <h1 className="truncate text-2xl font-bold text-gray-900 sm:text-3xl" title={job.title}>
                   {job.title}
                 </h1>
-                <p className="mt-2 text-sm text-[#828282]">
+                <p className="mt-2 text-sm text-gray-500">
                   {clientData.company_name ||
                     clientData.profiles.display_name}
                   {clientData.industry && (
-                    <span className="ml-2 text-[#BDBDBD]">
+                    <span className="ml-2 text-gray-400">
                       ({clientData.industry})
                     </span>
                   )}
@@ -120,7 +123,7 @@ export default async function JobDetailPage({
               </div>
               {(job.budget_min || job.budget_max) && (
                 <div className="shrink-0 whitespace-nowrap text-right">
-                  <p className="text-xs text-[#828282]">見積もり</p>
+                  <p className="text-xs text-gray-500">見積もり</p>
                   <p className="text-xl font-bold text-neon-purple-deep">
                     {job.budget_min &&
                     job.budget_max &&
@@ -150,16 +153,16 @@ export default async function JobDetailPage({
 
             {/* Unit price */}
             {job.unit_price && (
-              <div className="mt-4 rounded-lg bg-[#F8F8F8] px-4 py-3">
-                <p className="text-xs text-[#828282]">動画1本あたりの単価（概算）</p>
-                <p className="mt-1 text-lg font-bold text-[#222]">
+              <div className="mt-4 rounded-lg bg-gray-100 px-4 py-3">
+                <p className="text-xs text-gray-500">動画1本あたりの単価（概算）</p>
+                <p className="mt-1 text-lg font-bold text-gray-900">
                   {formatPrice(job.unit_price)}
                 </p>
               </div>
             )}
 
             {/* Meta */}
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-[#828282]">
+            <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
               {job.deadline && (
                 <span>応募締切: {formatDateJP(job.deadline)}</span>
               )}
@@ -171,9 +174,9 @@ export default async function JobDetailPage({
           </div>
 
           {/* Description */}
-          <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-            <h2 className="mb-4 text-lg font-bold text-[#222]">案件詳細</h2>
-            <div className="whitespace-pre-wrap text-sm leading-relaxed text-[#4F4F4F]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
+            <h2 className="mb-4 text-lg font-bold text-gray-900">案件詳細</h2>
+            <div className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
               {job.description.replace(/\\n/g, "\n")}
             </div>
           </div>
@@ -204,7 +207,7 @@ export default async function JobDetailPage({
 
           {/* Apply form (案件詳細と同じコンテンツ幅) */}
           {isCreator && user?.creator_profile && (
-            <div className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
               {hasApplied ? (
                 <div>
                   <div className="text-center">
@@ -223,10 +226,10 @@ export default async function JobDetailPage({
                         />
                       </svg>
                     </div>
-                    <p className="mt-3 text-sm font-bold text-[#222]">
+                    <p className="mt-3 text-sm font-bold text-gray-900">
                       応募済みです
                     </p>
-                    <p className="mt-1 text-xs text-[#828282]">
+                    <p className="mt-1 text-xs text-gray-500">
                       企業からの返答をお待ちください
                     </p>
                   </div>
@@ -271,10 +274,10 @@ export default async function JobDetailPage({
                 </div>
               ) : (
                 <>
-                  <h2 className="mb-4 text-lg font-bold text-[#222]">
+                  <h2 className="mb-4 text-lg font-bold text-gray-900">
                     この案件に応募する
                   </h2>
-                  <p className="mb-4 text-xs text-[#828282]">
+                  <p className="mb-4 text-xs text-gray-500">
                     応募ボタンを押すと、この企業へのメッセージ機能が解放されます。
                   </p>
                   <ApplyButton
@@ -287,8 +290,8 @@ export default async function JobDetailPage({
           )}
 
           {!user && (
-            <div className="rounded-2xl bg-white p-6 text-center shadow-card sm:p-8">
-              <p className="text-sm text-[#828282]">
+            <div className="rounded-2xl border border-gray-200 bg-white p-6 text-center shadow-card sm:p-8">
+              <p className="text-sm text-gray-500">
                 応募するにはログインが必要です
               </p>
               <Link
@@ -301,44 +304,50 @@ export default async function JobDetailPage({
           )}
         </div>
 
-        {/* Right: Sidebar (Company + Stats) */}
+        {/* Right: Sidebar — 掲載企業 + 応募数 を 1 つの divide-x で統合 */}
         <div className="space-y-6">
-          <div className="sticky top-24 space-y-6">
-            {/* Company info */}
-            <div className="rounded-2xl bg-white p-6 shadow-card">
-              <h3 className="text-sm font-bold text-[#828282]">掲載企業</h3>
-              <p className="mt-2 text-lg font-bold text-[#222]">
-                {clientData.company_name ||
-                  clientData.profiles.display_name}
-              </p>
-              {clientData.industry && (
-                <p className="mt-1 text-sm text-[#828282]">
-                  {clientData.industry}
+          <div className="sticky top-24">
+            <div className="grid grid-cols-[1fr,auto] divide-x divide-gray-200 rounded-2xl border border-gray-200 bg-white shadow-card">
+              {/* 掲載企業 */}
+              <div className="min-w-0 p-5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                  掲載企業
+                </h3>
+                <p className="mt-2 truncate text-lg font-bold text-gray-900">
+                  {clientData.company_name ||
+                    clientData.profiles.display_name}
                 </p>
-              )}
-              {clientData.company_url && (
-                <a
-                  href={clientData.company_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 block text-sm text-neon-purple-deep hover:underline"
-                >
-                  企業サイト
-                </a>
-              )}
-            </div>
+                {clientData.industry && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    {clientData.industry}
+                  </p>
+                )}
+                {clientData.company_url && (
+                  <a
+                    href={clientData.company_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-sm text-neon-purple-deep hover:underline"
+                  >
+                    企業サイト ↗
+                  </a>
+                )}
+              </div>
 
-            {/* Stats */}
-            <div className="rounded-2xl bg-white p-6 shadow-card">
-              <div className="flex justify-between text-sm">
-                <span className="text-[#828282]">応募数</span>
-                <span className="font-bold text-[#222]">
-                  {job.application_count}件
-                </span>
+              {/* 応募数 — 縦区切り線で隣接 */}
+              <div className="flex w-32 flex-col items-center justify-center p-5 text-center">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                  応募数
+                </h3>
+                <p className="mt-2 text-3xl font-black text-neon-purple-deep">
+                  {job.application_count}
+                </p>
+                <p className="text-xs text-gray-500">件</p>
               </div>
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -167,21 +167,21 @@ export default async function OrdersPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-bold text-[#828282]">
+                        <span className="text-sm font-bold text-[#828282]">
                           {partnerName}
                         </span>
-                        {/* 案件名 = order.title をブロック状で表示 + 進捗tooltip */}
+                        {/* 案件タイトル: 1-2 段階アップ (xs → lg) */}
                         <span
-                          className="group/title relative inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-neon-purple/20 bg-neon-purple/10 px-2 py-0.5 text-xs font-bold text-neon-purple-deep"
+                          className="group/title relative inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-neon-purple/20 bg-neon-purple/10 px-2.5 py-1 text-lg font-bold text-neon-purple-deep"
                           title={`${status.label}: ${status.description}`}
                         >
-                          <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z" />
                           </svg>
                           <span className="truncate">{order.title}</span>
                         </span>
                         <span
-                          className={`shrink-0 rounded-pill px-2.5 py-0.5 text-[11px] font-bold ${status.color}`}
+                          className={`shrink-0 rounded-pill px-2.5 py-0.5 text-xs font-bold ${status.color}`}
                         >
                           {status.shortLabel}
                         </span>
@@ -191,21 +191,22 @@ export default async function OrdersPage() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#828282]">
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-[#828282]">
                         {packageName && <span>{packageName}</span>}
                         {packageName && <span className="text-[#E0E0E0]">|</span>}
                         <span>{order.order_number}</span>
                       </div>
-                      <div className="mt-2 text-[11px] text-[#828282]">
+                      <div className="mt-2 text-sm text-[#828282]">
                         最終更新: {formatDateTimeJP(lastAt)}
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-[#222]">
+                      {/* 金額: sm → xl, 日付: 11px → sm */}
+                      <p className="text-xl font-black text-[#222]">
                         {formatPrice(order.total_amount)}
                       </p>
-                      <p className="mt-1 text-[11px] text-[#BDBDBD]">
-                        作成 {formatDateJP(order.created_at)}
+                      <p className="mt-1 text-sm text-[#828282]">
+                        取引日 {formatDateJP(order.created_at)}
                       </p>
                     </div>
                   </div>

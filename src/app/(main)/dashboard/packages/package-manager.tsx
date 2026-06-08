@@ -264,34 +264,45 @@ function PackageCard({
 
   return (
     <div
-      className={`rounded-2xl border border-gray-200 bg-white p-6 shadow-card ${
+      className={`rounded-2xl border border-gray-200 bg-white p-5 shadow-card ${
         !pkg.is_active ? "opacity-60" : ""
       }`}
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-bold text-[#222]">{pkg.name}</h3>
+        <div className="min-w-0 flex-1">
+          {/* タイトル + 納期/修正 をインライン配置 (タイトル大きめで強調) */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            <h3 className="text-2xl font-black text-[#222] sm:text-3xl">
+              {pkg.name}
+            </h3>
+            <span className="inline-flex items-center gap-1 rounded-pill border border-neon-purple/30 bg-neon-purple/10 px-3 py-1 text-sm font-bold text-neon-purple-deep">
+              <span aria-hidden>🕐</span>
+              納期 {pkg.delivery_days} 日
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-3 py-1 text-sm font-bold text-neon-cyan">
+              <span aria-hidden>🔁</span>
+              修正 {revisionsLabel}
+            </span>
             {!pkg.is_active && (
-              <span className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#828282]">
+              <span className="rounded bg-[#F2F2F2] px-2 py-0.5 text-xs text-[#828282]">
                 非公開
               </span>
             )}
           </div>
-          <p className="mt-1 text-sm text-[#828282]">{pkg.description}</p>
+          <p className="mt-1.5 text-sm text-[#828282]">{pkg.description}</p>
         </div>
-        <p className="shrink-0 text-xl font-bold text-neon-purple-deep">
+        <p className="shrink-0 text-2xl font-black text-neon-purple-deep">
           {formatPrice(pkg.price)}
         </p>
       </div>
 
-      {/* 基本メタ */}
-      <div className="mt-3 flex flex-wrap gap-4 text-xs text-[#828282]">
-        <span>納期 {pkg.delivery_days} 日</span>
-        <span>修正 {revisionsLabel}</span>
-        {pkg.duration_target && <span>尺 {pkg.duration_target}</span>}
-        {resolution && <span>{resolution}</span>}
-      </div>
+      {/* 補助メタ (尺/解像度) */}
+      {(pkg.duration_target || resolution) && (
+        <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#828282]">
+          {pkg.duration_target && <span>尺 {pkg.duration_target}</span>}
+          {resolution && <span>{resolution}</span>}
+        </div>
+      )}
 
       {/* 詳細メタ — 2026-06-03 追加 */}
       {(planning ||
@@ -303,7 +314,7 @@ function PackageCard({
         (pkg.used_ai_tools && pkg.used_ai_tools.length > 0) ||
         pkg.bgm_policy ||
         pkg.commercial_use_note) && (
-        <div className="mt-4 space-y-2.5 border-t border-gray-100 pt-4">
+        <div className="mt-3 space-y-2 border-t border-gray-100 pt-3">
           {/* 使用ソフト (cyan) と 生成 AI (pink) を別グループで表示 */}
           {pkg.used_softwares && pkg.used_softwares.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
@@ -382,7 +393,7 @@ function PackageCard({
 
       {/* features chips */}
       {pkg.features.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {pkg.features.map((f) => (
             <span
               key={f}
@@ -394,7 +405,7 @@ function PackageCard({
         </div>
       )}
 
-      <div className="mt-4 flex justify-end gap-3 border-t border-[#F2F2F2] pt-4">
+      <div className="mt-3 flex justify-end gap-3 border-t border-[#F2F2F2] pt-3">
         <button
           type="button"
           onClick={onEdit}
