@@ -1,17 +1,17 @@
-// AILIER 制作ジャンル (13項目 / 2026-05 リブランド)
+// AILIER 制作ジャンル (10 項目 / 2026-06-09 改訂)
+// 「その他（自由記入）」はジャンルとして並べず、フォーム側の "+ その他"
+// トグル + 自由入力で対応する (job-form.tsx)。
 export const GENRES = [
   "SNS広告動画",
-  "ブランドムービー",
-  "採用動画",
   "プロダクト紹介動画",
-  "サービス解説動画(Explainer)",
-  "LP用ヒーロー動画",
-  "ミュージックビデオ",
-  "新商品ローンチ動画",
+  "サービス解説動画（Explainer）",
+  "マニュアル・操作説明動画（How-to）",
+  "会社紹介・コーポレートVP",
+  "採用動画",
   "展示会・イベント映像",
+  "ミュージックビデオ",
+  "ショートドラマ",
   "AIアバター・キャラクター動画",
-  "多言語ローカライズ動画",
-  "ショートフィルム・アート映像",
 ] as const;
 
 // 得意映像尺 (8項目、複数選択)
@@ -145,114 +145,78 @@ export const JOB_ASPECT_RATIOS = [
  * ビジュアルスタイル (案件作成時に企業が想定する方向性を選ぶ)。
  * - value: DB 保存用 slug
  * - label: 表示名
- * - sample: タイル UI で表示する「擬似ビジュアル」設定
- *    - gradient: 背景の Tailwind グラデーション
- *    - motif: 中央に出す装飾モチーフ (絵文字 1 字 / ロゴ風シンボル)
- *    - hint: 雰囲気を補足する短い英単語ラベル (右上に小さく)
+ * - image: タイル UI で表示する実画像 (public/images/visual-styles 配下)
+ * - hint: 雰囲気を補足する短い英単語ラベル (右上に小さく)
  *
- * 将来の差し替え予定:
- *   グラデは Nano Banana 2 等で生成した実写風サンプル画像 (Supabase Storage) に
- *   置き換えると、より参考写真イメージに近づく。
+ * 画像は AI 生成 (Nano Banana 2) のオリジナル写真を sips でリサイズ・JPEG 化して
+ * 同梱。差し替える場合は同じパスに同名で上書きすれば足りる。
  */
 export const JOB_VISUAL_STYLES = [
   {
     value: "cinematic",
     label: "シネマティック",
-    sample: {
-      gradient: "from-[#0b1a2b] via-[#1c3a5c] to-[#d97b2c]",
-      motif: "🎬",
-      hint: "Cinematic",
-    },
+    image: "/images/visual-styles/cinematic.jpg",
+    hint: "Cinematic",
   },
   {
     value: "documentary",
     label: "ドキュメンタリー",
-    sample: {
-      gradient: "from-[#3b322a] via-[#6f5d4a] to-[#c9b08a]",
-      motif: "📷",
-      hint: "Documentary",
-    },
+    image: "/images/visual-styles/documentary.jpg",
+    hint: "Documentary",
   },
   {
     value: "hollywood_blockbuster",
     label: "ハリウッド大作風",
-    sample: {
-      gradient: "from-[#3a0e0e] via-[#b1480e] to-[#fcc04a]",
-      motif: "💥",
-      hint: "Blockbuster",
-    },
+    image: "/images/visual-styles/hollywood_blockbuster.jpg",
+    hint: "Blockbuster",
   },
   {
     value: "anime_jp",
     label: "日本アニメ",
-    sample: {
-      gradient: "from-[#ff5f9e] via-[#9d5cff] to-[#4dd5f7]",
-      motif: "✨",
-      hint: "Anime JP",
-    },
+    image: "/images/visual-styles/anime_jp.jpg",
+    hint: "Anime JP",
   },
   {
     value: "cg_3d",
     label: "3DCGアニメ",
-    sample: {
-      gradient: "from-[#2e1a6a] via-[#5b2dd1] to-[#a988ff]",
-      motif: "🧊",
-      hint: "3D CG",
-    },
+    image: "/images/visual-styles/cg_3d.jpg",
+    hint: "3D CG",
   },
   {
     value: "anime_2d_flat",
     label: "2Dフラットアニメ",
-    sample: {
-      gradient: "from-[#ffd166] via-[#ef476f] to-[#06d6a0]",
-      motif: "🎨",
-      hint: "2D Flat",
-    },
+    image: "/images/visual-styles/anime_2d_flat.jpg",
+    hint: "2D Flat",
   },
   {
     value: "hand_drawn",
     label: "手描き風",
-    sample: {
-      gradient: "from-[#f5ecd9] via-[#e2c79b] to-[#a98061]",
-      motif: "✏️",
-      hint: "Hand-drawn",
-    },
+    image: "/images/visual-styles/hand_drawn.jpg",
+    hint: "Hand-drawn",
   },
   {
     value: "clean_corporate",
     label: "クリーン・コーポレート",
-    sample: {
-      gradient: "from-[#e7eef7] via-[#9fc1ee] to-[#3c6cb5]",
-      motif: "🏢",
-      hint: "Corporate",
-    },
+    image: "/images/visual-styles/clean_corporate.jpg",
+    hint: "Corporate",
   },
   {
     value: "neon_sci_fi",
     label: "ネオン・SF",
-    sample: {
-      gradient: "from-[#100b30] via-[#ff2e94] to-[#4df3ff]",
-      motif: "🛸",
-      hint: "Neon SF",
-    },
+    image: "/images/visual-styles/neon_sci_fi.jpg",
+    hint: "Neon SF",
   },
   {
     value: "fantasy",
     label: "ファンタジー",
-    sample: {
-      gradient: "from-[#0e3b2e] via-[#3b8d6b] to-[#f2cf66]",
-      motif: "🪄",
-      hint: "Fantasy",
-    },
+    image: "/images/visual-styles/fantasy.jpg",
+    hint: "Fantasy",
   },
   {
     value: "monochrome",
     label: "モノクロ",
-    sample: {
-      gradient: "from-[#0b0b0b] via-[#3a3a3a] to-[#cccccc]",
-      motif: "◐",
-      hint: "Monochrome",
-    },
+    image: "/images/visual-styles/monochrome.jpg",
+    hint: "Monochrome",
   },
 ] as const;
 

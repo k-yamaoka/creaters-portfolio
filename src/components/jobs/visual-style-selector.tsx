@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { JOB_VISUAL_STYLES } from "@/lib/constants";
 
 /**
  * 案件作成フォームで使う「ビジュアルスタイル」セレクタ。
  *
- * - 参照イメージ (Nano Banana 2 スタイルピッカー) に近い、画像タイル+ラベルの
- *   ギャラリー形式。各タイルは Tailwind グラデーション + 装飾モチーフで
- *   "雰囲気サンプル" を表現する。
- * - 単発スタイル選択を想定 (1 つ選んだら他は外れる)。
- *   ただし将来の複数選択 / 自由入力に備え DB は text[] (visual_styles)。
- * - 選択した value をすべて hidden input `visual_styles` で送信する。
+ * - 参照イメージ (Nano Banana 2 スタイルピッカー) と同じく、AI 生成された
+ *   実画像をタイルで並べる。`public/images/visual-styles/` 配下に同梱した
+ *   JPEG を `next/image` で配信し、デバイスサイズに合わせて自動最適化。
+ * - 単一選択を想定 (1 つ選ぶと他は外れる)。
+ *   ただし DB は text[] (visual_styles) なので将来の複数選択にも備える。
+ * - 選択した value を hidden input `visual_styles` で送信する。
  */
 export function VisualStyleSelector() {
   const [selected, setSelected] = useState<string | null>(null);
@@ -46,44 +47,27 @@ export function VisualStyleSelector() {
                   : "border-transparent hover:scale-[1.02] hover:shadow-[0_12px_35px_-15px_rgba(0,0,0,0.35)]"
               }`}
             >
-              {/* 背景: グラデ + ノイズ風オーバーレイ */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${s.sample.gradient}`}
+              {/* AI 生成画像 — next/image で 自動最適化 */}
+              <Image
+                src={s.image}
+                alt={s.label}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
               />
-              <div
-                className="absolute inset-0 mix-blend-overlay opacity-30"
-                style={{
-                  backgroundImage:
-                    "radial-gradient(rgba(255,255,255,0.18) 1px, transparent 1px), radial-gradient(rgba(0,0,0,0.18) 1px, transparent 1px)",
-                  backgroundSize: "6px 6px, 9px 9px",
-                  backgroundPosition: "0 0, 3px 3px",
-                }}
-              />
-              {/* 中央モチーフ — 雰囲気の手がかり */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span
-                  aria-hidden
-                  className="select-none text-5xl opacity-80 transition-transform duration-200 group-hover:scale-110 sm:text-6xl"
-                  style={{
-                    filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.45))",
-                  }}
-                >
-                  {s.sample.motif}
-                </span>
-              </div>
               {/* 右上: 雰囲気を補足する英ラベル */}
-              <span className="absolute right-2 top-2 rounded-pill bg-black/35 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-                {s.sample.hint}
+              <span className="absolute right-2 top-2 z-10 rounded-pill bg-black/45 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
+                {s.hint}
               </span>
               {/* 下部: グラデーション + 日本語ラベル */}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-3 pb-2.5 pt-8">
+              <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-2.5 pt-8">
                 <p className="truncate text-sm font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">
                   {s.label}
                 </p>
               </div>
               {/* 選択時のチェック */}
               {isActive && (
-                <span className="absolute left-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.7)]">
+                <span className="absolute left-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.7)]">
                   <svg
                     className="h-3.5 w-3.5"
                     fill="none"

@@ -108,7 +108,7 @@ export default async function HomePage() {
               <p className="mt-8 max-w-xl text-[15px] leading-[2] text-white/70">
                 Sora・Veo・Runway・Midjourney を使いこなすクリエイターに、
                 <span className="font-bold text-white">
-                  SNS広告動画・静止画クリエイティブ・ブランドムービー
+                  SNS広告動画・プロダクト紹介・コーポレートVP
                 </span>
                 を依頼できる専門マッチングプラットフォーム。
                 <br />
@@ -566,13 +566,13 @@ export default async function HomePage() {
             <EyebrowLabel text="CASE / 案件例" tone="cyan" />
             <h2 className="mt-6 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
               <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                12 カテゴリ
+                {genreCount} カテゴリ
               </span>
               に対応。Meta 広告から MV まで。
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-[2] text-white/65">
-              SNS 広告 / ブランドムービー / プロダクト紹介 / 採用動画 /
-              サービス解説 / 新商品ローンチ / アート映像 …
+              SNS 広告 / プロダクト紹介 / サービス解説 / How-to /
+              コーポレートVP / 採用 / 展示会 / MV / ショートドラマ …
               <br />
               業界・尺・媒体問わず、AI で実現できる映像/静止画クリエイティブを
               発注できます。
