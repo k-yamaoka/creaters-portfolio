@@ -86,5 +86,8 @@ export type JobSearchFilters = {
   keyword?: string;
   genres?: string[];
   statusFilter?: "all" | "open";
-  sortBy?: "newest" | "popular" | "price_high" | "deadline";
+  sortBy?: "recommended" | "newest" | "popular" | "price_high" | "deadline";
+  // 予算スライダー (min/max は円単位)
+  budgetMin?: number;
+  budgetMax?: number;
 };

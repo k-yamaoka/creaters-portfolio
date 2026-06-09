@@ -28,5 +28,25 @@ export default async function JobsPage() {
     .in("status", ["open", "closed"])
     .order("created_at", { ascending: false });
 
-  return <JobsPageClient jobs={jobs ?? []} />;
+  // ログイン中ユーザーがクリエイターなら、プロフィールを取得して
+  // "おすすめ" ソートのスコア計算に使う。
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let viewerProfile: {
+    genres: string[];
+    strengths: string[];
+    video_lengths: string[];
+    bio: string;
+  } | null = null;
+  if (user) {
+    const { data: cp } = await supabase
+      .from("creator_profiles")
+      .select("genres, strengths, video_lengths, bio")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (cp) viewerProfile = cp as unknown as NonNullable<typeof viewerProfile>;
+  }
+
+  return <JobsPageClient jobs={jobs ?? []} viewerProfile={viewerProfile} />;
 }

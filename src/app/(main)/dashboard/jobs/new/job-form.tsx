@@ -315,11 +315,13 @@ export function JobForm() {
             value={budgetForSave !== null ? String(budgetForSave) : ""}
           />
 
+          {/* 応募期限 (応募締切日) を必須化、納品希望日は任意 */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DateFieldWithCalendar
               id="deadline"
               name="deadline"
-              label="応募締切日"
+              label="応募期限（応募締切日）"
+              required
             />
             <DateFieldWithCalendar
               id="delivery_deadline"
@@ -327,6 +329,10 @@ export function JobForm() {
               label="納品希望日"
             />
           </div>
+          <p className="text-xs text-[#828282]">
+            ※ 応募期限は案件一覧でクリエイターに対して「残り N 日」として
+            ハイライト表示されます。早めの締切ほど反応が集まりやすくなります。
+          </p>
         </div>
       </section>
 
