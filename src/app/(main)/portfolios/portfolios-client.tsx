@@ -54,19 +54,21 @@ export function PortfoliosPageClient({
         result.sort((a, b) => b.rating - a.rating);
         break;
       case "price_low":
-        result.sort(
-          (a, b) =>
-            Math.min(...a.service_packages.map((p) => p.price)) -
-            Math.min(...b.service_packages.map((p) => p.price))
-        );
+      case "price_high": {
+        // 最低受注金額で並び替え。未設定は方向によらず末尾固定
+        const dir = filters.sortBy === "price_low" ? 1 : -1;
+        result.sort((a, b) => {
+          const pa = a.minimum_order_amount ?? Number.POSITIVE_INFINITY;
+          const pb = b.minimum_order_amount ?? Number.POSITIVE_INFINITY;
+          const ai = !isFinite(pa);
+          const bi = !isFinite(pb);
+          if (ai && bi) return 0;
+          if (ai) return 1;
+          if (bi) return -1;
+          return (pa - pb) * dir;
+        });
         break;
-      case "price_high":
-        result.sort(
-          (a, b) =>
-            Math.min(...b.service_packages.map((p) => p.price)) -
-            Math.min(...a.service_packages.map((p) => p.price))
-        );
-        break;
+      }
     }
 
     return result;

@@ -47,7 +47,6 @@ export type Order = {
   id: string;
   client_id: string;
   creator_id: string;
-  package_id: string;
   status:
     | "consultation"
     | "quoting"

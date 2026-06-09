@@ -14,8 +14,9 @@ export async function createOrder(formData: FormData) {
   if (!user) redirect("/login");
 
   const creator_profile_id = formData.get("creator_id") as string;
-  const package_id = formData.get("package_id") as string;
   const title = formData.get("title") as string;
+  // 料金プラン (00050 で撤去) — total_amount は最低受注金額を使用
+  const total_amount_raw = formData.get("total_amount") as string;
   const description = formData.get("description") as string;
 
   // 編集要件
@@ -55,14 +56,20 @@ export async function createOrder(formData: FormData) {
     clientProfile = newProfile;
   }
 
-  // Get package info for price
-  const { data: pkg } = await supabase
-    .from("service_packages")
-    .select("price")
-    .eq("id", package_id)
-    .single();
-
-  const totalAmount = pkg?.price ?? 0;
+  // 料金プラン撤去後のフォールバック:
+  //   1) フォーム送信時の total_amount があればそれを採用 (発注者の意思額)
+  //   2) なければクリエイターの minimum_order_amount
+  //   3) どちらも無ければ 0 (応相談)
+  const formAmount = Number(total_amount_raw);
+  let totalAmount = Number.isFinite(formAmount) && formAmount > 0 ? formAmount : 0;
+  if (totalAmount === 0) {
+    const { data: cp } = await supabase
+      .from("creator_profiles")
+      .select("minimum_order_amount")
+      .eq("id", creator_profile_id)
+      .single();
+    totalAmount = cp?.minimum_order_amount ?? 0;
+  }
   const platformFee = Math.floor(totalAmount * 0.15); // 15% platform fee
   const creatorPayout = totalAmount - platformFee;
 
@@ -71,7 +78,6 @@ export async function createOrder(formData: FormData) {
     .insert({
       client_id: clientProfile.id,
       creator_id: creator_profile_id,
-      package_id,
       title,
       description,
       total_amount: totalAmount,

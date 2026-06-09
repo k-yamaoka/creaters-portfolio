@@ -67,8 +67,9 @@ export function CreatorsPageClient({
         // 価格未設定 (= 応相談) は方向によらず常に末尾に固める
         const dir = filters.sortBy === "price_low" ? 1 : -1;
         result.sort((a, b) => {
-          const pa = minPrice(a.service_packages);
-          const pb = minPrice(b.service_packages);
+          // 最低受注金額 (minimum_order_amount) で並び替え。未設定は末尾固定。
+          const pa = a.minimum_order_amount ?? Number.POSITIVE_INFINITY;
+          const pb = b.minimum_order_amount ?? Number.POSITIVE_INFINITY;
           const ai = !isFinite(pa);
           const bi = !isFinite(pb);
           if (ai && bi) return 0;
@@ -267,16 +268,10 @@ export function CreatorsPageClient({
   );
 }
 
-function minPrice(pkgs: CreatorWithRelations["service_packages"]) {
-  const prices = pkgs.filter((p) => p.is_active).map((p) => p.price);
-  return prices.length ? Math.min(...prices) : Number.POSITIVE_INFINITY;
-}
-
-/** 1本単価 (最低価格を1本あたりの基準価格として扱う) */
-function formatUnitPrice(pkgs: CreatorWithRelations["service_packages"]) {
-  const min = minPrice(pkgs);
-  if (!isFinite(min)) return null;
-  return `¥${min.toLocaleString()}〜`;
+/** 最低受注金額を「¥xx,xxx〜」形式でフォーマット。未設定なら null */
+function formatMinAmount(amount: number | null | undefined): string | null {
+  if (amount == null || isNaN(amount)) return null;
+  return `¥${amount.toLocaleString()}〜`;
 }
 
 function CreatorRow({
@@ -289,7 +284,7 @@ function CreatorRow({
   isAuthed?: boolean;
 }) {
   const { profiles } = creator;
-  const unitPrice = formatUnitPrice(creator.service_packages);
+  const unitPrice = formatMinAmount(creator.minimum_order_amount);
 
   // ポートフォリオごとの いいね delta — LikeButton から子→親に通知され、
   // 総いいね数を即時 (= ページ再読み込みなしで) 反映する。

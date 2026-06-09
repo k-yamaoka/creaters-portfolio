@@ -79,6 +79,12 @@ export async function updateProfile(formData: FormData) {
   const years_of_experience = parseInt(
     (formData.get("years_of_experience") as string) || "0"
   );
+  const minRaw = (formData.get("minimum_order_amount") as string) || "";
+  const minNum = parseInt(minRaw);
+  const minimum_order_amount =
+    minRaw === "" || isNaN(minNum) || minNum < 0 || minNum > 9_999_999
+      ? null
+      : minNum;
   const genres = formData.getAll("genres") as string[];
   const video_lengths = formData.getAll("video_lengths") as string[];
   const strengths_raw = formData.getAll("strengths") as string[];
@@ -115,6 +121,7 @@ export async function updateProfile(formData: FormData) {
     genres,
     location: location || null,
     years_of_experience,
+    minimum_order_amount,
   };
 
   if (existing) {

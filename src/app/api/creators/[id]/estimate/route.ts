@@ -26,22 +26,12 @@ export async function POST(
   const body = (await req.json()) as { messages: UIMessage[] };
   const messages = body.messages ?? [];
 
-  const activePackages = creator.service_packages.filter((p) => p.is_active);
-  const minPrice =
-    activePackages.length > 0
-      ? Math.min(...activePackages.map((p) => p.price))
-      : null;
-
-  const packageLines = activePackages
-    .map(
-      (p, i) =>
-        `${i + 1}. 「${p.name}」: ${formatPrice(p.price)} / ${p.delivery_days}日納期 / 修正${p.revisions}回\n   内容: ${p.description}\n   含むもの: ${p.features.join(", ")}`
-    )
-    .join("\n\n");
+  // 料金プラン機能は撤去 (00050)。価格は minimum_order_amount 1 値のみ参照。
+  const minPrice = creator.minimum_order_amount ?? null;
 
   const systemPrompt = `あなたは AI クリエイター特化マッチングプラットフォーム「AILIER (アイリエ)」の見積もり相談 AI です。
 ユーザーは「${creator.profiles.display_name}」さん(以下「このクリエイター」)に依頼を検討中です。
-ユーザーの希望(動画の用途・尺・本数・納期など)に対して、このクリエイターの公開料金から **概算金額** と **推奨パッケージ** を提案してください。
+ユーザーの希望(動画の用途・尺・本数・納期など)に対して、概算金額の目安を提案してください。
 
 # このクリエイターの情報
 - 名前: ${creator.profiles.display_name}
@@ -52,15 +42,12 @@ export async function POST(
 - 得意映像尺: ${creator.video_lengths.join(", ") || "(未記入)"}
 - 評価: ${creator.review_count > 0 ? `★${creator.rating.toFixed(1)} (${creator.review_count}件)` : "評価数 0"}
 
-# 公開料金パッケージ
-${packageLines || "(現在公開中のパッケージはありません)"}
-
-${minPrice !== null ? `# 最低対応金額\n${formatPrice(minPrice)}〜` : ""}
+${minPrice !== null ? `# 最低受注金額\n${formatPrice(minPrice)}〜` : "# 最低受注金額\n(未設定。応相談)"}
 
 # 回答のルール
 1. **必ず日本語**で、3〜6 行程度の簡潔な箇条書きで答える
-2. ユーザーの希望と公開パッケージを照らして「推奨プラン名」と「概算 ¥xx,xxx 〜 ¥xx,xxx」を提示
-3. 公開パッケージにない用途(例: 静止画10枚だけ等)は「カスタム見積もり推奨」と書き、メッセージ経由で相談を促す
+2. ユーザーの希望から概算金額の目安「概算 ¥xx,xxx 〜 ¥xx,xxx」を提示
+3. 最低受注金額が設定されている場合、それを下回る金額は提示しない
 4. 過去実績や絶対値の約束はしない(「目安です」と書く)
 5. 営業トーンにせず、フラットで誠実なトーンで
 6. 最後に必ず「正確な見積もりはメッセージで直接ご相談ください」と1行添える

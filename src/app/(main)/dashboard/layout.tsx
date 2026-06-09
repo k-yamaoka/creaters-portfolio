@@ -29,9 +29,11 @@ export default async function DashboardLayout({
     // 親 main は padding を持たないため、ここで全幅の背景 → 内側で中央寄せ。
     // lg:px をヘッダー (lg:px-10) と揃えて、サイドバーがヘッダーロゴと
     // 縦方向に同じ位置に並ぶように調整 (左右の余白バランス改善)。
+    // 画面幅を最大限活用: lg:px を 8 に圧縮し、サイドバーとコンテンツの
+    // gap も 8 に揃えて左右の余白を均一化。
     <div className="min-h-[calc(100vh-5rem)] bg-gray-50 text-gray-900">
-      <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
-        <div className="flex gap-10">
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-8">
+        <div className="flex gap-8">
           <div className="hidden md:block">
             <Sidebar role={role} />
           </div>

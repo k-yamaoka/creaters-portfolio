@@ -37,8 +37,7 @@ export default async function OrderDetailPage({
       client:client_profiles!orders_client_id_fkey (
         id, user_id,
         profiles!client_profiles_user_id_fkey ( display_name )
-      ),
-      package:service_packages ( name, description, price, delivery_days, revisions, features )
+      )
     `
     )
     .eq("id", id)
@@ -71,14 +70,7 @@ export default async function OrderDetailPage({
     user_id: string;
     profiles: { display_name: string };
   } | null;
-  const pkg = order.package as unknown as {
-    name: string;
-    description: string;
-    price: number;
-    delivery_days: number;
-    revisions: number;
-    features: string[];
-  } | null;
+  // 料金プラン (service_packages) は 00050 で撤去済
 
   const status = getStatusMeta(order.status);
   const currentStepIndex = STATUS_FLOW.indexOf(
@@ -280,18 +272,7 @@ export default async function OrderDetailPage({
 
         {/* Right: Summary */}
         <div className="space-y-6">
-          {/* Package info */}
-          {pkg && (
-            <div className="rounded-2xl bg-white p-6 shadow-card">
-              <h2 className="text-sm font-bold text-[#828282]">選択プラン</h2>
-              <p className="mt-1 font-bold text-[#222]">{pkg.name}</p>
-              <p className="mt-1 text-sm text-[#828282]">{pkg.description}</p>
-              <div className="mt-3 flex gap-3 text-xs text-[#828282]">
-                <span>納期 {pkg.delivery_days}日</span>
-                <span>修正 {pkg.revisions}回</span>
-              </div>
-            </div>
-          )}
+          {/* 旧 選択プラン カードは料金プラン撤去 (00050) で削除 */}
 
           {/* Price breakdown */}
           <div className="rounded-2xl bg-white p-6 shadow-card">

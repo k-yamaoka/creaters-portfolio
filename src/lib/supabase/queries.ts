@@ -12,6 +12,8 @@ export type CreatorWithRelations = {
   years_of_experience: number;
   rating: number;
   review_count: number;
+  // 最低受注金額 (円)。NULL = 未設定 (応相談)
+  minimum_order_amount: number | null;
   created_at: string;
   updated_at: string;
   profiles: {
@@ -34,32 +36,8 @@ export type CreatorWithRelations = {
     tags: string[];
     is_featured?: boolean;
   }[];
-  service_packages: {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    delivery_days: number;
-    revisions: number;
-    features: string[];
-    is_active: boolean;
-    // ===== 2026-06-03 追加: 詳細設定 (00048 migration) =====
-    planning_support?: string | null;
-    revisions_unlimited?: boolean;
-    // 2026-06-03 分割 (00049): used_softwares + used_ai_tools
-    used_softwares?: string[];
-    used_ai_tools?: string[];
-    voiceover_type?: string | null;
-    bgm_policy?: string | null;
-    resolution?: string | null;
-    project_files_included?: boolean;
-    commercial_use?: string | null;
-    commercial_use_note?: string | null;
-    duration_target?: string | null;
-    rush_available?: boolean;
-    rush_delivery_days?: number | null;
-    rush_surcharge?: number | null;
-  }[];
+  // 旧 service_packages は 00050 migration で完全撤去。
+  // クリエイターの価格は minimum_order_amount に集約。
 };
 
 export async function getCreators(): Promise<CreatorWithRelations[]> {
@@ -77,11 +55,8 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
       ),
       portfolio_items (
         id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags
-      ),
-      service_packages (
-        id, name, description, price, delivery_days, revisions, features, is_active
       )
-    `
+      `
     )
     .order("rating", { ascending: false });
 
@@ -110,11 +85,8 @@ export async function getCreatorById(
       ),
       portfolio_items (
         id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags
-      ),
-      service_packages (
-        id, name, description, price, delivery_days, revisions, features, is_active
       )
-    `
+      `
     )
     .eq("id", id)
     .single();
@@ -145,6 +117,7 @@ export type CurrentUser = {
     years_of_experience: number;
     rating: number;
     review_count: number;
+    minimum_order_amount: number | null;
   };
   client_profile?: {
     id: string;
@@ -197,7 +170,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (profile.role === "creator") {
     const { data } = await supabase
       .from("creator_profiles")
-      .select("id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count")
+      .select(
+        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount"
+      )
       .eq("user_id", user.id)
       .single();
     creator_profile = data ?? undefined;

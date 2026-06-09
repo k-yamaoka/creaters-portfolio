@@ -14,10 +14,8 @@ function RequiredMark() {
 
 export function OrderForm({
   creatorId,
-  packageId,
 }: {
   creatorId: string;
-  packageId: string;
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +40,6 @@ export function OrderForm({
   return (
     <form action={handleSubmit} className="space-y-8">
       <input type="hidden" name="creator_id" value={creatorId} />
-      <input type="hidden" name="package_id" value={packageId} />
 
       {error && (
         <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">

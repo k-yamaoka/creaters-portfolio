@@ -113,7 +113,6 @@ export default async function CreatorDetailPage({
     .replace(/\/$/, "");
   const pageUrl = `${siteOrigin}/creators/${creator.id}`;
   const isVerified = creator.profiles.is_verified;
-  const activePackages = creator.service_packages.filter((p) => p.is_active);
 
   // ===== 類似クリエイター (同ジャンル or 強み重複の他クリエイター) =====
   const allCreators = await getCreators();
@@ -157,17 +156,9 @@ export default async function CreatorDetailPage({
     ? creator.portfolio_items.filter((p) => p.id !== mainWork.id)
     : creator.portfolio_items;
 
-  // 最安パッケージ自体を抽出 — 価格に加え「何が含まれるか」を
-  // Hero 直下に開示してミニマム発注のイメージを湧かせる。
-  const minPackage =
-    activePackages.length > 0
-      ? [...activePackages].sort((a, b) => a.price - b.price)[0]
-      : null;
-  const minPackagePrice = minPackage?.price ?? null;
-  const firstPackageId = activePackages[0]?.id;
-  const orderHref = firstPackageId
-    ? `/dashboard/orders/new?creator_id=${creator.id}&package_id=${firstPackageId}`
-    : `/dashboard/orders/new?creator_id=${creator.id}`;
+  // 最低受注金額 — 旧 service_packages から minimum_order_amount へ集約
+  const minPackagePrice = creator.minimum_order_amount ?? null;
+  const orderHref = `/dashboard/orders/new?creator_id=${creator.id}`;
 
   return (
     <LikeDeltaProvider>
@@ -326,100 +317,22 @@ export default async function CreatorDetailPage({
             </Link>
           </div>
 
-          {/* 最低対応金額の "中身" を Hero 直下に開示。
-              「ミニマムで何が頼めるか」を即理解させ、相談の心理ハードルを下げる。 */}
-          {minPackage && (
+          {/* 最低受注金額 — Hero 直下に大きく表示 */}
+          {minPackagePrice !== null && (
             <div className="mt-6 rounded-2xl border border-neon-pink/30 bg-neon-pink/[0.08] p-5 backdrop-blur-md shadow-[0_18px_40px_-15px_rgba(255,77,157,0.35)]">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[10px] font-black tracking-wider text-white">
-                  最低対応プラン
+                  最低受注金額
                 </span>
                 <span className="text-xl font-black text-neon-pink sm:text-2xl">
-                  ¥{minPackage.price.toLocaleString()}
+                  ¥{minPackagePrice.toLocaleString()}〜
                   <span className="ml-1 text-xs font-bold text-white/60">
-                    〜 から相談可
+                    から相談可
                   </span>
                 </span>
-                <span className="text-sm font-bold text-white">
-                  {minPackage.name}
-                </span>
               </div>
-
-              {minPackage.description && (
-                <p className="mt-3 whitespace-pre-line text-sm leading-[1.85] text-white/80">
-                  {minPackage.description}
-                </p>
-              )}
-
-              {/* 含まれる内容 (features) と納期/修正回数 */}
-              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr,auto] sm:items-start">
-                {minPackage.features.length > 0 && (
-                  <ul className="flex flex-wrap gap-1.5">
-                    {minPackage.features.map((f) => (
-                      <li
-                        key={f}
-                        className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/85"
-                      >
-                        <span className="text-neon-cyan">✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <div className="flex shrink-0 flex-wrap gap-2 text-[11px] font-bold text-white/75">
-                  <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-1">
-                    🕐 納期 {minPackage.delivery_days} 日
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-2.5 py-1">
-                    🔁 修正{" "}
-                    {minPackage.revisions_unlimited
-                      ? "無制限"
-                      : `${minPackage.revisions} 回`}
-                  </span>
-                </div>
-              </div>
-
-              {/* 使用ソフト と 生成 AI ツール — 別グループで表示 */}
-              {((minPackage.used_softwares?.length ?? 0) > 0 ||
-                (minPackage.used_ai_tools?.length ?? 0) > 0) && (
-                <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
-                  {minPackage.used_softwares &&
-                    minPackage.used_softwares.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-neon-cyan">
-                          使用ソフト
-                        </span>
-                        {minPackage.used_softwares.map((t) => (
-                          <span
-                            key={`sw-${t}`}
-                            className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  {minPackage.used_ai_tools &&
-                    minPackage.used_ai_tools.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-neon-pink-soft">
-                          生成 AI ツール
-                        </span>
-                        {minPackage.used_ai_tools.map((t) => (
-                          <span
-                            key={`ai-${t}`}
-                            className="rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-pink-soft"
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                </div>
-              )}
-
               <p className="mt-3 text-[11px] text-white/55">
-                ※ 仕様/尺/AB案数で見積もりは変動します。「依頼を相談」から具体条件をすり合わせできます。
+                ※ 仕様/尺/本数で見積もりは変動します。「依頼を相談」から具体条件をすり合わせできます。
               </p>
             </div>
           )}

@@ -9,11 +9,8 @@ type CreatorCardProps = {
 };
 
 export function CreatorCard({ creator }: CreatorCardProps) {
-  const activePackages = creator.service_packages.filter((p) => p.is_active);
-  const lowestPrice =
-    activePackages.length > 0
-      ? Math.min(...activePackages.map((p) => p.price))
-      : null;
+  // 旧 service_packages 撤去 (00050)。最低受注金額を参照。
+  const lowestPrice = creator.minimum_order_amount ?? null;
   const firstPortfolio = creator.portfolio_items[0];
   const displayName = creator.profiles.display_name;
   const isVerified = creator.profiles.is_verified;

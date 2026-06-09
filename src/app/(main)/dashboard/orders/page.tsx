@@ -24,8 +24,7 @@ export default async function OrdersPage() {
       client:client_profiles!orders_client_id_fkey (
         id, user_id,
         profiles!client_profiles_user_id_fkey ( display_name )
-      ),
-      package:service_packages ( name )
+      )
     `
     )
     .order("created_at", { ascending: false });
@@ -154,7 +153,7 @@ export default async function OrdersPage() {
               const partnerName = isCreator
                 ? clientProfiles?.display_name ?? "クライアント"
                 : creatorProfiles?.display_name ?? "クリエイター";
-              const packageName = (order.package as unknown as { name: string })?.name;
+              // package_id 列は 00050 で撤去済
 
               return (
                 <Link
@@ -164,22 +163,16 @@ export default async function OrdersPage() {
                     unread > 0 ? "ring-2 ring-neon-pink/40" : ""
                   }`}
                 >
+                  {/* 応募済み案件ページと同じ文字サイズ・太さに統一 */}
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-bold text-[#828282]">
-                          {partnerName}
-                        </span>
-                        {/* 案件タイトル: 1-2 段階アップ (xs → lg) */}
-                        <span
-                          className="group/title relative inline-flex max-w-[28ch] cursor-help items-center gap-1.5 truncate rounded-md border border-neon-purple/20 bg-neon-purple/10 px-2.5 py-1 text-lg font-bold text-neon-purple-deep"
+                      <div className="flex items-center gap-3">
+                        <h3
+                          className="truncate text-lg font-bold text-[#222] sm:text-xl"
                           title={`${status.label}: ${status.description}`}
                         >
-                          <svg className="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75z" />
-                          </svg>
-                          <span className="truncate">{order.title}</span>
-                        </span>
+                          {order.title}
+                        </h3>
                         <span
                           className={`shrink-0 rounded-pill px-2.5 py-0.5 text-xs font-bold ${status.color}`}
                         >
@@ -191,18 +184,15 @@ export default async function OrdersPage() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-[#828282]">
-                        {packageName && <span>{packageName}</span>}
-                        {packageName && <span className="text-[#E0E0E0]">|</span>}
+                      <p className="mt-1 text-sm text-[#828282]">{partnerName}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#828282]">
                         <span>{order.order_number}</span>
-                      </div>
-                      <div className="mt-2 text-sm text-[#828282]">
-                        最終更新: {formatDateTimeJP(lastAt)}
+                        <span className="text-[#E0E0E0]">|</span>
+                        <span>最終更新 {formatDateTimeJP(lastAt)}</span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      {/* 金額: sm → xl, 日付: 11px → sm */}
-                      <p className="text-xl font-black text-[#222]">
+                    <div className="shrink-0 text-right">
+                      <p className="text-lg font-bold text-neon-purple-deep">
                         {formatPrice(order.total_amount)}
                       </p>
                       <p className="mt-1 text-sm text-[#828282]">

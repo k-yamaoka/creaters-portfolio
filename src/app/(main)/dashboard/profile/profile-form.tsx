@@ -129,6 +129,34 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
             />
             <span className="ml-2 text-sm text-[#828282]">年</span>
           </div>
+
+          {/* 最低受注金額 — クリエイター一覧/詳細で「¥xx,xxx〜」として表示される */}
+          <div>
+            <label
+              htmlFor="minimum_order_amount"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              最低受注金額（円）
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[#828282]">¥</span>
+              <input
+                id="minimum_order_amount"
+                name="minimum_order_amount"
+                type="number"
+                min={0}
+                max={9999999}
+                step={1000}
+                defaultValue={cp?.minimum_order_amount ?? ""}
+                placeholder="30000"
+                className="w-48 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              />
+              <span className="text-sm text-[#828282]">〜</span>
+            </div>
+            <p className="mt-1.5 text-xs text-[#828282]">
+              ※ クリエイター一覧/詳細に「¥xx,xxx〜」として表示されます。未設定 (空欄) の場合は「応相談」になります。
+            </p>
+          </div>
         </div>
       </section>
 
