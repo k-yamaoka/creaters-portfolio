@@ -27,8 +27,10 @@ export default async function DashboardLayout({
     // ダッシュボード全体をライトテーマ化 (作業時の視認性優先)。
     // 背景: bg-gray-50、テキスト: text-gray-900。
     // 親 main は padding を持たないため、ここで全幅の背景 → 内側で中央寄せ。
+    // lg:px をヘッダー (lg:px-10) と揃えて、サイドバーがヘッダーロゴと
+    // 縦方向に同じ位置に並ぶように調整 (左右の余白バランス改善)。
     <div className="min-h-[calc(100vh-5rem)] bg-gray-50 text-gray-900">
-      <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
         <div className="flex gap-10">
           <div className="hidden md:block">
             <Sidebar role={role} />

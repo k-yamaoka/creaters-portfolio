@@ -139,13 +139,15 @@ export function JobForm() {
         <p className="mb-4 text-sm text-[#828282]">
           該当するジャンルを選択してください（複数選択可）
         </p>
+        {/* 全タイルを同じ高さで揃える: min-h で 1 行/2 行ラベルの差を吸収。
+            text は leading-snug でコンパクトに、長い項目でもボックス形状を統一。 */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {GENRES.map((genre) => {
             const isSelected = selectedGenres.includes(genre);
             return (
               <label
                 key={genre}
-                className={`flex cursor-pointer items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm transition-colors ${
+                className={`flex min-h-[3.75rem] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm leading-snug transition-colors ${
                   isSelected
                     ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
                     : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
@@ -188,7 +190,7 @@ export function JobForm() {
           <button
             type="button"
             onClick={() => setGenresOtherShow((v) => !v)}
-            className={`flex items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm transition-colors ${
+            className={`flex min-h-[3.75rem] items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm leading-snug transition-colors ${
               genresOtherShow
                 ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
                 : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
@@ -245,7 +247,7 @@ export function JobForm() {
           <RequiredMark />
         </h2>
         <p className="mb-4 text-sm text-[#828282]">
-          編集要件で書ききれない補足や、案件の背景・目的などを自由に記入してください。
+          制作要件で書ききれない補足や、案件の背景・目的などを自由に記入してください。
         </p>
         <textarea
           id="description"

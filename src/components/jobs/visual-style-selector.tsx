@@ -41,24 +41,23 @@ export function VisualStyleSelector() {
               onClick={() =>
                 setSelected((curr) => (curr === s.value ? null : s.value))
               }
-              className={`group relative aspect-[5/6] overflow-hidden rounded-2xl border-2 text-left transition-all duration-200 ${
+              className={`group relative aspect-[5/6] overflow-hidden rounded-2xl border-2 text-left transition-[transform,box-shadow] duration-200 ease-out will-change-transform ${
                 isActive
                   ? "scale-[1.03] border-neon-pink shadow-[0_18px_45px_-15px_rgba(255,77,157,0.6)]"
-                  : "border-transparent hover:scale-[1.02] hover:shadow-[0_12px_35px_-15px_rgba(0,0,0,0.35)]"
+                  : "border-transparent hover:scale-[1.05] hover:shadow-[0_18px_45px_-15px_rgba(0,0,0,0.4)]"
               }`}
             >
-              {/* AI 生成画像 — next/image で 自動最適化 */}
+              {/* AI 生成画像 — next/image で 自動最適化。
+                  画像側で group-hover scale を持たせると外側ボタンの scale と
+                  二重に transform が掛かりエッジが歪むため、画像側は静止させて
+                  外側のタイル全体だけを拡大するように統一する (バグ修正)。 */}
               <Image
                 src={s.image}
                 alt={s.label}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className="object-cover"
               />
-              {/* 右上: 雰囲気を補足する英ラベル */}
-              <span className="absolute right-2 top-2 z-10 rounded-pill bg-black/45 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-                {s.hint}
-              </span>
               {/* 下部: グラデーション + 日本語ラベル */}
               <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-2.5 pt-8">
                 <p className="truncate text-sm font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">

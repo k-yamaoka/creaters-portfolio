@@ -128,7 +128,7 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
 
   return (
     <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-      <h2 className="mb-2 text-lg font-bold text-[#222]">編集要件</h2>
+      <h2 className="mb-2 text-lg font-bold text-[#222]">制作要件</h2>
       <p className="mb-6 text-sm text-[#828282]">
         クリエイターが見積もり・対応判断に使う重要情報です。依頼後もメッセージ画面に常に表示されます。
       </p>
