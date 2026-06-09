@@ -50,13 +50,15 @@ export function VisualStyleSelector() {
               {/* AI 生成画像 — next/image で 自動最適化。
                   画像側で group-hover scale を持たせると外側ボタンの scale と
                   二重に transform が掛かりエッジが歪むため、画像側は静止させて
-                  外側のタイル全体だけを拡大するように統一する (バグ修正)。 */}
+                  外側のタイル全体だけを拡大するように統一する (バグ修正)。
+                  object-position: top で画像上端を固定し、5:6 タイル比でも
+                  キャラクターの頭/タイトル部分が切れないようにする。 */}
               <Image
                 src={s.image}
                 alt={s.label}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="object-cover"
+                className="object-cover object-top"
               />
               {/* 下部: グラデーション + 日本語ラベル */}
               <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-2.5 pt-8">

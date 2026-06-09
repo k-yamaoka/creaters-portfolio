@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { EditingRequirementsFields } from "@/components/jobs/editing-requirements-fields";
 import { VisualStyleSelector } from "@/components/jobs/visual-style-selector";
 import { DateFieldWithCalendar } from "@/components/jobs/date-field-with-calendar";
+import { JobDescriptionWithTemplate } from "@/components/jobs/job-description-with-template";
 
 function toNum(s: string): number | null {
   const n = Number(s);
@@ -139,15 +140,16 @@ export function JobForm() {
         <p className="mb-4 text-sm text-[#828282]">
           該当するジャンルを選択してください（複数選択可）
         </p>
-        {/* 全タイルを同じ高さで揃える: min-h で 1 行/2 行ラベルの差を吸収。
-            text は leading-snug でコンパクトに、長い項目でもボックス形状を統一。 */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {/* 全項目を 1 行 (whitespace-nowrap) で表示し、枠内の余白を圧縮。
+            長い項目 (マニュアル・操作説明動画…) でもタイル幅に収まるよう、
+            sm:grid-cols-2 lg:grid-cols-3 で 1 タイルの最小幅を確保する。 */}
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {GENRES.map((genre) => {
             const isSelected = selectedGenres.includes(genre);
             return (
               <label
                 key={genre}
-                className={`flex min-h-[3.75rem] cursor-pointer items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm leading-snug transition-colors ${
+                className={`flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border-2 px-3 py-2 text-sm transition-colors ${
                   isSelected
                     ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
                     : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
@@ -160,7 +162,7 @@ export function JobForm() {
                   className="sr-only"
                 />
                 <div
-                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 ${
                     isSelected
                       ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
                       : "border-[#BDBDBD]"
@@ -182,22 +184,22 @@ export function JobForm() {
                     </svg>
                   )}
                 </div>
-                <span className="font-medium">{genre}</span>
+                <span className="truncate font-medium">{genre}</span>
               </label>
             );
           })}
-          {/* 「その他」も他のジャンルタイルと同じ見た目・同じ高さに揃える */}
+          {/* 「その他」も同じ規格に揃える */}
           <button
             type="button"
             onClick={() => setGenresOtherShow((v) => !v)}
-            className={`flex min-h-[3.75rem] items-center gap-2.5 rounded-xl border-2 px-4 py-3 text-sm leading-snug transition-colors ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-lg border-2 px-3 py-2 text-sm transition-colors ${
               genresOtherShow
                 ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
                 : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
             }`}
           >
             <div
-              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${
+              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 ${
                 genresOtherShow
                   ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
                   : "border-[#BDBDBD]"
@@ -219,7 +221,7 @@ export function JobForm() {
                 </svg>
               )}
             </div>
-            <span className="font-medium">その他</span>
+            <span className="truncate font-medium">その他</span>
           </button>
         </div>
         {genresOtherShow && (
@@ -240,26 +242,8 @@ export function JobForm() {
         onValidityChange={handleValidityChange}
       />
 
-      {/* 案件詳細 (フリーテキスト) */}
-      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-2 flex items-center text-lg font-bold text-[#222]">
-          案件詳細
-          <RequiredMark />
-        </h2>
-        <p className="mb-4 text-sm text-[#828282]">
-          制作要件で書ききれない補足や、案件の背景・目的などを自由に記入してください。
-        </p>
-        <textarea
-          id="description"
-          name="description"
-          rows={10}
-          required
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-          placeholder={
-            "例:\n・動画の目的や配信先\n・ターゲット視聴者\n・希望するテイストや参考動画\n・素材の有無（撮影が必要か等）\n・その他の要件"
-          }
-        />
-      </section>
+      {/* 案件詳細 (テンプレート選択 + 自由編集) */}
+      <JobDescriptionWithTemplate />
 
       {/* 見積もり・スケジュール */}
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
