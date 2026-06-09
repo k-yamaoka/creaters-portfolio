@@ -10,6 +10,7 @@ import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
 import { TotalLikesBadge } from "@/components/creators/total-likes-badge";
+import { CreatorQrCard } from "@/components/creators/creator-qr-card";
 // SectionTabs はクリエイター詳細の上部からは撤去 (ユーザー判断: タブナビ不要)
 
 export default async function CreatorDetailPage({
@@ -103,6 +104,14 @@ export default async function CreatorDetailPage({
 
   const displayName = creator.profiles.display_name;
   const avatarUrl = creator.profiles.avatar_url;
+  // QR コード用の絶対 URL。NEXT_PUBLIC_SITE_URL を本番ホストに合わせて設定する想定。
+  // 未設定時は Vercel デフォルトをフォールバック。
+  const siteOrigin = (
+    process.env.NEXT_PUBLIC_SITE_URL || "https://creaters-portfolio.vercel.app"
+  )
+    .trim()
+    .replace(/\/$/, "");
+  const pageUrl = `${siteOrigin}/creators/${creator.id}`;
   const isVerified = creator.profiles.is_verified;
   const activePackages = creator.service_packages.filter((p) => p.is_active);
 
@@ -575,6 +584,12 @@ export default async function CreatorDetailPage({
 
               {/* AI 見積もりチャット */}
               <EstimateChatBot creatorId={creator.id} />
+
+              {/* このページの QR コード — 名刺・紹介資料に貼り付け可能 */}
+              <CreatorQrCard
+                url={pageUrl}
+                creatorName={displayName}
+              />
             </div>
           </div>
         </div>
