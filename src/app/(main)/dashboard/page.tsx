@@ -47,6 +47,8 @@ export default async function DashboardPage() {
         initialDisplayName={user.display_name}
         initialAvatarUrl={user.avatar_url ?? null}
         roleLabel={roleLabel + (isAdmin ? "  [ADMIN]" : "")}
+        isCreator={isCreator && hasCreatorProfile}
+        initialMinimumOrderAmount={user.creator_profile?.minimum_order_amount ?? null}
       />
 
       {/* Admin quick link */}

@@ -19,6 +19,10 @@ type Props = {
   initialAvatarUrl: string | null;
   /** ウェルカムバナーの右側に出すサブテキスト (例: "クリエイターアカウント") */
   roleLabel: string;
+  /** クリエイターのみ表示。null = 未設定 (応相談) */
+  initialMinimumOrderAmount?: number | null;
+  /** クリエイター入力欄を出すか (= viewer が creator のとき true) */
+  isCreator?: boolean;
 };
 
 /**
@@ -40,10 +44,19 @@ export function BasicInfoEditor({
   initialDisplayName,
   initialAvatarUrl,
   roleLabel,
+  initialMinimumOrderAmount = null,
+  isCreator = false,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialAvatarUrl);
+  // 最低受注金額: 編集中は string で持って空欄も扱う、確定後は number|null へ正規化
+  const [minAmountInput, setMinAmountInput] = useState<string>(
+    initialMinimumOrderAmount == null ? "" : String(initialMinimumOrderAmount)
+  );
+  const [minAmountSaved, setMinAmountSaved] = useState<number | null>(
+    initialMinimumOrderAmount ?? null
+  );
   // 編集中だけ持つ「ローカル選択ファイル」とそのプレビュー URL
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
@@ -60,6 +73,9 @@ export function BasicInfoEditor({
     setEditing(false);
     setError(null);
     setDisplayName(initialDisplayName);
+    setMinAmountInput(
+      minAmountSaved == null ? "" : String(minAmountSaved)
+    );
     setPendingFile(null);
     if (pendingPreview) URL.revokeObjectURL(pendingPreview);
     setPendingPreview(null);
@@ -120,7 +136,25 @@ export function BasicInfoEditor({
           nextAvatarUrl = `${data.publicUrl}?t=${Date.now()}`;
         }
 
-        // 2) profiles.update をサーバアクション経由で
+        // 2) 最低受注金額のローカル検証 (クリエイター時のみ)
+        let nextMinAmount: number | null = null;
+        if (isCreator) {
+          const raw = minAmountInput.trim();
+          if (raw === "") {
+            nextMinAmount = null;
+          } else {
+            const n = parseInt(raw, 10);
+            if (isNaN(n) || n < 0 || n > 9_999_999) {
+              setError(
+                "最低受注金額は 0 〜 9,999,999 の範囲で入力してください"
+              );
+              return;
+            }
+            nextMinAmount = n;
+          }
+        }
+
+        // 3) profiles.update + creator_profiles.update をサーバアクション経由で
         const fd = new FormData();
         fd.set("display_name", trimmed);
         if (nextAvatarUrl !== "__keep__") {
@@ -130,17 +164,24 @@ export function BasicInfoEditor({
         } else {
           fd.set("avatar_url", "__keep__");
         }
+        if (isCreator) {
+          fd.set(
+            "minimum_order_amount",
+            nextMinAmount == null ? "" : String(nextMinAmount)
+          );
+        }
         const res = await updateBasicInfo(fd);
         if (res?.error) {
           setError(res.error);
           return;
         }
 
-        // 3) ローカル状態を確定値に同期して閲覧モードに戻る
+        // 4) ローカル状態を確定値に同期して閲覧モードに戻る
         if (pendingPreview) URL.revokeObjectURL(pendingPreview);
         setPendingPreview(null);
         setPendingFile(null);
         if (nextAvatarUrl !== "__keep__") setAvatarUrl(nextAvatarUrl);
+        if (isCreator) setMinAmountSaved(nextMinAmount);
         setEditing(false);
       } catch (e) {
         setError(
@@ -224,26 +265,58 @@ export function BasicInfoEditor({
           )}
         </div>
 
-        {/* Name + role */}
+        {/* Name + role + 最低受注金額 (クリエイター時のみ) */}
         <div className="min-w-0 flex-1">
           {editing ? (
-            <div>
-              <label
-                htmlFor="basic_display_name"
-                className="mb-1 block text-xs font-medium text-gray-500"
-              >
-                表示名
-              </label>
-              <input
-                id="basic_display_name"
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={40}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base font-bold text-gray-900 outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink sm:max-w-sm"
-                placeholder="例: 山田 太郎"
-              />
-              <p className="mt-1 text-xs text-gray-500">{roleLabel}</p>
+            <div className="space-y-3">
+              <div>
+                <label
+                  htmlFor="basic_display_name"
+                  className="mb-1 block text-xs font-medium text-gray-500"
+                >
+                  表示名
+                </label>
+                <input
+                  id="basic_display_name"
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={40}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base font-bold text-gray-900 outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink sm:max-w-sm"
+                  placeholder="例: 山田 太郎"
+                />
+                <p className="mt-1 text-xs text-gray-500">{roleLabel}</p>
+              </div>
+
+              {isCreator && (
+                <div>
+                  <label
+                    htmlFor="basic_min_amount"
+                    className="mb-1 block text-xs font-medium text-gray-500"
+                  >
+                    最低受注金額（円）
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">¥</span>
+                    <input
+                      id="basic_min_amount"
+                      type="number"
+                      min={0}
+                      max={9999999}
+                      step={1000}
+                      value={minAmountInput}
+                      onChange={(e) => setMinAmountInput(e.target.value)}
+                      className="w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                      placeholder="30000"
+                    />
+                    <span className="text-sm text-gray-500">〜</span>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    空欄なら「応相談」表示。クリエイター一覧/詳細に
+                    「¥xx,xxx〜」として反映されます。
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
             <div>
@@ -251,6 +324,15 @@ export function BasicInfoEditor({
                 {displayName || "(表示名未設定)"}
               </h1>
               <p className="mt-1 text-sm text-gray-500">{roleLabel}</p>
+              {isCreator && (
+                <p className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-neon-pink/10 px-3 py-1 text-xs font-bold text-neon-pink-deep">
+                  <span aria-hidden>💴</span>
+                  最低受注金額:{" "}
+                  {minAmountSaved == null
+                    ? "応相談"
+                    : `¥${minAmountSaved.toLocaleString()}〜`}
+                </p>
+              )}
             </div>
           )}
         </div>

@@ -58,8 +58,44 @@ export async function updateBasicInfo(formData: FormData) {
     return { error: "基本情報の更新に失敗しました" };
   }
 
+  // ===== 最低受注金額 (クリエイターのみ) =====
+  // 値が送られてきた場合のみ creator_profiles.minimum_order_amount を更新する。
+  // 空文字は明示的に NULL (応相談) としてセット。
+  if (formData.has("minimum_order_amount")) {
+    const raw = String(formData.get("minimum_order_amount") ?? "").trim();
+    let parsed: number | null = null;
+    if (raw !== "") {
+      const n = parseInt(raw, 10);
+      if (isNaN(n) || n < 0 || n > 9_999_999) {
+        return {
+          error: "最低受注金額は 0 〜 9,999,999 の範囲で入力してください",
+        };
+      }
+      parsed = n;
+    }
+
+    const { data: existing } = await supabase
+      .from("creator_profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (existing) {
+      const { error: cpErr } = await supabase
+        .from("creator_profiles")
+        .update({ minimum_order_amount: parsed })
+        .eq("user_id", user.id);
+      if (cpErr) {
+        return { error: "最低受注金額の更新に失敗しました" };
+      }
+    }
+    // クリエイタープロフ未作成の場合は ここでは何もしない
+    // (プロフィール編集ページの updateProfile で初期作成される)
+  }
+
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/profile");
+  revalidatePath("/creators");
   return { ok: true as const };
 }
 
