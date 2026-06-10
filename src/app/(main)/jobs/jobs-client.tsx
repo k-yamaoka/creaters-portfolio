@@ -85,6 +85,22 @@ function daysUntil(date: string | null): number | null {
   return Math.ceil((t - Date.now()) / (1000 * 60 * 60 * 24));
 }
 
+/**
+ * 「実質的に募集中か」を判定する単一の真実。
+ * DB の status と 締切日 (deadline) のどちらかが「終了」を示していれば終了扱い。
+ *
+ * - status !== "open" (= closed / drafts etc.) → 終了
+ * - 締切日が過去 (remain < 0)               → 終了
+ * - 締切日 null (期限なし) で status="open"  → 募集中
+ * - 締切日が今日以降 で status="open"        → 募集中
+ */
+function isJobOpen(job: { status: string; deadline: string | null }): boolean {
+  if (job.status !== "open") return false;
+  const remain = daysUntil(job.deadline);
+  if (remain != null && remain < 0) return false;
+  return true;
+}
+
 export function JobsPageClient({
   jobs,
   viewerProfile,
@@ -119,7 +135,8 @@ export function JobsPageClient({
     let result = [...jobs];
 
     if (filters.statusFilter === "open") {
-      result = result.filter((j) => j.status === "open");
+      // status が "open" でも締切が過ぎていれば実質終了扱いで除外
+      result = result.filter((j) => isJobOpen(j));
     }
 
     if (filters.keyword) {
@@ -279,51 +296,7 @@ export function JobsPageClient({
           </label>
         </div>
 
-        {/* Budget range slider — 案件金額の上下限を絞り込み */}
-        <div className="rounded-lg border border-[#F2F2F2] bg-[#FAFAFA] p-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wider text-[#828282]">
-              案件金額の範囲
-            </p>
-            <p className="text-sm font-bold text-neon-purple-deep">
-              {formatPrice(budgetMin)}
-              <span className="mx-1 text-[#BDBDBD]">〜</span>
-              {budgetMax >= BUDGET_CEIL ? "上限なし" : formatPrice(budgetMax)}
-            </p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="text-[10px] text-[#828282]">下限</label>
-              <input
-                type="range"
-                min={BUDGET_FLOOR}
-                max={BUDGET_CEIL}
-                step={BUDGET_STEP}
-                value={budgetMin}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setBudgetMin(Math.min(v, budgetMax));
-                }}
-                className="block w-full accent-neon-pink"
-              />
-            </div>
-            <div>
-              <label className="text-[10px] text-[#828282]">上限</label>
-              <input
-                type="range"
-                min={BUDGET_FLOOR}
-                max={BUDGET_CEIL}
-                step={BUDGET_STEP}
-                value={budgetMax}
-                onChange={(e) => {
-                  const v = Number(e.target.value);
-                  setBudgetMax(Math.max(v, budgetMin));
-                }}
-                className="block w-full accent-neon-purple"
-              />
-            </div>
-          </div>
-        </div>
+        {/* 旧 ここにあった予算スライダーは左サイドバーに移動 (2026-06-10) */}
       </div>
 
       {/* 2-column layout */}
@@ -363,6 +336,50 @@ export function JobsPageClient({
                   })}
                 </div>
               )}
+            </div>
+
+            {/* 案件金額の範囲 (左サイドバーに統合) */}
+            <div className="rounded-2xl bg-white p-5 shadow-card">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
+                案件金額の範囲
+              </h3>
+              <p className="mt-2 text-sm font-bold text-neon-purple-deep">
+                {formatPrice(budgetMin)}
+                <span className="mx-1 text-[#BDBDBD]">〜</span>
+                {budgetMax >= BUDGET_CEIL ? "上限なし" : formatPrice(budgetMax)}
+              </p>
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="text-[10px] text-[#828282]">下限</label>
+                  <input
+                    type="range"
+                    min={BUDGET_FLOOR}
+                    max={BUDGET_CEIL}
+                    step={BUDGET_STEP}
+                    value={budgetMin}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setBudgetMin(Math.min(v, budgetMax));
+                    }}
+                    className="block w-full accent-neon-pink"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#828282]">上限</label>
+                  <input
+                    type="range"
+                    min={BUDGET_FLOOR}
+                    max={BUDGET_CEIL}
+                    step={BUDGET_STEP}
+                    value={budgetMax}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setBudgetMax(Math.max(v, budgetMin));
+                    }}
+                    className="block w-full accent-neon-purple"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="rounded-2xl bg-white p-5 shadow-card">
@@ -429,6 +446,52 @@ export function JobsPageClient({
                     })}
                   </div>
                 </div>
+
+                {/* 案件金額の範囲 (モバイル) */}
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
+                      案件金額の範囲
+                    </h3>
+                    <p className="text-sm font-bold text-neon-purple-deep">
+                      {formatPrice(budgetMin)}
+                      <span className="mx-1 text-[#BDBDBD]">〜</span>
+                      {budgetMax >= BUDGET_CEIL ? "上限なし" : formatPrice(budgetMax)}
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-[10px] text-[#828282]">下限</label>
+                      <input
+                        type="range"
+                        min={BUDGET_FLOOR}
+                        max={BUDGET_CEIL}
+                        step={BUDGET_STEP}
+                        value={budgetMin}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          setBudgetMin(Math.min(v, budgetMax));
+                        }}
+                        className="block w-full accent-neon-pink"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-[#828282]">上限</label>
+                      <input
+                        type="range"
+                        min={BUDGET_FLOOR}
+                        max={BUDGET_CEIL}
+                        step={BUDGET_STEP}
+                        value={budgetMax}
+                        onChange={(e) => {
+                          const v = Number(e.target.value);
+                          setBudgetMax(Math.max(v, budgetMin));
+                        }}
+                        className="block w-full accent-neon-purple"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
               <button
                 type="button"
@@ -457,11 +520,13 @@ export function JobsPageClient({
                 const timeLabel =
                   daysAgo === 0 ? "今日" : daysAgo === 1 ? "昨日" : `${daysAgo}日前`;
 
-                const isOpen = job.status === "open";
+                // 「実質的に募集中か」を 1 か所で判定。
+                // 締切が過ぎていれば DB の status に関わらず終了扱いで統一する
+                // (旧実装は status と 締切バッジが矛盾して "募集中なのに受付終了" 表示が起きていた)
+                const isOpen = isJobOpen(job);
                 const remain = daysUntil(job.deadline);
-                // 締切ハイライトの強度: <= 3 日 (緊急), <= 7 日 (注意), <= 14 日 (通常), それ以外
-                const deadlineUrgent = remain != null && remain >= 0 && remain <= 3;
-                const deadlineSoon = remain != null && remain >= 0 && remain <= 7;
+                const deadlineUrgent = isOpen && remain != null && remain >= 0 && remain <= 3;
+                const deadlineSoon = isOpen && remain != null && remain >= 0 && remain <= 7;
                 const deadlinePast = remain != null && remain < 0;
 
                 return (
