@@ -132,7 +132,6 @@ export function ApplicationList({
                 </div>
 
                 <div className="mt-1 flex flex-wrap gap-3 text-xs text-[#828282]">
-                  {creator.location && <span>{creator.location}</span>}
                   <span>経験{creator.years_of_experience}年</span>
                   <span>
                     評価 {creator.rating}（{creator.review_count}件）

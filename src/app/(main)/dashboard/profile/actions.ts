@@ -111,7 +111,8 @@ export async function updateProfile(formData: FormData) {
 
   const display_name = formData.get("display_name") as string;
   const bio = formData.get("bio") as string;
-  const location = formData.get("location") as string;
+  // 所在地は 2026-06-10 に項目ごと撤去。DB の location 列は後方互換のため
+  // 残置するが、新規保存では常に null で上書きする。
   const years_of_experience = parseInt(
     (formData.get("years_of_experience") as string) || "0"
   );
@@ -155,7 +156,8 @@ export async function updateProfile(formData: FormData) {
     // DB カラムは互換のため残し、新規入力では常に空配列で上書きする。
     ai_tools: [] as string[],
     genres,
-    location: location || null,
+    // 所在地は撤去。新規保存では常に null で上書き。
+    location: null as string | null,
     years_of_experience,
     minimum_order_amount,
   };

@@ -100,22 +100,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="location"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-            >
-              所在地
-            </label>
-            <input
-              id="location"
-              name="location"
-              type="text"
-              defaultValue={cp?.location ?? ""}
-              placeholder="例: 東京都"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-            />
-          </div>
+          {/* 所在地は 2026-06-10 に項目ごと撤去 (ユーザー判断) */}
 
           <div>
             <label

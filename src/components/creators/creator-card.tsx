@@ -88,8 +88,6 @@ export function CreatorCard({ creator }: CreatorCardProps) {
               {displayName}
             </h3>
             <div className="flex items-center gap-2 text-xs text-[#828282]">
-              {creator.location && <span>{creator.location}</span>}
-              <span className="text-[#E0E0E0]">|</span>
               <span>経験{creator.years_of_experience}年</span>
             </div>
           </div>
