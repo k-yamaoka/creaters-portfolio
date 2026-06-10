@@ -14,7 +14,7 @@ import { JOB_DESCRIPTION_TEMPLATES } from "./job-description-templates";
  */
 export function JobDescriptionWithTemplate() {
   const [content, setContent] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState<string>("blank");
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("custom");
 
   const applyTemplate = (value: string) => {
     const tmpl = JOB_DESCRIPTION_TEMPLATES.find((t) => t.value === value);
@@ -49,7 +49,7 @@ export function JobDescriptionWithTemplate() {
         <p className="mb-2 text-xs font-bold uppercase tracking-wider text-neon-purple-deep">
           テンプレート
         </p>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {JOB_DESCRIPTION_TEMPLATES.map((tmpl) => {
             const isActive = selectedTemplate === tmpl.value;
             return (

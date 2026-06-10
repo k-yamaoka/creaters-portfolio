@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import {
   EDIT_SOFTWARE_OPTIONS,
   EDIT_DELIVERY_FORMATS,
-  CLIENT_TYPES,
   JOB_ASPECT_RATIOS,
 } from "@/lib/constants";
 
@@ -80,8 +79,6 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
   const [deliveryFormatsOtherShow, setDeliveryFormatsOtherShow] = useState(false);
   const [deliveryFormatsOther, setDeliveryFormatsOther] = useState("");
 
-  const [clientTypeChoice, setClientTypeChoice] = useState<string>("");
-  const [clientTypeOther, setClientTypeOther] = useState("");
 
   const [countMin, setCountMin] = useState("");
   const [countMax, setCountMax] = useState("");
@@ -119,8 +116,6 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
     onCountChange?.(toNum(countMin), toNum(countMax));
   }, [countMin, countMax, onCountChange]);
 
-  const resolvedClientType =
-    clientTypeChoice === "other" ? clientTypeOther.trim() : clientTypeChoice;
 
   // 入力欄サイズ統一: 全てのテキスト/select 入力で共通クラスを使う
   const fieldInputClass =
@@ -531,62 +526,7 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
           )}
         </div>
 
-        {/* クライアント種別 */}
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-            クライアント種別（任意）
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {CLIENT_TYPES.map((t) => (
-              <label
-                key={t.value}
-                className={`flex cursor-pointer items-center gap-2 rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                  clientTypeChoice === t.value
-                    ? "border-primary-500 bg-primary-50 text-primary-600"
-                    : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="client_type_choice"
-                  value={t.value}
-                  checked={clientTypeChoice === t.value}
-                  onChange={() => setClientTypeChoice(t.value)}
-                  className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
-                />
-                {t.label}
-              </label>
-            ))}
-            <label
-              className={`flex cursor-pointer items-center gap-2 rounded-pill border px-4 py-1.5 text-sm font-medium transition-colors ${
-                clientTypeChoice === "other"
-                  ? "border-primary-500 bg-primary-50 text-primary-600"
-                  : "border-[#E0E0E0] text-[#4F4F4F] hover:border-primary-500"
-              }`}
-            >
-              <input
-                type="radio"
-                name="client_type_choice"
-                value="other"
-                checked={clientTypeChoice === "other"}
-                onChange={() => setClientTypeChoice("other")}
-                className="h-4 w-4 border-[#E0E0E0] text-primary-500 focus:ring-primary-500"
-              />
-              その他
-            </label>
-          </div>
-          {clientTypeChoice === "other" && (
-            <input
-              type="text"
-              value={clientTypeOther}
-              onChange={(e) => setClientTypeOther(e.target.value)}
-              className={`mt-2 ${fieldInputClass}`}
-              placeholder="自由入力（例: 教育機関、NPO法人 など）"
-              maxLength={60}
-            />
-          )}
-          <input type="hidden" name="client_type" value={resolvedClientType} />
-        </div>
+        {/* クライアント種別欄は 2026-06-10 に撤去 (ユーザー判断) */}
       </div>
     </section>
   );

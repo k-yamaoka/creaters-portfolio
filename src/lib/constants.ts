@@ -132,7 +132,6 @@ export const EDIT_SOFTWARE_OPTIONS = [
 export const EDIT_DELIVERY_FORMATS = [
   "MP4 1080p",
   "4K",
-  "ProRes",
 ] as const;
 
 // 案件のアスペクト比 (2026-06-03 追加)
