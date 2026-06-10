@@ -181,6 +181,15 @@ export async function updateProfile(formData: FormData) {
     }
   }
 
+  // ===== Read 側ページを即時無効化 =====
+  // 編集内容が /creators / /creators/[id] / /jobs などへすぐに反映されるように、
+  // 関連するすべての SSR キャッシュを明示的に取り消す。
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/creators", "layout");
+  revalidatePath("/portfolios");
+  revalidatePath("/");
+
   redirect("/dashboard");
 }
 
@@ -239,6 +248,14 @@ export async function updateClientProfile(formData: FormData) {
       return { error: "企業情報の作成に失敗しました" };
     }
   }
+
+  // 案件一覧 / 案件詳細 / 応募管理 ページが即時に新しい企業情報を反映するよう
+  // キャッシュを取り消す
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/jobs", "layout");
+  revalidatePath("/dashboard/applications");
+  revalidatePath("/dashboard/jobs", "layout");
 
   redirect("/dashboard");
 }
