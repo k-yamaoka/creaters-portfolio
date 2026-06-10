@@ -230,12 +230,6 @@ export default async function CreatorDetailPage({
                   {displayName}
                 </h1>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
-                  {creator.years_of_experience > 0 && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="text-neon-purple">◆</span>
-                      経験 {creator.years_of_experience} 年
-                    </span>
-                  )}
                   <span className="inline-flex items-center gap-1.5">
                     <span className="text-neon-pink">✦</span>
                     作品 {creator.portfolio_items.length} 件

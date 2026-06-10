@@ -100,26 +100,8 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
             />
           </div>
 
-          {/* 所在地は 2026-06-10 に項目ごと撤去 (ユーザー判断) */}
-
-          <div>
-            <label
-              htmlFor="years_of_experience"
-              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-            >
-              経験年数
-            </label>
-            <input
-              id="years_of_experience"
-              name="years_of_experience"
-              type="number"
-              min={0}
-              max={50}
-              defaultValue={cp?.years_of_experience ?? 0}
-              className="w-32 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
-            />
-            <span className="ml-2 text-sm text-[#828282]">年</span>
-          </div>
+          {/* 所在地は 2026-06-10 に項目ごと撤去 */}
+          {/* 経験年数も 2026-06-10 に項目ごと撤去 */}
 
           {/* 最低受注金額 — クリエイター一覧/詳細で「¥xx,xxx〜」として表示される */}
           <div>

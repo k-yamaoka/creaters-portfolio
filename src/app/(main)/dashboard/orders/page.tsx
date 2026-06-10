@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 import { formatPrice, formatDateJP, formatDateTimeJP } from "@/lib/utils";
 import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
+import { ListHideButton } from "@/components/dashboard/list-hide-button";
 
 export default async function OrdersPage() {
   const user = await getCurrentUser();
@@ -30,9 +31,14 @@ export default async function OrdersPage() {
     .order("created_at", { ascending: false });
 
   if (isCreator && user.creator_profile) {
-    query = query.eq("creator_id", user.creator_profile.id);
+    query = query
+      .eq("creator_id", user.creator_profile.id)
+      // 自分で削除した取引は除外
+      .is("archived_by_creator_at", null);
   } else if (user.client_profile) {
-    query = query.eq("client_id", user.client_profile.id);
+    query = query
+      .eq("client_id", user.client_profile.id)
+      .is("archived_by_client_at", null);
   }
 
   const { data: orders } = await query;
@@ -159,12 +165,19 @@ export default async function OrdersPage() {
                 <Link
                   key={order.id}
                   href={`/dashboard/orders/${order.id}`}
-                  className={`block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${
+                  className={`relative block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${
                     unread > 0 ? "ring-2 ring-neon-pink/40" : ""
                   }`}
                 >
+                  <div className="absolute right-3 top-3 z-10">
+                    <ListHideButton
+                      kind="order"
+                      id={order.id}
+                      itemTitle={order.title ?? "取引"}
+                    />
+                  </div>
                   {/* 応募済み案件ページと同じ文字サイズ・太さに統一 */}
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4 pr-8">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-3">
                         <h3
@@ -186,8 +199,7 @@ export default async function OrdersPage() {
                       </div>
                       <p className="mt-1 text-sm text-[#828282]">{partnerName}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#828282]">
-                        <span>{order.order_number}</span>
-                        <span className="text-[#E0E0E0]">|</span>
+                        {/* order_number はフロントに見せない (内部管理用) */}
                         <span>最終更新 {formatDateTimeJP(lastAt)}</span>
                       </div>
                     </div>

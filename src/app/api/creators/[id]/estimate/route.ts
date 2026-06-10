@@ -36,7 +36,6 @@ export async function POST(
 # このクリエイターの情報
 - 名前: ${creator.profiles.display_name}
 - 自己紹介: ${creator.bio || "(未記入)"}
-- 経験年数: ${creator.years_of_experience}年
 - 得意ジャンル: ${creator.genres.join(", ") || "(未記入)"}
 - 強み: ${creator.strengths.join(", ") || "(未記入)"}
 - 得意映像尺: ${creator.video_lengths.join(", ") || "(未記入)"}

@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatDateJP } from "@/lib/utils";
 import Link from "next/link";
+import { ListHideButton } from "@/components/dashboard/list-hide-button";
 
 const APP_STATUS: Record<string, { label: string; color: string }> = {
   pending: { label: "審査中", color: "bg-blue-100 text-blue-700" },
@@ -32,6 +33,8 @@ export default async function ApplicationsPage() {
     `
     )
     .eq("creator_id", user.creator_profile.id)
+    // 自分で「削除」した応募は archived_by_creator_at で除外
+    .is("archived_by_creator_at", null)
     .order("created_at", { ascending: false });
 
   return (
@@ -95,9 +98,17 @@ export default async function ApplicationsPage() {
                 <Link
                   key={app.id}
                   href={`/jobs/${job?.id}`}
-                  className="block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+                  className="relative block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
                 >
-                  <div className="flex items-start justify-between gap-4">
+                  {/* 自分の一覧から非表示にする (警告ポップアップ付き) */}
+                  <div className="absolute right-3 top-3 z-10">
+                    <ListHideButton
+                      kind="application"
+                      id={app.id}
+                      itemTitle={job?.title ?? "応募"}
+                    />
+                  </div>
+                  <div className="flex items-start justify-between gap-4 pr-8">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-3">
                         {/* 案件タイトルを 1-2 段階アップ (sm → lg/xl) */}

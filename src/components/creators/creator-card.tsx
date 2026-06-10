@@ -87,9 +87,7 @@ export function CreatorCard({ creator }: CreatorCardProps) {
             <h3 className="truncate text-sm font-bold text-[#222]">
               {displayName}
             </h3>
-            <div className="flex items-center gap-2 text-xs text-[#828282]">
-              <span>経験{creator.years_of_experience}年</span>
-            </div>
+            {/* 経験年数表示は 2026-06-10 に撤去 */}
           </div>
         </div>
 
