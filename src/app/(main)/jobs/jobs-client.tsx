@@ -42,7 +42,8 @@ const SORT_OPTIONS = [
 
 const BUDGET_FLOOR = 0;
 const BUDGET_CEIL = 5_000_000; // スライダーの最大値 (5M)
-const BUDGET_STEP = 50_000;
+// 旧 50,000 円刻み (100 段階) は荒すぎたので 10,000 円刻み (500 段階) に
+const BUDGET_STEP = 10_000;
 
 /**
  * "おすすめ" スコア。
