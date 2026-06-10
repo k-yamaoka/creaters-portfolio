@@ -1,6 +1,9 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
+
+// 案件詳細は応募ステータス・閲覧者依存で表示が変わるため動的レンダリング
+export const dynamic = "force-dynamic";
 import { formatPrice, formatDateJP } from "@/lib/utils";
 import Link from "next/link";
 import { ApplyButton } from "./apply-button";

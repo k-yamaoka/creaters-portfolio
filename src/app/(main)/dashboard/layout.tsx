@@ -3,6 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { Sidebar } from "@/components/dashboard/sidebar";
 
+// ダッシュボード配下は全て認証必須 + ユーザー固有の表示なので、
+// Vercel がページプリレンダリングしないよう force-dynamic。
+// (これがないと "PRERENDER" キャッシュにより最新コードが反映されない問題が起きる)
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

@@ -3,6 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { getCreatorById, getCreators } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+
+// プロフィール編集・いいね数などが即時反映されるよう動的レンダリング
+export const dynamic = "force-dynamic";
 import { ReviewList } from "@/components/reviews/review-list";
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";

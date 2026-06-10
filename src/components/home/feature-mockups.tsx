@@ -70,10 +70,10 @@ export function MockCreatorsList() {
     },
     {
       name: "佐藤 美和",
-      bio: "Veo 3 のシネマグレード表現が得意。ブランドムービー中心。",
+      bio: "Veo 3 のシネマグレード表現が得意。コーポレートVP中心。",
       price: "¥120,000〜",
       tag: "✦ こだわり高品質型",
-      genre: "ブランドムービー",
+      genre: "会社紹介・コーポレートVP",
       tier: "silver" as const,
     },
     {

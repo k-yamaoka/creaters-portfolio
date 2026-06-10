@@ -38,7 +38,7 @@ export function Footer() {
             <p className="mt-4 max-w-sm text-xs leading-[1.85] text-white/60">
               AIクリエイターと企業を、まっすぐつなぐ。
               <br />
-              Sora・Veo・Runway を使いこなす専門家に、SNS広告動画・ブランドムービーを依頼できる専門プラットフォーム。
+              Sora・Veo・Runway を使いこなす専門家に、SNS広告動画・プロダクト紹介・コーポレートVPを依頼できる専門プラットフォーム。
             </p>
           </div>
 

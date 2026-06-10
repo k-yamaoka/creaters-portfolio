@@ -79,7 +79,7 @@ export default function HowItWorksPage() {
             {
               step: "01",
               title: "プロフィール登録",
-              desc: "アカウントを作成し、自己紹介・使用ツール（Sora / Veo / Runway / Midjourney など）・得意ジャンルを設定。ポートフォリオと料金プランを掲載します。",
+              desc: "アカウントを作成し、自己紹介・使用ツール（Sora / Veo / Runway / Midjourney など）・得意ジャンル・最低受注金額を設定。ポートフォリオを掲載します。",
               color: "bg-neon-midnight-deep",
             },
             {

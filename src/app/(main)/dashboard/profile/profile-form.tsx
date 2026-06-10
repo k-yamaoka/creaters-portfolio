@@ -12,14 +12,20 @@ import type { CurrentUser } from "@/lib/supabase/queries";
 
 export function ProfileForm({ user }: { user: CurrentUser }) {
   const cp = user.creator_profile;
+  // ジャンル / 尺 / 強み は定数リスト変更で旧値が DB に残っているケースがある。
+  // 現在の定数に存在する値のみを初期選択にすることで、ユーザーが
+  // 「全部チェック → 保存」しても "見えない旧値" が残らないようにする (同期切れ対策)。
+  const genreAllowed = new Set<string>(GENRES);
+  const lengthAllowed = new Set<string>(VIDEO_LENGTHS);
+  const strengthAllowed = new Set<string>(STRENGTHS);
   const [selectedGenres, setSelectedGenres] = useState<string[]>(
-    cp?.genres ?? []
+    (cp?.genres ?? []).filter((g) => genreAllowed.has(g))
   );
   const [selectedLengths, setSelectedLengths] = useState<string[]>(
-    cp?.video_lengths ?? []
+    (cp?.video_lengths ?? []).filter((l) => lengthAllowed.has(l))
   );
   const [selectedStrengths, setSelectedStrengths] = useState<string[]>(
-    cp?.strengths ?? []
+    (cp?.strengths ?? []).filter((s) => strengthAllowed.has(s))
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
