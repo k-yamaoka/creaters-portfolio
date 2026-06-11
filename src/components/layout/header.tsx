@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import {
   markAllNotificationsAsRead,
@@ -158,8 +158,95 @@ export function Header({
     user?.email?.split("@")[0] ||
     "ユーザー";
 
+  // ===== ライトテーマ判定 (ダッシュボード配下のみ白基調) =====
+  const pathname = usePathname() ?? "";
+  const isLight = pathname.startsWith("/dashboard");
+
+  // 主要なクラス群をテーマ別に集約。ロジック (構造) は同じ、色だけ切替え。
+  const T = isLight
+    ? {
+        header:
+          "fixed left-0 right-0 top-0 z-50 border-b border-gray-200 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.04)]",
+        logoText: "font-display text-xl font-black tracking-tight text-gray-900",
+        logoSubtitle:
+          "mt-1 text-[9px] font-medium uppercase tracking-[0.22em] text-gray-400",
+        navLink:
+          "rounded-pill px-4 py-2 text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-neon-pink",
+        iconBtn:
+          "relative flex h-10 w-10 items-center justify-center rounded-pill text-gray-600 transition-colors hover:bg-gray-100 hover:text-neon-pink",
+        userMenuBtn:
+          "flex items-center gap-2 rounded-pill border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-900 transition-all hover:-translate-y-0.5 hover:border-neon-pink/60 hover:text-neon-pink",
+        dropdown:
+          "absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]",
+        dropdownSm:
+          "absolute right-0 top-full z-50 mt-3 w-52 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]",
+        dropdownHeader: "border-b border-gray-200 bg-gray-50 px-4 py-3",
+        dropdownHeaderText: "text-sm font-bold text-gray-900",
+        dropdownSubText: "truncate text-xs text-gray-500",
+        notifEmpty: "px-4 py-10 text-center text-sm text-gray-400",
+        notifItem:
+          "block border-b border-gray-100 px-4 py-3 transition-colors last:border-0 hover:bg-gray-50",
+        notifTitleUnread: "text-sm font-bold text-gray-900",
+        notifTitle: "text-sm text-gray-700",
+        notifBody: "mt-0.5 truncate text-xs text-gray-500",
+        notifMeta: "mt-1 text-[10px] text-gray-400",
+        menuItem:
+          "block px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-neon-pink",
+        logoutBtn:
+          "w-full border-t border-gray-200 px-4 py-2.5 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-50",
+        loginLink:
+          "rounded-pill px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-neon-pink",
+        mobileBtn:
+          "flex h-10 w-10 items-center justify-center rounded-pill border border-gray-300 text-gray-700 md:hidden",
+        mobileMenu:
+          "fixed inset-x-0 top-[80px] border-t border-gray-200 bg-white md:hidden",
+        mobileLink:
+          "flex items-center justify-between border-b border-gray-200 py-4 text-lg font-bold text-gray-900",
+        mobileMuted: "mb-2 text-sm text-gray-500",
+      }
+    : {
+        header:
+          "fixed left-0 right-0 top-0 z-50 border-b border-white/5 bg-neon-midnight-deep/85 backdrop-blur-xl",
+        logoText: "font-display text-xl font-black tracking-tight text-white",
+        logoSubtitle:
+          "mt-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/40",
+        navLink:
+          "rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink",
+        iconBtn:
+          "relative flex h-10 w-10 items-center justify-center rounded-pill text-white/80 transition-colors hover:bg-white/10 hover:text-neon-pink",
+        userMenuBtn:
+          "flex items-center gap-2 rounded-pill border border-white/15 bg-white/5 px-3 py-2 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:border-neon-pink/60 hover:text-neon-pink",
+        dropdown:
+          "absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-xl border border-white/10 bg-neon-midnight-deep shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
+        dropdownSm:
+          "absolute right-0 top-full z-50 mt-3 w-52 overflow-hidden rounded-xl border border-white/10 bg-neon-midnight-deep shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
+        dropdownHeader: "border-b border-white/10 bg-white/5 px-4 py-3",
+        dropdownHeaderText: "text-sm font-bold text-white",
+        dropdownSubText: "truncate text-xs text-white/60",
+        notifEmpty: "px-4 py-10 text-center text-sm text-white/50",
+        notifItem:
+          "block border-b border-white/5 px-4 py-3 transition-colors last:border-0 hover:bg-white/5",
+        notifTitleUnread: "text-sm font-bold text-white",
+        notifTitle: "text-sm text-white/70",
+        notifBody: "mt-0.5 truncate text-xs text-white/60",
+        notifMeta: "mt-1 text-[10px] text-white/40",
+        menuItem:
+          "block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink",
+        logoutBtn:
+          "w-full border-t border-white/10 px-4 py-2.5 text-left text-sm font-medium text-neon-pink transition-colors hover:bg-neon-pink/10",
+        loginLink:
+          "rounded-pill px-4 py-2 text-sm font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink",
+        mobileBtn:
+          "flex h-10 w-10 items-center justify-center rounded-pill border border-white/15 text-white md:hidden",
+        mobileMenu:
+          "fixed inset-x-0 top-[80px] border-t border-white/5 bg-neon-midnight-deep md:hidden",
+        mobileLink:
+          "flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white",
+        mobileMuted: "mb-2 text-sm text-white/60",
+      };
+
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/5 bg-neon-midnight-deep/85 backdrop-blur-xl">
+    <header className={T.header}>
       <div className="mx-auto flex h-20 max-w-container items-center justify-between px-6 lg:px-10">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-10">
@@ -172,10 +259,10 @@ export function Header({
               <NeonStar size={32} />
             </span>
             <span className="flex flex-col leading-none">
-              <span className="font-display text-xl font-black tracking-tight text-white">
+              <span className={T.logoText}>
                 AI<span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">LIER</span>
               </span>
-              <span className="mt-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/40">
+              <span className={T.logoSubtitle}>
                 AI creators × business
               </span>
             </span>
@@ -185,7 +272,7 @@ export function Header({
             {showCreatorsLink && (
               <Link
                 href="/creators"
-                className="rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                className={T.navLink}
               >
                 {creatorsLinkLabel}
               </Link>
@@ -193,7 +280,7 @@ export function Header({
             {showCreatorsLink && (
               <Link
                 href="/portfolios"
-                className="rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                className={T.navLink}
               >
                 ポートフォリオ
               </Link>
@@ -201,7 +288,7 @@ export function Header({
             {showJobsLink && (
               <Link
                 href="/jobs"
-                className="rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                className={T.navLink}
               >
                 案件を探す
               </Link>
@@ -209,14 +296,14 @@ export function Header({
             {user && (
               <Link
                 href="/dashboard"
-                className="rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                className={T.navLink}
               >
                 マイページ
               </Link>
             )}
             <Link
               href="/how-it-works"
-              className="rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink"
+              className={T.navLink}
             >
               使い方
             </Link>
@@ -239,7 +326,7 @@ export function Header({
               {/* Message icon */}
               <Link
                 href="/dashboard/messages"
-                className="relative flex h-10 w-10 items-center justify-center rounded-pill text-white/80 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                className={T.iconBtn}
                 aria-label="メッセージ"
               >
                 <svg
@@ -266,7 +353,7 @@ export function Header({
                 <button
                   type="button"
                   onClick={handleNotifToggle}
-                  className="relative flex h-10 w-10 items-center justify-center rounded-pill text-white/80 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                  className={T.iconBtn}
                   aria-label="通知"
                 >
                   <svg
@@ -294,13 +381,13 @@ export function Header({
                       className="fixed inset-0 z-40"
                       onClick={() => setNotifOpen(false)}
                     />
-                    <div className="absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-xl border border-white/10 bg-neon-midnight-deep shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-                      <div className="border-b border-white/10 bg-white/5 px-4 py-3">
-                        <p className="text-sm font-bold text-white">通知</p>
+                    <div className={T.dropdown}>
+                      <div className={T.dropdownHeader}>
+                        <p className={T.dropdownHeaderText}>通知</p>
                       </div>
                       <div className="max-h-80 overflow-y-auto">
                         {visibleNotifications.length === 0 ? (
-                          <div className="px-4 py-10 text-center text-sm text-white/50">
+                          <div className={T.notifEmpty}>
                             通知はありません
                           </div>
                         ) : (
@@ -319,25 +406,23 @@ export function Header({
                                   router.refresh();
                                 });
                               }}
-                              className={`block border-b border-white/5 px-4 py-3 transition-colors last:border-0 hover:bg-white/5 ${
+                              className={`${T.notifItem} ${
                                 !n.is_read ? "bg-neon-pink/10" : ""
                               }`}
                             >
                               <p
-                                className={`text-sm ${
-                                  !n.is_read
-                                    ? "font-bold text-white"
-                                    : "text-white/70"
-                                }`}
+                                className={
+                                  !n.is_read ? T.notifTitleUnread : T.notifTitle
+                                }
                               >
                                 {n.title}
                               </p>
                               {n.body && (
-                                <p className="mt-0.5 truncate text-xs text-white/60">
+                                <p className={T.notifBody}>
                                   {n.body}
                                 </p>
                               )}
-                              <p className="mt-1 text-[10px] text-white/40">
+                              <p className={T.notifMeta}>
                                 {new Date(n.created_at).toLocaleDateString(
                                   "ja-JP",
                                   {
@@ -364,7 +449,7 @@ export function Header({
                     setUserMenuOpen(!userMenuOpen);
                     setNotifOpen(false);
                   }}
-                  className="flex items-center gap-2 rounded-pill border border-white/15 bg-white/5 px-3 py-2 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:border-neon-pink/60 hover:text-neon-pink"
+                  className={T.userMenuBtn}
                 >
                   <div className="flex h-6 w-6 items-center justify-center rounded-pill bg-gradient-to-br from-neon-pink to-neon-purple font-bold text-xs text-white">
                     {displayName.charAt(0).toUpperCase()}
@@ -393,29 +478,29 @@ export function Header({
                       className="fixed inset-0 z-40"
                       onClick={() => setUserMenuOpen(false)}
                     />
-                    <div className="absolute right-0 top-full z-50 mt-3 w-52 overflow-hidden rounded-xl border border-white/10 bg-neon-midnight-deep shadow-[0_8px_30px_rgba(0,0,0,0.5)]">
-                      <div className="border-b border-white/10 bg-white/5 px-4 py-3">
-                        <p className="truncate text-xs text-white/60">
+                    <div className={T.dropdownSm}>
+                      <div className={T.dropdownHeader}>
+                        <p className={T.dropdownSubText}>
                           {user.email}
                         </p>
                       </div>
                       <Link
                         href="/dashboard"
-                        className="block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink"
+                        className={T.menuItem}
                         onClick={() => setUserMenuOpen(false)}
                       >
                         ダッシュボード
                       </Link>
                       <Link
                         href="/dashboard/likes"
-                        className="block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink"
+                        className={T.menuItem}
                         onClick={() => setUserMenuOpen(false)}
                       >
                         ❤️ いいねした動画
                       </Link>
                       <Link
                         href="/settings"
-                        className="block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink"
+                        className={T.menuItem}
                         onClick={() => setUserMenuOpen(false)}
                       >
                         設定
@@ -423,7 +508,7 @@ export function Header({
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="w-full border-t border-white/10 px-4 py-2.5 text-left text-sm font-medium text-neon-pink transition-colors hover:bg-neon-pink/10"
+                        className={T.logoutBtn}
                       >
                         ログアウト
                       </button>
@@ -436,7 +521,7 @@ export function Header({
             <>
               <Link
                 href="/login"
-                className="rounded-pill px-4 py-2 text-sm font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink"
+                className={T.loginLink}
               >
                 ログイン
               </Link>
@@ -454,7 +539,7 @@ export function Header({
         {/* Mobile menu button */}
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-pill border border-white/15 text-white md:hidden"
+          className={T.mobileBtn}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="メニュー"
         >
@@ -484,12 +569,12 @@ export function Header({
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-x-0 top-[80px] border-t border-white/5 bg-neon-midnight-deep md:hidden">
+        <div className={T.mobileMenu}>
           <div className="space-y-0 px-6 py-6">
             {showCreatorsLink && (
               <Link
                 href="/creators"
-                className="flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white"
+                className={T.mobileLink}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {creatorsLinkLabel}
@@ -499,7 +584,7 @@ export function Header({
             {showCreatorsLink && (
               <Link
                 href="/portfolios"
-                className="flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white"
+                className={T.mobileLink}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 ポートフォリオ
@@ -509,7 +594,7 @@ export function Header({
             {showJobsLink && (
               <Link
                 href="/jobs"
-                className="flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white"
+                className={T.mobileLink}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 案件を探す
@@ -529,7 +614,7 @@ export function Header({
             {user && (
               <Link
                 href="/dashboard"
-                className="flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white"
+                className={T.mobileLink}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 マイページ
@@ -538,7 +623,7 @@ export function Header({
             )}
             <Link
               href="/how-it-works"
-              className="flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white"
+              className={T.mobileLink}
               onClick={() => setMobileMenuOpen(false)}
             >
               使い方
@@ -547,7 +632,7 @@ export function Header({
             <div className="mt-6 flex flex-col gap-3 pt-2">
               {user ? (
                 <>
-                  <div className="mb-2 text-sm text-white/60">
+                  <div className={T.mobileMuted}>
                     {displayName} でログイン中
                   </div>
                   <Link
