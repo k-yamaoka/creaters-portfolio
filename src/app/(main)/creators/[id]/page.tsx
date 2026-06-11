@@ -171,12 +171,67 @@ export default async function CreatorDetailPage({
   const minPackagePrice = creator.minimum_order_amount ?? null;
   const orderHref = `/dashboard/orders/new?creator_id=${creator.id}`;
 
+  // ===== 00054 で追加した拡張フィールド =====
+  const coverImageUrl = creator.cover_image_url ?? null;
+  const availabilityStatus = creator.availability_status ?? null;
+  const typicalFirstDraftDays = creator.typical_first_draft_days ?? null;
+  const socialLinks = creator.social_links ?? {};
+  // 稼働状況のバッジ表記
+  const AVAIL_BADGE: Record<string, { label: string; cls: string }> = {
+    accepting: {
+      label: "案件受付中",
+      cls: "bg-green-500/20 text-green-300 border-green-400/40",
+    },
+    consultation_only: {
+      label: "要相談",
+      cls: "bg-yellow-500/20 text-yellow-300 border-yellow-400/40",
+    },
+    busy: {
+      label: "繁忙",
+      cls: "bg-orange-500/20 text-orange-300 border-orange-400/40",
+    },
+    paused: {
+      label: "停止中",
+      cls: "bg-gray-500/20 text-gray-300 border-gray-400/40",
+    },
+  };
+  const availBadge = availabilityStatus
+    ? AVAIL_BADGE[availabilityStatus]
+    : undefined;
+
+  // SNS リンクの表示順 + ラベル
+  const SOCIAL_DISPLAY: Array<{ key: string; label: string }> = [
+    { key: "website", label: "Web" },
+    { key: "youtube", label: "YouTube" },
+    { key: "x", label: "X" },
+    { key: "instagram", label: "Instagram" },
+    { key: "tiktok", label: "TikTok" },
+  ];
+  const socialEntries = SOCIAL_DISPLAY.filter(
+    (s) => !!socialLinks[s.key]
+  ).map((s) => ({ key: s.key, label: s.label, url: socialLinks[s.key] }));
+
   return (
     <LikeDeltaProvider>
       {/* =================================================
           HERO BAND
           ================================================= */}
       <section className="relative overflow-hidden bg-neon-midnight-deep py-16 text-white">
+        {/* カバー画像 (任意) — 設定時は背景に敷いて 0.35 でオーバーレイ */}
+        {coverImageUrl && (
+          <>
+            <Image
+              src={coverImageUrl}
+              alt=""
+              fill
+              priority
+              sizes="100vw"
+              className="absolute inset-0 object-cover opacity-35"
+              unoptimized
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-neon-midnight-deep/40 via-neon-midnight-deep/55 to-neon-midnight-deep" />
+          </>
+        )}
         <div
           className="absolute inset-0 opacity-25"
           style={{
@@ -227,13 +282,24 @@ export default async function CreatorDetailPage({
               </div>
 
               <div className="min-w-0 flex-1">
-                {isVerified && (
-                  <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {isVerified && (
                     <span className="rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-cyan">
                       認証済み
                     </span>
-                  </div>
-                )}
+                  )}
+                  {availBadge && (
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-pill border px-2.5 py-0.5 text-[10px] font-black ${availBadge.cls}`}
+                    >
+                      <span
+                        aria-hidden
+                        className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current"
+                      />
+                      {availBadge.label}
+                    </span>
+                  )}
+                </div>
                 <h1 className="mt-3 text-3xl font-black sm:text-[2.5rem]">
                   {displayName}
                 </h1>
@@ -269,7 +335,47 @@ export default async function CreatorDetailPage({
                       過去90日 {receivedCount}件の問い合わせ
                     </span>
                   )}
+                  {typicalFirstDraftDays != null && (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-neon-purple/30 bg-neon-purple/10 px-3 py-1 text-[11px] font-bold text-neon-purple-deep"
+                      title="初稿提出までの目安日数 (クリエイター自己申告)"
+                    >
+                      <svg
+                        aria-hidden
+                        className="h-3 w-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                        />
+                      </svg>
+                      初稿目安 {typicalFirstDraftDays}日
+                    </span>
+                  )}
                 </div>
+
+                {/* SNS / 外部リンク (未入力は表示しない) */}
+                {socialEntries.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {socialEntries.map((s) => (
+                      <a
+                        key={s.key}
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/80 transition-colors hover:border-neon-pink hover:text-neon-pink"
+                      >
+                        {s.label}
+                        <span aria-hidden>↗</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -424,6 +530,29 @@ export default async function CreatorDetailPage({
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* 使用 AI ツール — マッチング指標 (00054 で UI 復活) */}
+            {creator.ai_tools.length > 0 && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(255,77,157,0.18)] sm:p-8">
+                <h2 className="text-lg font-black text-white">
+                  <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle shadow-[0_0_8px_rgba(255,77,157,0.7)]" />
+                  使用 AI ツール
+                </h2>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {creator.ai_tools.map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-pill border border-neon-pink/40 bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-xs font-bold text-white/90"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-3 text-[11px] text-white/50">
+                  クリエイター自己申告。マッチング検索の対象になります。
+                </p>
               </div>
             )}
 

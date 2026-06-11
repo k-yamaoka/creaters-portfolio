@@ -87,7 +87,31 @@ export function CreatorCard({ creator }: CreatorCardProps) {
             <h3 className="truncate text-sm font-bold text-[#222]">
               {displayName}
             </h3>
-            {/* 経験年数表示は 2026-06-10 に撤去 */}
+            {creator.availability_status && (
+              <span
+                className={`mt-0.5 inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-[10px] font-bold ${
+                  creator.availability_status === "accepting"
+                    ? "bg-green-100 text-green-700"
+                    : creator.availability_status === "consultation_only"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : creator.availability_status === "busy"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-gray-100 text-gray-600"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className="inline-block h-1.5 w-1.5 rounded-full bg-current"
+                />
+                {creator.availability_status === "accepting"
+                  ? "案件受付中"
+                  : creator.availability_status === "consultation_only"
+                    ? "要相談"
+                    : creator.availability_status === "busy"
+                      ? "繁忙"
+                      : "停止中"}
+              </span>
+            )}
           </div>
         </div>
 

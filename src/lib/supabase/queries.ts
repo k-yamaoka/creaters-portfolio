@@ -14,6 +14,12 @@ export type CreatorWithRelations = {
   review_count: number;
   // 最低受注金額 (円)。NULL = 未設定 (応相談)
   minimum_order_amount: number | null;
+  // 00053-00054 で追加 — 検索 / マッチング向け
+  profile_views?: number;
+  cover_image_url: string | null;
+  availability_status: string | null;
+  typical_first_draft_days: number | null;
+  social_links: Record<string, string>;
   created_at: string;
   updated_at: string;
   profiles: {
