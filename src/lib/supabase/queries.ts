@@ -119,6 +119,10 @@ export type CurrentUser = {
     review_count: number;
     minimum_order_amount: number | null;
     profile_views: number;
+    cover_image_url: string | null;
+    availability_status: string | null;
+    typical_first_draft_days: number | null;
+    social_links: Record<string, string>;
   };
   client_profile?: {
     id: string;
@@ -172,7 +176,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     const { data } = await supabase
       .from("creator_profiles")
       .select(
-        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views"
+        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views, cover_image_url, availability_status, typical_first_draft_days, social_links"
       )
       .eq("user_id", user.id)
       .single();

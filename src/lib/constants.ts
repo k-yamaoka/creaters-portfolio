@@ -82,6 +82,23 @@ export const STRENGTHS = [
 ] as const;
 export const MAX_STRENGTHS = 2;
 
+// 稼働状況 (creator_profiles.availability_status)
+export const AVAILABILITY_STATUSES = [
+  { value: "accepting", label: "案件受付中", color: "text-green-600 bg-green-100" },
+  { value: "consultation_only", label: "要相談", color: "text-yellow-700 bg-yellow-100" },
+  { value: "busy", label: "繁忙", color: "text-orange-700 bg-orange-100" },
+  { value: "paused", label: "停止中", color: "text-gray-600 bg-gray-100" },
+] as const;
+
+// SNS / 外部リンク (キー = DB social_links のキー)
+export const SOCIAL_LINK_DEFS = [
+  { key: "website", label: "ウェブサイト", placeholder: "https://example.com" },
+  { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/@..." },
+  { key: "x", label: "X (旧 Twitter)", placeholder: "https://x.com/..." },
+  { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/..." },
+  { key: "tiktok", label: "TikTok", placeholder: "https://tiktok.com/@..." },
+] as const;
+
 // ポートフォリオ検索用フォーマット(アスペクト比) - 4項目
 export const PORTFOLIO_FORMATS = [
   { value: "all", label: "全て" },

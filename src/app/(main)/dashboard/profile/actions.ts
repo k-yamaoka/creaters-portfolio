@@ -127,6 +127,34 @@ export async function updateProfile(formData: FormData) {
     return { error: "強みは最大2つまで選択できます" };
   }
   const strengths = strengths_raw.slice(0, 2);
+  // 使用 AI ツール (Sora, Runway 等) — マッチング向上のため再導入
+  const ai_tools = formData.getAll("ai_tools") as string[];
+  // 稼働状況
+  const availRaw = (formData.get("availability_status") as string) || "";
+  const allowedAvail = new Set([
+    "accepting",
+    "consultation_only",
+    "busy",
+    "paused",
+  ]);
+  const availability_status = allowedAvail.has(availRaw) ? availRaw : null;
+  // 制作期間目安 (初稿)
+  const draftRaw = (formData.get("typical_first_draft_days") as string) || "";
+  const draftNum = parseInt(draftRaw);
+  const typical_first_draft_days =
+    draftRaw === "" || isNaN(draftNum) || draftNum < 1 || draftNum > 90
+      ? null
+      : draftNum;
+  // SNS / 外部リンク — 各キーごとに input を読み、URL を簡易バリデーション
+  const SOCIAL_KEYS = ["website", "youtube", "x", "instagram", "tiktok"];
+  const social_links: Record<string, string> = {};
+  for (const k of SOCIAL_KEYS) {
+    const v = ((formData.get(`social_${k}`) as string) || "").trim();
+    if (!v) continue;
+    // http(s):// で始まる URL のみ受け付ける (誤入力ガード)
+    if (!/^https?:\/\//i.test(v)) continue;
+    social_links[k] = v;
+  }
 
   // Update profile (display_name)
   const { error: profileError } = await supabase
@@ -149,14 +177,16 @@ export async function updateProfile(formData: FormData) {
     bio,
     video_lengths,
     strengths,
-    // ai_tools は UI から廃止 (顧客にとって不要 + 流動性が高い)。
-    // DB カラムは互換のため残し、新規入力では常に空配列で上書きする。
-    ai_tools: [] as string[],
+    // 使用 AI ツール — マッチング/検索のために再導入 (2026-06-11)
+    ai_tools,
     genres,
     // 所在地・経験年数は撤去。新規保存では常に null/0 で上書き。
     location: null as string | null,
     years_of_experience: 0,
     minimum_order_amount,
+    availability_status,
+    typical_first_draft_days,
+    social_links,
   };
 
   if (existing) {
@@ -188,6 +218,39 @@ export async function updateProfile(formData: FormData) {
   revalidatePath("/");
 
   redirect("/dashboard");
+}
+
+/**
+ * カバー画像 URL を保存/解除する。
+ * - クライアント側 (CoverImageEditor) で Storage アップロード済の publicUrl を受け取る
+ * - null を渡すとカラムを null にして「カバー画像なし」にする
+ * - URL は avatars/ バケット由来のみ許可 (任意の外部 URL を弾く)
+ */
+export async function updateCoverImage(url: string | null) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "ログインが必要です" };
+
+  if (url != null) {
+    // 雑な URL 検証: Supabase Storage avatars バケットの publicURL のみ受け付ける
+    if (!/\/storage\/v1\/object\/public\/avatars\//.test(url)) {
+      return { error: "許可されていない画像 URL です" };
+    }
+  }
+
+  const { error } = await supabase
+    .from("creator_profiles")
+    .update({ cover_image_url: url })
+    .eq("user_id", user.id);
+  if (error) {
+    return { error: "カバー画像の更新に失敗しました" };
+  }
+
+  revalidatePath("/dashboard/profile");
+  revalidatePath("/creators", "layout");
+  return { ok: true };
 }
 
 export async function updateClientProfile(formData: FormData) {

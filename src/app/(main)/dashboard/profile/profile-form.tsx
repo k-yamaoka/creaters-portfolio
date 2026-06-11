@@ -7,6 +7,10 @@ import {
   VIDEO_LENGTHS,
   STRENGTHS,
   MAX_STRENGTHS,
+  AI_TOOLS,
+  AI_TOOL_CATEGORIES,
+  AVAILABILITY_STATUSES,
+  SOCIAL_LINK_DEFS,
 } from "@/lib/constants";
 import type { CurrentUser } from "@/lib/supabase/queries";
 
@@ -27,8 +31,18 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
   const [selectedStrengths, setSelectedStrengths] = useState<string[]>(
     (cp?.strengths ?? []).filter((s) => strengthAllowed.has(s))
   );
+  // 使用 AI ツール — マスタリストにあるものだけを初期選択 (旧値の混入防止)
+  const aiToolAllowed = new Set(AI_TOOLS.map((t) => t.name));
+  const [selectedAiTools, setSelectedAiTools] = useState<string[]>(
+    (cp?.ai_tools ?? []).filter((t) => aiToolAllowed.has(t))
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleAiTool = (name: string) =>
+    setSelectedAiTools((prev) =>
+      prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]
+    );
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) =>
@@ -64,6 +78,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
     selectedStrengths
       .slice(0, MAX_STRENGTHS)
       .forEach((s) => formData.append("strengths", s));
+    selectedAiTools.forEach((t) => formData.append("ai_tools", t));
     const result = await updateProfile(formData);
     if (result?.error) {
       setError(result.error);
@@ -226,6 +241,145 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
             ✓ {MAX_STRENGTHS}つ選択済み。変更する場合はチェック済みを外してください。
           </p>
         )}
+      </section>
+
+      {/* 使用 AI ツール — カテゴリ別グルーピング、複数選択可 */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <h2 className="mb-2 text-lg font-bold text-[#222]">使用 AI ツール</h2>
+        <p className="mb-4 text-sm text-[#828282]">
+          使いこなしている AI ツールを選択してください (複数選択可)。
+          企業はここで検索・フィルタリングを行います。
+        </p>
+        <div className="space-y-4">
+          {AI_TOOL_CATEGORIES.map((cat) => {
+            const tools = AI_TOOLS.filter((t) => t.category === cat);
+            if (tools.length === 0) return null;
+            return (
+              <div key={cat}>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[#828282]">
+                  {cat}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {tools.map((t) => {
+                    const active = selectedAiTools.includes(t.name);
+                    return (
+                      <button
+                        key={t.name}
+                        type="button"
+                        onClick={() => toggleAiTool(t.name)}
+                        className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          active
+                            ? "border-neon-purple bg-gradient-to-r from-neon-purple to-neon-pink text-white"
+                            : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-purple"
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className="mt-3 text-xs text-[#828282]">
+          選択中: <span className="font-bold text-neon-purple-deep">{selectedAiTools.length}</span> 件
+        </p>
+      </section>
+
+      {/* 稼働状況 + 制作期間目安 */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <h2 className="mb-2 text-lg font-bold text-[#222]">稼働状況 / 納期目安</h2>
+        <p className="mb-4 text-sm text-[#828282]">
+          企業が依頼可否を判断する重要な情報です。最新の状況に合わせて更新してください。
+        </p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+              現在の稼働状況
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {AVAILABILITY_STATUSES.map((s) => (
+                <label
+                  key={s.value}
+                  className="cursor-pointer"
+                  htmlFor={`avail_${s.value}`}
+                >
+                  <input
+                    id={`avail_${s.value}`}
+                    type="radio"
+                    name="availability_status"
+                    value={s.value}
+                    defaultChecked={cp?.availability_status === s.value}
+                    className="peer sr-only"
+                  />
+                  <span
+                    className={`inline-flex items-center rounded-pill border-2 px-3 py-1.5 text-xs font-bold transition-colors ${s.color} border-transparent peer-checked:border-neon-pink peer-checked:shadow-[0_0_10px_rgba(255,77,157,0.35)]`}
+                  >
+                    {s.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-[#828282]">
+              ※ 未選択の場合はバッジを表示しません
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="typical_first_draft_days"
+              className="mb-2 block text-sm font-medium text-[#4F4F4F]"
+            >
+              初稿提出までの目安日数
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="typical_first_draft_days"
+                name="typical_first_draft_days"
+                type="number"
+                min={1}
+                max={90}
+                step={1}
+                defaultValue={cp?.typical_first_draft_days ?? ""}
+                placeholder="7"
+                className="w-28 rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              />
+              <span className="text-sm text-[#4F4F4F]">日</span>
+            </div>
+            <p className="mt-2 text-[11px] text-[#828282]">
+              受注後、初稿を提出するまでに通常かかる日数 (1〜90)
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SNS / 外部リンク */}
+      <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
+        <h2 className="mb-2 text-lg font-bold text-[#222]">SNS / 外部リンク</h2>
+        <p className="mb-4 text-sm text-[#828282]">
+          公開している場合のみ、URL を入力してください。空欄は非表示になります。
+        </p>
+        <div className="space-y-3">
+          {SOCIAL_LINK_DEFS.map((def) => (
+            <div key={def.key} className="grid items-center gap-2 sm:grid-cols-[140px_1fr]">
+              <label
+                htmlFor={`social_${def.key}`}
+                className="text-sm font-medium text-[#4F4F4F]"
+              >
+                {def.label}
+              </label>
+              <input
+                id={`social_${def.key}`}
+                name={`social_${def.key}`}
+                type="url"
+                defaultValue={cp?.social_links?.[def.key] ?? ""}
+                placeholder={def.placeholder}
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              />
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Bio (最下部) */}
