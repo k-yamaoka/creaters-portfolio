@@ -9,6 +9,10 @@ import { DashboardRevenueCard } from "@/components/dashboard/revenue-card";
 import { RecommendedJobsSection } from "@/components/dashboard/recommended-jobs";
 import { recommendedScore } from "@/lib/jobs/recommend";
 import { DashboardAnalyticsCard } from "@/components/dashboard/analytics-card";
+import {
+  DashboardCompletenessMeter,
+  type CompletenessItem,
+} from "@/components/dashboard/completeness-meter";
 
 const StripeConnectButton = dynamic(
   () =>
@@ -243,6 +247,7 @@ export default async function DashboardPage() {
     href?: string;
   }> = [];
   let analyticsPrompt: { text: string; href: string; cta: string } | undefined;
+  let portfolioCount = 0;
   if (isCreator && hasCreatorProfile) {
     const cpId = user.creator_profile!.id;
     const [
@@ -259,6 +264,7 @@ export default async function DashboardPage() {
         .eq("creator_id", cpId)
         .eq("status", "delivered"),
     ]);
+    portfolioCount = portfolioCountQ.count ?? 0;
     const profileViews =
       (user.creator_profile as { profile_views?: number | null } | null)
         ?.profile_views ?? 0;
@@ -278,7 +284,7 @@ export default async function DashboardPage() {
       },
       {
         label: "ポートフォリオ件数",
-        value: portfolioCountQ.count ?? 0,
+        value: portfolioCount,
         hint: "公開済の作品数",
         iconKey: "stack",
         href: "/dashboard/portfolio",
@@ -291,7 +297,7 @@ export default async function DashboardPage() {
         href: "/dashboard/orders",
       },
     ];
-    if ((portfolioCountQ.count ?? 0) < 3) {
+    if (portfolioCount < 3) {
       analyticsPrompt = {
         text: "ポートフォリオを3件以上にすると表示優先度が上がります",
         href: "/dashboard/portfolio",
@@ -394,6 +400,57 @@ export default async function DashboardPage() {
     icon: <MetricIcon k={m.iconKey} />,
   }));
 
+  // ===== ⑤ プロフィール充実度メーター =====
+  let completenessItems: CompletenessItem[] = [];
+  if (isCreator && hasCreatorProfile) {
+    const cp = user.creator_profile!;
+    const editHref = "/dashboard/profile";
+    completenessItems = [
+      {
+        label: "アバター画像",
+        done: !!user.avatar_url,
+        editHref: "/dashboard",
+      },
+      { label: "自己紹介 (bio)", done: !!(cp.bio?.trim()), editHref },
+      { label: "得意ジャンル", done: (cp.genres ?? []).length > 0, editHref },
+      {
+        label: "得意な動画尺",
+        done: (cp.video_lengths ?? []).length > 0,
+        editHref,
+      },
+      { label: "強み", done: (cp.strengths ?? []).length > 0, editHref },
+      {
+        label: "使用 AI ツール",
+        done: (cp.ai_tools ?? []).length > 0,
+        editHref,
+      },
+      {
+        label: "最低受注金額",
+        done:
+          cp.minimum_order_amount != null && cp.minimum_order_amount > 0,
+        editHref: "/dashboard",
+      },
+      {
+        label: "ポートフォリオ作品 (1件以上)",
+        done: portfolioCount >= 1,
+        editHref: "/dashboard/portfolio",
+      },
+    ];
+  } else if (hasClientProfile) {
+    const cl = user.client_profile!;
+    const editHref = "/dashboard/profile";
+    completenessItems = [
+      {
+        label: "アバター画像",
+        done: !!user.avatar_url,
+        editHref: "/dashboard",
+      },
+      { label: "会社名", done: !!(cl.company_name?.trim()), editHref },
+      { label: "会社 URL", done: !!(cl.company_url?.trim()), editHref },
+      { label: "業種", done: !!(cl.industry?.trim()), editHref },
+    ];
+  }
+
   return (
     <div className="text-gray-900">
       {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor */}
@@ -442,6 +499,11 @@ export default async function DashboardPage() {
             promptCta={analyticsPrompt?.cta}
           />
         )}
+
+      {/* ⑤ プロフィール充実度メーター */}
+      {!isAdmin && completenessItems.length > 0 && (
+        <DashboardCompletenessMeter items={completenessItems} />
+      )}
 
       {/* Admin quick link */}
       {isAdmin && (
