@@ -1,10 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
-import { formatPrice, formatDateJP, formatDateTimeJP } from "@/lib/utils";
-import { getStatusMeta } from "@/lib/order-status";
-import Link from "next/link";
-import { ListHideButton } from "@/components/dashboard/list-hide-button";
+import { OrdersList, type OrderRow } from "./orders-list";
 
 export default async function OrdersPage() {
   const user = await getCurrentUser();
@@ -33,7 +30,6 @@ export default async function OrdersPage() {
   if (isCreator && user.creator_profile) {
     query = query
       .eq("creator_id", user.creator_profile.id)
-      // 自分で削除した取引は除外
       .is("archived_by_creator_at", null);
   } else if (user.client_profile) {
     query = query
@@ -43,7 +39,7 @@ export default async function OrdersPage() {
 
   const { data: orders } = await query;
 
-  // 各取引相手とのメッセージ集計（最終更新日時 + 未読件数）
+  // 取引相手とのメッセージ集計 (最終更新 + 未読件数)
   const partnerIds = (orders ?? [])
     .map((o) => {
       const c = o.creator as unknown as { user_id: string };
@@ -52,14 +48,9 @@ export default async function OrdersPage() {
     })
     .filter(Boolean) as string[];
 
-  const messageStats = new Map<
-    string,
-    { lastAt: string; unread: number }
-  >();
+  const messageStats = new Map<string, { lastAt: string; unread: number }>();
 
   if (partnerIds.length > 0) {
-    // partnerIds に絞り込んでメッセージを取得し、JS 側のフィルタを最小化する。
-    // (以前は user が関与する全メッセージを取得して全件スキャンしていた)
     const csvList = partnerIds.map((id) => `"${id}"`).join(",");
     const { data: msgs } = await supabase
       .from("messages")
@@ -71,7 +62,8 @@ export default async function OrdersPage() {
       .order("created_at", { ascending: false });
 
     for (const m of msgs ?? []) {
-      const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+      const partnerId =
+        m.sender_id === user.id ? m.receiver_id : m.sender_id;
       const cur = messageStats.get(partnerId);
       if (!cur) {
         messageStats.set(partnerId, {
@@ -85,24 +77,37 @@ export default async function OrdersPage() {
     }
   }
 
-  // 取引にメッセージ統計をマージしてからSlack風ソート (未読 > 最終更新 > 作成日)
-  const enriched = (orders ?? [])
+  const rows: OrderRow[] = (orders ?? [])
     .map((o) => {
-      const c = o.creator as unknown as { user_id: string };
-      const cl = o.client as unknown as { user_id: string };
+      const c = o.creator as unknown as {
+        user_id: string;
+        profiles: { display_name: string };
+      };
+      const cl = o.client as unknown as {
+        user_id: string;
+        profiles: { display_name: string };
+      };
       const partnerUserId = isCreator ? cl?.user_id : c?.user_id;
       const stats = partnerUserId ? messageStats.get(partnerUserId) : undefined;
+      const partnerName = isCreator
+        ? cl?.profiles?.display_name ?? "クライアント"
+        : c?.profiles?.display_name ?? "クリエイター";
       return {
-        order: o,
+        id: o.id as string,
+        title: (o.title as string) ?? "取引",
+        status: o.status as string,
+        total_amount: (o.total_amount as number) ?? 0,
+        created_at: o.created_at as string,
+        delivery_deadline: (o.delivery_deadline as string | null) ?? null,
         partnerUserId,
+        partnerName,
         unread: stats?.unread ?? 0,
-        lastAt: stats?.lastAt ?? o.created_at,
+        lastAt: stats?.lastAt ?? (o.created_at as string),
       };
     })
+    // 未読あり優先 → 最終更新降順
     .sort((a, b) => {
-      // 未読あり優先
       if ((a.unread > 0) !== (b.unread > 0)) return a.unread > 0 ? -1 : 1;
-      // 次に最終更新降順
       return b.lastAt.localeCompare(a.lastAt);
     });
 
@@ -114,109 +119,13 @@ export default async function OrdersPage() {
           <p className="mt-2 text-sm text-[#828282]">
             {isCreator ? "受注した依頼の管理" : "依頼した取引の管理"}
             <span className="ml-2 text-[11px] text-[#BDBDBD]">
-              （未読 → 最終更新の新しい順で表示）
+              (未読 → 最終更新の新しい順で表示)
             </span>
           </p>
         </div>
       </div>
-
       <div className="mt-6">
-        {enriched.length === 0 ? (
-          <div className="rounded-2xl bg-white py-16 text-center shadow-card">
-            <svg
-              className="mx-auto h-12 w-12 text-[#E0E0E0]"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z"
-              />
-            </svg>
-            <h3 className="mt-4 text-lg font-bold text-[#222]">
-              まだ取引はありません
-            </h3>
-            <p className="mt-2 text-sm text-[#828282]">
-              {isCreator
-                ? "クライアントからの依頼が届くとここに表示されます"
-                : "クリエイターに依頼するとここに表示されます"}
-            </p>
-            {!isCreator && (
-              <Link href="/creators" className="btn-primary mt-6 inline-block text-sm">
-                クリエイターを探す
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {enriched.map(({ order, unread, lastAt }) => {
-              const status = getStatusMeta(order.status);
-              const creatorProfiles = (order.creator as unknown as { profiles: { display_name: string } })?.profiles;
-              const clientProfiles = (order.client as unknown as { profiles: { display_name: string } })?.profiles;
-              const partnerName = isCreator
-                ? clientProfiles?.display_name ?? "クライアント"
-                : creatorProfiles?.display_name ?? "クリエイター";
-              // package_id 列は 00050 で撤去済
-
-              return (
-                <Link
-                  key={order.id}
-                  href={`/dashboard/orders/${order.id}`}
-                  className={`relative block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover ${
-                    unread > 0 ? "ring-2 ring-neon-pink/40" : ""
-                  }`}
-                >
-                  <div className="absolute right-3 top-3 z-10">
-                    <ListHideButton
-                      kind="order"
-                      id={order.id}
-                      itemTitle={order.title ?? "取引"}
-                    />
-                  </div>
-                  {/* 応募済み案件ページと同じ文字サイズ・太さに統一 */}
-                  <div className="flex items-start justify-between gap-4 pr-8">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3
-                          className="truncate text-lg font-bold text-[#222] sm:text-xl"
-                          title={`${status.label}: ${status.description}`}
-                        >
-                          {order.title}
-                        </h3>
-                        <span
-                          className={`shrink-0 rounded-pill px-2.5 py-0.5 text-xs font-bold ${status.color}`}
-                        >
-                          {status.shortLabel}
-                        </span>
-                        {unread > 0 && (
-                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-1.5 text-[10px] font-bold text-white">
-                            {unread > 99 ? "99+" : unread}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 text-sm text-[#828282]">{partnerName}</p>
-                      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#828282]">
-                        {/* order_number はフロントに見せない (内部管理用) */}
-                        <span>最終更新 {formatDateTimeJP(lastAt)}</span>
-                      </div>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-lg font-bold text-neon-purple-deep">
-                        {formatPrice(order.total_amount)}
-                      </p>
-                      <p className="mt-1 text-sm text-[#828282]">
-                        取引日 {formatDateJP(order.created_at)}
-                      </p>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+        <OrdersList rows={rows} isCreator={isCreator} />
       </div>
     </div>
   );

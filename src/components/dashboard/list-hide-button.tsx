@@ -7,6 +7,7 @@ import {
   hideOrder,
 } from "@/app/(main)/dashboard/list-archive-actions";
 import { TrashIcon } from "@/components/ui/trash-icon";
+import { ArchiveIcon } from "@/components/ui/archive-icon";
 
 type Props = {
   kind: "application" | "order";
@@ -65,17 +66,26 @@ export function ListHideButton({ kind, id, itemTitle }: Props) {
   };
 
   const label = kind === "application" ? "応募" : "取引";
+  // 取引 (order) は「データを消す」ではなく「自分のリストからアーカイブ」運用なので、
+  // 箱アイコン + 「アーカイブ」文言に切替える。
+  const isArchive = kind === "order";
+  const verb = isArchive ? "アーカイブ" : "削除";
+  const Icon = isArchive ? ArchiveIcon : TrashIcon;
 
   return (
     <>
       <button
         type="button"
         onClick={handleClick}
-        aria-label={`「${itemTitle}」を一覧から削除`}
-        title="この一覧から削除"
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-500"
+        aria-label={`「${itemTitle}」を一覧から${verb}`}
+        title={isArchive ? "この一覧からアーカイブ" : "この一覧から削除"}
+        className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 transition-colors ${
+          isArchive
+            ? "hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600"
+            : "hover:border-red-300 hover:bg-red-50 hover:text-red-500"
+        }`}
       >
-        <TrashIcon className="h-3.5 w-3.5" />
+        <Icon className="h-3.5 w-3.5" />
       </button>
 
       {open && (
@@ -92,33 +102,37 @@ export function ListHideButton({ kind, id, itemTitle }: Props) {
             }}
           >
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={2}
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"
-                  />
-                </svg>
+              <div
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                  isArchive ? "bg-amber-100 text-amber-600" : "bg-red-100 text-red-600"
+                }`}
+              >
+                <Icon className="h-5 w-5" strokeWidth={1.8} />
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-base font-bold text-gray-900">
-                  この{label}を自分の一覧から削除します
+                  この{label}を一覧から{verb}します
                 </h2>
                 <p className="mt-1 text-sm text-gray-600">
                   「<span className="font-bold">{itemTitle}</span>」を
-                  この一覧から非表示にします。
+                  自分の一覧から非表示にします。
                 </p>
                 <ul className="mt-3 list-disc space-y-1 pl-4 text-xs text-gray-500">
-                  <li>相手側の一覧では引き続き表示されます</li>
-                  <li>復元する機能は現状ありません</li>
-                  <li>関連メッセージ履歴はメッセージ画面から閲覧できます</li>
+                  {isArchive ? (
+                    <>
+                      <li>
+                        取引データは削除されません (請求/契約上の必要のため保持)
+                      </li>
+                      <li>相手側の一覧では引き続き表示されます</li>
+                      <li>関連メッセージ履歴はメッセージ画面から閲覧できます</li>
+                    </>
+                  ) : (
+                    <>
+                      <li>相手側の一覧では引き続き表示されます</li>
+                      <li>復元する機能は現状ありません</li>
+                      <li>関連メッセージ履歴はメッセージ画面から閲覧できます</li>
+                    </>
+                  )}
                 </ul>
               </div>
             </div>
@@ -145,9 +159,13 @@ export function ListHideButton({ kind, id, itemTitle }: Props) {
                 type="button"
                 onClick={handleConfirm}
                 disabled={pending}
-                className="rounded-pill bg-red-500 px-5 py-2 text-sm font-bold text-white shadow-card transition-colors hover:bg-red-600 disabled:opacity-50"
+                className={`rounded-pill px-5 py-2 text-sm font-bold text-white shadow-card transition-colors disabled:opacity-50 ${
+                  isArchive
+                    ? "bg-amber-500 hover:bg-amber-600"
+                    : "bg-red-500 hover:bg-red-600"
+                }`}
               >
-                {pending ? "削除中..." : "削除する"}
+                {pending ? `${verb}中...` : `${verb}する`}
               </button>
             </div>
           </div>
