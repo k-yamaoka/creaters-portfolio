@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
 import { DashboardRevenueCard } from "@/components/dashboard/revenue-card";
+import { RecommendedJobsSection } from "@/components/dashboard/recommended-jobs";
+import { recommendedScore } from "@/lib/jobs/recommend";
 
 const StripeConnectButton = dynamic(
   () =>
@@ -152,6 +154,83 @@ export default async function DashboardPage() {
     }
   }
 
+  // ===== ③ おすすめの募集案件 (クリエイター向け) =====
+  // open 状態 / 期限が今日以降の jobs を取得 → 既応募を除外
+  // → recommendedScore で並び替えて上位 4 件
+  type RecJob = {
+    id: string;
+    title: string;
+    description: string;
+    budget_min: number | null;
+    budget_max: number | null;
+    deadline: string | null;
+    genres: string[];
+    matchScore: number;
+  };
+  let recommendedJobs: RecJob[] = [];
+  if (isCreator && hasCreatorProfile) {
+    const todayISO = new Date().toISOString().slice(0, 10);
+    // 期限なし (null) も含める。期限ありなら今日以降のみ
+    const { data: openJobs } = await supabase
+      .from("jobs")
+      .select(
+        "id, title, description, budget_min, budget_max, deadline, genres, created_at"
+      )
+      .eq("status", "open")
+      .or(`deadline.is.null,deadline.gte.${todayISO}`)
+      .order("created_at", { ascending: false })
+      .limit(60);
+
+    // 既に応募済みの job_id を除外
+    const { data: applied } = await supabase
+      .from("job_applications")
+      .select("job_id")
+      .eq("creator_id", user.creator_profile!.id);
+    const appliedIds = new Set((applied ?? []).map((a) => a.job_id as string));
+
+    const profile = user.creator_profile;
+    const scored = (openJobs ?? [])
+      .filter((j) => !appliedIds.has(j.id as string))
+      .map((j) => {
+        const job = j as {
+          id: string;
+          title: string;
+          description: string | null;
+          budget_min: number | null;
+          budget_max: number | null;
+          deadline: string | null;
+          genres: string[] | null;
+        };
+        const matchScore = recommendedScore(
+          {
+            title: job.title,
+            description: job.description ?? "",
+            genres: job.genres ?? [],
+          },
+          {
+            genres: profile?.genres ?? [],
+            strengths: profile?.strengths ?? [],
+            video_lengths: profile?.video_lengths ?? [],
+            bio: profile?.bio ?? "",
+          }
+        );
+        return {
+          id: job.id,
+          title: job.title,
+          description: job.description ?? "",
+          budget_min: job.budget_min,
+          budget_max: job.budget_max,
+          deadline: job.deadline,
+          genres: job.genres ?? [],
+          matchScore,
+        } as RecJob;
+      });
+
+    // マッチスコア降順 → タイブレークは元の新着順を維持 (stable sort)
+    scored.sort((a, b) => b.matchScore - a.matchScore);
+    recommendedJobs = scored.slice(0, 4);
+  }
+
   return (
     <div className="text-gray-900">
       {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor */}
@@ -184,6 +263,11 @@ export default async function DashboardPage() {
             lifetime={revLifetime}
           />
         )}
+
+      {/* ③ おすすめの募集案件 (クリエイター限定) */}
+      {!isAdmin && isCreator && hasCreatorProfile && (
+        <RecommendedJobsSection jobs={recommendedJobs} />
+      )}
 
       {/* Admin quick link */}
       {isAdmin && (

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GENRES } from "@/lib/constants";
 import { formatPrice, formatDateJP } from "@/lib/utils";
 import type { JobSearchFilters } from "@/types/database";
+import { recommendedScore as scoreJob } from "@/lib/jobs/recommend";
 
 type Job = {
   id: string;
@@ -45,38 +46,10 @@ const BUDGET_CEIL = 5_000_000; // スライダーの最大値 (5M)
 // 旧 50,000 円刻み (100 段階) は荒すぎたので 10,000 円刻み (500 段階) に
 const BUDGET_STEP = 10_000;
 
-/**
- * "おすすめ" スコア。
- * 大きいほど推奨度が高い。
- * - ジャンル一致 ×3
- * - 強み / 得意尺の語が job 文字列に含まれる ×1
- * - bio の語句が job 文字列に含まれる ×0.5
- */
-function recommendedScore(job: Job, profile: ViewerProfile | null): number {
-  if (!profile) return 0;
-  const text = `${job.title} ${job.description} ${job.genres.join(" ")}`.toLowerCase();
-  let score = 0;
-  for (const g of profile.genres ?? []) {
-    if (job.genres.includes(g)) score += 3;
-    else if (g && text.includes(g.toLowerCase())) score += 1;
-  }
-  for (const s of profile.strengths ?? []) {
-    if (s && text.includes(s.toLowerCase())) score += 1;
-  }
-  for (const l of profile.video_lengths ?? []) {
-    if (l && text.includes(l.toLowerCase())) score += 1;
-  }
-  // bio をスペース区切りで簡易キーワード化 (2 文字以上のみ採用)
-  const bioWords = (profile.bio ?? "")
-    .replace(/[、。,.!?！？\n]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length >= 2)
-    .slice(0, 20);
-  for (const w of bioWords) {
-    if (text.includes(w.toLowerCase())) score += 0.5;
-  }
-  return score;
-}
+// おすすめスコアは @/lib/jobs/recommend を共通利用 (scoreJob)。
+// ダッシュボードの「おすすめ案件」セクションと同一ロジックを保つため抽出済。
+const recommendedScore = (job: Job, profile: ViewerProfile | null) =>
+  scoreJob(job, profile);
 
 /** 締切までの残日数。null は期限なし */
 function daysUntil(date: string | null): number | null {
