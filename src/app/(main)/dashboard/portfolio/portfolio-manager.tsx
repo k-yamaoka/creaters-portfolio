@@ -8,7 +8,7 @@ import {
   togglePortfolioFeatured,
   updatePortfolioThumbnail,
 } from "./actions";
-import { GENRES } from "@/lib/constants";
+import { GENRES, AI_TOOLS, AI_TOOL_CATEGORIES } from "@/lib/constants";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { TrashIcon } from "@/components/ui/trash-icon";
 
@@ -25,6 +25,11 @@ type PortfolioItem = {
   tags: string[];
   is_featured?: boolean;
   created_at: string;
+  // 00055 で追加された任意フィールド
+  used_ai_tools?: string[];
+  role_scope?: string | null;
+  external_url?: string | null;
+  display_tag?: string | null;
 };
 
 type MediaType = "video" | "image";
@@ -152,6 +157,12 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [uploadedVideoAspect, setUploadedVideoAspect] =
     useState<VideoAspect | null>(null);
   const [hasPublishPermission, setHasPublishPermission] = useState(false);
+  // 使用 AI ツール (作品単位、複数選択)
+  const [selectedAiTools, setSelectedAiTools] = useState<string[]>([]);
+  const toggleFormAiTool = (name: string) =>
+    setSelectedAiTools((prev) =>
+      prev.includes(name) ? prev.filter((x) => x !== name) : [...prev, name]
+    );
 
   const resetFormState = () => {
     setMediaType("video");
@@ -161,6 +172,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setUploadedVideoAspect(null);
     setUploadProgress(0);
     setHasPublishPermission(false);
+    setSelectedAiTools([]);
   };
 
   /**
@@ -332,6 +344,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         formData.set("thumbnail_url", uploadedThumbUrl);
       }
     }
+
+    // 使用 AI ツールを multipart で送る
+    selectedAiTools.forEach((t) => formData.append("used_ai_tools", t));
 
     const result = await addPortfolioItem(formData);
     if (result?.error) {
@@ -673,6 +688,97 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 />
               </div>
             </div>
+
+            {/* 担当範囲 + サムネタグ + 外部リンク */}
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                  担当範囲
+                </label>
+                <input
+                  name="role_scope"
+                  type="text"
+                  maxLength={200}
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                  placeholder="例: プロンプト生成 + 動画編集"
+                />
+                <p className="mt-1 text-[11px] text-[#828282]">
+                  企業が「どこまで対応できるか」を判断するための情報
+                </p>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                  サムネ可変タグ
+                </label>
+                <input
+                  name="display_tag"
+                  type="text"
+                  maxLength={20}
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                  placeholder="例: 商用実績 / 縦型"
+                />
+                <p className="mt-1 text-[11px] text-[#828282]">
+                  未設定なら自動判定 (YouTube 等)
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                外部リンク URL <span className="text-[11px] font-normal text-[#828282]">(任意)</span>
+              </label>
+              <input
+                name="external_url"
+                type="url"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                placeholder="https://youtube.com/watch?v=..."
+              />
+              <p className="mt-1 text-[11px] text-[#828282]">
+                作品の YouTube / X / Web ページなど、追加で公開するリンク
+              </p>
+            </div>
+
+            {/* 使用 AI ツール — カテゴリ別 */}
+            <div className="mt-5">
+              <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
+                使用 AI ツール <span className="text-[11px] font-normal text-[#828282]">(複数選択可)</span>
+              </label>
+              <div className="space-y-3 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-3">
+                {AI_TOOL_CATEGORIES.map((cat) => {
+                  const tools = AI_TOOLS.filter((t) => t.category === cat);
+                  if (tools.length === 0) return null;
+                  return (
+                    <div key={cat}>
+                      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-[#828282]">
+                        {cat}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {tools.map((t) => {
+                          const active = selectedAiTools.includes(t.name);
+                          return (
+                            <button
+                              key={t.name}
+                              type="button"
+                              onClick={() => toggleFormAiTool(t.name)}
+                              className={`rounded-pill border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                                active
+                                  ? "border-neon-purple bg-gradient-to-r from-neon-purple to-neon-pink text-white"
+                                  : "border-[#BDBDBD] bg-white text-[#4F4F4F] hover:border-neon-purple"
+                              }`}
+                            >
+                              {t.name}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-[11px] text-[#828282]">
+                選択中: <span className="font-bold text-neon-purple-deep">{selectedAiTools.length}</span> 件
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 rounded-lg border border-[#E0E0E0] bg-[#FAFAFA] p-4">
@@ -829,7 +935,9 @@ function PortfolioCard({
   };
 
   const isImage = item.media_type === "image";
-  const platformLabel = isImage
+  // display_tag が設定されていればそれを最優先で出す (例: 「商用実績」「縦型 9:16」)
+  // 未設定なら従来の platform 表示にフォールバック
+  const autoLabel = isImage
     ? "画像"
     : item.video_platform === "youtube"
       ? "YouTube"
@@ -842,6 +950,7 @@ function PortfolioCard({
             : item.video_platform === "instagram"
               ? "Insta"
               : "Other";
+  const platformLabel = (item.display_tag?.trim() || autoLabel) as string;
 
   const handleUpload = async (file: File) => {
     setUploading(true);
@@ -1012,6 +1121,59 @@ function PortfolioCard({
             {item.genre}
           </span>
         )}
+
+        {/* 担当範囲 — 自由記述 */}
+        {item.role_scope && (
+          <p className="mt-2 text-[11px] text-[#4F4F4F]">
+            <span className="font-bold text-[#828282]">担当範囲: </span>
+            {item.role_scope}
+          </p>
+        )}
+
+        {/* 使用 AI ツール — チップ */}
+        {item.used_ai_tools && item.used_ai_tools.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {item.used_ai_tools.slice(0, 6).map((t) => (
+              <span
+                key={t}
+                className="rounded-pill bg-gradient-to-r from-neon-pink/10 to-neon-purple/10 px-2 py-0.5 text-[10px] font-bold text-neon-purple-deep"
+              >
+                {t}
+              </span>
+            ))}
+            {item.used_ai_tools.length > 6 && (
+              <span className="rounded-pill bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                +{item.used_ai_tools.length - 6}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* 外部リンク */}
+        {item.external_url && (
+          <a
+            href={item.external_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-neon-cyan transition-colors hover:text-neon-pink"
+          >
+            <svg
+              className="h-3 w-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+              />
+            </svg>
+            外部リンク
+          </a>
+        )}
+
         <div className="mt-3 flex items-center justify-between gap-2">
           <button
             type="button"

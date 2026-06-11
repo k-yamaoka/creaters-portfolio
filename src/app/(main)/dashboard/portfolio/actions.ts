@@ -45,6 +45,27 @@ export async function addPortfolioItem(formData: FormData) {
   if (!title) return { error: "タイトルを入力してください" };
   const description = parseText(formData.get("description"), 2000) ?? "";
 
+  // ====== 新フィールド (00055) ======
+  // 使用 AI ツール (複数可、最大 12)
+  const used_ai_tools = (formData.getAll("used_ai_tools") as string[])
+    .map((s) => (s ?? "").toString().trim())
+    .filter(Boolean)
+    .slice(0, 12);
+  // 担当範囲 (自由記述)
+  const role_scope = parseText(formData.get("role_scope"), 200);
+  // 外部リンク URL (http(s):// で始まるもののみ)
+  const external_raw = parseText(formData.get("external_url"), 2000);
+  const external_url =
+    external_raw && /^https?:\/\//i.test(external_raw) ? external_raw : null;
+  // サムネ可変タグ (1-20 文字)
+  const display_tag = parseText(formData.get("display_tag"), 20);
+  const extraFields = {
+    used_ai_tools,
+    role_scope: role_scope || null,
+    external_url,
+    display_tag: display_tag || null,
+  };
+
   // media_type: 'video' (default, 後方互換) | 'image'
   const media_type_raw = parseText(formData.get("media_type"), 16) ?? "video";
   const media_type: "video" | "image" =
@@ -80,6 +101,7 @@ export async function addPortfolioItem(formData: FormData) {
       genre: genre || null,
       tags,
       has_publish_permission: true,
+      ...extraFields,
     });
 
     if (error) {
@@ -153,6 +175,7 @@ export async function addPortfolioItem(formData: FormData) {
     genre: genre || null,
     tags,
     has_publish_permission: true,
+    ...extraFields,
   });
 
   if (error) {
