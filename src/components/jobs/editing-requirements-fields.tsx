@@ -6,6 +6,7 @@ import {
   EDIT_DELIVERY_FORMATS,
   JOB_ASPECT_RATIOS,
 } from "@/lib/constants";
+import { TrashIcon } from "@/components/ui/trash-icon";
 
 /**
  * 完成尺バケット (finish_duration_unit="min" 固定 で min/max のレンジを送る)
@@ -399,19 +400,7 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
                     aria-label={`${idx + 1} 番目のURLを削除`}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[#E0E0E0] text-[#828282] transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-500"
                   >
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18 18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <TrashIcon className="h-4 w-4" />
                   </button>
                 )}
               </div>

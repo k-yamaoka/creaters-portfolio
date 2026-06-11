@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updatePassword, updateEmail, deleteAccount } from "./actions";
+import { TrashIcon } from "@/components/ui/trash-icon";
 
 export function SettingsForm({ email }: { email: string }) {
   const [passwordMsg, setPasswordMsg] = useState<{
@@ -165,8 +166,9 @@ export function SettingsForm({ email }: { email: string }) {
           <button
             type="button"
             onClick={() => setShowDelete(true)}
-            className="mt-4 text-sm font-medium text-red-500 hover:text-red-700"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-red-500 transition-colors hover:text-red-700"
           >
+            <TrashIcon className="h-4 w-4" />
             アカウントを削除する
           </button>
         ) : (
@@ -182,8 +184,9 @@ export function SettingsForm({ email }: { email: string }) {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="rounded-lg bg-red-600 px-6 py-2 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-6 py-2 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
               >
+                <TrashIcon className="h-4 w-4" />
                 {deleting ? "処理中..." : "削除する"}
               </button>
               <button

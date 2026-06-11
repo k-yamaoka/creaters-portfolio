@@ -10,6 +10,7 @@ import {
 } from "./actions";
 import { GENRES } from "@/lib/constants";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
+import { TrashIcon } from "@/components/ui/trash-icon";
 
 type PortfolioItem = {
   id: string;
@@ -1035,8 +1036,9 @@ function PortfolioCard({
             type="button"
             onClick={onDelete}
             disabled={deleting}
-            className="text-sm text-red-500 hover:text-red-700 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 text-sm text-red-500 transition-colors hover:text-red-700 disabled:opacity-50"
           >
+            <TrashIcon className="h-4 w-4" />
             {deleting ? "削除中..." : "削除"}
           </button>
         </div>
