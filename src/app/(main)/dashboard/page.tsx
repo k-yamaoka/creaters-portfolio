@@ -8,6 +8,7 @@ import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
 import { DashboardRevenueCard } from "@/components/dashboard/revenue-card";
 import { RecommendedJobsSection } from "@/components/dashboard/recommended-jobs";
 import { recommendedScore } from "@/lib/jobs/recommend";
+import { DashboardAnalyticsCard } from "@/components/dashboard/analytics-card";
 
 const StripeConnectButton = dynamic(
   () =>
@@ -231,6 +232,168 @@ export default async function DashboardPage() {
     recommendedJobs = scored.slice(0, 4);
   }
 
+  // ===== ④ アナリティクス簡易表示 =====
+  // creator: プロフィール閲覧数 / 累計いいね / ポートフォリオ件数 / 完了取引数
+  // client : 投稿案件数 / 応募受領数 / 進行中取引 / 完了取引
+  let analyticsMetrics: Array<{
+    label: string;
+    value: number;
+    hint: string;
+    iconKey: "eye" | "heart" | "stack" | "check" | "briefcase" | "users" | "flag";
+    href?: string;
+  }> = [];
+  let analyticsPrompt: { text: string; href: string; cta: string } | undefined;
+  if (isCreator && hasCreatorProfile) {
+    const cpId = user.creator_profile!.id;
+    const [
+      portfolioCountQ,
+      finishedQ,
+    ] = await Promise.all([
+      supabase
+        .from("portfolio_items")
+        .select("*", { count: "exact", head: true })
+        .eq("creator_id", cpId),
+      supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("creator_id", cpId)
+        .eq("status", "delivered"),
+    ]);
+    const profileViews =
+      (user.creator_profile as { profile_views?: number | null } | null)
+        ?.profile_views ?? 0;
+    analyticsMetrics = [
+      {
+        label: "プロフィール閲覧数",
+        value: profileViews,
+        hint: "クリエイター詳細ページのアクセス累計",
+        iconKey: "eye",
+        href: `/creators/${cpId}`,
+      },
+      {
+        label: "累計いいね",
+        value: totalLikes,
+        hint: "全ポートフォリオ作品のいいね合計",
+        iconKey: "heart",
+      },
+      {
+        label: "ポートフォリオ件数",
+        value: portfolioCountQ.count ?? 0,
+        hint: "公開済の作品数",
+        iconKey: "stack",
+        href: "/dashboard/portfolio",
+      },
+      {
+        label: "完了取引数",
+        value: finishedQ.count ?? 0,
+        hint: "納品まで完了した取引数",
+        iconKey: "check",
+        href: "/dashboard/orders",
+      },
+    ];
+    if ((portfolioCountQ.count ?? 0) < 3) {
+      analyticsPrompt = {
+        text: "ポートフォリオを3件以上にすると表示優先度が上がります",
+        href: "/dashboard/portfolio",
+        cta: "ポートフォリオを追加",
+      };
+    }
+  } else if (hasClientProfile) {
+    const clientId = user.client_profile!.id;
+    const [postedQ, finishedQ] = await Promise.all([
+      supabase
+        .from("jobs")
+        .select("*", { count: "exact", head: true })
+        .eq("client_id", clientId),
+      supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .eq("status", "delivered"),
+    ]);
+    // 受け取った応募数 = 自社の jobs に対する applications 合計
+    const { data: myJobs } = await supabase
+      .from("jobs")
+      .select("id")
+      .eq("client_id", clientId);
+    let applicationsReceived = 0;
+    if (myJobs && myJobs.length > 0) {
+      const ids = myJobs.map((j) => j.id as string);
+      const { count } = await supabase
+        .from("job_applications")
+        .select("*", { count: "exact", head: true })
+        .in("job_id", ids);
+      applicationsReceived = count ?? 0;
+    }
+    analyticsMetrics = [
+      {
+        label: "投稿した案件",
+        value: postedQ.count ?? 0,
+        hint: "/jobs に出している案件数 (全ステータス)",
+        iconKey: "briefcase",
+        href: "/dashboard/jobs",
+      },
+      {
+        label: "応募受領数",
+        value: applicationsReceived,
+        hint: "自社案件へのクリエイター応募合計",
+        iconKey: "users",
+        href: "/dashboard/jobs",
+      },
+      {
+        label: "進行中取引",
+        value: activeOrders,
+        hint: "未完了 (delivered/cancelled 以外) の取引",
+        iconKey: "flag",
+        href: "/dashboard/orders",
+      },
+      {
+        label: "完了取引数",
+        value: finishedQ.count ?? 0,
+        hint: "納品まで完了した取引数",
+        iconKey: "check",
+        href: "/dashboard/orders",
+      },
+    ];
+  }
+
+  // アイコンのレンダリング — server component で SVG を直接出す
+  function MetricIcon({ k }: { k: typeof analyticsMetrics[number]["iconKey"] }) {
+    const path =
+      k === "eye"
+        ? "M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+        : k === "heart"
+          ? "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+          : k === "stack"
+            ? "M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"
+            : k === "check"
+              ? "m4.5 12.75 6 6 9-13.5"
+              : k === "briefcase"
+                ? "M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
+                : k === "users"
+                  ? "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+                  : "M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5";
+    return (
+      <svg
+        aria-hidden
+        className="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.8}
+        stroke="currentColor"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+      </svg>
+    );
+  }
+  const analyticsMetricsRendered = analyticsMetrics.map((m) => ({
+    label: m.label,
+    value: m.value,
+    hint: m.hint,
+    href: m.href,
+    icon: <MetricIcon k={m.iconKey} />,
+  }));
+
   return (
     <div className="text-gray-900">
       {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor */}
@@ -268,6 +431,17 @@ export default async function DashboardPage() {
       {!isAdmin && isCreator && hasCreatorProfile && (
         <RecommendedJobsSection jobs={recommendedJobs} />
       )}
+
+      {/* ④ アナリティクス簡易表示 */}
+      {!isAdmin &&
+        ((isCreator && hasCreatorProfile) || hasClientProfile) && (
+          <DashboardAnalyticsCard
+            metrics={analyticsMetricsRendered}
+            promptText={analyticsPrompt?.text}
+            promptHref={analyticsPrompt?.href}
+            promptCta={analyticsPrompt?.cta}
+          />
+        )}
 
       {/* Admin quick link */}
       {isAdmin && (

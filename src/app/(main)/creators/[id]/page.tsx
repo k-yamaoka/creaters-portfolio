@@ -33,6 +33,14 @@ export default async function CreatorDetailPage({
   const {
     data: { user: viewer },
   } = await supabase.auth.getUser();
+
+  // プロフィール閲覧カウンタを +1 (自分自身による閲覧は RPC 側で除外される)
+  // 失敗は非致命 (アナリティクスの数字なのでサイレントに無視)
+  void supabase.rpc("increment_creator_profile_view", {
+    p_creator_id: creator.id,
+    p_viewer_user_id: viewer?.id ?? null,
+  });
+
   let viewerRole: string | null = null;
   if (viewer) {
     const { data: viewerProfile } = await supabase
