@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { updateBasicInfo } from "@/app/(main)/dashboard/profile/actions";
+import { AvatarCropModal } from "./avatar-crop-modal";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB (Storage バケット上限と整合)
 const ALLOWED_MIME = [
@@ -60,6 +61,9 @@ export function BasicInfoEditor({
   // 編集中だけ持つ「ローカル選択ファイル」とそのプレビュー URL
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  // 「いまトリミング中の元画像」 — 画像選択直後にモーダル表示するための一時 state
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropMime, setCropMime] = useState<string>("image/jpeg");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -79,11 +83,15 @@ export function BasicInfoEditor({
     setPendingFile(null);
     if (pendingPreview) URL.revokeObjectURL(pendingPreview);
     setPendingPreview(null);
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
     setAvatarUrl(initialAvatarUrl);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
+    // 同じファイルを再選択できるよう input を即リセット
+    if (e.target) e.target.value = "";
     if (!f) return;
     if (!ALLOWED_MIME.includes(f.type as (typeof ALLOWED_MIME)[number])) {
       setError("JPEG / PNG / WebP / GIF のみアップロード可能です");
@@ -94,9 +102,35 @@ export function BasicInfoEditor({
       return;
     }
     setError(null);
+    // GIF はアニメーション保持できないので自動的にトリミング後 PNG/JPEG になる旨注記
+    // (既存挙動と同じ。トリミング自体は静止画として行われる)
+    const url = URL.createObjectURL(f);
+    setCropSrc(url);
+    setCropMime(f.type);
+  };
+
+  const handleCropCancel = () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+    setCropSrc(null);
+  };
+
+  const handleCropConfirm = (blob: Blob) => {
+    // トリミング済 Blob を File 化し、pendingFile にセット
+    const ext =
+      blob.type === "image/png"
+        ? "png"
+        : blob.type === "image/webp"
+          ? "webp"
+          : "jpg";
+    const file = new File([blob], `avatar.${ext}`, { type: blob.type });
+
+    // 古いプレビュー URL を破棄
     if (pendingPreview) URL.revokeObjectURL(pendingPreview);
-    setPendingFile(f);
-    setPendingPreview(URL.createObjectURL(f));
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+
+    setPendingFile(file);
+    setPendingPreview(URL.createObjectURL(file));
+    setCropSrc(null);
   };
 
   const handleSave = () => {
@@ -390,6 +424,16 @@ export function BasicInfoEditor({
         >
           {error}
         </p>
+      )}
+
+      {/* アバターのトリミング モーダル — ファイル選択直後に表示 */}
+      {cropSrc && (
+        <AvatarCropModal
+          imageSrc={cropSrc}
+          mimeType={cropMime}
+          onCancel={handleCropCancel}
+          onConfirm={handleCropConfirm}
+        />
       )}
     </section>
   );
