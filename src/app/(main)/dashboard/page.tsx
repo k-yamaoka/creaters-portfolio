@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
+import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
 
 const StripeConnectButton = dynamic(
   () =>
@@ -24,11 +25,12 @@ export default async function DashboardPage() {
   const roleLabel =
     (isCreator ? "クリエイター" : isAdmin ? "管理者" : "依頼者") + "アカウント";
 
+  const supabase = await createClient();
+
   // 総いいね数 = このクリエイターの全 portfolio_items の like_count 合計。
   // creator_profile を持つ場合のみ実行。
   let totalLikes = 0;
   if (isCreator && hasCreatorProfile) {
-    const supabase = await createClient();
     const { data: rows } = await supabase
       .from("portfolio_items")
       .select("like_count")
@@ -37,6 +39,60 @@ export default async function DashboardPage() {
       (sum, r) => sum + ((r as { like_count: number | null }).like_count ?? 0),
       0
     );
+  }
+
+  // ===== ① 要対応アラート =====
+  // 未読メッセージ数 / 未読通知数 / 進行中取引 / あなたの対応待ち
+  const [unreadMessagesQ, unreadNotificationsQ] = await Promise.all([
+    supabase
+      .from("messages")
+      .select("*", { count: "exact", head: true })
+      .eq("receiver_id", user.id)
+      .eq("is_read", false),
+    supabase
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_read", false),
+  ]);
+  const unreadMessages = unreadMessagesQ.count ?? 0;
+  const unreadNotifications = unreadNotificationsQ.count ?? 0;
+
+  // 進行中取引 (cancelled / delivered 以外)
+  let activeOrders = 0;
+  let awaitingMyAction = 0;
+  if ((isCreator && hasCreatorProfile) || hasClientProfile) {
+    let q = supabase
+      .from("orders")
+      .select("id, status, archived_by_creator_at, archived_by_client_at")
+      .not("status", "in", "(delivered,cancelled)");
+    if (isCreator && hasCreatorProfile) {
+      q = q
+        .eq("creator_id", user.creator_profile!.id)
+        .is("archived_by_creator_at", null);
+    } else {
+      q = q
+        .eq("client_id", user.client_profile!.id)
+        .is("archived_by_client_at", null);
+    }
+    const { data: openOrders } = await q;
+    activeOrders = openOrders?.length ?? 0;
+    // 「自分のターン」=各 status で次に動くべき側。
+    //   consultation / quoting / data_sharing / delivered確認待ち → client
+    //   contract / production / revision → creator
+    // contract は両者の意思確認なので両方をカウント
+    const CLIENT_TURNS = new Set(["consultation", "quoting", "data_sharing"]);
+    const CREATOR_TURNS = new Set(["production", "revision"]);
+    const BOTH_TURNS = new Set(["contract"]);
+    for (const o of openOrders ?? []) {
+      const s = (o as { status: string }).status;
+      if (
+        (isCreator && (CREATOR_TURNS.has(s) || BOTH_TURNS.has(s))) ||
+        (!isCreator && (CLIENT_TURNS.has(s) || BOTH_TURNS.has(s)))
+      ) {
+        awaitingMyAction += 1;
+      }
+    }
   }
 
   return (
@@ -50,6 +106,16 @@ export default async function DashboardPage() {
         isCreator={isCreator && hasCreatorProfile}
         initialMinimumOrderAmount={user.creator_profile?.minimum_order_amount ?? null}
       />
+
+      {/* ① 要対応アラート — ダッシュボード最上部 (最優先) */}
+      {!isAdmin && (
+        <DashboardAlertsBar
+          unreadMessages={unreadMessages}
+          unreadNotifications={unreadNotifications}
+          activeOrders={activeOrders}
+          awaitingMyAction={awaitingMyAction}
+        />
+      )}
 
       {/* Admin quick link */}
       {isAdmin && (
