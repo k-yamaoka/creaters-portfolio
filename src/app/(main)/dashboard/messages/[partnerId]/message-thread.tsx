@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { sendMessage, markAsRead } from "../actions";
+import { sendMessage, markAsRead, deleteMessage } from "../actions";
+import { TrashIcon } from "@/components/ui/trash-icon";
 import { createClient } from "@/lib/supabase/client";
 import { templatesFor, type MessageTemplate } from "@/lib/message-templates";
 import { linkifyText } from "@/lib/linkify";
@@ -100,6 +101,26 @@ export function MessageThread({
 }: Props) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [sending, setSending] = useState(false);
+  // 個別メッセージの削除中フラグ (id -> bool)
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteMessage = async (msgId: string) => {
+    if (deletingId) return;
+    if (msgId.startsWith("temp-")) return; // 楽観挿入分は無視
+    if (!confirm("このメッセージを削除しますか？\n相手側からも見えなくなります。"))
+      return;
+    setDeletingId(msgId);
+    // 楽観削除
+    const prev = messages;
+    setMessages((cur) => cur.filter((m) => m.id !== msgId));
+    const res = await deleteMessage(msgId);
+    if (res?.error) {
+      // 失敗時はロールバック
+      setMessages(prev);
+      setError(res.error);
+    }
+    setDeletingId(null);
+  };
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -365,8 +386,23 @@ export function MessageThread({
               return (
                 <div
                   key={msg.id}
-                  className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  className={`group flex items-end gap-1.5 ${
+                    isMine ? "justify-end" : "justify-start"
+                  }`}
                 >
+                  {/* 自分のメッセージ: 吹き出しの左に削除アイコン */}
+                  {isMine && !isTemp && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMessage(msg.id)}
+                      disabled={deletingId === msg.id}
+                      aria-label="このメッセージを削除"
+                      title="このメッセージを削除"
+                      className="opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:border-red-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                   <div
                     className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                       isMine
@@ -398,6 +434,19 @@ export function MessageThread({
                       {isTemp && " · 送信中…"}
                     </p>
                   </div>
+                  {/* 相手のメッセージ: 吹き出しの右に削除アイコン */}
+                  {!isMine && !isTemp && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteMessage(msg.id)}
+                      disabled={deletingId === msg.id}
+                      aria-label="このメッセージを削除"
+                      title="このメッセージを削除"
+                      className="opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100 inline-flex h-7 w-7 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-400 hover:border-red-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                    >
+                      <TrashIcon className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               );
             })}

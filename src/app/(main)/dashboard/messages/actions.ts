@@ -112,6 +112,38 @@ export async function sendMessage(
   return { message: inserted as SentMessage };
 }
 
+/**
+ * 自分が「送信側」または「受信側」のいずれかであるメッセージを削除する。
+ *
+ * - 受信側として削除する場合: 自分のスレッドからは消えるが、相手側の履歴は残す
+ *   が、いま messages テーブルは soft delete を持たないため、完全削除のみ。
+ *   将来 archived_by_<role>_at を追加して soft hide に切替える余地あり。
+ * - 自分のメッセージでない場合 (= 受信したもの) も、相手の同意なく自分の画面
+ *   から消したい需要があるので削除を許可。これは「未読を放置すると残る」と
+ *   ユーザーが訴えた問題への対処。
+ * - 監査ログには残らない。ユーザー要望 (自分の画面の整理) を優先する。
+ */
+export async function deleteMessage(id: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "ログインが必要です" };
+
+  // sender / receiver のいずれかが自分であることを保証して削除
+  const { error } = await supabase
+    .from("messages")
+    .delete()
+    .eq("id", id)
+    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
+
+  if (error) return { error: "メッセージの削除に失敗しました" };
+
+  revalidatePath("/dashboard/messages", "layout");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 export async function markAsRead(senderId: string) {
   const supabase = await createClient();
   const {
