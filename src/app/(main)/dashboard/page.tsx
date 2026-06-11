@@ -5,6 +5,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
+import { DashboardRevenueCard } from "@/components/dashboard/revenue-card";
 
 const StripeConnectButton = dynamic(
   () =>
@@ -95,6 +96,62 @@ export default async function DashboardPage() {
     }
   }
 
+  // ===== ② 売上・収益状況 =====
+  // creator: 自分への支払額 (creator_payout) を escrow_status / 月で集計
+  // client : 自分が払った total_amount を月で集計 / 進行中の合計
+  let revThisMonth = 0;
+  let revPending = 0;
+  let revLifetime = 0;
+  if ((isCreator && hasCreatorProfile) || hasClientProfile) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    if (isCreator && hasCreatorProfile) {
+      // 累計売上 (released = 検収完了) + 未出金 (held = 預かり中)
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("creator_payout, escrow_status, completed_at, status")
+        .eq("creator_id", user.creator_profile!.id);
+      for (const o of orders ?? []) {
+        const r = o as {
+          creator_payout: number | null;
+          escrow_status: string;
+          completed_at: string | null;
+          status: string;
+        };
+        const amount = r.creator_payout ?? 0;
+        if (r.escrow_status === "released") {
+          revLifetime += amount;
+          if (r.completed_at && r.completed_at >= startOfMonth) {
+            revThisMonth += amount;
+          }
+        } else if (r.escrow_status === "held") {
+          // Escrow に預かり中の額 — 検収後に支払われる予定
+          revPending += amount;
+        }
+      }
+    } else {
+      // client: 発注金額ベース
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("total_amount, status, escrow_status, created_at")
+        .eq("client_id", user.client_profile!.id);
+      for (const o of orders ?? []) {
+        const r = o as {
+          total_amount: number | null;
+          status: string;
+          escrow_status: string;
+          created_at: string;
+        };
+        const amount = r.total_amount ?? 0;
+        if (r.escrow_status !== "refunded" && r.status !== "cancelled") {
+          revLifetime += amount;
+          if (r.created_at >= startOfMonth) revThisMonth += amount;
+          if (r.status !== "delivered") revPending += amount;
+        }
+      }
+    }
+  }
+
   return (
     <div className="text-gray-900">
       {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor */}
@@ -116,6 +173,17 @@ export default async function DashboardPage() {
           awaitingMyAction={awaitingMyAction}
         />
       )}
+
+      {/* ② 売上・収益状況 / 発注・支払状況 */}
+      {!isAdmin &&
+        ((isCreator && hasCreatorProfile) || hasClientProfile) && (
+          <DashboardRevenueCard
+            role={isCreator ? "creator" : "client"}
+            thisMonth={revThisMonth}
+            pending={revPending}
+            lifetime={revLifetime}
+          />
+        )}
 
       {/* Admin quick link */}
       {isAdmin && (
