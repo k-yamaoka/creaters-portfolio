@@ -43,8 +43,9 @@ const SORT_OPTIONS = [
 
 const BUDGET_FLOOR = 0;
 const BUDGET_CEIL = 5_000_000; // スライダーの最大値 (5M)
-// 旧 50,000 円刻み (100 段階) は荒すぎたので 10,000 円刻み (500 段階) に
-const BUDGET_STEP = 10_000;
+// 2026-06-12: 10,000 円刻みでも 5K 単位の細かい予算指定ができないという声があり、
+// 5,000 円刻み (1000 段階) に変更。スライダー操作は重くならない範囲。
+const BUDGET_STEP = 5_000;
 
 // おすすめスコアは @/lib/jobs/recommend を共通利用 (scoreJob)。
 // ダッシュボードの「おすすめ案件」セクションと同一ロジックを保つため抽出済。
@@ -111,6 +112,16 @@ export function JobsPageClient({
     if (filters.statusFilter === "open") {
       // status が "open" でも締切が過ぎていれば実質終了扱いで除外
       result = result.filter((j) => isJobOpen(j));
+    } else if (filters.statusFilter === "urgent") {
+      // 募集中 かつ 締切が 3 日以内 (本日含む)
+      result = result.filter((j) => {
+        if (!isJobOpen(j)) return false;
+        const r = daysUntil(j.deadline);
+        return r != null && r >= 0 && r <= 3;
+      });
+    } else if (filters.statusFilter === "closed") {
+      // 終了済 (実質的に募集中ではない)
+      result = result.filter((j) => !isJobOpen(j));
     }
 
     if (filters.keyword) {
@@ -246,31 +257,92 @@ export function JobsPageClient({
           </p>
         </div>
 
-        {/* Status filter radio */}
-        <div className="flex items-center gap-4">
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="statusFilter"
-              checked={filters.statusFilter === "all"}
-              onChange={() => updateFilter({ statusFilter: "all" })}
-              className="h-4 w-4 border-[#E0E0E0] text-neon-pink focus:ring-neon-pink"
-            />
-            <span className={filters.statusFilter === "all" ? "font-bold text-[#222]" : "text-[#4F4F4F]"}>全て</span>
-          </label>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="radio"
-              name="statusFilter"
-              checked={filters.statusFilter === "open"}
-              onChange={() => updateFilter({ statusFilter: "open" })}
-              className="h-4 w-4 border-[#E0E0E0] text-neon-pink focus:ring-neon-pink"
-            />
-            <span className={filters.statusFilter === "open" ? "font-bold text-[#222]" : "text-[#4F4F4F]"}>募集中案件</span>
-          </label>
-        </div>
+        {/* ステータスタブ — すべて / 募集中 / 締切間近 / 終了 */}
+        {(() => {
+          // 各タブの件数を「statusFilter 以外の現在のフィルタ条件で絞り込んだもの」
+          // ベースで計算する。タブを切替えても件数が変わらないようにする。
+          const baseList = jobs.filter((j) => {
+            if (filters.keyword) {
+              const kw = filters.keyword.toLowerCase();
+              if (
+                !j.title.toLowerCase().includes(kw) &&
+                !j.description.toLowerCase().includes(kw) &&
+                !j.genres.some((g) => g.toLowerCase().includes(kw))
+              )
+                return false;
+            }
+            if (filters.genres && filters.genres.length > 0) {
+              if (!filters.genres.some((g) => j.genres.includes(g))) return false;
+            }
+            if (budgetMin > BUDGET_FLOOR || budgetMax < BUDGET_CEIL) {
+              const v = j.budget_max ?? j.budget_min ?? null;
+              if (v == null) return false;
+              if (v < budgetMin || v > budgetMax) return false;
+            }
+            return true;
+          });
+          const cAll = baseList.length;
+          const cOpen = baseList.filter((j) => isJobOpen(j)).length;
+          const cUrgent = baseList.filter((j) => {
+            if (!isJobOpen(j)) return false;
+            const r = daysUntil(j.deadline);
+            return r != null && r >= 0 && r <= 3;
+          }).length;
+          const cClosed = baseList.filter((j) => !isJobOpen(j)).length;
+          const TABS: {
+            key: "all" | "open" | "urgent" | "closed";
+            label: string;
+            n: number;
+            tone?: "urgent";
+          }[] = [
+            { key: "all", label: "すべて", n: cAll },
+            { key: "open", label: "募集中", n: cOpen },
+            { key: "urgent", label: "締切間近", n: cUrgent, tone: "urgent" },
+            { key: "closed", label: "終了", n: cClosed },
+          ];
+          return (
+            <div
+              role="tablist"
+              aria-label="案件ステータス"
+              className="flex flex-wrap gap-1 border-b border-gray-200"
+            >
+              {TABS.map((t) => {
+                const active = (filters.statusFilter ?? "all") === t.key;
+                const accent =
+                  t.tone === "urgent" ? "border-red-500 text-red-600" : "border-neon-pink text-neon-pink";
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => updateFilter({ statusFilter: t.key })}
+                    className={`relative -mb-px inline-flex items-center gap-1.5 border-b-2 px-3 pb-2 pt-1 text-sm font-bold transition-colors ${
+                      active
+                        ? accent
+                        : "border-transparent text-gray-500 hover:text-gray-900"
+                    }`}
+                  >
+                    {t.label}
+                    <span
+                      className={`rounded-pill px-1.5 py-0 text-[10px] font-bold ${
+                        active
+                          ? t.tone === "urgent"
+                            ? "bg-red-100 text-red-600"
+                            : "bg-neon-pink/15 text-neon-pink"
+                          : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
+                      {t.n}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
 
-        {/* 旧 ここにあった予算スライダーは左サイドバーに移動 (2026-06-10) */}
+        {/* 予算スライダーは左サイドバー */}
       </div>
 
       {/* 2-column layout */}
@@ -322,9 +394,50 @@ export function JobsPageClient({
                 <span className="mx-1 text-[#BDBDBD]">〜</span>
                 {budgetMax >= BUDGET_CEIL ? "上限なし" : formatPrice(budgetMax)}
               </p>
+              {/* 数値入力欄: スライダーを補完。5,000 単位での細かい指定が可能 */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] text-[#828282]">下限 (円)</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={BUDGET_FLOOR}
+                    max={BUDGET_CEIL}
+                    step={BUDGET_STEP}
+                    value={budgetMin}
+                    onChange={(e) => {
+                      const v = Math.max(
+                        BUDGET_FLOOR,
+                        Math.min(Number(e.target.value || 0), budgetMax)
+                      );
+                      setBudgetMin(v);
+                    }}
+                    className="mt-0.5 w-full rounded-md border border-[#E0E0E0] px-2 py-1 text-xs outline-none focus:border-neon-pink"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-[#828282]">上限 (円)</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={BUDGET_FLOOR}
+                    max={BUDGET_CEIL}
+                    step={BUDGET_STEP}
+                    value={budgetMax}
+                    onChange={(e) => {
+                      const v = Math.min(
+                        BUDGET_CEIL,
+                        Math.max(Number(e.target.value || 0), budgetMin)
+                      );
+                      setBudgetMax(v);
+                    }}
+                    className="mt-0.5 w-full rounded-md border border-[#E0E0E0] px-2 py-1 text-xs outline-none focus:border-neon-pink"
+                  />
+                </div>
+              </div>
               <div className="mt-3 space-y-3">
                 <div>
-                  <label className="text-[10px] text-[#828282]">下限</label>
+                  <label className="text-[10px] text-[#828282]">下限スライダー</label>
                   <input
                     type="range"
                     min={BUDGET_FLOOR}
@@ -339,7 +452,7 @@ export function JobsPageClient({
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] text-[#828282]">上限</label>
+                  <label className="text-[10px] text-[#828282]">上限スライダー</label>
                   <input
                     type="range"
                     min={BUDGET_FLOOR}
@@ -353,6 +466,34 @@ export function JobsPageClient({
                     className="block w-full accent-neon-purple"
                   />
                 </div>
+              </div>
+              {/* よく使う範囲のクイックチップ — 5K 単位で細かく指定したいとき以外の近道 */}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {[
+                  { label: "〜10万", min: 0, max: 100_000 },
+                  { label: "10〜30万", min: 100_000, max: 300_000 },
+                  { label: "30〜100万", min: 300_000, max: 1_000_000 },
+                  { label: "100万〜", min: 1_000_000, max: BUDGET_CEIL },
+                ].map((q) => {
+                  const active = budgetMin === q.min && budgetMax === q.max;
+                  return (
+                    <button
+                      key={q.label}
+                      type="button"
+                      onClick={() => {
+                        setBudgetMin(q.min);
+                        setBudgetMax(q.max);
+                      }}
+                      className={`rounded-pill border px-2.5 py-0.5 text-[11px] font-bold transition-colors ${
+                        active
+                          ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                          : "border-[#E0E0E0] text-[#828282] hover:border-neon-pink hover:text-neon-pink"
+                      }`}
+                    >
+                      {q.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

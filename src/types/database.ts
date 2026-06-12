@@ -85,7 +85,8 @@ export type CreatorSearchFilters = {
 export type JobSearchFilters = {
   keyword?: string;
   genres?: string[];
-  statusFilter?: "all" | "open";
+  // "all" すべて / "open" 募集中 / "urgent" 締切間近 (3日以内) / "closed" 終了
+  statusFilter?: "all" | "open" | "urgent" | "closed";
   sortBy?: "recommended" | "newest" | "popular" | "price_high" | "deadline";
   // 予算スライダー (min/max は円単位)
   budgetMin?: number;
