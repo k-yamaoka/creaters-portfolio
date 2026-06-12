@@ -58,7 +58,13 @@ export function VisualStyleSelector() {
                 alt={s.label}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                className="object-cover object-top"
+                className={`object-cover ${
+                  // 画像個別に objectPosition を指定可能。
+                  // 未指定の場合は "top" でキャラの頭/タイトル優先。
+                  (s as { objectPosition?: string }).objectPosition === "center"
+                    ? "object-center"
+                    : "object-top"
+                }`}
               />
               {/* 下部: グラデーション + 日本語ラベル */}
               <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 pb-2.5 pt-8">

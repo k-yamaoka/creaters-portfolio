@@ -109,9 +109,22 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
     .filter(Boolean);
   const referenceUrlsFilled = validReferenceUrls.length >= 1;
 
+  // アスペクト比 必須化 (2026-06-12)。チップ選択 or その他自由入力のいずれかが
+  // 埋まっていれば OK。
+  const aspectRatiosFilled =
+    aspectRatios.length > 0 ||
+    (aspectRatioOtherShow && aspectRatioOther.trim().length > 0);
+
   useEffect(() => {
-    onValidityChange?.(deliveryFormatsFilled && referenceUrlsFilled);
-  }, [deliveryFormatsFilled, referenceUrlsFilled, onValidityChange]);
+    onValidityChange?.(
+      deliveryFormatsFilled && referenceUrlsFilled && aspectRatiosFilled
+    );
+  }, [
+    deliveryFormatsFilled,
+    referenceUrlsFilled,
+    aspectRatiosFilled,
+    onValidityChange,
+  ]);
 
   useEffect(() => {
     onCountChange?.(toNum(countMin), toNum(countMax));
@@ -143,7 +156,7 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
             value={finishBucket}
             onChange={(e) => setFinishBucket(e.target.value)}
             required
-            className={`${fieldInputClass} bg-white`}
+            className={`${fieldInputClass} bg-white sm:max-w-xs`}
           >
             <option value="">選択してください</option>
             {FINISH_DURATION_BUCKETS.map((b) => (
@@ -314,10 +327,11 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
           )}
         </div>
 
-        {/* アスペクト比 (任意・複数選択可) — 納品形式の下に配置 */}
+        {/* アスペクト比 (必須・複数選択可) — 納品形式の下に配置 */}
         <div>
-          <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-            アスペクト比（任意・複数選択可）
+          <label className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]">
+            アスペクト比（複数選択可）
+            <RequiredMark />
           </label>
           <div className="flex flex-wrap gap-2">
             {JOB_ASPECT_RATIOS.map((a) => {

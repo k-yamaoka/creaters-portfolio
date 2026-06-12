@@ -24,6 +24,12 @@ function parseStringList(raws: FormDataEntryValue[], maxLen = 60, maxCount = 20)
     .slice(0, maxCount);
 }
 
+/**
+ * 案件の作成。
+ * formData の "save_mode" が "draft" のときは status=draft で保存し、
+ * 一覧の "下書き" タブから後で続きを編集できる。
+ * "draft" の場合は必須項目検証を緩める (タイトルだけ必須)。
+ */
 export async function createJob(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -50,6 +56,9 @@ export async function createJob(formData: FormData) {
   if (!clientProfile) {
     return { error: "クライアント情報の作成に失敗しました" };
   }
+
+  const saveMode = (formData.get("save_mode") as string) ?? "publish";
+  const isDraft = saveMode === "draft";
 
   const title = parseText(formData.get("title"), LIMITS.TITLE_LEN);
   if (!title) return { error: "タイトルを入力してください" };
@@ -102,7 +111,8 @@ export async function createJob(formData: FormData) {
   // ビジュアルスタイル: JOB_VISUAL_STYLES の slug (cinematic, anime_jp 等)。30字×5件まで。
   const visual_styles = parseStringList(formData.getAll("visual_styles"), 30, 5);
   const reference_url = parseText(formData.get("reference_url"), 2000);
-  if (!reference_url) {
+  // 公開時は参考URL必須、下書きは緩和
+  if (!isDraft && !reference_url) {
     return { error: "参考動画 URL を 1 件以上入力してください" };
   }
   const is_recurring = !!formData.get("is_recurring");
@@ -130,7 +140,7 @@ export async function createJob(formData: FormData) {
     unit_price,
     deadline,
     delivery_deadline,
-    status: "open",
+    status: isDraft ? "draft" : "open",
     // UI 撤去済フィールドは互換のため null で投入
     footage_minutes: null,
     finish_duration_unit,

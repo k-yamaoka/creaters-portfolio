@@ -74,6 +74,9 @@ export function JobForm() {
     );
   };
 
+  // どちらのボタンを押されたかを記録 (下書き or 公開)
+  const [saveMode, setSaveMode] = useState<"publish" | "draft">("publish");
+
   const handleSubmit = async (formData: FormData) => {
     setSaving(true);
     setError(null);
@@ -82,6 +85,7 @@ export function JobForm() {
     if (genresOtherShow && genresOther.trim()) {
       formData.append("genres", genresOther.trim());
     }
+    formData.set("save_mode", saveMode);
 
     const result = await createJob(formData);
     if (result?.error) {
@@ -162,7 +166,7 @@ export function JobForm() {
                   className="sr-only"
                 />
                 <div
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 ${
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
                     isSelected
                       ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
                       : "border-[#BDBDBD]"
@@ -170,7 +174,7 @@ export function JobForm() {
                 >
                   {isSelected && (
                     <svg
-                      className="h-3 w-3 text-white"
+                      className="h-3.5 w-3.5 text-white"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={3}
@@ -336,13 +340,24 @@ export function JobForm() {
         </div>
       </section>
 
-      <div className="flex justify-end">
+      <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row sm:items-center">
+        {/* 下書き保存 — タイトルがあれば押せる。後で /dashboard/jobs の下書き
+            タブから続きを編集できる想定 (status=draft で保存)。 */}
         <button
           type="submit"
+          onClick={() => setSaveMode("draft")}
+          disabled={saving}
+          className="rounded-pill border border-gray-300 bg-white px-6 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink disabled:opacity-50"
+        >
+          {saving && saveMode === "draft" ? "保存中..." : "下書き保存"}
+        </button>
+        <button
+          type="submit"
+          onClick={() => setSaveMode("publish")}
           disabled={!canSubmit}
           className="btn-primary px-10 text-sm disabled:opacity-50"
         >
-          {saving ? "作成中..." : "案件を掲載する"}
+          {saving && saveMode === "publish" ? "作成中..." : "案件を掲載する"}
         </button>
       </div>
     </form>

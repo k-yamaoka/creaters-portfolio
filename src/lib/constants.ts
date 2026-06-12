@@ -3,9 +3,9 @@
 // トグル + 自由入力で対応する (job-form.tsx)。
 export const GENRES = [
   "SNS広告動画",
-  "プロダクト紹介動画",
-  "サービス解説動画（Explainer）",
-  "マニュアル・操作説明動画（How-to）",
+  "商品紹介動画",
+  "サービス解説動画",
+  "マニュアル・操作説明動画",
   "会社紹介・コーポレートVP",
   "採用動画",
   "展示会・イベント映像",
@@ -140,7 +140,7 @@ export const EDIT_SOFTWARE_OPTIONS = [
   "Veo",
   "Sora",
   "Runway",
-  "google omni",
+  "Luma Dream Machine",
   "Kling AI",
   "Hailuo AI",
   "Pika",
@@ -167,7 +167,21 @@ export const JOB_ASPECT_RATIOS = [
  * 画像は AI 生成 (Nano Banana 2) のオリジナル写真を sips でリサイズ・JPEG 化して
  * 同梱。差し替える場合は同じパスに同名で上書きすれば足りる。
  */
+/**
+ * 各エントリの `objectPosition` は次の意味:
+ * - "top" (デフォルト): 画像上端を起点にトリミング (キャラクター顔・タイトル優先)
+ * - "center": 上下均等にトリミング (画面全体を主題が占めるイラスト系で使う)
+ * 16:9 ソースを 5:6 タイルに表示するため左右が大きく切られる。
+ * 中央寄せが必要な画像のみ "center" を指定する。
+ */
 export const JOB_VISUAL_STYLES = [
+  {
+    // 2026-06-12 追加: 「リアル実写」を先頭に
+    value: "real_live_action",
+    label: "リアル実写",
+    image: "/images/visual-styles/real_live_action.jpg",
+    hint: "Live action",
+  },
   {
     value: "cinematic",
     label: "シネマティック",
@@ -203,18 +217,22 @@ export const JOB_VISUAL_STYLES = [
     label: "2Dフラットアニメ",
     image: "/images/visual-styles/anime_2d_flat.jpg",
     hint: "2D Flat",
+    // 上下が切れない中央寄せ (2026-06-12 修正)
+    objectPosition: "center",
   },
   {
     value: "hand_drawn",
     label: "手描き風",
     image: "/images/visual-styles/hand_drawn.jpg",
     hint: "Hand-drawn",
+    objectPosition: "center",
   },
   {
+    // 2026-06-12 リネーム: クリーン・コーポレート → 3DCGグラフィック
     value: "clean_corporate",
-    label: "クリーン・コーポレート",
+    label: "3DCGグラフィック",
     image: "/images/visual-styles/clean_corporate.jpg",
-    hint: "Corporate",
+    hint: "3DCG",
   },
   {
     value: "neon_sci_fi",
