@@ -5,14 +5,9 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
-import { DashboardRevenueCard } from "@/components/dashboard/revenue-card";
-import { RecommendedJobsSection } from "@/components/dashboard/recommended-jobs";
-import { recommendedScore } from "@/lib/jobs/recommend";
-import { DashboardAnalyticsCard } from "@/components/dashboard/analytics-card";
-import {
-  DashboardCompletenessMeter,
-  type CompletenessItem,
-} from "@/components/dashboard/completeness-meter";
+// 2026-06-12 ダッシュボード整理:
+// - 売上・収益状況 / おすすめ案件 / アナリティクス の 3 セクションを撤去
+// - プロフィール充実度はバナー (BasicInfoEditor) に統合 (独立カードを撤去)
 
 const StripeConnectButton = dynamic(
   () =>
@@ -35,8 +30,8 @@ export default async function DashboardPage() {
 
   const supabase = await createClient();
 
-  // 総いいね数 = このクリエイターの全 portfolio_items の like_count 合計。
-  // creator_profile を持つ場合のみ実行。
+  // 総いいね数 = このクリエイターの全 portfolio_items の like_count 合計 (旧 ④
+  // アナリティクス撤去後も、評価セクションの「総いいね数」カードで使用)
   let totalLikes = 0;
   if (isCreator && hasCreatorProfile) {
     const { data: rows } = await supabase
@@ -103,357 +98,57 @@ export default async function DashboardPage() {
     }
   }
 
-  // ===== ② 売上・収益状況 =====
-  // creator: 自分への支払額 (creator_payout) を escrow_status / 月で集計
-  // client : 自分が払った total_amount を月で集計 / 進行中の合計
-  let revThisMonth = 0;
-  let revPending = 0;
-  let revLifetime = 0;
-  if ((isCreator && hasCreatorProfile) || hasClientProfile) {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    if (isCreator && hasCreatorProfile) {
-      // 累計売上 (released = 検収完了) + 未出金 (held = 預かり中)
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("creator_payout, escrow_status, completed_at, status")
-        .eq("creator_id", user.creator_profile!.id);
-      for (const o of orders ?? []) {
-        const r = o as {
-          creator_payout: number | null;
-          escrow_status: string;
-          completed_at: string | null;
-          status: string;
-        };
-        const amount = r.creator_payout ?? 0;
-        if (r.escrow_status === "released") {
-          revLifetime += amount;
-          if (r.completed_at && r.completed_at >= startOfMonth) {
-            revThisMonth += amount;
-          }
-        } else if (r.escrow_status === "held") {
-          // Escrow に預かり中の額 — 検収後に支払われる予定
-          revPending += amount;
-        }
-      }
-    } else {
-      // client: 発注金額ベース
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("total_amount, status, escrow_status, created_at")
-        .eq("client_id", user.client_profile!.id);
-      for (const o of orders ?? []) {
-        const r = o as {
-          total_amount: number | null;
-          status: string;
-          escrow_status: string;
-          created_at: string;
-        };
-        const amount = r.total_amount ?? 0;
-        if (r.escrow_status !== "refunded" && r.status !== "cancelled") {
-          revLifetime += amount;
-          if (r.created_at >= startOfMonth) revThisMonth += amount;
-          if (r.status !== "delivered") revPending += amount;
-        }
-      }
-    }
-  }
+  // ② 売上・収益状況 / ③ おすすめ案件 / ④ アナリティクス の各セクションは
+  // 2026-06-12 にダッシュボードから撤去。関連クエリと state はすべて削除。
 
-  // ===== ③ おすすめの募集案件 (クリエイター向け) =====
-  // open 状態 / 期限が今日以降の jobs を取得 → 既応募を除外
-  // → recommendedScore で並び替えて上位 4 件
-  type RecJob = {
-    id: string;
-    title: string;
-    description: string;
-    budget_min: number | null;
-    budget_max: number | null;
-    deadline: string | null;
-    genres: string[];
-    matchScore: number;
-  };
-  let recommendedJobs: RecJob[] = [];
-  if (isCreator && hasCreatorProfile) {
-    const todayISO = new Date().toISOString().slice(0, 10);
-    // 期限なし (null) も含める。期限ありなら今日以降のみ
-    const { data: openJobs } = await supabase
-      .from("jobs")
-      .select(
-        "id, title, description, budget_min, budget_max, deadline, genres, created_at"
-      )
-      .eq("status", "open")
-      .or(`deadline.is.null,deadline.gte.${todayISO}`)
-      .order("created_at", { ascending: false })
-      .limit(60);
-
-    // 既に応募済みの job_id を除外
-    const { data: applied } = await supabase
-      .from("job_applications")
-      .select("job_id")
-      .eq("creator_id", user.creator_profile!.id);
-    const appliedIds = new Set((applied ?? []).map((a) => a.job_id as string));
-
-    const profile = user.creator_profile;
-    const scored = (openJobs ?? [])
-      .filter((j) => !appliedIds.has(j.id as string))
-      .map((j) => {
-        const job = j as {
-          id: string;
-          title: string;
-          description: string | null;
-          budget_min: number | null;
-          budget_max: number | null;
-          deadline: string | null;
-          genres: string[] | null;
-        };
-        const matchScore = recommendedScore(
-          {
-            title: job.title,
-            description: job.description ?? "",
-            genres: job.genres ?? [],
-          },
-          {
-            genres: profile?.genres ?? [],
-            strengths: profile?.strengths ?? [],
-            video_lengths: profile?.video_lengths ?? [],
-            bio: profile?.bio ?? "",
-          }
-        );
-        return {
-          id: job.id,
-          title: job.title,
-          description: job.description ?? "",
-          budget_min: job.budget_min,
-          budget_max: job.budget_max,
-          deadline: job.deadline,
-          genres: job.genres ?? [],
-          matchScore,
-        } as RecJob;
-      });
-
-    // マッチスコア降順 → タイブレークは元の新着順を維持 (stable sort)
-    scored.sort((a, b) => b.matchScore - a.matchScore);
-    recommendedJobs = scored.slice(0, 4);
-  }
-
-  // ===== ④ アナリティクス簡易表示 =====
-  // creator: プロフィール閲覧数 / 累計いいね / ポートフォリオ件数 / 完了取引数
-  // client : 投稿案件数 / 応募受領数 / 進行中取引 / 完了取引
-  let analyticsMetrics: Array<{
-    label: string;
-    value: number;
-    hint: string;
-    iconKey: "eye" | "heart" | "stack" | "check" | "briefcase" | "users" | "flag";
-    href?: string;
-  }> = [];
-  let analyticsPrompt: { text: string; href: string; cta: string } | undefined;
+  // ===== プロフィール充実度 (バナーに統合) =====
+  // 旧 ⑤ DashboardCompletenessMeter は廃止し、done/total のみ計算して
+  // BasicInfoEditor (Welcome バナー) に渡す。
+  // ポートフォリオ件数は creator のときだけ参照する。
   let portfolioCount = 0;
   if (isCreator && hasCreatorProfile) {
-    const cpId = user.creator_profile!.id;
-    const [
-      portfolioCountQ,
-      finishedQ,
-    ] = await Promise.all([
-      supabase
-        .from("portfolio_items")
-        .select("*", { count: "exact", head: true })
-        .eq("creator_id", cpId),
-      supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("creator_id", cpId)
-        .eq("status", "delivered"),
-    ]);
-    portfolioCount = portfolioCountQ.count ?? 0;
-    const profileViews =
-      (user.creator_profile as { profile_views?: number | null } | null)
-        ?.profile_views ?? 0;
-    analyticsMetrics = [
-      {
-        label: "プロフィール閲覧数",
-        value: profileViews,
-        hint: "クリエイター詳細ページのアクセス累計",
-        iconKey: "eye",
-        href: `/creators/${cpId}`,
-      },
-      {
-        label: "累計いいね",
-        value: totalLikes,
-        hint: "全ポートフォリオ作品のいいね合計",
-        iconKey: "heart",
-      },
-      {
-        label: "ポートフォリオ件数",
-        value: portfolioCount,
-        hint: "公開済の作品数",
-        iconKey: "stack",
-        href: "/dashboard/portfolio",
-      },
-      {
-        label: "完了取引数",
-        value: finishedQ.count ?? 0,
-        hint: "納品まで完了した取引数",
-        iconKey: "check",
-        href: "/dashboard/orders",
-      },
-    ];
-    if (portfolioCount < 3) {
-      analyticsPrompt = {
-        text: "ポートフォリオを3件以上にすると表示優先度が上がります",
-        href: "/dashboard/portfolio",
-        cta: "ポートフォリオを追加",
-      };
-    }
-  } else if (hasClientProfile) {
-    const clientId = user.client_profile!.id;
-    const [postedQ, finishedQ] = await Promise.all([
-      supabase
-        .from("jobs")
-        .select("*", { count: "exact", head: true })
-        .eq("client_id", clientId),
-      supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("client_id", clientId)
-        .eq("status", "delivered"),
-    ]);
-    // 受け取った応募数 = 自社の jobs に対する applications 合計
-    const { data: myJobs } = await supabase
-      .from("jobs")
-      .select("id")
-      .eq("client_id", clientId);
-    let applicationsReceived = 0;
-    if (myJobs && myJobs.length > 0) {
-      const ids = myJobs.map((j) => j.id as string);
-      const { count } = await supabase
-        .from("job_applications")
-        .select("*", { count: "exact", head: true })
-        .in("job_id", ids);
-      applicationsReceived = count ?? 0;
-    }
-    analyticsMetrics = [
-      {
-        label: "投稿した案件",
-        value: postedQ.count ?? 0,
-        hint: "/jobs に出している案件数 (全ステータス)",
-        iconKey: "briefcase",
-        href: "/dashboard/jobs",
-      },
-      {
-        label: "応募受領数",
-        value: applicationsReceived,
-        hint: "自社案件へのクリエイター応募合計",
-        iconKey: "users",
-        href: "/dashboard/jobs",
-      },
-      {
-        label: "進行中取引",
-        value: activeOrders,
-        hint: "未完了 (delivered/cancelled 以外) の取引",
-        iconKey: "flag",
-        href: "/dashboard/orders",
-      },
-      {
-        label: "完了取引数",
-        value: finishedQ.count ?? 0,
-        hint: "納品まで完了した取引数",
-        iconKey: "check",
-        href: "/dashboard/orders",
-      },
-    ];
+    const { count } = await supabase
+      .from("portfolio_items")
+      .select("*", { count: "exact", head: true })
+      .eq("creator_id", user.creator_profile!.id);
+    portfolioCount = count ?? 0;
   }
 
-  // アイコンのレンダリング — server component で SVG を直接出す
-  function MetricIcon({ k }: { k: typeof analyticsMetrics[number]["iconKey"] }) {
-    const path =
-      k === "eye"
-        ? "M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-        : k === "heart"
-          ? "M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-          : k === "stack"
-            ? "M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3"
-            : k === "check"
-              ? "m4.5 12.75 6 6 9-13.5"
-              : k === "briefcase"
-                ? "M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"
-                : k === "users"
-                  ? "M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-                  : "M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5";
-    return (
-      <svg
-        aria-hidden
-        className="h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.8}
-        stroke="currentColor"
-      >
-        <path strokeLinecap="round" strokeLinejoin="round" d={path} />
-      </svg>
-    );
+  function computeCompleteness(): { done: number; total: number } | undefined {
+    // 内側関数では外側の user の null 絞り込みが効かないため、ローカルに alias
+    const u = user!;
+    if (isCreator && hasCreatorProfile) {
+      const cp = u.creator_profile!;
+      const items = [
+        !!u.avatar_url,
+        !!cp.bio?.trim(),
+        (cp.genres ?? []).length > 0,
+        (cp.video_lengths ?? []).length > 0,
+        (cp.strengths ?? []).length > 0,
+        (cp.ai_tools ?? []).length > 0,
+        cp.minimum_order_amount != null && cp.minimum_order_amount > 0,
+        portfolioCount >= 1,
+      ];
+      return { done: items.filter(Boolean).length, total: items.length };
+    }
+    if (hasClientProfile) {
+      const cl = u.client_profile!;
+      const items = [
+        !!u.avatar_url,
+        !!cl.company_name?.trim(),
+        !!cl.company_url?.trim(),
+        !!cl.industry?.trim(),
+      ];
+      return { done: items.filter(Boolean).length, total: items.length };
+    }
+    return undefined;
   }
-  const analyticsMetricsRendered = analyticsMetrics.map((m) => ({
-    label: m.label,
-    value: m.value,
-    hint: m.hint,
-    href: m.href,
-    icon: <MetricIcon k={m.iconKey} />,
-  }));
-
-  // ===== ⑤ プロフィール充実度メーター =====
-  let completenessItems: CompletenessItem[] = [];
-  if (isCreator && hasCreatorProfile) {
-    const cp = user.creator_profile!;
-    const editHref = "/dashboard/profile";
-    completenessItems = [
-      {
-        label: "アバター画像",
-        done: !!user.avatar_url,
-        editHref: "/dashboard",
-      },
-      { label: "自己紹介 (bio)", done: !!(cp.bio?.trim()), editHref },
-      { label: "得意ジャンル", done: (cp.genres ?? []).length > 0, editHref },
-      {
-        label: "得意な動画尺",
-        done: (cp.video_lengths ?? []).length > 0,
-        editHref,
-      },
-      { label: "強み", done: (cp.strengths ?? []).length > 0, editHref },
-      {
-        label: "使用 AI ツール",
-        done: (cp.ai_tools ?? []).length > 0,
-        editHref,
-      },
-      {
-        label: "最低受注金額",
-        done:
-          cp.minimum_order_amount != null && cp.minimum_order_amount > 0,
-        editHref: "/dashboard",
-      },
-      {
-        label: "ポートフォリオ作品 (1件以上)",
-        done: portfolioCount >= 1,
-        editHref: "/dashboard/portfolio",
-      },
-    ];
-  } else if (hasClientProfile) {
-    const cl = user.client_profile!;
-    const editHref = "/dashboard/profile";
-    completenessItems = [
-      {
-        label: "アバター画像",
-        done: !!user.avatar_url,
-        editHref: "/dashboard",
-      },
-      { label: "会社名", done: !!(cl.company_name?.trim()), editHref },
-      { label: "会社 URL", done: !!(cl.company_url?.trim()), editHref },
-      { label: "業種", done: !!(cl.industry?.trim()), editHref },
-    ];
-  }
+  const completeness = computeCompleteness();
 
   return (
     <div className="text-gray-900">
-      {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor */}
+      {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor。
+          プロフィール充実度はここに統合されている (旧独立カードは撤去)。 */}
       <BasicInfoEditor
         userId={user.id}
         initialDisplayName={user.display_name}
@@ -461,6 +156,7 @@ export default async function DashboardPage() {
         roleLabel={roleLabel + (isAdmin ? "  [ADMIN]" : "")}
         isCreator={isCreator && hasCreatorProfile}
         initialMinimumOrderAmount={user.creator_profile?.minimum_order_amount ?? null}
+        completeness={!isAdmin ? completeness : undefined}
       />
 
       {/* ① 要対応アラート — ダッシュボード最上部 (最優先) */}
@@ -473,37 +169,8 @@ export default async function DashboardPage() {
         />
       )}
 
-      {/* ② 売上・収益状況 / 発注・支払状況 */}
-      {!isAdmin &&
-        ((isCreator && hasCreatorProfile) || hasClientProfile) && (
-          <DashboardRevenueCard
-            role={isCreator ? "creator" : "client"}
-            thisMonth={revThisMonth}
-            pending={revPending}
-            lifetime={revLifetime}
-          />
-        )}
-
-      {/* ③ おすすめの募集案件 (クリエイター限定) */}
-      {!isAdmin && isCreator && hasCreatorProfile && (
-        <RecommendedJobsSection jobs={recommendedJobs} />
-      )}
-
-      {/* ④ アナリティクス簡易表示 */}
-      {!isAdmin &&
-        ((isCreator && hasCreatorProfile) || hasClientProfile) && (
-          <DashboardAnalyticsCard
-            metrics={analyticsMetricsRendered}
-            promptText={analyticsPrompt?.text}
-            promptHref={analyticsPrompt?.href}
-            promptCta={analyticsPrompt?.cta}
-          />
-        )}
-
-      {/* ⑤ プロフィール充実度メーター */}
-      {!isAdmin && completenessItems.length > 0 && (
-        <DashboardCompletenessMeter items={completenessItems} />
-      )}
+      {/* 旧 ② 売上・収益状況 / ③ おすすめ案件 / ④ アナリティクス / ⑤ 充実度メーター は
+          2026-06-12 にダッシュボードから撤去 */}
 
       {/* Admin quick link */}
       {isAdmin && (

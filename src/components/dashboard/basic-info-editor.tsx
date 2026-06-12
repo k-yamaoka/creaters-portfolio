@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { updateBasicInfo } from "@/app/(main)/dashboard/profile/actions";
 import { AvatarCropModal } from "./avatar-crop-modal";
@@ -24,6 +25,8 @@ type Props = {
   initialMinimumOrderAmount?: number | null;
   /** クリエイター入力欄を出すか (= viewer が creator のとき true) */
   isCreator?: boolean;
+  /** プロフィール充実度 (旧 DashboardCompletenessMeter をバナーに統合) */
+  completeness?: { done: number; total: number };
 };
 
 /**
@@ -47,6 +50,7 @@ export function BasicInfoEditor({
   roleLabel,
   initialMinimumOrderAmount = null,
   isCreator = false,
+  completeness,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState(initialDisplayName);
@@ -372,6 +376,15 @@ export function BasicInfoEditor({
         </div>
 
         {/* Actions */}
+        {/* プロフィール充実度 (旧スタンドアロンメーターをバナーに統合)。
+            編集モード中は非表示にして混雑を避ける。 */}
+        {!editing && completeness && completeness.total > 0 && (
+          <ProfileCompletenessMini
+            done={completeness.done}
+            total={completeness.total}
+          />
+        )}
+
         <div className="flex shrink-0 items-center gap-2">
           {editing ? (
             <>
@@ -436,5 +449,67 @@ export function BasicInfoEditor({
         />
       )}
     </section>
+  );
+}
+
+/**
+ * ウェルカムバナー右側に置く「プロフィール充実度」のコンパクト版。
+ * - 旧 DashboardCompletenessMeter を縮小して埋め込み。
+ * - 円形の % 表示 + 横長プログレスバー + 残り項目数。
+ * - クリックで /dashboard/profile (詳細編集) に遷移。
+ */
+function ProfileCompletenessMini({
+  done,
+  total,
+}: {
+  done: number;
+  total: number;
+}) {
+  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+  const isComplete = pct === 100;
+  const remain = total - done;
+  const barColor = isComplete
+    ? "bg-green-500"
+    : pct >= 70
+      ? "bg-gradient-to-r from-neon-pink to-green-500"
+      : pct >= 40
+        ? "bg-gradient-to-r from-neon-pink to-neon-purple"
+        : "bg-gradient-to-r from-neon-pink/70 to-neon-pink";
+  return (
+    <Link
+      href="/dashboard/profile"
+      title={
+        isComplete
+          ? "プロフィールは完成済み"
+          : `あと ${remain} 項目で完成`
+      }
+      className="group hidden flex-1 items-center gap-3 rounded-xl border border-gray-200 bg-gray-50/60 px-3 py-2 transition-colors hover:border-neon-pink/40 hover:bg-white sm:flex"
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-gray-500">
+            プロフィール充実度
+          </span>
+          <span
+            className={`text-xs font-black ${
+              isComplete ? "text-green-600" : "text-neon-purple-deep"
+            }`}
+          >
+            {pct}%
+          </span>
+        </div>
+        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
+          <div
+            className={`h-full transition-[width] duration-500 ${barColor}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="mt-1 text-[10px] text-gray-500 group-hover:text-gray-700">
+          {isComplete
+            ? "✓ 完成"
+            : `${done}/${total} 項目入力済 · 残り ${remain} 項目`}
+        </p>
+      </div>
+    </Link>
   );
 }
