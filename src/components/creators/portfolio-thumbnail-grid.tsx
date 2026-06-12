@@ -76,30 +76,22 @@ export function PortfolioThumbnailGrid({
         </div>
       )}
 
-      {/* アスペクト比に応じて aspect-* を切り替えつつ、単一グリッドに統合。
-          縦型・横型・正方形を混在させた masonry 風の自然な並びにする。 */}
+      {/* 全タイルを統一アスペクト (16:9) に揃え、視覚的バランスを確保。
+          縦型/正方形のソースは object-cover で中央クロップして表示し、
+          元のアスペクト比は小バッジで明示する。フル比率の閲覧はモーダルで。 */}
       {filtered.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {filtered.map((entry) => {
-            const a = entry.portfolio.aspect_ratio;
-            const aspectClass =
-              a === "vertical"
-                ? "aspect-[9/16]"
-                : a === "square"
-                  ? "aspect-square"
-                  : "aspect-video";
-            return (
-              <PortfolioCardTile
-                key={entry.portfolio.id}
-                entry={entry}
-                aspectClass={aspectClass}
-                imageSizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                likedIds={likedIds}
-                isAuthed={isAuthed ?? false}
-                onOpen={openModal}
-              />
-            );
-          })}
+          {filtered.map((entry) => (
+            <PortfolioCardTile
+              key={entry.portfolio.id}
+              entry={entry}
+              aspectClass="aspect-video"
+              imageSizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              likedIds={likedIds}
+              isAuthed={isAuthed ?? false}
+              onOpen={openModal}
+            />
+          ))}
         </div>
       )}
 
@@ -135,6 +127,13 @@ function PortfolioCardTile({
   const isImage = portfolio.media_type === "image";
   const imageSrc = portfolio.image_url || portfolio.thumbnail_url;
   const liked = likedIds?.has(portfolio.id) ?? false;
+  // 元アスペクト比 (タイルは横長に統一表示しているため、中身の比率をバッジで明示)
+  const aspectLabel =
+    portfolio.aspect_ratio === "vertical"
+      ? "9:16"
+      : portfolio.aspect_ratio === "square"
+        ? "1:1"
+        : null;
 
   return (
     <div
@@ -175,6 +174,14 @@ function PortfolioCardTile({
           className="h-full w-full"
           showPlayIcon={false}
         />
+      )}
+
+      {/* 元アスペクト比バッジ (左上) — 縦型/正方形のとき出す */}
+      {aspectLabel && (
+        <span className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-pill bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+          {portfolio.aspect_ratio === "vertical" ? "縦型" : "正方形"}
+          <span className="text-white/70">{aspectLabel}</span>
+        </span>
       )}
 
       {/* Top-right: いいねボタン (常時表示 + count を併記)。
