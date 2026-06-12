@@ -359,6 +359,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   };
 
   const handleDelete = async (id: string) => {
+    // 多重実行ガード — ある作品の削除中に他のゴミ箱を押されてもこのガードで弾く。
+    // UI 側でも anyDeleting で全ボタンを disabled にしているが、二重防御。
+    if (deleting) return;
     if (!confirm("この作品を削除しますか？")) return;
     setDeleting(id);
     const result = await deletePortfolioItem(id);
@@ -885,6 +888,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 item={item}
                 onDelete={() => handleDelete(item.id)}
                 deleting={deleting === item.id}
+                anyDeleting={deleting !== null}
                 onThumbnailUpdated={() => setError(null)}
                 onFeaturedError={(msg) => setError(msg)}
                 featuredCount={items.filter((i) => i.is_featured === true).length}
@@ -905,13 +909,17 @@ function PortfolioCard({
   item,
   onDelete,
   deleting,
+  anyDeleting,
   onThumbnailUpdated,
   onFeaturedError,
   featuredCount,
 }: {
   item: PortfolioItem;
   onDelete: () => void;
+  /** この作品自体が削除処理中か (「削除中...」ラベル切替に使う) */
   deleting: boolean;
+  /** どの作品でも削除処理が進行中か (全ゴミ箱ボタンを無効化するために使う) */
+  anyDeleting: boolean;
   onThumbnailUpdated: () => void;
   onFeaturedError: (msg: string) => void;
   featuredCount: number;
@@ -935,8 +943,10 @@ function PortfolioCard({
   };
 
   const isImage = item.media_type === "image";
-  // display_tag が設定されていればそれを最優先で出す (例: 「商用実績」「縦型 9:16」)
-  // 未設定なら従来の platform 表示にフォールバック
+  // display_tag が設定されていればそれを最優先 (例: 「商用実績」「縦型 9:16」)
+  // 未設定なら platform から自動ラベルを付ける。
+  // ※ 自動判定で該当が無い場合に従来の「Other」表示は撤去。
+  //   何も意味のないラベルが出るのを防ぐため、バッジ自体を表示しない。
   const autoLabel = isImage
     ? "画像"
     : item.video_platform === "youtube"
@@ -949,8 +959,8 @@ function PortfolioCard({
             ? "TikTok"
             : item.video_platform === "instagram"
               ? "Insta"
-              : "Other";
-  const platformLabel = (item.display_tag?.trim() || autoLabel) as string;
+              : null;
+  const platformLabel = (item.display_tag?.trim() || autoLabel) ?? null;
 
   const handleUpload = async (file: File) => {
     setUploading(true);
@@ -1010,13 +1020,16 @@ function PortfolioCard({
             </span>
           </div>
         )}
-        <div
-          className={`absolute left-2 top-2 rounded px-2 py-0.5 text-[10px] font-bold text-white ${
-            isImage ? "bg-gradient-to-r from-neon-cyan to-neon-purple" : "bg-black/60"
-          }`}
-        >
-          {platformLabel}
-        </div>
+        {/* platformLabel が null のときはバッジ自体を出さない (旧「Other」撤去) */}
+        {platformLabel && (
+          <div
+            className={`absolute left-2 top-2 rounded px-2 py-0.5 text-[10px] font-bold text-white ${
+              isImage ? "bg-gradient-to-r from-neon-cyan to-neon-purple" : "bg-black/60"
+            }`}
+          >
+            {platformLabel}
+          </div>
+        )}
         {/* サムネ変更ボタン (右上) — 画像アイテムは差し替え不要 */}
         {!isImage && (
         <button
@@ -1197,8 +1210,12 @@ function PortfolioCard({
           <button
             type="button"
             onClick={onDelete}
-            disabled={deleting}
-            className="inline-flex items-center gap-1.5 text-sm text-red-500 transition-colors hover:text-red-700 disabled:opacity-50"
+            // ある作品の削除処理中は、画面内のすべての削除ボタンを非活性化する
+            // (多重実行バグの根治。handleDelete 側でも早期 return ガード有り)
+            disabled={anyDeleting}
+            aria-busy={anyDeleting}
+            className="inline-flex items-center gap-1.5 text-sm text-red-500 transition-colors hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            title={anyDeleting ? "削除処理中です" : undefined}
           >
             <TrashIcon className="h-4 w-4" />
             {deleting ? "削除中..." : "削除"}

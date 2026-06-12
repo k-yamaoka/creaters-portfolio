@@ -195,9 +195,7 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
                         画像なし
                       </div>
                     )}
-                    <div className="absolute left-2 top-2 rounded bg-gradient-to-r from-neon-cyan to-neon-purple px-1.5 py-0.5 text-[9px] font-bold text-white">
-                      AI画像
-                    </div>
+                    {/* 旧「AI画像」バッジは撤去 (ユーザー指示: 不要なタグの削除) */}
                   </div>
                   <div className="mt-2 min-w-0">
                     <h3 className="line-clamp-2 break-words text-xs font-bold text-[#222]">
