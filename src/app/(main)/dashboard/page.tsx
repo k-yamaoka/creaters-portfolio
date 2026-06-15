@@ -5,6 +5,10 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
+import {
+  DashboardLatestActivity,
+  type ActivityItem,
+} from "@/components/dashboard/latest-activity";
 // 2026-06-12 ダッシュボード整理:
 // - 売上・収益状況 / おすすめ案件 / アナリティクス の 3 セクションを撤去
 // - プロフィール充実度はバナー (BasicInfoEditor) に統合 (独立カードを撤去)
@@ -145,6 +149,102 @@ export default async function DashboardPage() {
   }
   const completeness = computeCompleteness();
 
+  // ===== 最新のアクティビティ (新規・企業以外でも有用なので全ロール表示) =====
+  // notifications + 直近メッセージ + 直近 orders 更新 をマージ。
+  // 各ソースの上限を絞り、最終的に 8 件まで時系列降順で出す。
+  let activityItems: ActivityItem[] = [];
+  if (!isAdmin) {
+    const [
+      { data: notifRows },
+      { data: msgRows },
+      { data: ordRows },
+    ] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id, title, body, link, is_read, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("messages")
+        .select("id, sender_id, content, is_read, created_at")
+        .eq("receiver_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      (async () => {
+        let q = supabase
+          .from("orders")
+          .select("id, title, status, updated_at")
+          .order("updated_at", { ascending: false })
+          .limit(5);
+        if (isCreator && hasCreatorProfile)
+          q = q.eq("creator_id", user.creator_profile!.id);
+        else if (hasClientProfile)
+          q = q.eq("client_id", user.client_profile!.id);
+        else return { data: [] as unknown[] };
+        return q;
+      })(),
+    ]);
+    const fromNotif: ActivityItem[] = (notifRows ?? []).map((n) => {
+      const r = n as {
+        id: string;
+        title: string;
+        body: string | null;
+        link: string | null;
+        is_read: boolean;
+        created_at: string;
+      };
+      return {
+        id: r.id,
+        kind: "notification",
+        title: r.title,
+        body: r.body,
+        href: r.link || "/dashboard",
+        createdAt: r.created_at,
+        isUnread: !r.is_read,
+      };
+    });
+    const fromMsg: ActivityItem[] = (msgRows ?? []).map((m) => {
+      const r = m as {
+        id: string;
+        sender_id: string;
+        content: string;
+        is_read: boolean;
+        created_at: string;
+      };
+      return {
+        id: r.id,
+        kind: "message",
+        title: "新着メッセージ",
+        body: r.content.slice(0, 60),
+        href: `/dashboard/messages/${r.sender_id}`,
+        createdAt: r.created_at,
+        isUnread: !r.is_read,
+      };
+    });
+    const fromOrd: ActivityItem[] = (
+      (ordRows as unknown[]) ?? []
+    ).map((o) => {
+      const r = o as {
+        id: string;
+        title: string;
+        status: string;
+        updated_at: string;
+      };
+      return {
+        id: r.id,
+        kind: "order",
+        title: `取引「${r.title}」が更新`,
+        body: r.status,
+        href: `/dashboard/orders/${r.id}`,
+        createdAt: r.updated_at,
+      };
+    });
+    activityItems = [...fromNotif, ...fromMsg, ...fromOrd]
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 8);
+  }
+
   return (
     <div className="text-gray-900">
       {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor。
@@ -169,8 +269,10 @@ export default async function DashboardPage() {
         />
       )}
 
-      {/* 旧 ② 売上・収益状況 / ③ おすすめ案件 / ④ アナリティクス / ⑤ 充実度メーター は
-          2026-06-12 にダッシュボードから撤去 */}
+      {/* 最新のアクティビティ (2026-06-15 追加) — 新着通知・未読メッセージ・取引更新 */}
+      {!isAdmin && (
+        <DashboardLatestActivity items={activityItems} />
+      )}
 
       {/* Admin quick link */}
       {isAdmin && (
@@ -297,23 +399,8 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Client stats */}
-      {!isCreator && !isAdmin && hasClientProfile && (
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
-            <p className="text-sm text-gray-500">会社名</p>
-            <p className="mt-1 text-lg font-bold text-gray-900">
-              {user.client_profile!.company_name || "未設定"}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
-            <p className="text-sm text-gray-500">業種</p>
-            <p className="mt-1 text-lg font-bold text-gray-900">
-              {user.client_profile!.industry || "未設定"}
-            </p>
-          </div>
-        </div>
-      )}
+      {/* 2026-06-15: 会社名・業種の巨大ボックスを撤去 (情報は最新アクティビティ
+          + プロフィール充実度バナーで代替) */}
 
       {/* Quick links */}
       <h2 className="mt-8 mb-4 text-lg font-bold text-gray-900">クイックアクセス</h2>
@@ -353,20 +440,6 @@ export default async function DashboardPage() {
         {!isCreator && !isAdmin && (
           <>
             <Link
-              href="/creators"
-              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
-                <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">クリエイターを探す</h3>
-                <p className="mt-0.5 text-sm text-gray-500">最適なクリエイターを検索</p>
-              </div>
-            </Link>
-            <Link
               href="/dashboard/jobs"
               className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
             >
@@ -378,6 +451,20 @@ export default async function DashboardPage() {
               <div>
                 <h3 className="font-bold text-gray-900">案件を掲載する</h3>
                 <p className="mt-0.5 text-sm text-gray-500">新しい募集案件を作成</p>
+              </div>
+            </Link>
+            <Link
+              href="/dashboard/billing"
+              className="group flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+            >
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neon-purple/10 transition-colors group-hover:bg-neon-purple/15">
+                <svg className="h-6 w-6 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">支払い・請求管理</h3>
+                <p className="mt-0.5 text-sm text-gray-500">過去取引と請求情報</p>
               </div>
             </Link>
           </>

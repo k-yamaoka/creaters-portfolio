@@ -81,18 +81,22 @@ export default async function DashboardJobsPage() {
                 label: job.status,
                 color: "bg-gray-100 text-gray-500",
               };
+              const appCount = (job.application_count as number) ?? 0;
+              const hasApplicants = appCount > 0;
               return (
-                <Link
+                <div
                   key={job.id}
-                  href={`/dashboard/jobs/${job.id}`}
-                  className="block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
+                  className="rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="text-sm font-bold text-[#222]">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          href={`/dashboard/jobs/${job.id}`}
+                          className="text-base font-bold text-[#222] transition-colors hover:text-neon-pink sm:text-lg"
+                        >
                           {job.title}
-                        </h3>
+                        </Link>
                         <span
                           className={`rounded-pill px-2.5 py-0.5 text-[11px] font-bold ${status.color}`}
                         >
@@ -110,7 +114,7 @@ export default async function DashboardJobsPage() {
                         ))}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="shrink-0 text-right">
                       {(job.budget_min || job.budget_max) && (
                         <p className="text-sm font-bold text-[#222]">
                           {job.budget_min
@@ -122,12 +126,69 @@ export default async function DashboardJobsPage() {
                             : "〜"}
                         </p>
                       )}
-                      <p className="mt-1 text-xs text-[#828282]">
-                        応募 {job.application_count}件
-                      </p>
                     </div>
                   </div>
-                </Link>
+
+                  {/* アクション行: 応募数バッジ + 編集 + 応募者確認 */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[#F2F2F2] pt-3">
+                    {/* 応募数バッジ — クリックで応募者一覧 (job 詳細) へ */}
+                    <Link
+                      href={`/dashboard/jobs/${job.id}#applications`}
+                      className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-bold transition-all hover:-translate-y-0.5 ${
+                        hasApplicants
+                          ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-card hover:shadow-card-hover"
+                          : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      }`}
+                    >
+                      <svg
+                        aria-hidden
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+                        />
+                      </svg>
+                      応募 {appCount} 件
+                      {hasApplicants && (
+                        <span aria-hidden className="ml-0.5">
+                          →
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      href={`/dashboard/jobs/${job.id}/edit`}
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink"
+                    >
+                      <svg
+                        aria-hidden
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M16.862 4.487 18.549 2.799a2.121 2.121 0 1 1 3 3L7.5 19.851l-4.5 1.5 1.5-4.5L16.862 4.487Z"
+                        />
+                      </svg>
+                      編集
+                    </Link>
+                    <Link
+                      href={`/dashboard/jobs/${job.id}`}
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink"
+                    >
+                      詳細
+                    </Link>
+                  </div>
+                </div>
               );
             })}
           </div>

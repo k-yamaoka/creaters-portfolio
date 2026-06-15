@@ -265,6 +265,31 @@ export async function updateClientProfile(formData: FormData) {
   const company_name = formData.get("company_name") as string;
   const company_url = formData.get("company_url") as string;
   const industry = formData.get("industry") as string;
+  // 00056 で追加した信頼性向上フィールド
+  const company_description = formData.get("company_description") as string;
+  const invoiceRaw = ((formData.get("invoice_registration_number") as string) ?? "").trim();
+  // 適格請求書発行事業者の登録番号 (T + 13 桁)。空 or 形式 OK 以外は null。
+  const invoice_registration_number =
+    invoiceRaw && /^T\d{13}$/i.test(invoiceRaw)
+      ? invoiceRaw.toUpperCase()
+      : invoiceRaw === ""
+        ? null
+        : null;
+  if (invoiceRaw && invoice_registration_number === null) {
+    return {
+      error:
+        "インボイス登録番号の形式が正しくありません (T で始まる 13 桁を入力してください)",
+    };
+  }
+  // logo_url はクライアント側でアップロード後に hidden で送られてくる
+  const logoRaw = ((formData.get("logo_url") as string) ?? "").trim();
+  // 信頼できる URL のみ受け付ける (avatars バケットの publicURL)
+  const logo_url =
+    logoRaw === ""
+      ? null
+      : /\/storage\/v1\/object\/public\/avatars\//.test(logoRaw)
+        ? logoRaw
+        : null;
 
   // Update profile (display_name)
   const { error: profileError } = await supabase
@@ -287,6 +312,9 @@ export async function updateClientProfile(formData: FormData) {
     company_name: company_name || null,
     company_url: company_url || null,
     industry: industry || null,
+    company_description: company_description?.trim() || null,
+    invoice_registration_number,
+    logo_url,
   };
 
   if (existing) {

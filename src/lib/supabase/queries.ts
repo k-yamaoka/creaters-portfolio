@@ -135,6 +135,10 @@ export type CurrentUser = {
     company_name: string | null;
     company_url: string | null;
     industry: string | null;
+    // 00056 で追加 (信頼性向上)
+    logo_url: string | null;
+    company_description: string | null;
+    invoice_registration_number: string | null;
   };
 };
 
@@ -190,7 +194,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   } else if (profile.role === "client") {
     const { data } = await supabase
       .from("client_profiles")
-      .select("id, company_name, company_url, industry")
+      .select(
+        "id, company_name, company_url, industry, logo_url, company_description, invoice_registration_number"
+      )
       .eq("user_id", user.id)
       .single();
     client_profile = data ?? undefined;

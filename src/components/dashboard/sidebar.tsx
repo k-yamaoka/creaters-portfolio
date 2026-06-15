@@ -75,6 +75,24 @@ const creatorLinks = [
 
 const ordersLink = creatorLinks.find((l) => l.href === "/dashboard/orders")!;
 
+// 2026-06-15:
+// - 「クリエイターを探す」を削除 (ヘッダーや個別案件画面からアクセス可能)
+// - 「メッセージ」「支払い・請求管理」を追加
+const messagesIcon = (
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.671 1.09-.085 2.17-.207 3.238-.364 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+  />
+);
+const billingIcon = (
+  <path
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"
+  />
+);
+
 const clientLinks = [
   {
     href: "/dashboard",
@@ -85,17 +103,6 @@ const clientLinks = [
     href: "/dashboard/profile",
     label: "企業情報",
     icon: creatorLinks[1].icon,
-  },
-  {
-    href: "/creators",
-    label: "クリエイターを探す",
-    icon: (
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-      />
-    ),
   },
   {
     href: "/dashboard/jobs",
@@ -109,6 +116,16 @@ const clientLinks = [
     ),
   },
   ordersLink,
+  {
+    href: "/dashboard/messages",
+    label: "メッセージ",
+    icon: messagesIcon,
+  },
+  {
+    href: "/dashboard/billing",
+    label: "支払い・請求管理",
+    icon: billingIcon,
+  },
 ];
 
 const adminLinks = [

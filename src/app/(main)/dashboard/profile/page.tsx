@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { ProfileForm } from "./profile-form";
 import { ClientForm } from "./client-form";
-import { CoverImageEditor } from "@/components/dashboard/cover-image-editor";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -21,18 +20,12 @@ export default async function ProfilePage() {
           : "企業情報を登録・更新します"}
       </p>
 
-      {/* クリエイターのみ、最上部にカバー画像のエディタを表示。
+      {/* 2026-06-15: カバー画像エディタはユーザー判断で撤去。
           アバター画像はダッシュボードの BasicInfoEditor で編集する。 */}
       {isCreator && user.creator_profile && (
-        <>
-          <p className="mt-6 mb-2 text-xs text-[#828282]">
-            ※ プロフィール画像 (アバター) はダッシュボードの「基本情報」エリアから編集できます。
-          </p>
-          <CoverImageEditor
-            userId={user.id}
-            initialCoverUrl={user.creator_profile.cover_image_url}
-          />
-        </>
+        <p className="mt-6 text-xs text-[#828282]">
+          ※ プロフィール画像 (アバター) はダッシュボードの「基本情報」エリアから編集できます。
+        </p>
       )}
 
       <div className="mt-6">
