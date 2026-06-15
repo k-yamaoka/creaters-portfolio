@@ -9,6 +9,7 @@ import {
   deleteNotification,
 } from "@/lib/actions/notifications";
 import { NeonStar } from "@/components/ui/illustrations-retrowave";
+import { MIcon } from "@/components/ui/m-icon";
 
 type User = {
   id: string;
@@ -493,10 +494,11 @@ export function Header({
                       </Link>
                       <Link
                         href="/dashboard/likes"
-                        className={T.menuItem}
+                        className={`${T.menuItem} inline-flex items-center gap-2`}
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        ❤️ いいねした動画
+                        <MIcon name="favorite" fill size={16} className="text-neon-pink" />
+                        いいねした動画
                       </Link>
                       <Link
                         href="/settings"

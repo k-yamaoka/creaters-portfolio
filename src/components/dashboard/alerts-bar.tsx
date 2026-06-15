@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MIcon } from "@/components/ui/m-icon";
 
 type Props = {
   unreadMessages: number;
@@ -96,8 +97,8 @@ export function DashboardAlertsBar({
       </div>
 
       {allClear ? (
-        <p className="rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-500">
-          <span aria-hidden className="mr-1.5">✓</span>
+        <p className="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 px-4 py-3 text-sm text-gray-500">
+          <MIcon name="check_circle" fill size={16} className="text-green-600" />
           現在、対応が必要なアラートはありません。
         </p>
       ) : (

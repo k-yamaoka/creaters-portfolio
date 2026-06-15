@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PortfolioGrid } from "@/components/portfolio/portfolio-grid";
+import { MIcon } from "@/components/ui/m-icon";
 
 export const metadata: Metadata = {
   title: "いいねした動画",
@@ -66,8 +67,9 @@ export default async function LikesPage() {
           <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
           MY FAVORITES
         </p>
-        <h1 className="mt-4 text-3xl font-black tracking-tight text-white sm:text-[2.5rem]">
-          ❤️ いいねした動画
+        <h1 className="mt-4 inline-flex items-center gap-3 text-3xl font-black tracking-tight text-white sm:text-[2.5rem]">
+          <MIcon name="favorite" fill className="text-neon-pink" size={36} />
+          いいねした動画
         </h1>
         <p className="mt-2 text-sm text-white/65">
           {items.length} 件

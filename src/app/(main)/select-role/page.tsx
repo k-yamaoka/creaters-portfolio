@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { MIcon } from "@/components/ui/m-icon";
 
 export default function SelectRolePage() {
   const router = useRouter();
@@ -68,7 +69,7 @@ export default function SelectRolePage() {
                   : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
               }`}
             >
-              <div className="text-3xl">🏢</div>
+              <MIcon name="apartment" size={36} />
               <div className="mt-2 text-sm font-bold">依頼者</div>
               <div className="mt-1 text-xs text-[#828282]">
                 AIクリエイターに依頼したい
@@ -83,7 +84,7 @@ export default function SelectRolePage() {
                   : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
               }`}
             >
-              <div className="text-3xl">🎬</div>
+              <MIcon name="movie" size={36} />
               <div className="mt-2 text-sm font-bold">AIクリエイター</div>
               <div className="mt-1 text-xs text-[#828282]">
                 AI動画案件を受注したい

@@ -13,6 +13,7 @@ import {
   SOCIAL_LINK_DEFS,
 } from "@/lib/constants";
 import type { CurrentUser } from "@/lib/supabase/queries";
+import { MIcon } from "@/components/ui/m-icon";
 
 export function ProfileForm({ user }: { user: CurrentUser }) {
   const cp = user.creator_profile;
@@ -237,8 +238,9 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           })}
         </div>
         {strengthsAtLimit && (
-          <p className="mt-3 text-xs text-neon-purple-deep">
-            ✓ {MAX_STRENGTHS}つ選択済み。変更する場合はチェック済みを外してください。
+          <p className="mt-3 inline-flex items-center gap-1 text-xs text-neon-purple-deep">
+            <MIcon name="check_circle" fill size={14} />
+            {MAX_STRENGTHS}つ選択済み。変更する場合はチェック済みを外してください。
           </p>
         )}
       </section>

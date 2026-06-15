@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 import { ReviewList } from "@/components/reviews/review-list";
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";
+import { MIcon } from "@/components/ui/m-icon";
 import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
@@ -305,7 +306,7 @@ export default async function CreatorDetailPage({
                 </h1>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="text-neon-pink">✦</span>
+                    <MIcon name="movie" size={16} className="text-neon-pink" />
                     作品 {creator.portfolio_items.length} 件
                   </span>
                   <TotalLikesBadge initialTotal={totalLikes} />
@@ -414,8 +415,9 @@ export default async function CreatorDetailPage({
               href={orderHref}
               className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-sm font-bold text-white shadow-[0_0_24px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_32px_rgba(255,77,157,0.6)]"
             >
-              <span>
-                💼 このクリエイターに依頼を相談
+              <span className="inline-flex items-center gap-2">
+                <MIcon name="work" size={18} />
+                このクリエイターに依頼を相談
                 {minPackagePrice !== null && (
                   <span className="ml-2 text-xs font-bold text-white/80">
                     ¥{minPackagePrice.toLocaleString()}〜
@@ -506,7 +508,7 @@ export default async function CreatorDetailPage({
                       key={s}
                       className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-[0_0_14px_rgba(255,77,157,0.45)]"
                     >
-                      ✦ {s}
+                      <MIcon name="auto_awesome" fill size={14} /> {s}
                     </span>
                   ))}
                 </div>
@@ -623,8 +625,11 @@ export default async function CreatorDetailPage({
                     href={orderHref}
                     className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
                   >
-                    <span>💼 このクリエイターに依頼を相談</span>
-                    <span>→</span>
+                    <span className="inline-flex items-center gap-2">
+                      <MIcon name="work" size={16} />
+                      このクリエイターに依頼を相談
+                    </span>
+                    <MIcon name="arrow_forward" size={16} />
                   </Link>
                 </div>
               </div>

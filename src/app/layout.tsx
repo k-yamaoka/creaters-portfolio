@@ -61,6 +61,11 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* Google Material Symbols Outlined (絵文字撤去用に全サイト共通で利用) */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..700,0..1,-50..200"
+        />
       </head>
       <body className="min-h-screen bg-neon-midnight-deep font-sans text-ink">
         {children}

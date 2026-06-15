@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
+import { MIcon } from "@/components/ui/m-icon";
 import { LikeButton } from "@/components/portfolio/like-button";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
@@ -344,7 +345,10 @@ function CreatorRow({
               : "bg-gradient-to-r from-neon-cyan to-neon-purple shadow-[0_0_14px_rgba(77,213,247,0.45)]"
           }`}
         >
-          {tier === "gold" ? "⭐ 人気" : "✨ 注目"} ❤️ {totalLikes}
+          <MIcon name={tier === "gold" ? "star" : "auto_awesome"} fill size={12} />
+          {tier === "gold" ? "人気" : "注目"}
+          <MIcon name="favorite" fill size={12} />
+          {totalLikes}
         </span>
       )}
       {/* 認証済みリボン (右上ナナメ折り込み、オレンジ) */}
@@ -355,7 +359,7 @@ function CreatorRow({
         >
           {/* ナナメ折り込みリボン本体 */}
           <div className="absolute right-[-44px] top-[18px] w-[170px] rotate-45 bg-gradient-to-r from-neon-sunset via-neon-pink to-neon-sunset py-1 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_4px_12px_rgba(255,174,59,0.55)]">
-            ✓ 認証済
+            <MIcon name="verified" fill size={12} className="-mt-0.5" /> 認証済
           </div>
           {/* リボン下部の折り影 */}
           <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-neon-sunset/80 shadow-[0_0_8px_rgba(255,174,59,0.4)]" />
@@ -402,12 +406,12 @@ function CreatorRow({
                     : "bg-white/5 text-white/60"
               }`}
             >
-              <span className="text-neon-pink">❤️</span>
+              <MIcon name="favorite" fill size={12} className="text-neon-pink" />
               {totalLikes === 0 && <span>0</span>}
             </span>
             {/* 作品数のみ表示 (経験年数バッジと作品を見る CTA は撤去) */}
             <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
-              <span aria-hidden>🎬</span>
+              <MIcon name="movie" size={12} />
               作品 {creator.portfolio_items.length} 件
             </span>
           </div>
@@ -426,7 +430,7 @@ function CreatorRow({
                   key={`st-${s}`}
                   className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/25 to-neon-purple/25 px-3 py-1 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,77,157,0.25)]"
                 >
-                  ✦ {s}
+                  <MIcon name="auto_awesome" fill size={12} /> {s}
                 </span>
               ))}
             </div>

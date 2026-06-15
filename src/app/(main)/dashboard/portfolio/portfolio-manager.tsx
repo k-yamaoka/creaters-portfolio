@@ -11,6 +11,7 @@ import {
 import { GENRES, AI_TOOLS, AI_TOOL_CATEGORIES } from "@/lib/constants";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { TrashIcon } from "@/components/ui/trash-icon";
+import { MIcon } from "@/components/ui/m-icon";
 
 type PortfolioItem = {
   id: string;
@@ -574,7 +575,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                             <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-pink/30 border-t-neon-pink" />
                           </div>
                         ) : (
-                          <span className="text-xl">🎬</span>
+                          <MIcon name="movie" size={24} className="text-green-700" />
                         )}
                         <div className="flex-1">
                           <p className="text-sm font-medium text-green-700">
@@ -646,7 +647,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                           </>
                         ) : (
                           <>
-                            <span className="text-3xl">🎬</span>
+                            <MIcon name="movie" size={36} className="text-neon-purple-deep" />
                             <span className="text-sm font-bold text-neon-purple-deep">
                               クリックして動画を選択
                             </span>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NeonStar } from "@/components/ui/illustrations-retrowave";
+import { MIcon } from "@/components/ui/m-icon";
 
 export function Footer() {
   const pathname = usePathname() ?? "";
@@ -133,9 +134,12 @@ export function Footer() {
             </a>
           </p>
           <p className={T.powered}>
-            <span aria-hidden className="text-neon-cyan drop-shadow-[0_0_6px_rgba(77,213,247,0.6)]">
-              ✦
-            </span>
+            <MIcon
+              name="auto_awesome"
+              fill
+              size={14}
+              className="text-neon-cyan drop-shadow-[0_0_6px_rgba(77,213,247,0.6)]"
+            />
             Powered by AI, crafted in Tokyo.
           </p>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { MIcon } from "@/components/ui/m-icon";
 
 type Props = {
   /** 完全な URL (例: https://ailier.app/creators/abc) */
@@ -191,7 +192,8 @@ export function CreatorQrCard({ url, creatorName }: Props) {
         onClick={copyUrl}
         className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-pill border border-white/15 bg-white/[0.03] px-3 py-2 text-[11px] text-white/75 transition-colors hover:border-white/30 hover:bg-white/10"
       >
-        {copied ? "✓ URL をコピーしました" : "🔗 URL をコピー"}
+        <MIcon name={copied ? "check" : "link"} size={14} />
+        {copied ? "URL をコピーしました" : "URL をコピー"}
       </button>
 
       <p className="mt-3 text-[10px] leading-relaxed text-white/45">

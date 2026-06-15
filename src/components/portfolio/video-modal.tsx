@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LikeButton } from "./like-button";
+import { MIcon } from "@/components/ui/m-icon";
 
 export type VideoModalItem = {
   id: string;
@@ -176,8 +177,11 @@ export function VideoModal({
             className="mt-auto inline-flex items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
             onClick={onClose}
           >
-            <span>👤 プロフィールへ</span>
-            <span>→</span>
+            <span className="inline-flex items-center gap-1.5">
+              <MIcon name="person" size={18} />
+              プロフィールへ
+            </span>
+            <MIcon name="arrow_forward" size={18} />
           </Link>
         </aside>
       </div>

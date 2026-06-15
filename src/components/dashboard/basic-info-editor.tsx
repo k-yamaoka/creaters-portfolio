@@ -6,6 +6,7 @@ import Link from "next/link";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { updateBasicInfo } from "@/app/(main)/dashboard/profile/actions";
 import { AvatarCropModal } from "./avatar-crop-modal";
+import { MIcon } from "@/components/ui/m-icon";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB (Storage バケット上限と整合)
 const ALLOWED_MIME = [
@@ -364,7 +365,7 @@ export function BasicInfoEditor({
               <p className="mt-1 text-sm text-gray-500">{roleLabel}</p>
               {isCreator && (
                 <p className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-neon-pink/10 px-3 py-1 text-xs font-bold text-neon-pink-deep">
-                  <span aria-hidden>💴</span>
+                  <MIcon name="payments" size={14} />
                   最低受注金額:{" "}
                   {minAmountSaved == null
                     ? "応相談"
@@ -504,10 +505,15 @@ function ProfileCompletenessMini({
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="mt-1 text-[10px] text-gray-500 group-hover:text-gray-700">
-          {isComplete
-            ? "✓ 完成"
-            : `${done}/${total} 項目入力済 · 残り ${remain} 項目`}
+        <p className="mt-1 inline-flex items-center gap-1 text-[10px] text-gray-500 group-hover:text-gray-700">
+          {isComplete ? (
+            <>
+              <MIcon name="check_circle" fill size={12} className="text-green-600" />
+              完成
+            </>
+          ) : (
+            `${done}/${total} 項目入力済 · 残り ${remain} 項目`
+          )}
         </p>
       </div>
     </Link>

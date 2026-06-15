@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { MIcon } from "@/components/ui/m-icon";
 
 /**
  * 詳細ページのシェアボタン。
@@ -72,7 +73,7 @@ export function ShareButton({
               }}
               className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/10"
             >
-              <span className="text-base">{copied ? "✓" : "🔗"}</span>
+              <MIcon name={copied ? "check" : "link"} size={18} />
               {copied ? "コピーしました" : "URL をコピー"}
             </button>
             <a

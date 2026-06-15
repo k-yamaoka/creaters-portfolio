@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLikeDeltaApply } from "@/components/portfolio/like-delta-context";
+import { MIcon } from "@/components/ui/m-icon";
 
 /**
  * ポートフォリオ作品のいいねボタン。
@@ -106,12 +107,12 @@ export function LikeButton({
           : "border-white/30 bg-black/40 text-white/90 hover:border-neon-pink/40 hover:bg-black/60"
       } ${pending ? "opacity-70" : ""}`}
     >
-      <span
-        className={`transition-transform ${liked ? "scale-110" : ""}`}
-        aria-hidden
-      >
-        {liked ? "❤️" : "🤍"}
-      </span>
+      <MIcon
+        name="favorite"
+        fill={liked}
+        size={16}
+        className={`transition-transform ${liked ? "scale-110 text-white" : "text-white/90"}`}
+      />
       {/* showCount=true のときだけ数字を出す。それ以外は sr-only で a11y のみ。 */}
       {showCount ? <span>{count}</span> : <span className="sr-only">{count}</span>}
     </button>

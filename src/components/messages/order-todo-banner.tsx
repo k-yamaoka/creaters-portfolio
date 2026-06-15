@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getOrderTodo, type Role } from "@/lib/order-todo";
 import { getStatusMeta } from "@/lib/order-status";
+import { MIcon } from "@/components/ui/m-icon";
 
 /**
  * メッセージ画面で「いま自分が何をすべきか」を黄色背景のバナーで表示する。
@@ -43,7 +44,16 @@ export function OrderTodoBanner({
           }`}
           aria-hidden
         >
-          {isCancelled ? "×" : isMyTurn ? "!" : "⏳"}
+          <MIcon
+            name={
+              isCancelled
+                ? "close"
+                : isMyTurn
+                  ? "priority_high"
+                  : "hourglass_empty"
+            }
+            size={16}
+          />
         </div>
 
         <div className="min-w-0 flex-1">
