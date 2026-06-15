@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getCreators } from "@/lib/supabase/queries";
 import { SparkStar } from "@/components/ui/illustrations";
 import { NeonStar, RetroSun } from "@/components/ui/illustrations-retrowave";
-import { RandomGallery } from "@/components/home/random-gallery";
+import { HeroVideoMarquee } from "@/components/home/hero-video-marquee";
 import {
   BrowserFrame,
   MockCreatorsList,
@@ -54,10 +54,8 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* =================================================
-          Random Gallery — トップ最上部 (動く作品で世界観を伝える)
-          ================================================= */}
-      <RandomGallery creators={allCreators} />
+      {/* 2026-06-15 撤去: 旧 RandomGallery (5列縦スクロール) は Hero 内の
+          HeroVideoMarquee (3 行横スクロール) に統合 */}
 
       {/* =================================================
           HERO
@@ -91,9 +89,11 @@ export default async function HomePage() {
         </span>
 
         <div className="relative mx-auto max-w-container px-6 pb-28 pt-20 lg:px-10 lg:pb-36 lg:pt-28">
-          {/* 2026-06-15: 右側の Visual side 撤去に伴い、左カラム単独で中央寄せレイアウトに */}
-          <div className="mx-auto max-w-3xl">
-            <div>
+          {/* 2026-06-15 再構成: Hero を左右 2 カラムに。左 45% テキスト / 右 55% 横3行マーキー。
+              SP/タブレットでは縦積み (上テキスト / 下マーキー)、デスクトップは items-center で
+              縦中心揃え */}
+          <div className="flex flex-col items-center gap-10 lg:flex-row lg:gap-12">
+            <div className="w-full lg:w-[45%]">
               <EyebrowLabel text="AILIER — AI CREATORS PLATFORM" />
 
               <h1 className="mt-8 text-[2.4rem] font-black leading-[1.1] tracking-tight sm:text-[3.6rem] lg:text-[4.8rem]">
@@ -140,7 +140,10 @@ export default async function HomePage() {
               {/* 2026-06-15 撤去: 最短納期/従来コスト/クリエイティブ量/撮影費 の 4 メトリクス */}
             </div>
 
-            {/* 2026-06-15 撤去: 右側の Visual side (横参考動画 4 カード) */}
+            {/* 右カラム: 3 行横マーキー */}
+            <div className="w-full lg:w-[55%]">
+              <HeroVideoMarquee creators={allCreators} />
+            </div>
           </div>
         </div>
 

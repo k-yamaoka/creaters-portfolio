@@ -153,8 +153,13 @@ const config: Config = {
         scroll: "scroll 30s linear infinite",
         marquee: "marquee 40s linear infinite",
         "marquee-slow": "marquee 80s linear infinite",
+        // Hero の 3 行マーキー用 (1 周 約 30〜45 秒の中速帯)
+        "marquee-h-30": "marquee 30s linear infinite",
+        "marquee-h-38": "marquee 38s linear infinite",
+        "marquee-h-45": "marquee 45s linear infinite",
         "marquee-reverse": "marquee-reverse 60s linear infinite",
         "marquee-reverse-slow": "marquee-reverse 100s linear infinite",
+        "marquee-reverse-h-35": "marquee-reverse 35s linear infinite",
         "marquee-vertical": "marquee-vertical 45s linear infinite",
         "marquee-vertical-slow": "marquee-vertical 80s linear infinite",
         "marquee-vertical-reverse": "marquee-vertical-reverse 55s linear infinite",
