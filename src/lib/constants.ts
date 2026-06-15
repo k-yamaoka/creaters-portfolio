@@ -213,19 +213,19 @@ export const JOB_VISUAL_STYLES = [
     hint: "3D CG",
   },
   {
+    // 2026-06-15: 画像を 800x960 (5:6 = タイル比) に再パディング
+    // (sips --padToHeightWidth + padColor 0E0A2E) して、object-cover でも
+    // 上下が切れない状態に修正した。objectPosition は不要。
     value: "anime_2d_flat",
     label: "2Dフラットアニメ",
     image: "/images/visual-styles/anime_2d_flat.jpg",
     hint: "2D Flat",
-    // 上下が切れない中央寄せ (2026-06-12 修正)
-    objectPosition: "center",
   },
   {
     value: "hand_drawn",
     label: "手描き風",
     image: "/images/visual-styles/hand_drawn.jpg",
     hint: "Hand-drawn",
-    objectPosition: "center",
   },
   {
     // 2026-06-12 リネーム: クリーン・コーポレート → 3DCGグラフィック

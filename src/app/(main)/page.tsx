@@ -91,8 +91,9 @@ export default async function HomePage() {
         </span>
 
         <div className="relative mx-auto max-w-container px-6 pb-28 pt-20 lg:px-10 lg:pb-36 lg:pt-28">
-          <div className="grid grid-cols-12 gap-8 lg:gap-12">
-            <div className="col-span-12 lg:col-span-7">
+          {/* 2026-06-15: 右側の Visual side 撤去に伴い、左カラム単独で中央寄せレイアウトに */}
+          <div className="mx-auto max-w-3xl">
+            <div>
               <EyebrowLabel text="AILIER — AI CREATORS PLATFORM" />
 
               <h1 className="mt-8 text-[2.4rem] font-black leading-[1.1] tracking-tight sm:text-[3.6rem] lg:text-[4.8rem]">
@@ -106,13 +107,13 @@ export default async function HomePage() {
               </h1>
 
               <p className="mt-8 max-w-xl text-[15px] leading-[2] text-white/70">
-                Sora・Veo・Runway・Midjourney を使いこなすクリエイターに、
+                Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
                 <span className="font-bold text-white">
-                  SNS広告動画・プロダクト紹介・コーポレートVP
+                  SNS広告動画・商品紹介・採用動画
                 </span>
                 を依頼できる専門マッチングプラットフォーム。
                 <br />
-                撮影不要・最短2日納品・AB案を10倍量産。
+                撮影不要・完全リモート・低予算で、構成から完成までAIクリエイターにおまかせ。
               </p>
 
               <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
@@ -136,92 +137,14 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              {/* Stats inline */}
-              <div className="mt-14 grid grid-cols-2 gap-y-6 lg:grid-cols-4">
-                {[
-                  { num: "2日", label: "最短納品", color: "text-neon-pink" },
-                  { num: "1/5", label: "従来比コスト", color: "text-neon-cyan" },
-                  {
-                    num: "10×",
-                    label: "クリエイティブ量",
-                    color: "text-neon-purple",
-                  },
-                  { num: "0円", label: "撮影費", color: "text-neon-sunset" },
-                ].map((s) => (
-                  <div key={s.label}>
-                    <p
-                      className={`text-3xl font-black leading-none sm:text-4xl ${s.color}`}
-                    >
-                      {s.num}
-                    </p>
-                    <p className="mt-2.5 text-[11px] font-bold tracking-[0.1em] text-white/60">
-                      {s.label}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              {/* 2026-06-15 撤去: 最短納期/従来コスト/クリエイティブ量/撮影費 の 4 メトリクス */}
             </div>
 
-            {/* Visual side */}
-            <div className="relative col-span-12 lg:col-span-5">
-              <div className="relative grid grid-cols-2 gap-3">
-                {[
-                  "from-neon-pink to-neon-purple",
-                  "from-neon-cyan to-neon-purple",
-                  "from-neon-sunset to-neon-pink",
-                  "from-neon-purple to-neon-cyan",
-                ].map((g, i) => (
-                  <div
-                    key={i}
-                    className="group relative aspect-[9/16] overflow-hidden rounded-xl border border-white/10 shadow-[0_0_24px_rgba(157,92,255,0.3)]"
-                    style={{
-                      transform: `translateY(${i % 2 === 0 ? "-12px" : "12px"})`,
-                    }}
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-br ${g}`} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep/80 to-transparent" />
-                    <div className="absolute bottom-2 left-2 text-[10px] font-bold text-white">
-                      <p className="opacity-70">Gen by</p>
-                      <p>{["Sora 2", "Runway", "Veo 3", "Kling"][i]}</p>
-                    </div>
-                    <div className="absolute right-2 top-2 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
-                      AI
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="absolute -left-4 -top-4 rotate-[-6deg] rounded-xl border-2 border-neon-pink bg-neon-midnight-deep px-3 py-1.5 text-xs font-black text-neon-pink shadow-[0_0_20px_rgba(255,77,157,0.5)]">
-                AB案 +27
-              </div>
-              <div className="absolute -bottom-2 -right-2 rotate-[5deg] rounded-xl border-2 border-neon-cyan bg-neon-midnight-deep px-3 py-1.5 text-xs font-black text-neon-cyan shadow-[0_0_20px_rgba(77,213,247,0.5)]">
-                CTR 2.3x
-              </div>
-            </div>
+            {/* 2026-06-15 撤去: 右側の Visual side (横参考動画 4 カード) */}
           </div>
         </div>
 
-        {/* Marquee */}
-        <div className="relative overflow-hidden border-y border-neon-purple/40 bg-neon-midnight py-4">
-          <div className="flex animate-marquee whitespace-nowrap">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <span
-                key={i}
-                className="mx-6 inline-flex items-center gap-4 text-lg font-black tracking-tight text-white"
-              >
-                <span className="text-neon-pink">Sora 2</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-cyan">Veo 3</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-pink">Runway</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-sunset">Midjourney</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-cyan">Kling</span>
-                <span className="text-neon-purple">×</span>
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* 2026-06-15 撤去: AI ツール名称の横スライド Marquee */}
       </section>
 
       {/* =================================================
@@ -571,11 +494,9 @@ export default async function HomePage() {
               に対応。Meta 広告から MV まで。
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-[2] text-white/65">
-              SNS 広告 / プロダクト紹介 / サービス解説 / How-to /
-              コーポレートVP / 採用 / 展示会 / MV / ショートドラマ …
+              SNS広告動画から商品紹介・採用動画・コーポレートVP・MV・ショートドラマまで、全10カテゴリに対応。
               <br />
-              業界・尺・媒体問わず、AI で実現できる映像/静止画クリエイティブを
-              発注できます。
+              業界・尺・媒体を問わず、AIで実現できる映像クリエイティブを発注できます。
             </p>
           </div>
 
