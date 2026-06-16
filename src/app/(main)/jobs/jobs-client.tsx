@@ -42,10 +42,11 @@ const SORT_OPTIONS = [
 ];
 
 const BUDGET_FLOOR = 0;
-const BUDGET_CEIL = 5_000_000; // スライダーの最大値 (5M)
-// 2026-06-12: 10,000 円刻みでも 5K 単位の細かい予算指定ができないという声があり、
-// 5,000 円刻み (1000 段階) に変更。スライダー操作は重くならない範囲。
-const BUDGET_STEP = 5_000;
+// 2026-06-16: スライダーの上限は 100 万円。100万を超える案件は「100万+」で
+// 一律扱い (上端に張り付ければ「100万円超も含めて検索」になる)。
+// 刻みを 5K → 10K に粗くしたい (5K は細かすぎるという声) ため変更。
+const BUDGET_CEIL = 1_000_000;
+const BUDGET_STEP = 10_000;
 
 // おすすめスコアは @/lib/jobs/recommend を共通利用 (scoreJob)。
 // ダッシュボードの「おすすめ案件」セクションと同一ロジックを保つため抽出済。
@@ -142,11 +143,14 @@ export function JobsPageClient({
 
     // 予算スライダー — min/max が変動範囲外なら除外
     // 案件の budget の代表値 = budget_max ?? budget_min ?? 0
+    // budgetMax === BUDGET_CEIL (= 100万) のときは「100万+」扱いで上限なし。
     if (budgetMin > BUDGET_FLOOR || budgetMax < BUDGET_CEIL) {
       result = result.filter((j) => {
         const v = j.budget_max ?? j.budget_min ?? null;
         if (v == null) return false;
-        return v >= budgetMin && v <= budgetMax;
+        if (v < budgetMin) return false;
+        if (budgetMax >= BUDGET_CEIL) return true; // 上限張付け = 上限なし
+        return v <= budgetMax;
       });
     }
 
@@ -392,7 +396,7 @@ export function JobsPageClient({
               <p className="mt-2 text-sm font-bold text-neon-purple-deep">
                 {formatPrice(budgetMin)}
                 <span className="mx-1 text-[#BDBDBD]">〜</span>
-                {budgetMax >= BUDGET_CEIL ? "上限なし" : formatPrice(budgetMax)}
+                {budgetMax >= BUDGET_CEIL ? "100万+" : formatPrice(budgetMax)}
               </p>
               {/* 数値入力欄: スライダーを補完。5,000 単位での細かい指定が可能 */}
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -467,13 +471,14 @@ export function JobsPageClient({
                   />
                 </div>
               </div>
-              {/* よく使う範囲のクイックチップ — 5K 単位で細かく指定したいとき以外の近道 */}
+              {/* よく使う範囲のクイックチップ — 100万超は「100万+」として上端に張付け */}
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {[
                   { label: "〜10万", min: 0, max: 100_000 },
                   { label: "10〜30万", min: 100_000, max: 300_000 },
-                  { label: "30〜100万", min: 300_000, max: 1_000_000 },
-                  { label: "100万〜", min: 1_000_000, max: BUDGET_CEIL },
+                  { label: "30〜50万", min: 300_000, max: 500_000 },
+                  { label: "50〜100万", min: 500_000, max: 1_000_000 },
+                  { label: "100万+", min: 1_000_000, max: BUDGET_CEIL },
                 ].map((q) => {
                   const active = budgetMin === q.min && budgetMax === q.max;
                   return (
@@ -571,7 +576,7 @@ export function JobsPageClient({
                     <p className="text-sm font-bold text-neon-purple-deep">
                       {formatPrice(budgetMin)}
                       <span className="mx-1 text-[#BDBDBD]">〜</span>
-                      {budgetMax >= BUDGET_CEIL ? "上限なし" : formatPrice(budgetMax)}
+                      {budgetMax >= BUDGET_CEIL ? "100万+" : formatPrice(budgetMax)}
                     </p>
                   </div>
                   <div className="space-y-3">
@@ -628,117 +633,106 @@ export function JobsPageClient({
                   job.client?.company_name ||
                   job.client?.profiles?.display_name ||
                   "企業";
-                const daysAgo = Math.floor(
-                  (Date.now() - new Date(job.created_at).getTime()) /
-                    (1000 * 60 * 60 * 24)
-                );
-                const timeLabel =
-                  daysAgo === 0 ? "今日" : daysAgo === 1 ? "昨日" : `${daysAgo}日前`;
-
-                // 「実質的に募集中か」を 1 か所で判定。
-                // 締切が過ぎていれば DB の status に関わらず終了扱いで統一する
-                // (旧実装は status と 締切バッジが矛盾して "募集中なのに受付終了" 表示が起きていた)
+                // 2026-06-16: マイページ「応募済み案件」のカードと UI/テキスト
+                //   サイズ・カラーを揃え、上部の色付き帯と右側の大きな締切ボックス
+                //   を撤去。ステータスバッジは title の右に shrink-0 のピル。
                 const isOpen = isJobOpen(job);
                 const remain = daysUntil(job.deadline);
-                const deadlineUrgent = isOpen && remain != null && remain >= 0 && remain <= 3;
-                const deadlineSoon = isOpen && remain != null && remain >= 0 && remain <= 7;
-                const deadlinePast = remain != null && remain < 0;
+                const deadlineUrgent =
+                  isOpen && remain != null && remain >= 0 && remain <= 3;
+                // 予算レンジ表記。1,000,000 を超えるものは右端で「100万+」と短縮
+                const fmtBudget = (n: number) =>
+                  n >= 1_000_000 ? "100万+" : formatPrice(n);
+                const budgetText = (() => {
+                  if (job.budget_min && job.budget_max) {
+                    if (job.budget_min === job.budget_max)
+                      return fmtBudget(job.budget_min);
+                    return `${fmtBudget(job.budget_min)}〜${fmtBudget(job.budget_max)}`;
+                  }
+                  if (job.budget_max) return `〜${fmtBudget(job.budget_max)}`;
+                  if (job.budget_min) return `${fmtBudget(job.budget_min)}〜`;
+                  return null;
+                })();
+                const deadlineText = (() => {
+                  if (!job.deadline) return null;
+                  if (remain == null) return formatDateJP(job.deadline);
+                  if (remain < 0) return "受付終了";
+                  if (remain === 0) return "本日締切!";
+                  return `残り ${remain} 日`;
+                })();
+                const statusBadge = isOpen
+                  ? { label: "募集中", color: "bg-green-100 text-green-700" }
+                  : { label: "募集終了", color: "bg-gray-100 text-gray-500" };
 
                 return (
                   <Link
                     key={job.id}
                     href={`/jobs/${job.id}`}
-                    className={`group block overflow-hidden rounded-2xl bg-white shadow-card transition-shadow hover:shadow-card-hover ${
-                      deadlineUrgent && isOpen
-                        ? "ring-2 ring-red-400/60"
-                        : ""
-                    }`}
+                    className="block rounded-2xl bg-white p-5 shadow-card transition-shadow hover:shadow-card-hover"
                   >
-                    <div className={`px-6 py-2 text-xs font-bold ${isOpen ? "bg-green-50 text-green-600" : "bg-[#F2F2F2] text-[#828282]"}`}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-block h-2 w-2 rounded-full ${isOpen ? "bg-green-500" : "bg-[#BDBDBD]"}`} />
-                          {isOpen ? "募集中" : "募集終了"}
-                        </div>
-                        <span>{timeLabel}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <h2 className="text-lg font-bold text-[#222] transition-colors group-hover:text-neon-purple-deep">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h3 className="truncate text-lg font-bold text-[#222] sm:text-xl">
                             {job.title}
-                          </h2>
-                          <p className="mt-1 text-sm text-[#828282]">{clientName}</p>
-                          <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[#4F4F4F]">
-                            {job.description.replace(/\\n/g, "\n")}
-                          </p>
-                          <div className="mt-3 flex flex-wrap gap-1.5">
-                            {job.genres.slice(0, 4).map((genre) => (
+                          </h3>
+                          <span
+                            className={`shrink-0 rounded-pill px-2.5 py-0.5 text-xs font-bold ${statusBadge.color}`}
+                          >
+                            {statusBadge.label}
+                          </span>
+                          {deadlineUrgent && (
+                            <span
+                              className="inline-flex items-center gap-1 rounded-pill bg-red-50 px-2 py-0.5 text-[11px] font-bold text-red-600"
+                              title="締切が迫っています"
+                            >
                               <span
-                                key={genre}
-                                className="rounded-pill bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple-deep"
-                              >
-                                {genre}
-                              </span>
-                            ))}
-                            {job.genres.length > 4 && (
-                              <span className="text-[11px] text-[#BDBDBD]">+{job.genres.length - 4}</span>
-                            )}
-                          </div>
+                                aria-hidden
+                                className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-red-500"
+                              />
+                              締切間近
+                            </span>
+                          )}
                         </div>
-
-                        {/* 締切ハイライト — 案件カード右上に大きく表示 */}
-                        {job.deadline && (
-                          <div
-                            className={`shrink-0 rounded-xl border-2 px-3 py-2 text-right ${
-                              deadlinePast
-                                ? "border-gray-200 bg-gray-50 text-gray-400"
-                                : deadlineUrgent
-                                  ? "border-red-400 bg-red-50 text-red-600 shadow-[0_0_18px_-6px_rgba(248,113,113,0.6)]"
-                                  : deadlineSoon
-                                    ? "border-orange-300 bg-orange-50 text-orange-600"
-                                    : "border-[#E0E0E0] bg-white text-[#4F4F4F]"
+                        <p className="mt-1 text-sm text-[#828282]">
+                          {clientName}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {job.genres.slice(0, 3).map((genre) => (
+                            <span
+                              key={genre}
+                              className="rounded bg-[#F2F2F2] px-2 py-0.5 text-[11px] text-[#828282]"
+                            >
+                              {genre}
+                            </span>
+                          ))}
+                          {job.genres.length > 3 && (
+                            <span className="text-[11px] text-[#BDBDBD]">
+                              +{job.genres.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        {budgetText && (
+                          <p className="text-lg font-bold text-neon-purple-deep">
+                            {budgetText}
+                          </p>
+                        )}
+                        {deadlineText && (
+                          <p
+                            className={`mt-1 text-sm ${
+                              deadlineUrgent
+                                ? "text-red-500 font-bold"
+                                : "text-[#828282]"
                             }`}
                           >
-                            <p className="text-[10px] font-bold uppercase tracking-wider opacity-75">
-                              応募締切
-                            </p>
-                            <p className="text-base font-black">
-                              {formatDateJP(job.deadline)}
-                            </p>
-                            {remain != null && (
-                              <p className="text-[11px] font-bold">
-                                {remain < 0
-                                  ? "受付終了"
-                                  : remain === 0
-                                    ? "本日締切!"
-                                    : `残り ${remain} 日${deadlineUrgent ? "!" : ""}`}
-                              </p>
-                            )}
-                          </div>
+                            {deadlineText}
+                          </p>
                         )}
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-[#F2F2F2] pt-4">
-                        {(job.budget_min || job.budget_max) && (
-                          <div className="flex items-center gap-1.5 rounded-lg bg-neon-purple/10 px-3 py-1.5 text-sm font-bold text-neon-purple-deep">
-                            {job.budget_min && job.budget_max
-                              ? job.budget_min === job.budget_max
-                                ? formatPrice(job.budget_min)
-                                : `${formatPrice(job.budget_min)}〜${formatPrice(job.budget_max)}`
-                              : job.budget_max
-                                ? `〜${formatPrice(job.budget_max)}`
-                                : `${formatPrice(job.budget_min!)}〜`}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1.5 rounded-lg bg-[#F8F8F8] px-3 py-1.5 text-xs text-[#828282]">
-                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                          </svg>
+                        <p className="mt-1 text-xs text-[#BDBDBD]">
                           応募 {job.application_count}件
-                        </div>
+                        </p>
                       </div>
                     </div>
                   </Link>
