@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCreators } from "@/lib/supabase/queries";
-import { RetroSun } from "@/components/ui/illustrations-retrowave";
+// 2026-06-16 Step 3: RetroSun (旧 CLOSING の浮遊装飾) は撤去のため import 削除
 import { HeroVideoGrid, type GridTile } from "@/components/home/hero-video-grid";
 import {
   Sparkles,
@@ -26,30 +26,10 @@ import { GENRES } from "@/lib/constants";
 export const revalidate = 300;
 
 /* =============================================================
- *  小さなプリミティブ — セクション見出し共通
+ *  2026-06-16 Step 3 で EyebrowLabel (ネオンピル + パルスドット) は撤去。
+ *  すべてのセクション見出しは <p className="eyebrow-mono">(0X — Name)</p>
+ *  で統一 (Axis 風)。
  * ============================================================= */
-function EyebrowLabel({
-  text,
-  tone = "pink",
-}: {
-  text: string;
-  tone?: "pink" | "cyan" | "purple";
-}) {
-  const styles =
-    tone === "cyan"
-      ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan"
-      : tone === "purple"
-        ? "border-neon-purple/40 bg-neon-purple/10 text-neon-purple"
-        : "border-neon-pink/40 bg-neon-pink/10 text-neon-pink-soft";
-  return (
-    <p
-      className={`inline-flex items-center gap-2 rounded-pill border px-4 py-1.5 text-[11px] font-bold tracking-[0.18em] ${styles}`}
-    >
-      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
-      {text}
-    </p>
-  );
-}
 
 // MP4 直リンクのみを対象に Hero グリッド用タイルを抽出。
 // 各タイルは元動画の比率 (aspect_ratio: vertical / horizontal / square) を
@@ -305,107 +285,73 @@ export default async function HomePage() {
       </section>
 
       {/* =================================================
-          PAIN POINTS — ＼こんな悩みありませんか？／
+          02 — Co-creation (旧 PAIN POINTS を完全撤去 / Axis "We" オマージュ)
+            ・「お悩み 3 つ → 解決」のセールス構造を捨て、沈黙の余白で物語る
+            ・Axis 直系の "Create together. Nurture together." を主見出しに
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight py-24 text-white">
-        <div className="pointer-events-none absolute -left-32 top-12 h-[420px] w-[420px] rounded-full bg-neon-pink opacity-15 blur-[140px] animate-glow-pulse" />
-        <div className="pointer-events-none absolute -right-24 bottom-0 h-[380px] w-[380px] rounded-full bg-neon-cyan opacity-10 blur-[120px] animate-glow-pulse-slow" />
+      <section className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
+          <RevealOnScroll delay={0}>
+            <p className="eyebrow-mono">(02 — Co-creation)</p>
+          </RevealOnScroll>
 
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="text-center">
-            <EyebrowLabel text="FOR BUSINESS" tone="cyan" />
-            <h2 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[2.75rem]">
-              <span className="bg-gradient-to-r from-neon-pink to-neon-purple bg-clip-text text-transparent">
-                ＼こんなお悩み
-              </span>
-              <br className="sm:hidden" />
-              <span className="bg-gradient-to-r from-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                ありませんか？／
-              </span>
-            </h2>
-          </div>
-
-          <div className="mt-14 grid gap-5 lg:grid-cols-3 lg:gap-6">
-            {[
-              {
-                no: "CASE 1",
-                title: "誰に頼めばいいか分からない",
-                body: "「AI動画を作れるクリエイター」と検索しても、実績や品質がバラバラで判断できない。試しに発注して失敗するリスクが高い。",
-              },
-              {
-                no: "CASE 2",
-                title: "制作会社は高くて手が出ない",
-                body: "1本数百万円が当たり前。AB案を回したくても予算が一瞬で消えてしまい、量で勝負できない。",
-              },
-              {
-                no: "CASE 3",
-                title: "AI動画の品質を見極められない",
-                body: "Sora・Veo・Runway を使う人は増えたが、プロンプト力やブランド整合性まで担保できる人は少ない。",
-              },
-            ].map((p) => (
-              <article
-                key={p.no}
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-sm transition-colors hover:border-neon-pink/30"
-              >
-                <span className="inline-block rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-black tracking-[0.18em] text-neon-pink-soft">
-                  {p.no}
-                </span>
-                <h3 className="mt-4 text-xl font-black sm:text-2xl">
-                  {p.title}
-                </h3>
-                <p className="mt-3 text-sm leading-[2] text-white/65">
-                  {p.body}
-                </p>
-              </article>
-            ))}
-          </div>
-
-          {/* Solution headline (en-tech 風の太字遷移) */}
-          <div className="mt-16 rounded-3xl border border-neon-pink/40 bg-gradient-to-br from-neon-pink/15 via-neon-purple/15 to-neon-cyan/15 p-8 text-center backdrop-blur-md sm:p-12">
-            <p className="text-xs font-black tracking-[0.2em] text-neon-pink-soft">
-              AILIER なら
-            </p>
-            <p className="mt-3 text-2xl font-black leading-[1.4] sm:text-3xl lg:text-4xl">
-              <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                AI クリエイターの作品・料金・実績
-              </span>
+          <RevealOnScroll delay={80}>
+            <h2 className="headline-display mt-12 text-[clamp(2.5rem,6vw,5rem)] text-paper">
+              Create together.
               <br />
-              を一覧で比較して、
-              <span className="text-neon-pink">1 分で相談</span>
-              できます！
+              <span className="italic text-sand">Nurture together.</span>
+            </h2>
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={200}>
+            <p className="body-jp mt-12 max-w-prose-jp">
+              目の前のひとつが、大切にしていること。
+              <br />
+              いま、誰に何を届けたいのか。
+              <br />
+              どんな未来を描こうとしているのか。
             </p>
-          </div>
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={320}>
+            <p className="body-jp mt-10 max-w-prose-jp text-sm text-paper/55">
+              私たちは、企業の物語をクリエイターと共に編む場所をつくります。
+              映像が、誰かの一日を変えるかもしれない。その可能性に、最も近い人と、
+              最も静かな手触りで向き合うために。
+            </p>
+          </RevealOnScroll>
         </div>
       </section>
 
       {/* =================================================
-          FEATURES — 主な機能 (UI モック付き)
+          03 — Service (旧 FEATURES) — 5 機能をアシンメトリーに展開
           ================================================= */}
-      <section
-        id="features"
-        className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white"
-      >
-        <div className="pointer-events-none absolute -right-32 top-24 h-[480px] w-[480px] rounded-full bg-neon-purple opacity-15 blur-[140px] animate-glow-pulse-slow" />
-        <div className="pointer-events-none absolute -left-24 bottom-0 h-[400px] w-[400px] rounded-full bg-neon-cyan opacity-10 blur-[120px] animate-glow-pulse" />
-
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="text-center">
-            <EyebrowLabel text="FEATURES / 主な機能紹介" />
-            <h2 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[2.75rem]">
-              実際の操作画面で見る
-              <br className="sm:hidden" />
-              <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                AILIER の機能
-              </span>
-            </h2>
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-[2] text-white/65">
-              発注前の比較から、見積もり相談、納品・決済まで、案件に必要な機能が
-              ひとつのプラットフォームに揃っています。
-            </p>
+      <section id="features" className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
+          <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
+            <RevealOnScroll delay={0}>
+              <p className="eyebrow-mono">(03 — Service)</p>
+            </RevealOnScroll>
+            <div>
+              <RevealOnScroll delay={80}>
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                  Movie commerce,
+                  <br />
+                  <span className="italic text-sand">end-to-end.</span>
+                </h2>
+              </RevealOnScroll>
+              <RevealOnScroll delay={200}>
+                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                  発注前の比較から、見積もり相談、納品・決済まで。
+                  案件に必要なすべてが、ひとつのプラットフォームに。
+                </p>
+              </RevealOnScroll>
+            </div>
           </div>
 
-          {/* Feature blocks — モック画像を左右交互配置 */}
-          <div className="mt-20 space-y-24">
+          {/* Feature blocks — アシンメトリー (奇数: テキスト 36% / モック 64%
+              偶数: 反転)、上下に大きな余白 */}
+          <div className="mt-section-y-sm space-y-section-y-sm lg:mt-section-y lg:space-y-section-y">
             {/* F1: クリエイター検索 */}
             <FeatureRow
               no="FEATURE 01"
@@ -502,261 +448,262 @@ export default async function HomePage() {
       </section>
 
       {/* =================================================
-          HOW TO USE — 3 ステップ
+          04 — Process (旧 HOW TO USE) — 3 ステップを罫線縦割りに
           ================================================= */}
-      <section
-        id="how"
-        className="relative overflow-hidden bg-neon-midnight py-28 text-white"
-      >
-        <div className="pointer-events-none absolute -left-24 top-0 h-[420px] w-[420px] rounded-full bg-neon-pink opacity-15 blur-[140px] animate-glow-pulse" />
-        <div className="pointer-events-none absolute -right-32 bottom-12 h-[420px] w-[420px] rounded-full bg-neon-cyan opacity-10 blur-[120px] animate-glow-pulse-slow" />
-
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="text-center">
-            <EyebrowLabel text="HOW TO USE / 使い方" tone="cyan" />
-            <h2 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[2.75rem]">
-              依頼開始まで
-              <span className="bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">
-                最短 3 ステップ
-              </span>
-            </h2>
+      <section id="how" className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
+          <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
+            <RevealOnScroll delay={0}>
+              <p className="eyebrow-mono">(04 — Process)</p>
+            </RevealOnScroll>
+            <div>
+              <RevealOnScroll delay={80}>
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                  How it{" "}
+                  <span className="italic text-sand">works.</span>
+                </h2>
+              </RevealOnScroll>
+              <RevealOnScroll delay={200}>
+                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                  発注の流れ、3 つのステップで。
+                </p>
+              </RevealOnScroll>
+            </div>
           </div>
 
-          <div className="relative mt-16 grid gap-6 lg:grid-cols-3 lg:gap-8">
-            <div className="pointer-events-none absolute left-0 right-0 top-10 hidden h-px bg-gradient-to-r from-transparent via-neon-pink/40 to-transparent lg:block" />
-
+          <div className="mt-section-y-sm grid grid-cols-1 border-y border-paper/10 divide-y divide-paper/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
             {[
               {
-                step: "STEP 1",
+                step: "Step 01",
                 title: "クリエイターを探す",
                 body: "ジャンル・料金・実績で絞り込み、ポートフォリオをホバー再生で比較。気になるクリエイターをブックマーク。",
                 Icon: Search,
               },
               {
-                step: "STEP 2",
+                step: "Step 02",
                 title: "依頼を相談する",
                 body: "詳細ページから「依頼を相談」をクリック。AI 見積もりチャットや直接メッセージで、内容・本数・尺をすり合わせ。",
                 Icon: MessageCircle,
               },
               {
-                step: "STEP 3",
+                step: "Step 03",
                 title: "制作・納品 ＋ 検収",
                 body: "エスクローで仮払い → 制作開始 → 納品確認後に自動送金。進行中はメッセージ画面で一気通貫。",
                 Icon: Clapperboard,
               },
             ].map((s, i) => (
-              <div
+              <RevealOnScroll
                 key={s.step}
-                className="group relative rounded-2xl border border-white/10 bg-white/[0.04] p-7 pt-12 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)]"
+                delay={i * 100}
+                className="p-10 sm:p-12"
               >
-                <span
+                <s.Icon
+                  size={28}
+                  strokeWidth={1.2}
+                  className="text-sand"
                   aria-hidden
-                  className="absolute -top-6 left-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-pink to-neon-purple text-white shadow-[0_0_20px_rgba(255,77,157,0.6)]"
-                >
-                  <s.Icon size={24} strokeWidth={2} />
-                </span>
-                <p className="text-[10px] font-bold tracking-[0.18em] text-neon-cyan">
-                  {s.step}
-                </p>
-                <h3 className="mt-2 text-xl font-black sm:text-2xl">
+                />
+                <p className="eyebrow-mono mt-10">{s.step}</p>
+                <h3 className="font-display mt-3 text-2xl font-medium text-paper">
                   {s.title}
                 </h3>
-                <p className="mt-3 text-sm leading-[2] text-white/65">
-                  {s.body}
-                </p>
-                <span className="mt-5 inline-block text-3xl font-black text-white/15">
-                  0{i + 1}
-                </span>
-              </div>
+                <p className="body-jp mt-4 text-sm text-paper/65">{s.body}</p>
+              </RevealOnScroll>
             ))}
           </div>
         </div>
       </section>
 
       {/* 2026-06-16 撤去: ACHIEVEMENTS 数値セクション
-          (Baymard/NN/g: 「登録クリエイター 22 人」「公開作品 23 本」のような
-          低い実数を大きく見せる演出は negative social proof になり逆効果。
-          価値プロップ (撮影不要/完全リモート/一貫/登録無料) は Hero 直下に
-          静的に配置済) */}
-      <span aria-hidden className="hidden">{genreCount}</span>
+          (negative social proof のため。代替は Hero 直下の 4 価値プロップ + 下記 05) */}
 
       {/* =================================================
-          USE CASES — 案件例 (対応ジャンル)
+          05 — Categories (旧 USE CASES) — 罫線で組まれた目次風タイポ
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight py-24 text-white">
-        <div className="pointer-events-none absolute -right-20 top-12 h-[380px] w-[380px] rounded-full bg-neon-cyan opacity-15 blur-[140px] animate-glow-pulse" />
-
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="text-center">
-            <EyebrowLabel text="CASE / 案件例" tone="cyan" />
-            <h2 className="mt-6 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
-              <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                {genreCount} カテゴリ
-              </span>
-              に対応。Meta 広告から MV まで。
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-sm leading-[2] text-white/65">
-              SNS広告動画から商品紹介・採用動画・コーポレートVP・MV・ショートドラマまで、全10カテゴリに対応。
-              <br />
-              業界・尺・媒体を問わず、AIで実現できる映像クリエイティブを発注できます。
-            </p>
+      <section className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
+          <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
+            <RevealOnScroll delay={0}>
+              <p className="eyebrow-mono">(05 — Categories)</p>
+            </RevealOnScroll>
+            <div>
+              <RevealOnScroll delay={80}>
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                  Ten genres,
+                  <br />
+                  <span className="italic text-sand">one stage.</span>
+                </h2>
+              </RevealOnScroll>
+              <RevealOnScroll delay={200}>
+                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                  全 {genreCount} カテゴリに対応。業界・尺・媒体を問わず、
+                  AIで実現できる映像クリエイティブを発注できます。
+                </p>
+              </RevealOnScroll>
+            </div>
           </div>
 
-          <div className="mt-12 flex flex-wrap justify-center gap-2.5">
-            {GENRES.map((g, i) => (
-              <span
-                key={g}
-                className={`rounded-pill border px-4 py-2 text-sm font-bold backdrop-blur-sm transition-colors hover:-translate-y-0.5 ${
-                  i % 3 === 0
-                    ? "border-neon-pink/40 bg-neon-pink/10 text-neon-pink-soft hover:border-neon-pink"
-                    : i % 3 === 1
-                      ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan hover:border-neon-cyan"
-                      : "border-neon-purple/40 bg-neon-purple/10 text-neon-purple hover:border-neon-purple"
-                }`}
-              >
-                {g}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* =================================================
-          FAQ
-          ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-24 text-white">
-        <div className="pointer-events-none absolute -left-16 bottom-0 h-[360px] w-[360px] rounded-full bg-neon-pink opacity-15 blur-[140px]" />
-
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="text-center">
-            <EyebrowLabel text="FAQ / よくある質問" />
-            <h2 className="mt-6 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
-              発注前に
-              <span className="bg-gradient-to-r from-neon-pink to-neon-purple bg-clip-text text-transparent">
-                知っておきたいこと
-              </span>
-            </h2>
-          </div>
-
-          <div className="mx-auto mt-12 max-w-3xl space-y-3">
-            {[
-              {
-                q: "動画 1 本の費用はどれくらいかかりますか？",
-                a: "クリエイターと内容によりますが、SNS 広告 15 秒なら ¥30,000 〜 が目安です。詳細ページで最低対応プランの内訳が公開されているので、相談前に概算が把握できます。AI 見積もりチャットも併用ください。",
-              },
-              {
-                q: "制作期間はどれくらいですか？",
-                a: "最短 2 日〜が目安です。1 本単発の SNS 広告であれば数日、シリーズ展開やコーポレートVPは 1〜3 週間ほど。納期は依頼時にクリエイターと合意できます。",
-              },
-              {
-                q: "修正は何回まで対応してもらえますか？",
-                a: "プランごとに修正回数が明示されています (例: 2 回まで)。追加修正が必要な場合は別途見積もりで対応します。",
-              },
-              {
-                q: "著作権は誰に帰属しますか？",
-                a: "完成物の利用権は発注者に譲渡されます (詳細はクリエイターと取り交わす契約内容に従います)。AI 生成素材のライセンスもプラン明細で確認できます。",
-              },
-              {
-                q: "支払いはいつ発生しますか？",
-                a: "案件成立時にエスクロー (仮払い) します。納品確認後にプラットフォームからクリエイターへ送金され、検収完了までは万一のトラブルでも全額返金可能です。",
-              },
-              {
-                q: "AILIER の手数料はどれくらいですか？",
-                a: "取引金額に対するシステム手数料が発生します。手数料はクリエイター側の報酬から差し引かれる形のため、発注者側の追加負担はありません。",
-              },
-            ].map((f, i) => (
-              <details
-                key={i}
-                className="group rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm transition-colors open:border-neon-pink/40 open:bg-white/[0.06]"
-              >
-                <summary className="flex cursor-pointer items-center justify-between gap-3 text-left">
-                  <span className="flex items-baseline gap-3">
-                    <span className="text-xs font-black tracking-[0.18em] text-neon-pink-soft">
-                      Q
-                    </span>
-                    <span className="text-base font-bold text-white sm:text-lg">
-                      {f.q}
-                    </span>
-                  </span>
-                  <span
-                    aria-hidden
-                    className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-white/20 text-white/70 transition-transform group-open:rotate-180"
+          {/* 「目次」風の縦リスト。各行に番号 + 大字ジャンル + 番号 */}
+          <RevealOnScroll
+            delay={120}
+            className="mt-section-y-sm border-y border-paper/10"
+          >
+            <ul className="divide-y divide-paper/10">
+              {GENRES.map((g, i) => {
+                const num = String(i + 1).padStart(2, "0");
+                return (
+                  <li
+                    key={g}
+                    className="group flex items-baseline justify-between gap-6 py-6 transition-colors hover:bg-paper/[0.02] sm:py-8"
                   >
-                    <svg
-                      className="h-3.5 w-3.5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2.5}
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                      />
-                    </svg>
-                  </span>
-                </summary>
-                <div className="mt-4 flex items-start gap-3 border-t border-white/10 pt-4">
-                  <span className="text-xs font-black tracking-[0.18em] text-neon-cyan">
-                    A
-                  </span>
-                  <p className="text-sm leading-[2] text-white/75">{f.a}</p>
-                </div>
-              </details>
-            ))}
-          </div>
+                    <span className="eyebrow-mono shrink-0">{num}</span>
+                    <h3 className="font-display flex-1 text-center text-2xl font-medium tracking-tight text-paper transition-colors group-hover:text-sand sm:text-3xl lg:text-4xl">
+                      {g}
+                    </h3>
+                    <span className="eyebrow-mono shrink-0">
+                      / {String(GENRES.length).padStart(2, "0")}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </RevealOnScroll>
         </div>
       </section>
 
       {/* =================================================
-          CLOSING CTA
+          06 — FAQ — 罫線で区切ったアコーディオン (カード型廃止)
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
-        <div className="absolute -left-32 top-0 h-[500px] w-[500px] rounded-full bg-neon-pink opacity-30 blur-[140px]" />
-        <div className="absolute -right-20 bottom-0 h-[400px] w-[400px] rounded-full bg-neon-cyan opacity-25 blur-[120px]" />
-
-        <span
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-12 -translate-x-1/2 text-neon-pink animate-float"
-        >
-          <RetroSun size={70} />
-        </span>
-
-        <div className="relative mx-auto max-w-container px-6 text-center lg:px-10">
-          <EyebrowLabel text="START NOW" tone="cyan" />
-          <h2 className="mt-8 text-balance text-[2.5rem] font-black leading-[1.1] sm:text-[3.5rem] lg:text-[5rem]">
-            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-              AIで、広告動画を
-            </span>
-            <br />
-            次のレベルへ。
-          </h2>
-          <p className="mx-auto mt-8 max-w-xl text-sm leading-[2] text-white/70">
-            まずはクリエイターを見てみる。
-            プロフィール閲覧は無料、依頼前にチャット相談もできます。
-          </p>
-
-          <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-            <Link
-              href="/creators"
-              className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-8 py-4 text-base font-black text-white shadow-[0_0_30px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_50px_rgba(255,77,157,0.7)]"
-            >
-              <span>AIクリエイターを探す</span>
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-            <Link
-              href="/register"
-              className="group inline-flex items-center justify-between gap-3 rounded-pill border-2 border-white/30 px-8 py-4 text-base font-bold text-white transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
-            >
-              <span>無料ではじめる</span>
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
+      <section className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
+          <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
+            <RevealOnScroll delay={0}>
+              <p className="eyebrow-mono">(06 — FAQ)</p>
+            </RevealOnScroll>
+            <div>
+              <RevealOnScroll delay={80}>
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                  <span className="italic text-sand">Questions.</span>
+                </h2>
+              </RevealOnScroll>
+              <RevealOnScroll delay={200}>
+                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                  発注前に、よくある質問。
+                </p>
+              </RevealOnScroll>
+            </div>
           </div>
+
+          <RevealOnScroll
+            delay={120}
+            className="mt-section-y-sm border-y border-paper/10"
+          >
+            <ul className="divide-y divide-paper/10">
+              {[
+                {
+                  q: "動画 1 本の費用はどれくらいかかりますか？",
+                  a: "クリエイターと内容によりますが、SNS 広告 15 秒なら ¥30,000 〜 が目安です。詳細ページで最低対応プランの内訳が公開されているので、相談前に概算が把握できます。AI 見積もりチャットも併用ください。",
+                },
+                {
+                  q: "制作期間はどれくらいですか？",
+                  a: "最短 2 日〜が目安です。1 本単発の SNS 広告であれば数日、シリーズ展開やコーポレートVPは 1〜3 週間ほど。納期は依頼時にクリエイターと合意できます。",
+                },
+                {
+                  q: "修正は何回まで対応してもらえますか？",
+                  a: "プランごとに修正回数が明示されています (例: 2 回まで)。追加修正が必要な場合は別途見積もりで対応します。",
+                },
+                {
+                  q: "著作権は誰に帰属しますか？",
+                  a: "完成物の利用権は発注者に譲渡されます (詳細はクリエイターと取り交わす契約内容に従います)。AI 生成素材のライセンスもプラン明細で確認できます。",
+                },
+                {
+                  q: "支払いはいつ発生しますか？",
+                  a: "案件成立時にエスクロー (仮払い) します。納品確認後にプラットフォームからクリエイターへ送金され、検収完了までは万一のトラブルでも全額返金可能です。",
+                },
+                {
+                  q: "AILIER の手数料はどれくらいですか？",
+                  a: "取引金額に対するシステム手数料が発生します。手数料はクリエイター側の報酬から差し引かれる形のため、発注者側の追加負担はありません。",
+                },
+              ].map((f, i) => {
+                const num = String(i + 1).padStart(2, "0");
+                return (
+                  <li key={i}>
+                    <details className="group">
+                      <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 py-8">
+                        <span className="flex flex-1 items-baseline gap-6">
+                          <span className="eyebrow-mono shrink-0">
+                            Q.{num}
+                          </span>
+                          <span className="font-display text-lg font-medium text-paper sm:text-xl">
+                            {f.q}
+                          </span>
+                        </span>
+                        <span
+                          aria-hidden
+                          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-paper/30 text-paper/60 transition-transform duration-300 group-open:rotate-180"
+                        >
+                          <svg
+                            className="h-3 w-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.8}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                            />
+                          </svg>
+                        </span>
+                      </summary>
+                      <div className="flex items-start gap-6 pb-10">
+                        <span className="eyebrow-mono shrink-0">A.{num}</span>
+                        <p className="body-jp text-paper/70">{f.a}</p>
+                      </div>
+                    </details>
+                  </li>
+                );
+              })}
+            </ul>
+          </RevealOnScroll>
+        </div>
+      </section>
+
+      {/* =================================================
+          07 — Start — 締めの一行ステートメント (Axis "Every story…" オマージュ)
+          ================================================= */}
+      <section className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-narrow px-gutter py-section-y-lg text-center">
+          <RevealOnScroll delay={0}>
+            <p className="eyebrow-mono">(07 — Start)</p>
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={80}>
+            <h2 className="headline-display mt-12 text-[clamp(2.75rem,7vw,6rem)] text-paper">
+              Every story
+              <br />
+              starts with{" "}
+              <span className="italic text-sand">us.</span>
+            </h2>
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={240}>
+            <p className="body-jp mx-auto mt-12 max-w-prose-jp text-paper/60">
+              プロフィール閲覧は無料、依頼前にチャット相談も。
+            </p>
+          </RevealOnScroll>
+
+          <RevealOnScroll delay={360}>
+            <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Link href="/creators" className="btn-axis">
+                Browse creators
+              </Link>
+              <Link href="/register" className="btn-axis-ghost">
+                クリエイター登録
+              </Link>
+            </div>
+          </RevealOnScroll>
         </div>
       </section>
     </>
@@ -784,46 +731,48 @@ function FeatureRow({
   mock: React.ReactNode;
   reverse?: boolean;
 }) {
-  // テキストとモックは「自分が最終的に居る側の外側」から滑り込む。
-  // reverse=false : テキスト左 / モック右 → textDir=left, mockDir=right
-  // reverse=true  : テキスト右 / モック左 → textDir=right, mockDir=left
+  // Step 3 (2026-06-16): Axis アシンメトリーへ。
+  // モック側を 62% / テキスト 38% にし、モックを主役に。
+  // 内側の SlideInWhenVisible (横方向 stagger) は 引き続き使用 (高級感の質感)。
   const textDir = reverse ? "right" : "left";
   const mockDir = reverse ? "left" : "right";
 
-  // 内部 stagger: ラベル → 見出し → 説明 → 箇条書き → CTA を 80ms 刻みで
-  // (合計 ≦ 0.5s)。bullets はインデックスごとに更に +80ms ずつ追加。
+  // 番号タグ "FEATURE 01 / 060" を Axis "060" 風に組む。
+  const axisNo = no.replace("FEATURE ", "Feature ");
+
   return (
     <div
-      className={`grid grid-cols-1 items-center gap-10 lg:gap-16 ${
-        reverse ? "lg:grid-cols-[1fr,1.05fr]" : "lg:grid-cols-[1.05fr,1fr]"
+      className={`grid grid-cols-1 items-start gap-12 lg:gap-24 ${
+        reverse ? "lg:grid-cols-[1.62fr,1fr]" : "lg:grid-cols-[1fr,1.62fr]"
       }`}
     >
+      {/* テキスト側 — 上揃え、明朝、罫線リスト */}
       <div className={reverse ? "lg:order-2" : ""}>
         <SlideInWhenVisible direction={textDir} delay={0}>
-          <span className="inline-block rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-black tracking-[0.18em] text-neon-pink-soft">
-            {no}
-          </span>
+          <p className="eyebrow-mono">{axisNo}</p>
         </SlideInWhenVisible>
         <SlideInWhenVisible direction={textDir} delay={80}>
-          <h3 className="mt-4 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
+          <h3 className="font-display mt-8 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-paper">
             {title}
           </h3>
         </SlideInWhenVisible>
         <SlideInWhenVisible direction={textDir} delay={160}>
-          <p className="mt-5 text-sm leading-[2] text-white/70">{body}</p>
+          <p className="body-jp mt-6 text-paper/70">{body}</p>
         </SlideInWhenVisible>
-        <ul className="mt-6 space-y-2.5">
+        <ul className="mt-10 border-t border-paper/10">
           {bullets.map((b, i) => (
             <SlideInWhenVisible
               key={b}
               direction={textDir}
               delay={240 + i * 80}
             >
-              <li className="flex items-start gap-2.5 text-sm text-white/80">
-                <span className="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
-                  ✓
+              <li className="flex items-start gap-4 border-b border-paper/10 py-4">
+                <span className="eyebrow-mono shrink-0 pt-[3px]">
+                  {String(i + 1).padStart(2, "0")}
                 </span>
-                {b}
+                <span className="body-jp flex-1 text-sm text-paper/80">
+                  {b}
+                </span>
               </li>
             </SlideInWhenVisible>
           ))}
@@ -832,17 +781,15 @@ function FeatureRow({
           direction={textDir}
           delay={240 + bullets.length * 80}
         >
-          <Link
-            href={cta.href}
-            className="group mt-7 inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 text-sm font-bold text-neon-pink-soft transition-colors hover:bg-neon-pink/20"
-          >
-            {cta.label}
-            <span className="transition-transform group-hover:translate-x-1">
-              →
-            </span>
-          </Link>
+          <div className="mt-10">
+            <Link href={cta.href} className="btn-axis-ghost">
+              {cta.label}
+            </Link>
+          </div>
         </SlideInWhenVisible>
       </div>
+
+      {/* モック側 — 主役に */}
       <SlideInWhenVisible
         direction={mockDir}
         delay={120}

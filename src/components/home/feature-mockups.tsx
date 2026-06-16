@@ -31,37 +31,36 @@ export function BrowserFrame({
   children,
   variant = "dark",
 }: BrowserFrameProps) {
+  // 2026-06-16 Step 3: Axis 風の簡素な bezel に。
+  // 大型 drop shadow / 信号機ドット / 色付き bg を全撤去。
+  // 細い rounded-md と 1px の border-paper/10 だけで画面サンプルを括る。
   const isDark = variant === "dark";
   return (
     <div
-      className={`overflow-hidden rounded-2xl border shadow-[0_30px_60px_-20px_rgba(0,0,0,0.4)] ${
-        isDark
-          ? "border-white/15 bg-neon-midnight-deep"
-          : "border-gray-200 bg-white"
+      className={`overflow-hidden rounded-md border ${
+        isDark ? "border-paper/10 bg-ink" : "border-ink/10 bg-paper"
       }`}
     >
-      {/* Mac-style top bar */}
+      {/* Minimal address bar — URL を eyebrow-mono 風 mono にする */}
       <div
-        className={`flex items-center gap-2 border-b px-4 py-2.5 ${
-          isDark ? "border-white/10 bg-neon-midnight" : "border-gray-200 bg-gray-50"
+        className={`flex items-center gap-3 border-b px-4 py-2 ${
+          isDark ? "border-paper/10" : "border-ink/10"
         }`}
       >
-        <div className="flex gap-1.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-        </div>
+        <span
+          aria-hidden
+          className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+            isDark ? "bg-paper/30" : "bg-ink/30"
+          }`}
+        />
         <div
-          className={`ml-3 flex-1 truncate rounded-md px-3 py-1 text-[11px] ${
-            isDark
-              ? "bg-white/5 text-white/55"
-              : "bg-white text-gray-500"
+          className={`flex-1 truncate font-mono text-[10px] uppercase tracking-[0.18em] ${
+            isDark ? "text-paper/45" : "text-ink/45"
           }`}
         >
           {url}
         </div>
       </div>
-      {/* Content area */}
       <div className="relative">{children}</div>
     </div>
   );
