@@ -154,14 +154,10 @@ export function HeroVideoGrid({ tiles, desktopColumns = 3 }: Props) {
         </div>
       </div>
 
-      {/* ギャラリー全体への導線 */}
-      <div className="mt-5 flex justify-center">
-        <Link
-          href="/portfolios"
-          className="inline-flex items-center gap-2 rounded-pill border border-white/20 bg-white/[0.04] px-5 py-2 text-xs font-bold text-white/85 transition-colors hover:border-neon-pink/60 hover:text-neon-pink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-pink"
-        >
-          すべての作品を見る
-          <span aria-hidden>→</span>
+      {/* ギャラリー全体への導線 (Axis 風 .btn-axis) */}
+      <div className="mt-6 flex justify-center">
+        <Link href="/portfolios" className="btn-axis">
+          View all works
         </Link>
       </div>
     </div>
@@ -266,7 +262,7 @@ function Tile({
       onFocus={onRequestPlay}
       onBlur={onRequestStop}
       onTouchStart={onRequestPlay}
-      className={`group relative block ${aspect} overflow-hidden rounded-xl border border-white/10 bg-neon-midnight outline-none shadow-[0_18px_40px_-15px_rgba(0,0,0,0.6)] transition-transform hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-neon-pink/60`}
+      className={`group relative block ${aspect} overflow-hidden rounded-md border border-paper/8 bg-ink outline-none transition-transform duration-500 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-sand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep`}
       aria-hidden={ariaHidden}
       tabIndex={ariaHidden ? -1 : 0}
       aria-label={ariaHidden ? undefined : `${tile.alt} (作品を開く)`}
@@ -286,7 +282,7 @@ function Tile({
         />
       ) : (
         <div
-          className={`absolute inset-0 bg-gradient-to-br from-neon-pink/30 via-neon-purple/30 to-neon-cyan/30 transition-opacity duration-300 ${
+          className={`absolute inset-0 bg-gradient-to-br from-paper/[0.06] via-paper/[0.02] to-transparent transition-opacity duration-300 ${
             isPlaying ? "opacity-0" : "opacity-100"
           }`}
         />
@@ -307,15 +303,15 @@ function Tile({
         aria-hidden="true"
       />
 
-      {/* 下端 scrim + 再生ヒント (WCAG コントラスト確保) */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-2 bg-gradient-to-t from-black/75 via-black/25 to-transparent p-2.5">
+      {/* 下端 scrim + 再生ヒント (Axis 風に静かに) */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-end gap-2 bg-gradient-to-t from-black/55 via-black/10 to-transparent p-2.5">
         <span
-          className={`inline-flex items-center gap-1 rounded-full bg-black/55 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm transition-opacity ${
-            isPlaying ? "opacity-0" : "opacity-90 group-hover:opacity-100"
+          className={`inline-flex items-center gap-1 rounded-pill border border-paper/15 bg-paper/[0.05] px-2 py-0.5 text-[9px] font-medium tracking-wider text-paper/85 backdrop-blur-sm transition-opacity ${
+            isPlaying ? "opacity-0" : "opacity-0 group-hover:opacity-100"
           }`}
         >
-          <Play size={9} strokeWidth={2.6} fill="currentColor" />
-          ホバーで再生
+          <Play size={8} strokeWidth={2.4} />
+          PLAY
         </span>
       </div>
     </Link>

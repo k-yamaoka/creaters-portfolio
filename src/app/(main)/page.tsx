@@ -12,6 +12,7 @@ import {
   Clapperboard,
 } from "lucide-react";
 import { SlideInWhenVisible } from "@/components/ui/slide-in-when-visible";
+import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import {
   BrowserFrame,
   MockCreatorsList,
@@ -191,130 +192,112 @@ export default async function HomePage() {
   return (
     <>
       {/* =================================================
-          HERO — 2 カラム (NN/g 準拠リライト 2026-06-16)
-            - 左 ~45%: 価値提案テキスト + 主従 CTA 2 つ
-            - 右 ~55%: 縦 9:16 グリッド (静止デフォルト / hover で再生)
-            - 自動マーキー・自動再生・装飾的なバウンスは禁止
-            - ヒーロー直下に AI ツール ロゴ帯 (静的) + 4 つの定性価値
+          HERO — Axis Ov Films 系ハイエンドへの全面改修 (Step 2 / 2026-06-16)
+            ・装飾 (グリッドパターン / ネオングロウブロブ) を完全撤去
+            ・タイポを Fraunces 大型 (display) + Noto Serif JP (heading) +
+              Inter (mono タグ) のバイリンガル構造に
+            ・CTA は .btn-axis / .btn-axis-ghost (細ピル + 小さなサンドドット)
+            ・スクロール演出は RevealOnScroll で stagger フェードアップ
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep text-white">
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-25"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            maskImage:
-              "radial-gradient(ellipse at center, black 30%, transparent 75%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-neon-pink opacity-25 blur-[120px]"
-        />
-        <div
-          aria-hidden
-          className="absolute -right-20 top-24 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-20 blur-[100px]"
-        />
-
-        <div className="relative mx-auto max-w-container px-6 pb-16 pt-16 lg:px-10 lg:pb-20 lg:pt-20">
-          <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-14">
+      <section className="relative overflow-hidden bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-wide px-6 py-section-y-sm lg:px-10 lg:py-section-y">
+          <div className="flex flex-col items-center gap-16 lg:flex-row lg:gap-24">
             {/* === 左カラム: テキスト + CTA === */}
-            <div className="w-full motion-safe:animate-[fadeUp_.45s_ease-out_both] lg:w-[44%]">
-              <EyebrowLabel text="AI CREATORS PLATFORM" />
+            <div className="w-full lg:w-[44%]">
+              <RevealOnScroll delay={0}>
+                <p className="eyebrow-mono">
+                  (01 — AILIER for AI Creators)
+                </p>
+              </RevealOnScroll>
 
-              <h1 className="mt-6 text-[2.5rem] font-black leading-[1.08] tracking-tight sm:text-[3.6rem] lg:text-[3.75rem]">
-                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                  AIクリエイター
-                </span>
-                と、
-                <br />
-                <span className="text-white">企業をつなぐ。</span>
-              </h1>
+              <RevealOnScroll delay={80}>
+                <h1 className="headline-display mt-8 text-paper text-[clamp(3rem,7vw,5.5rem)]">
+                  Frames of{" "}
+                  <span className="italic text-sand">tomorrow.</span>
+                </h1>
+              </RevealOnScroll>
 
-              <p className="mt-6 max-w-xl text-[15px] leading-[1.9] text-white/75">
-                Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
-                <span className="font-bold text-white">
-                  SNS広告動画・商品紹介・採用動画
-                </span>
-                を依頼できる専門マッチングプラットフォーム。
-                <br />
-                撮影不要・完全リモート・低予算で、構成から完成までおまかせ。
-              </p>
+              <RevealOnScroll delay={160}>
+                <p className="heading-jp mt-6 text-[1.25rem] text-paper/85 sm:text-[1.5rem]">
+                  AIクリエイターと、企業をつなぐ。
+                </p>
+              </RevealOnScroll>
 
-              {/* CTA: 主 1 + 副 1 (NN/g: filled は 1 つに絞る・具体的ラベル) */}
-              <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-base font-bold text-white shadow-[0_0_28px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(255,77,157,0.6)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-pink"
-                >
-                  無料ではじめる
-                  <span aria-hidden>→</span>
-                </Link>
-                <Link
-                  href="/creators"
-                  className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-white/30 bg-white/[0.04] px-7 py-3.5 text-base font-bold text-white transition-colors hover:border-white/60 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
-                >
-                  クリエイターを探す
-                  <span aria-hidden>→</span>
-                </Link>
-              </div>
+              <RevealOnScroll delay={240}>
+                <p className="body-jp mt-10 max-w-prose-jp text-[15px]">
+                  Sora、Veo、Runway、Seedance。
+                  <br />
+                  新しい映像言語を操るクリエイターと、
+                  <br />
+                  語るべき物語を持つ企業が、ひとつの卓を囲む場所。
+                </p>
+              </RevealOnScroll>
+
+              <RevealOnScroll delay={360}>
+                <div className="mt-12 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                  <Link href="/register" className="btn-axis">
+                    Get started
+                  </Link>
+                  <Link href="/creators" className="btn-axis-ghost">
+                    クリエイターを探す
+                  </Link>
+                </div>
+              </RevealOnScroll>
             </div>
 
             {/* === 右カラム: 縦自動マーキー × 原寸アスペクト Masonry (3 列) === */}
-            <div className="w-full lg:w-[56%]">
+            <RevealOnScroll delay={150} className="w-full lg:w-[56%]">
               <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
-            </div>
+            </RevealOnScroll>
           </div>
 
-          {/* Hero 直下の対応 AI ツール 1 段 (静的・自動スクロールなし) */}
-          <div className="mt-14 border-t border-white/10 pt-8">
-            <p className="text-center text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">
-              Supports leading AI tools
-            </p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:gap-x-12">
+          {/* Hero 直下の対応 AI モデル 1 段 — 罫線で領域を区切る Axis 風 */}
+          <RevealOnScroll
+            delay={120}
+            className="mt-section-y-sm border-t border-paper/10 pt-12"
+          >
+            <p className="eyebrow-mono text-center">Compatible models</p>
+            <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-paper/10">
               {AI_TOOL_LABELS.map((t) => (
                 <span
                   key={t}
-                  className="text-sm font-bold tracking-tight text-white/55 transition-colors hover:text-white"
+                  className="px-6 font-display text-base font-medium tracking-tight text-paper/55 transition-colors hover:text-paper sm:px-8"
                 >
                   {t}
                 </span>
               ))}
             </div>
-          </div>
+          </RevealOnScroll>
         </div>
       </section>
 
       {/* =================================================
-          VALUE PROPS — 定性 4 カラム (旧 stats 4 数値の代替)
-            NN/g: 「最短 2 日」「AB案 10 倍」など誇張数値や少なさが露呈する
-            実数を避け、撮影不要/完全リモート/一貫/登録無料 で示す
+          VALUE PROPS — 罫線で 4 等分された単一の帯 (Axis 風)
           ================================================= */}
-      <section className="relative bg-neon-midnight py-14 text-white">
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {VALUE_PROPS.map((v) => {
+      <section className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-wide px-6 lg:px-10">
+          <div className="grid grid-cols-1 divide-y divide-paper/10 border-y border-paper/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+            {VALUE_PROPS.map((v, i) => {
               const Icon = v.icon;
               return (
-                <div
+                <RevealOnScroll
                   key={v.title}
-                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                  delay={i * 80}
+                  className="p-10 sm:p-12"
                 >
-                  <span
+                  <Icon
+                    size={20}
+                    strokeWidth={1.2}
+                    className="text-sand"
                     aria-hidden
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-neon-pink/15 to-neon-purple/15 text-neon-pink"
-                  >
-                    <Icon size={20} strokeWidth={1.8} />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-white">{v.title}</p>
-                    <p className="mt-1 text-xs leading-[1.7] text-white/65">
-                      {v.body}
-                    </p>
-                  </div>
-                </div>
+                  />
+                  <p className="mt-8 font-display text-lg font-medium text-paper">
+                    {v.title}
+                  </p>
+                  <p className="body-jp mt-3 text-sm text-paper/60">
+                    {v.body}
+                  </p>
+                </RevealOnScroll>
               );
             })}
           </div>

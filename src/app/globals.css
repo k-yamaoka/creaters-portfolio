@@ -271,6 +271,18 @@
     background-color: #e8d6cd;
     box-shadow: 0 0 0 1px rgba(232, 214, 205, 0.4);
   }
+  /* Ghost variant — Axis のサブ動線。ドットなし、ボーダーのみ。
+     主 CTA の隣に静かに並べる用。 */
+  .btn-axis-ghost {
+    @apply inline-flex items-center justify-center gap-3 rounded-pill border border-paper/20 bg-transparent px-5 py-2 text-xs font-medium text-paper/85 transition-colors;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 168px;
+  }
+  .btn-axis-ghost:hover {
+    @apply border-paper/60 text-paper;
+  }
   /* 暗背景上の極細罫線 (Axis の領域分割). 縦罫線にも使えるよう左/右両方を提供 */
   .rule-thin {
     background-color: rgba(255, 255, 255, 0.08);
