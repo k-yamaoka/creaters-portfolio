@@ -19,20 +19,8 @@ export type OrderRow = {
   lastAt: string;
 };
 
-/**
- * 取引ステータスから「次に動くべき側 (turn)」を判定する。
- * 案件相談→契約→制作→納品のフローで、次のアクションが企業/クリエイター
- * のどちらにあるかを明示することで進行の停滞を防ぐ。
- */
-function turnForStatus(
-  status: string
-): "client" | "creator" | "both" | "none" {
-  if (status === "consultation" || status === "quoting" || status === "data_sharing")
-    return "client";
-  if (status === "production" || status === "revision") return "creator";
-  if (status === "contract") return "both";
-  return "none"; // delivered / cancelled
-}
+// 2026-06-16: 「次に動くべき側 (企業のターン / クリエイターのターン)」
+// 表示は撤去。ステータスバッジのみのシンプル表示に戻す。
 
 type Tab = "all" | "active" | "done";
 
@@ -146,25 +134,6 @@ export function OrdersList({
           {filtered.map((row) => {
             const status = getStatusMeta(row.status);
             const remain = daysUntilDeadline(row.delivery_deadline);
-            // 次のアクション側 = 企業 or クリエイター。自分のターンかどうかも判定。
-            const turn = turnForStatus(row.status);
-            const myTurn =
-              (isCreator && (turn === "creator" || turn === "both")) ||
-              (!isCreator && (turn === "client" || turn === "both"));
-            const turnLabel =
-              turn === "client"
-                ? "企業のターン"
-                : turn === "creator"
-                  ? "クリエイターのターン"
-                  : turn === "both"
-                    ? "双方の確認待ち"
-                    : null;
-            const turnHint =
-              turn === "none"
-                ? null
-                : myTurn
-                  ? "あなたが次にアクションする番です"
-                  : "相手のアクションを待っています";
             const urgent = remain != null && remain >= 0 && remain <= 3;
             const overdue = remain != null && remain < 0 && row.status !== "delivered";
             const dlText = row.delivery_deadline
@@ -210,25 +179,8 @@ export function OrdersList({
                         >
                           {status.shortLabel}
                         </span>
-                        {/* ターン表示 — 「企業のターン / クリエイターのターン」 */}
-                        {turnLabel && (
-                          <span
-                            title={turnHint ?? undefined}
-                            className={`inline-flex items-center gap-1 rounded-pill px-2 py-0.5 text-[11px] font-bold ${
-                              myTurn
-                                ? "bg-red-50 text-red-600 ring-1 ring-red-300"
-                                : "bg-gray-100 text-gray-500"
-                            }`}
-                          >
-                            <span
-                              aria-hidden
-                              className={`inline-block h-1.5 w-1.5 rounded-full ${
-                                myTurn ? "bg-red-500 animate-pulse" : "bg-gray-400"
-                              }`}
-                            />
-                            {myTurn ? "あなたの番" : turnLabel}
-                          </span>
-                        )}
+                        {/* 2026-06-16: 「企業のターン / クリエイターのターン」
+                            の補足表示は完全撤去。基本ステータスバッジのみ。 */}
                         {row.unread > 0 && (
                           <span
                             title="この取引相手から未読メッセージがあります"

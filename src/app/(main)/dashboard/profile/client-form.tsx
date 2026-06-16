@@ -1,65 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import { updateClientProfile } from "./actions";
 import type { CurrentUser } from "@/lib/supabase/queries";
-import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 
-const MAX_LOGO_BYTES = 5 * 1024 * 1024;
-const ALLOWED_LOGO_MIME = ["image/jpeg", "image/png", "image/webp"] as const;
-
+/**
+ * 企業情報の編集フォーム。
+ *
+ * 2026-06-16: 企業ロゴ画像のアップロード UI を完全撤去
+ * (画像管理の手間が見合わないとのユーザー判断)。
+ * client_profiles.logo_url 列は後方互換のため残すが、保存対象から外す。
+ */
 export function ClientForm({ user }: { user: CurrentUser }) {
   const cp = user.client_profile;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string | null>(cp?.logo_url ?? null);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handleLogoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (e.target) e.target.value = "";
-    if (!f) return;
-    if (!ALLOWED_LOGO_MIME.includes(f.type as (typeof ALLOWED_LOGO_MIME)[number])) {
-      setError("ロゴは JPEG / PNG / WebP のみアップロード可能です");
-      return;
-    }
-    if (f.size > MAX_LOGO_BYTES) {
-      setError("ロゴは 5MB 以下にしてください");
-      return;
-    }
-    setError(null);
-    setUploadingLogo(true);
-    try {
-      const supabase = createBrowserSupabase();
-      const ext =
-        f.type === "image/png"
-          ? "png"
-          : f.type === "image/webp"
-            ? "webp"
-            : "jpg";
-      const path = `${user.id}/logo.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, f, { upsert: true, contentType: f.type });
-      if (upErr) throw upErr;
-      const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      setLogoUrl(`${data.publicUrl}?t=${Date.now()}`);
-    } catch (e) {
-      setError(
-        e instanceof Error ? e.message : "ロゴのアップロードに失敗しました"
-      );
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
 
   const handleSubmit = async (formData: FormData) => {
     setSaving(true);
     setError(null);
-    if (logoUrl) formData.set("logo_url", logoUrl);
-    else formData.set("logo_url", "");
     const result = await updateClientProfile(formData);
     if (result?.error) {
       setError(result.error);
@@ -118,64 +77,9 @@ export function ClientForm({ user }: { user: CurrentUser }) {
       <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
         <h2 className="mb-1 text-lg font-bold text-[#222]">企業情報</h2>
         <p className="mb-6 text-xs text-[#828282]">
-          ※ クリエイターに安心して取引してもらうため、ロゴ・事業内容・インボイス番号の入力を推奨します
+          ※ クリエイターに安心して取引してもらうため、事業内容・インボイス番号の入力を推奨します
         </p>
         <div className="space-y-5">
-          {/* 企業ロゴ */}
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-[#4F4F4F]">
-              企業ロゴ
-            </label>
-            <div className="flex items-center gap-4">
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-[#E0E0E0] bg-[#F8F8F8]">
-                {logoUrl ? (
-                  <Image
-                    src={logoUrl}
-                    alt="企業ロゴ"
-                    fill
-                    sizes="80px"
-                    className="object-contain"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-[10px] text-[#BDBDBD]">
-                    未設定
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={uploadingLogo}
-                  className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover disabled:opacity-50"
-                >
-                  {uploadingLogo
-                    ? "アップロード中..."
-                    : logoUrl
-                      ? "ロゴを変更"
-                      : "ロゴを設定"}
-                </button>
-                {logoUrl && !uploadingLogo && (
-                  <button
-                    type="button"
-                    onClick={() => setLogoUrl(null)}
-                    className="text-[11px] text-[#828282] hover:text-red-500"
-                  >
-                    外す
-                  </button>
-                )}
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={handleLogoPick}
-                  className="hidden"
-                />
-              </div>
-            </div>
-          </div>
-
           <div>
             <label
               htmlFor="company_name"
@@ -287,7 +191,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
       <div className="flex justify-end">
         <button
           type="submit"
-          disabled={saving || uploadingLogo}
+          disabled={saving}
           className="btn-primary px-10 text-sm disabled:opacity-50"
         >
           {saving ? "保存中..." : "保存する"}

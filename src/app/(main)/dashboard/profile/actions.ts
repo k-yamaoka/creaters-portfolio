@@ -281,15 +281,8 @@ export async function updateClientProfile(formData: FormData) {
         "インボイス登録番号の形式が正しくありません (T で始まる 13 桁を入力してください)",
     };
   }
-  // logo_url はクライアント側でアップロード後に hidden で送られてくる
-  const logoRaw = ((formData.get("logo_url") as string) ?? "").trim();
-  // 信頼できる URL のみ受け付ける (avatars バケットの publicURL)
-  const logo_url =
-    logoRaw === ""
-      ? null
-      : /\/storage\/v1\/object\/public\/avatars\//.test(logoRaw)
-        ? logoRaw
-        : null;
+  // 2026-06-16: 企業ロゴ (logo_url) は編集 UI を撤去したため、payload からも除外。
+  // DB 列は後方互換のため残置 (既存データの破壊回避)。
 
   // Update profile (display_name)
   const { error: profileError } = await supabase
@@ -314,7 +307,6 @@ export async function updateClientProfile(formData: FormData) {
     industry: industry || null,
     company_description: company_description?.trim() || null,
     invoice_registration_number,
-    logo_url,
   };
 
   if (existing) {
