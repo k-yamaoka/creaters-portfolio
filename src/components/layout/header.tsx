@@ -163,6 +163,20 @@ export function Header({
   const pathname = usePathname() ?? "";
   const isLight = pathname.startsWith("/dashboard");
 
+  // ===== Home (`/`) かつページ最上部のときだけヘッダーを完全透過にする =====
+  // (axis-ov-films.co.jp 風: Hero の動画が header の裏まで広がって見える)
+  // しきい値 80px を超えてスクロールしたら通常の dark solid に戻す。
+  const isHome = pathname === "/";
+  const [scrolledPast, setScrolledPast] = useState(false);
+  useEffect(() => {
+    if (!isHome) return;
+    const onScroll = () => setScrolledPast(window.scrollY > 80);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
+  const isTransparent = isHome && !scrolledPast && !isLight;
+
   // 主要なクラス群をテーマ別に集約。ロジック (構造) は同じ、色だけ切替え。
   const T = isLight
     ? {
@@ -248,8 +262,14 @@ export function Header({
         mobileMuted: "mb-2 text-sm text-paper/55",
       };
 
+  // 透過時は border / bg を外し、トランジションで自然に切り替える。
+  // T.header (ダーク solid 状態) との差分のみ上書きする。
+  const headerClassName = isTransparent
+    ? "fixed left-0 right-0 top-0 z-50 bg-transparent transition-[background-color,border-color,backdrop-filter] duration-500"
+    : `${T.header} transition-[background-color,border-color,backdrop-filter] duration-500`;
+
   return (
-    <header className={T.header}>
+    <header className={headerClassName}>
       <div className="mx-auto flex h-20 max-w-container items-center justify-between px-6 lg:px-10">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-10">
@@ -265,9 +285,12 @@ export function Header({
               <span className={T.logoText}>
                 AILIER<span className="text-sand">.</span>
               </span>
-              <span className={T.logoSubtitle}>
-                AI creators × business
-              </span>
+              {/* 透過モード (home 最上部) では subtitle を隠してミニマルに */}
+              {!isTransparent && (
+                <span className={T.logoSubtitle}>
+                  AI creators × business
+                </span>
+              )}
             </span>
           </Link>
 
