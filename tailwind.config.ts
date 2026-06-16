@@ -8,11 +8,17 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        // Nordic / soft tone — Zen Kaku Gothic New + Lato (reference site)
-        sans: ['"Zen Kaku Gothic New"', '"Lato"', '"Noto Sans JP"', "sans-serif"],
-        serif: ['"Zen Kaku Gothic New"', '"Noto Sans JP"', "sans-serif"],
-        display: ['"Zen Kaku Gothic New"', '"Lato"', '"Noto Sans JP"', "sans-serif"],
-        latin: ['"Lato"', "sans-serif"],
+        // 2026-06-16 Step 1: ハイエンド土台へ刷新。
+        // Display (英文・巨大見出し) = Fraunces セリフ (Axis "We" / "Movie" 系)
+        // serif (本文/見出し JA) = Noto Serif JP (明朝)
+        // sans (英文 UI / Fallback JA) = Inter + Noto Sans JP + 旧 Zen Kaku
+        // mono (番号/ラベル) = JetBrains Mono
+        // latin は旧 Lato 系の互換キー (削除はせずに残置)
+        sans: ['"Inter"', '"Noto Sans JP"', '"Zen Kaku Gothic New"', "sans-serif"],
+        serif: ['"Noto Serif JP"', "serif"],
+        display: ['"Fraunces"', '"Noto Serif JP"', "serif"],
+        mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
+        latin: ['"Inter"', '"Lato"', "sans-serif"],
       },
       colors: {
         // Primary = soft blue (ref: #2e6ca0)
@@ -41,14 +47,27 @@ const config: Config = {
           800: "#7d6634",
           900: "#54442c",
         },
-        // Cream paper background — warm, well-being feel
-        paper: "#fdf9ee",
-        "paper-deep": "#f6eed9",
+        // 2026-06-16 Step 1: ハイエンド土台 (Axis 風) のコアトークン。
+        // 純白 / 純黒に近い深ネイビー / 単一ベージュアクセント。
+        // ※ 既存キー (paper / ink / ink-muted / ink-soft / rule) の値だけ
+        //    引き締まる方向に上書き。クラス名互換は維持されるため、ページ側で
+        //    `bg-paper` `text-ink` 等を使っているコードは無修正で締まる。
+        paper: "#ffffff",
+        "paper-deep": "#f4ede4", // ベージュサンド (旧 cream の deep をベージュ寄りに)
+        "paper-warm": "#f4ede4", // 新規 alias (意図を明示)
         "paper-card": "#ffffff",
-        ink: "#2a2a32",
-        "ink-muted": "#6b6877",
-        "ink-soft": "#a09da9",
-        rule: "#e8e1cf",
+        ink: "#0a0d12", // 旧 #2a2a32 → さらに深い純黒寄り
+        "ink-deep": "#06080b", // 最深 BG (Hero / Section ヘッダ)
+        "ink-muted": "#5e636b", // 控え目テキスト
+        "ink-soft": "#9298a1", // 補助 (キャプション)
+        rule: "#1a1f27", // 暗背景上の薄い罫線
+        // 唯一のアクセント (Axis "We" ブロック) — ベージュピンク。
+        // 既存 accent.* (warm yellow scale) は他で利用中のため衝突回避で sand に。
+        sand: {
+          DEFAULT: "#e8d6cd",
+          deep: "#d8c4b6",
+          soft: "#f4ede4",
+        },
         // Soft accent backgrounds
         sky: "#dceaf4",
         leaf: "#cfe3ce",
@@ -93,6 +112,20 @@ const config: Config = {
       },
       maxWidth: {
         container: "1300px",
+        // 日本語本文 (Noto Serif JP) の可読幅。約 36ch 相当。
+        "prose-jp": "36rem",
+        // ハイエンドコンテンツ用のゆとり幅 (画像をやや細く見せる)
+        "narrow": "920px",
+        "wide": "1480px",
+      },
+      spacing: {
+        // ハイエンドの大胆余白。Axis は section 間に 8〜12rem 取る。
+        // PC では section-y、SP では section-y-sm を併用する想定。
+        "section-y": "12rem",
+        "section-y-sm": "6rem",
+        "section-y-lg": "16rem",
+        // gutter は viewport に応じて 1.5〜6rem を自動調整
+        gutter: "clamp(1.5rem, 5vw, 6rem)",
       },
       boxShadow: {
         card: "0 4px 16px rgba(46,108,160,0.08)",

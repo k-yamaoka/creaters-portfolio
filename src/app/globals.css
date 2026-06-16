@@ -2,22 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 2026-06-16 Step 1: ハイエンド土台のため Fraunces / Noto Serif JP / Inter /
+   JetBrains Mono は app/layout.tsx の <link> で先読み済 (preconnect 付き)。
+   ここでは旧 Zen Kaku Gothic / Lato の互換 import のみ残す
+   (旧スタイルのページがまだ参照しているため、即時撤去は破壊的)。 */
 @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&display=swap');
 
 @layer base {
   html {
     color-scheme: dark;
-    background-color: #0f0826;
+    /* 純黒に近い深ネイビーへ (旧 #0f0826 ネオン紫紺から脱却) */
+    background-color: #06080b;
   }
   body {
-    @apply bg-neon-midnight-deep text-ink antialiased;
-    font-family: 'Lato', 'Zen Kaku Gothic New', 'Noto Sans JP', sans-serif;
+    @apply bg-ink-deep text-paper antialiased;
+    /* 既定本文は Inter (英文) + Noto Sans JP (旧 Zen Kaku は fallback) */
+    font-family: 'Inter', 'Noto Sans JP', 'Zen Kaku Gothic New', sans-serif;
     font-feature-settings: "palt";
     letter-spacing: 0.01em;
   }
-  /* Japanese text gets Zen Kaku Gothic first */
-  :is(p, h1, h2, h3, h4, h5, h6, span, a, button, li, label, input, textarea):lang(ja) {
-    font-family: 'Zen Kaku Gothic New', 'Lato', 'Noto Sans JP', sans-serif;
+  /* 日本語本文は Noto Serif JP (明朝) を主軸に。
+     UI 用の input / button / label はサンセリフのまま保持 (可読性のため)。 */
+  :is(p, h1, h2, h3, h4, h5, h6, li):lang(ja) {
+    font-family: 'Noto Serif JP', 'Zen Kaku Gothic New', 'Noto Sans JP', serif;
+    font-weight: 400;
+  }
+  :is(span, a):lang(ja) {
+    font-family: inherit;
+  }
+  :is(input, textarea, select, button, label):lang(ja) {
+    font-family: 'Noto Sans JP', 'Zen Kaku Gothic New', sans-serif;
   }
   /* 2026-06-16: 絵文字撤去アイコンは lucide-react SVG に切替えたため、
      旧 .material-symbols-outlined のフォント定義は不要 */
@@ -34,9 +48,10 @@
       transform: translateY(0);
     }
   }
+  /* 2026-06-16: ハイエンド ベージュアクセントへ変更 (旧ネオンピンクから) */
   ::selection {
-    background: #ff4d9d;
-    color: #ffffff;
+    background: #e8d6cd;
+    color: #0a0d12;
   }
   /* Soft global rounded inputs */
   input[type="text"],
@@ -195,6 +210,93 @@
   }
   .chip-tool {
     @apply inline-flex items-center gap-1 rounded-pill bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white;
+  }
+
+  /* ============================================================
+     2026-06-16 Step 1: ハイエンド (Axis 風) ユーティリティ
+     - 旧ネオン系クラスは互換のため上に残置。新規 UI ではこちらを使う。
+     ============================================================ */
+
+  /* 巨大ディスプレイ見出し — Fraunces セリフを主役にする。
+     "We" / "Movie" / "Every story starts with us." 相当。 */
+  .headline-display {
+    font-family: 'Fraunces', 'Noto Serif JP', serif;
+    font-weight: 700;
+    font-variation-settings: "opsz" 144, "SOFT" 0;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+  }
+  /* 日本語の中見出し (明朝). スクリーンに対し余裕を持った行間。 */
+  .heading-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+  }
+  /* 日本語本文 — 明朝、行間広め、字間 0.04em で詩的な落ち着き */
+  .body-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 400;
+    line-height: 2.1;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  /* 番号タグ・小ラベル (060 / Service / Works) — JetBrains Mono */
+  .eyebrow-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  /* Axis "Contact" ボタン風 — 細ボーダー + 内側に小さなドット + 余白広め */
+  .btn-axis {
+    @apply inline-flex items-center justify-between gap-3 rounded-pill border border-paper/25 bg-transparent px-5 py-2 text-xs font-medium text-paper transition-colors;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 168px;
+  }
+  .btn-axis:hover {
+    @apply border-paper/70 text-paper;
+    background-color: rgba(232, 214, 205, 0.05);
+  }
+  .btn-axis::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: #e8d6cd;
+    box-shadow: 0 0 0 1px rgba(232, 214, 205, 0.4);
+  }
+  /* 暗背景上の極細罫線 (Axis の領域分割). 縦罫線にも使えるよう左/右両方を提供 */
+  .rule-thin {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+  /* スクロール時の控えめなフェードアップ。
+     ※ 初期状態は opacity:0 / translateY(24px) で、IntersectionObserver で
+        `.in-view` を付与した時に最終形へ遷移する想定。Step 4 で JS を組込む。
+     ※ prefers-reduced-motion 時は即時表示 (移動なし)。 */
+  .reveal-up {
+    opacity: 0;
+    transform: translateY(24px);
+    transition:
+      opacity 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    will-change: opacity, transform;
+  }
+  .reveal-up.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-up {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
 }
 

@@ -61,10 +61,17 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* 2026-06-16: 絵文字撤去のアイコンは lucide-react に統一。
-            旧 Google Material Symbols のフォント読込は廃止。 */}
+        {/* 2026-06-16: ハイエンド土台への移行 (Step 1)。
+            Display = Fraunces (英文セリフ), 本文 JA = Noto Serif JP (明朝),
+            英文 UI = Inter, 番号/ラベル = JetBrains Mono に統一。
+            旧 Zen Kaku Gothic New / Lato は globals.css に互換用 fallback
+            として残置するが、新規 UI では使わない。 */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Serif+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        />
       </head>
-      <body className="min-h-screen bg-neon-midnight-deep font-sans text-ink">
+      <body className="min-h-screen bg-ink-deep font-sans text-paper antialiased">
         {children}
       </body>
     </html>
