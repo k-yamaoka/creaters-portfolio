@@ -94,8 +94,27 @@ export function JobsPageClient({
   });
   const [genreOpen, setGenreOpen] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  // 2026-06-16:
+  // - 「上限スライダーは触らない」ため 1 本に集約 (= budget の上限を 1 つの
+  //   スライダーで調整、下限は常に 0)
+  // - スライダーを動かしてもリアルタイムでフィルタが走らないように、
+  //   ドラフト state (draftBudgetMax) を持ち、「適用」ボタンで applied 側を
+  //   更新する。フィルタは applied 側だけを見る
   const [budgetMin, setBudgetMin] = useState<number>(BUDGET_FLOOR);
   const [budgetMax, setBudgetMax] = useState<number>(BUDGET_CEIL);
+  // ドラフト: スライダー上で動かしている瞬間の値
+  const [draftBudgetMax, setDraftBudgetMax] = useState<number>(BUDGET_CEIL);
+  // 「適用」を押せるか (= 未確定の変更があるか)
+  const budgetDirty = draftBudgetMax !== budgetMax;
+  const applyBudget = () => {
+    setBudgetMin(BUDGET_FLOOR); // 下限は常に 0 固定 (UI 簡素化)
+    setBudgetMax(draftBudgetMax);
+  };
+  const resetBudget = () => {
+    setDraftBudgetMax(BUDGET_CEIL);
+    setBudgetMin(BUDGET_FLOOR);
+    setBudgetMax(BUDGET_CEIL);
+  };
 
   const updateFilter = (update: Partial<JobSearchFilters>) => {
     setFilters((prev) => ({ ...prev, ...update }));
@@ -390,107 +409,58 @@ export function JobsPageClient({
               )}
             </div>
 
-            {/* 案件金額の範囲 (左サイドバーに統合) */}
+            {/* 案件金額の上限 (1 本に集約 + ドラフト適用方式) */}
             <div className="rounded-2xl bg-white p-5 shadow-card">
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
-                案件金額の範囲
+                案件金額の上限
               </h3>
               <p className="mt-2 text-sm font-bold text-neon-purple-deep">
-                {formatPrice(budgetMin)}
-                <span className="mx-1 text-[#BDBDBD]">〜</span>
-                {budgetMax >= BUDGET_CEIL ? "100万+" : formatPrice(budgetMax)}
+                〜{" "}
+                {draftBudgetMax >= BUDGET_CEIL
+                  ? "100万+"
+                  : formatPrice(draftBudgetMax)}
+                {budgetDirty && (
+                  <span className="ml-2 text-[10px] font-bold text-neon-pink">
+                    未適用
+                  </span>
+                )}
               </p>
-              {/* 数値入力欄: スライダーを補完。5,000 単位での細かい指定が可能 */}
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[10px] text-[#828282]">下限 (円)</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={BUDGET_FLOOR}
-                    max={BUDGET_CEIL}
-                    step={BUDGET_STEP}
-                    value={budgetMin}
-                    onChange={(e) => {
-                      const v = Math.max(
-                        BUDGET_FLOOR,
-                        Math.min(Number(e.target.value || 0), budgetMax)
-                      );
-                      setBudgetMin(v);
-                    }}
-                    className="mt-0.5 w-full rounded-md border border-[#E0E0E0] px-2 py-1 text-xs outline-none focus:border-neon-pink"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[10px] text-[#828282]">上限 (円)</label>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={BUDGET_FLOOR}
-                    max={BUDGET_CEIL}
-                    step={BUDGET_STEP}
-                    value={budgetMax}
-                    onChange={(e) => {
-                      const v = Math.min(
-                        BUDGET_CEIL,
-                        Math.max(Number(e.target.value || 0), budgetMin)
-                      );
-                      setBudgetMax(v);
-                    }}
-                    className="mt-0.5 w-full rounded-md border border-[#E0E0E0] px-2 py-1 text-xs outline-none focus:border-neon-pink"
-                  />
+
+              {/* 1 本の上限スライダー (下限は 0 固定) */}
+              <div className="mt-4">
+                <input
+                  type="range"
+                  min={BUDGET_FLOOR}
+                  max={BUDGET_CEIL}
+                  step={BUDGET_STEP}
+                  value={draftBudgetMax}
+                  onChange={(e) =>
+                    setDraftBudgetMax(Number(e.target.value))
+                  }
+                  aria-label="案件金額の上限"
+                  className="block w-full accent-neon-pink"
+                />
+                <div className="mt-1 flex justify-between text-[10px] text-[#828282]">
+                  <span>0</span>
+                  <span>100万+</span>
                 </div>
               </div>
-              <div className="mt-3 space-y-3">
-                <div>
-                  <label className="text-[10px] text-[#828282]">下限スライダー</label>
-                  <input
-                    type="range"
-                    min={BUDGET_FLOOR}
-                    max={BUDGET_CEIL}
-                    step={BUDGET_STEP}
-                    value={budgetMin}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setBudgetMin(Math.min(v, budgetMax));
-                    }}
-                    className="block w-full accent-neon-pink"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] text-[#828282]">上限スライダー</label>
-                  <input
-                    type="range"
-                    min={BUDGET_FLOOR}
-                    max={BUDGET_CEIL}
-                    step={BUDGET_STEP}
-                    value={budgetMax}
-                    onChange={(e) => {
-                      const v = Number(e.target.value);
-                      setBudgetMax(Math.max(v, budgetMin));
-                    }}
-                    className="block w-full accent-neon-purple"
-                  />
-                </div>
-              </div>
-              {/* よく使う範囲のクイックチップ — 100万超は「100万+」として上端に張付け */}
+
+              {/* よく使う範囲 — 押したらドラフトを上限値に合わせる (適用は別ボタンで確定) */}
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {[
-                  { label: "〜10万", min: 0, max: 100_000 },
-                  { label: "10〜30万", min: 100_000, max: 300_000 },
-                  { label: "30〜50万", min: 300_000, max: 500_000 },
-                  { label: "50〜100万", min: 500_000, max: 1_000_000 },
-                  { label: "100万+", min: 1_000_000, max: BUDGET_CEIL },
+                  { label: "〜10万", max: 100_000 },
+                  { label: "〜30万", max: 300_000 },
+                  { label: "〜50万", max: 500_000 },
+                  { label: "〜100万", max: 1_000_000 },
+                  { label: "100万+", max: BUDGET_CEIL },
                 ].map((q) => {
-                  const active = budgetMin === q.min && budgetMax === q.max;
+                  const active = draftBudgetMax === q.max;
                   return (
                     <button
                       key={q.label}
                       type="button"
-                      onClick={() => {
-                        setBudgetMin(q.min);
-                        setBudgetMax(q.max);
-                      }}
+                      onClick={() => setDraftBudgetMax(q.max)}
                       className={`rounded-pill border px-2.5 py-0.5 text-[11px] font-bold transition-colors ${
                         active
                           ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
@@ -501,6 +471,27 @@ export function JobsPageClient({
                     </button>
                   );
                 })}
+              </div>
+
+              {/* 適用 / リセット — 適用ボタンを押した時点でフィルタが反映される */}
+              <div className="mt-4 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={applyBudget}
+                  disabled={!budgetDirty}
+                  className="flex-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-card transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  この金額で絞り込む
+                </button>
+                {(budgetMax !== BUDGET_CEIL || draftBudgetMax !== BUDGET_CEIL) && (
+                  <button
+                    type="button"
+                    onClick={resetBudget}
+                    className="rounded-pill border border-[#E0E0E0] px-3 py-2 text-[11px] font-bold text-[#828282] transition-colors hover:border-[#BDBDBD] hover:text-[#4F4F4F]"
+                  >
+                    リセット
+                  </button>
+                )}
               </div>
             </div>
 
@@ -516,8 +507,7 @@ export function JobsPageClient({
                       sortBy: filters.sortBy ?? "recommended",
                       statusFilter: filters.statusFilter,
                     });
-                    setBudgetMin(BUDGET_FLOOR);
-                    setBudgetMax(BUDGET_CEIL);
+                    resetBudget();
                   }}
                   className="mt-3 w-full rounded-lg border border-[#E0E0E0] py-2 text-sm font-medium text-[#828282] transition-colors hover:bg-[#F8F8F8]"
                 >
@@ -569,58 +559,47 @@ export function JobsPageClient({
                   </div>
                 </div>
 
-                {/* 案件金額の範囲 (モバイル) */}
+                {/* 案件金額の上限 (モバイル) — 1 本に集約、適用はオーバーレイ下部の
+                    「N 件を表示」ボタン押下時に確定 */}
                 <div>
                   <div className="mb-2 flex items-center justify-between">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
-                      案件金額の範囲
+                      案件金額の上限
                     </h3>
                     <p className="text-sm font-bold text-neon-purple-deep">
-                      {formatPrice(budgetMin)}
-                      <span className="mx-1 text-[#BDBDBD]">〜</span>
-                      {budgetMax >= BUDGET_CEIL ? "100万+" : formatPrice(budgetMax)}
+                      〜{" "}
+                      {draftBudgetMax >= BUDGET_CEIL
+                        ? "100万+"
+                        : formatPrice(draftBudgetMax)}
                     </p>
                   </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-[10px] text-[#828282]">下限</label>
-                      <input
-                        type="range"
-                        min={BUDGET_FLOOR}
-                        max={BUDGET_CEIL}
-                        step={BUDGET_STEP}
-                        value={budgetMin}
-                        onChange={(e) => {
-                          const v = Number(e.target.value);
-                          setBudgetMin(Math.min(v, budgetMax));
-                        }}
-                        className="block w-full accent-neon-pink"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] text-[#828282]">上限</label>
-                      <input
-                        type="range"
-                        min={BUDGET_FLOOR}
-                        max={BUDGET_CEIL}
-                        step={BUDGET_STEP}
-                        value={budgetMax}
-                        onChange={(e) => {
-                          const v = Number(e.target.value);
-                          setBudgetMax(Math.max(v, budgetMin));
-                        }}
-                        className="block w-full accent-neon-purple"
-                      />
-                    </div>
+                  <input
+                    type="range"
+                    min={BUDGET_FLOOR}
+                    max={BUDGET_CEIL}
+                    step={BUDGET_STEP}
+                    value={draftBudgetMax}
+                    onChange={(e) =>
+                      setDraftBudgetMax(Number(e.target.value))
+                    }
+                    aria-label="案件金額の上限"
+                    className="block w-full accent-neon-pink"
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] text-[#828282]">
+                    <span>0</span>
+                    <span>100万+</span>
                   </div>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setMobileFiltersOpen(false)}
+                onClick={() => {
+                  applyBudget();
+                  setMobileFiltersOpen(false);
+                }}
                 className="btn-primary mt-6 w-full"
               >
-                {filtered.length}件を表示
+                この条件で絞り込む
               </button>
             </div>
           </div>
