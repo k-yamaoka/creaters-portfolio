@@ -328,7 +328,8 @@ export default async function CreatorDetailPage({
                   </span>
                   {replyRate !== null && (
                     <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/80">
-                      💬 返信率 {replyRate}%
+                      <MIcon name="message" size={12} />
+                      返信率 {replyRate}%
                     </span>
                   )}
                   {receivedCount !== null && receivedCount !== undefined && (

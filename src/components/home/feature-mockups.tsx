@@ -5,7 +5,19 @@
  *   creator detail / messages / orders) の見た目を CSS で再現したミニビュー。
  * - すべて Server Component (interactivity 不要)。
  * - en-tech.ai/for-talents のパターンを参考にブラウザフレームで包む。
+ * - 2026-06-16: 内部の絵文字 (❤️ ⭐ ✦ 💼 🤖 🛡️ 🕐 ▶) を lucide-react に統一。
  */
+import {
+  Heart,
+  Star,
+  Sparkles,
+  Briefcase,
+  Bot,
+  ShieldCheck,
+  Clock,
+  Play,
+  Check,
+} from "lucide-react";
 
 type BrowserFrameProps = {
   url: string;
@@ -64,7 +76,7 @@ export function MockCreatorsList() {
       name: "山田 太郎",
       bio: "Meta/TikTok 広告に特化。Sora 2 + Runway Gen-4 で AB案を高速量産。",
       price: "¥30,000〜",
-      tag: "✦ スピード納品",
+      tag: "スピード納品",
       genre: "SNS広告動画",
       tier: "gold" as const,
     },
@@ -72,7 +84,7 @@ export function MockCreatorsList() {
       name: "佐藤 美和",
       bio: "Veo 3 のシネマグレード表現が得意。コーポレートVP中心。",
       price: "¥120,000〜",
-      tag: "✦ こだわり高品質型",
+      tag: "こだわり高品質型",
       genre: "会社紹介・コーポレートVP",
       tier: "silver" as const,
     },
@@ -80,7 +92,7 @@ export function MockCreatorsList() {
       name: "鈴木 健",
       bio: "EC商品PR特化。商品写真1枚から AI 生成で 30 秒動画を作る。",
       price: "¥50,000〜",
-      tag: "✦ 大手企業実績あり",
+      tag: "大手企業実績あり",
       genre: "プロダクト紹介動画",
       tier: "normal" as const,
     },
@@ -100,7 +112,8 @@ export function MockCreatorsList() {
         >
           {r.tier === "gold" && (
             <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-sunset to-neon-pink px-2 py-0.5 text-[8px] font-black text-white">
-              ⭐ 人気 ❤️ 128
+              <Star size={10} fill="currentColor" strokeWidth={0} /> 人気
+              <Heart size={10} fill="currentColor" strokeWidth={0} /> 128
             </span>
           )}
           <div className={`flex items-start gap-3 ${r.tier === "gold" ? "mt-4" : ""}`}>
@@ -118,8 +131,14 @@ export function MockCreatorsList() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-black text-white">{r.name}</span>
-                <span className="rounded-pill bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-white/80">
-                  ❤️ {r.tier === "gold" ? 128 : r.tier === "silver" ? 64 : 12}
+                <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-white/80">
+                  <Heart
+                    size={9}
+                    fill="currentColor"
+                    strokeWidth={0}
+                    className="text-neon-pink"
+                  />
+                  {r.tier === "gold" ? 128 : r.tier === "silver" ? 64 : 12}
                 </span>
               </div>
               <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/65">
@@ -168,12 +187,13 @@ export function MockPortfoliosGrid() {
             <div className={`absolute inset-0 bg-gradient-to-br ${t.g}`} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             {/* Like button overlay */}
-            <span className="absolute right-1 top-1 z-10 rounded-pill border border-white/30 bg-black/40 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
-              ❤️ {t.n}
+            <span className="absolute right-1 top-1 z-10 inline-flex items-center gap-1 rounded-pill border border-white/30 bg-black/40 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
+              <Heart size={9} fill="currentColor" strokeWidth={0} className="text-neon-pink" />
+              {t.n}
             </span>
             {/* play indicator */}
-            <span className="absolute bottom-1 left-1 rounded-full bg-black/50 px-1.5 py-0.5 text-[8px] font-bold text-white backdrop-blur-sm">
-              ▶
+            <span className="absolute bottom-1 left-1 inline-flex items-center rounded-full bg-black/50 p-1 text-white backdrop-blur-sm">
+              <Play size={8} fill="currentColor" strokeWidth={0} />
             </span>
           </div>
         ))}
@@ -196,20 +216,23 @@ export function MockCreatorDetail() {
             認証済み
           </span>
           <p className="mt-1.5 text-base font-black text-white">山田 太郎</p>
-          <p className="mt-0.5 text-[10px] text-white/65">
-            ✦ 作品 24 件 · ❤️ 総いいね 128
+          <p className="mt-0.5 inline-flex items-center gap-1.5 text-[10px] text-white/65">
+            <Sparkles size={11} className="text-neon-pink" /> 作品 24 件 ·
+            <Heart size={11} fill="currentColor" strokeWidth={0} className="text-neon-pink" />
+            総いいね 128
           </p>
         </div>
         <div className="aspect-video w-32 shrink-0 rounded-lg border border-white/15 bg-gradient-to-br from-neon-pink to-neon-purple shadow-[0_8px_20px_-8px_rgba(255,77,157,0.5)]">
           <span className="float-left m-1 inline-flex items-center gap-0.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-1.5 py-0.5 text-[8px] font-black text-white">
-            ★ 代表作
+            <Star size={9} fill="currentColor" strokeWidth={0} /> 代表作
           </span>
         </div>
       </div>
 
       {/* CTA */}
-      <div className="rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2.5 text-center text-xs font-bold text-white shadow-[0_0_18px_rgba(255,77,157,0.45)]">
-        💼 このクリエイターに依頼を相談
+      <div className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2.5 text-center text-xs font-bold text-white shadow-[0_0_18px_rgba(255,77,157,0.45)]">
+        <Briefcase size={13} strokeWidth={2.4} />
+        このクリエイターに依頼を相談
       </div>
 
       {/* Minimum plan panel */}
@@ -225,14 +248,17 @@ export function MockCreatorDetail() {
           縦型 SNS 広告 15 秒 ×1 本。修正 2 回まで含む。Sora 2 + Runway で AB 案 3 種同時提案。
         </p>
         <div className="mt-2 flex flex-wrap gap-1">
-          <span className="rounded-pill border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-white/85">
-            ✓ AB案 3 種
+          <span className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-white/85">
+            <Check size={9} strokeWidth={3} />
+            AB案 3 種
           </span>
-          <span className="rounded-pill border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-white/85">
-            ✓ 縦型 9:16 対応
+          <span className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-white/85">
+            <Check size={9} strokeWidth={3} />
+            縦型 9:16 対応
           </span>
-          <span className="rounded-pill bg-white/10 px-1.5 py-0.5 text-[8px] font-bold text-white/75">
-            🕐 納期 3 日
+          <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-1.5 py-0.5 text-[8px] font-bold text-white/75">
+            <Clock size={9} strokeWidth={2.4} />
+            納期 3 日
           </span>
         </div>
       </div>
@@ -246,8 +272,9 @@ export function MockCreatorDetail() {
 export function MockEstimateChat() {
   return (
     <div className="space-y-2 bg-neon-midnight-deep p-4">
-      <p className="text-[10px] font-bold text-neon-cyan">
-        🤖 AI 見積もりアシスタント
+      <p className="inline-flex items-center gap-1 text-[10px] font-bold text-neon-cyan">
+        <Bot size={12} strokeWidth={2} />
+        AI 見積もりアシスタント
       </p>
       <div className="rounded-2xl rounded-tl-sm bg-white/[0.06] p-2.5 text-[11px] leading-relaxed text-white/85">
         ご依頼内容のイメージを教えてください。たとえば「30 秒の SNS 広告動画
@@ -301,8 +328,9 @@ export function MockOrders() {
   return (
     <div className="space-y-2 bg-neon-midnight-deep p-4">
       <div className="mb-2 flex items-center justify-between rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2">
-        <p className="text-[10px] font-bold text-emerald-300">
-          🛡️ エスクロー預かり中
+        <p className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300">
+          <ShieldCheck size={12} strokeWidth={2.2} />
+          エスクロー預かり中
         </p>
         <p className="text-xs font-black text-emerald-300">¥230,000</p>
       </div>

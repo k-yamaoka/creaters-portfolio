@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState } from "react";
+import { Bot } from "lucide-react";
 
 /**
  * クリエイター詳細ページの「AI 見積もり相談」チャット。
@@ -37,8 +38,11 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
       {/* Header */}
       <div className="border-b border-white/10 bg-gradient-to-r from-neon-cyan/10 to-neon-purple/10 px-5 py-4">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple text-xs shadow-[0_0_10px_rgba(157,92,255,0.5)]">
-            🤖
+          <span
+            aria-hidden
+            className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple text-white shadow-[0_0_10px_rgba(157,92,255,0.5)]"
+          >
+            <Bot size={14} strokeWidth={2.2} />
           </span>
           <div>
             <h3 className="text-sm font-black text-white">AI 見積もり相談</h3>

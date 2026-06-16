@@ -1,8 +1,16 @@
 import Link from "next/link";
 import { getCreators } from "@/lib/supabase/queries";
-import { SparkStar } from "@/components/ui/illustrations";
-import { NeonStar, RetroSun } from "@/components/ui/illustrations-retrowave";
-import { HeroVideoMarquee } from "@/components/home/hero-video-marquee";
+import { RetroSun } from "@/components/ui/illustrations-retrowave";
+import { HeroVideoGrid } from "@/components/home/hero-video-grid";
+import {
+  Sparkles,
+  Building2,
+  Video,
+  Wallet,
+  Search,
+  MessageCircle,
+  Clapperboard,
+} from "lucide-react";
 import {
   BrowserFrame,
   MockCreatorsList,
@@ -41,28 +49,136 @@ function EyebrowLabel({
   );
 }
 
+// MP4 直リンクのみを対象に Hero グリッド用タイルを抽出。
+const MP4_RE = /\.mp4(\?|$)/i;
+function extractHeroTiles(
+  creators: Awaited<ReturnType<typeof getCreators>>
+): {
+  src: string;
+  poster: string | null;
+  href: string;
+  alt: string;
+}[] {
+  const out: ReturnType<typeof extractHeroTiles> = [];
+  for (const c of creators) {
+    for (const p of c.portfolio_items) {
+      if (p.media_type !== "video") continue;
+      if (!p.video_url || !MP4_RE.test(p.video_url)) continue;
+      out.push({
+        src: p.video_url,
+        poster: p.thumbnail_url ?? null,
+        href: `/creators/${c.id}`,
+        alt: `${c.profiles.display_name} の作品「${p.title}」`,
+      });
+    }
+  }
+  return out;
+}
+
+// DB が空のときの仮素材 (実 AI 作品が貯まるまでの暫定)。
+// 本番素材への差し替えは「この配列を編集するだけ」で完了する。
+const FALLBACK_HERO_TILES: {
+  src: string;
+  poster: string | null;
+  href: string;
+  alt: string;
+}[] = [
+  {
+    src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 1 (仮素材)",
+  },
+  {
+    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 2 (仮素材)",
+  },
+  {
+    src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 3 (仮素材)",
+  },
+  {
+    src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 4 (仮素材)",
+  },
+  {
+    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 5 (仮素材)",
+  },
+  {
+    src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/Jellyfish_1080_10s_2MB.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 6 (仮素材)",
+  },
+];
+
+// Hero 直下に並べる対応 AI ツール (静的 1 段、自動スクロールなし)。
+// NN/g: 自動マーキー禁止 / Midjourney は除外。
+const AI_TOOL_LABELS = [
+  "Sora",
+  "Veo",
+  "Runway",
+  "Seedance",
+  "Kling",
+  "Hailuo",
+] as const;
+
+// NN/g: 「22 人」「23 本」などの低い実数は negative social proof になるため、
+// 定性的な価値プロップに置換する。
+const VALUE_PROPS = [
+  {
+    icon: Video,
+    title: "撮影不要",
+    body: "ロケ・スタジオ手配ゼロ。AI 生成 + 編集で完結します。",
+  },
+  {
+    icon: Building2,
+    title: "完全リモート",
+    body: "オンラインのみで構成から納品まで進行できます。",
+  },
+  {
+    icon: Sparkles,
+    title: "構成から納品まで一貫",
+    body: "プロンプト設計・編集・テロップ・BGM をワンストップで。",
+  },
+  {
+    icon: Wallet,
+    title: "登録無料",
+    body: "案件成立時のみ手数料。掲載・閲覧は無料です。",
+  },
+] as const;
+
 export default async function HomePage() {
   const allCreators = await getCreators();
 
-  // 実績数値 — 実データ + 安全な下限フォールバック
-  const creatorCount = Math.max(allCreators.length, 22);
-  const portfolioCount = Math.max(
-    allCreators.reduce((sum, c) => sum + c.portfolio_items.length, 0),
-    20
-  );
   const genreCount = GENRES.length;
+
+  // Hero 動画タイル: DB から 8 件以上集まれば DB 素材、無ければ仮素材
+  const dbTiles = extractHeroTiles(allCreators);
+  const heroTiles = dbTiles.length >= 6 ? dbTiles : FALLBACK_HERO_TILES;
 
   return (
     <>
-      {/* 2026-06-15 撤去: 旧 RandomGallery (5列縦スクロール) は Hero 内の
-          HeroVideoMarquee (3 行横スクロール) に統合 */}
-
       {/* =================================================
-          HERO
+          HERO — 2 カラム (NN/g 準拠リライト 2026-06-16)
+            - 左 ~45%: 価値提案テキスト + 主従 CTA 2 つ
+            - 右 ~55%: 縦 9:16 グリッド (静止デフォルト / hover で再生)
+            - 自動マーキー・自動再生・装飾的なバウンスは禁止
+            - ヒーロー直下に AI ツール ロゴ帯 (静的) + 4 つの定性価値
           ================================================= */}
       <section className="relative overflow-hidden bg-neon-midnight-deep text-white">
         <div
-          className="absolute inset-0 opacity-30"
+          aria-hidden
+          className="absolute inset-0 opacity-25"
           style={{
             backgroundImage:
               "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
@@ -71,83 +187,116 @@ export default async function HomePage() {
               "radial-gradient(ellipse at center, black 30%, transparent 75%)",
           }}
         />
-        <div className="absolute -left-32 top-0 h-[480px] w-[480px] rounded-full bg-neon-pink opacity-30 blur-[120px]" />
-        <div className="absolute -right-24 top-32 h-[400px] w-[400px] rounded-full bg-neon-cyan opacity-25 blur-[100px]" />
-        <div className="absolute left-1/2 -bottom-32 h-[360px] w-[720px] -translate-x-1/2 rounded-full bg-neon-purple opacity-20 blur-[100px]" />
-
-        <span
+        <div
           aria-hidden
-          className="pointer-events-none absolute right-12 top-16 text-neon-pink animate-float"
-        >
-          <NeonStar size={36} />
-        </span>
-        <span
+          className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-neon-pink opacity-25 blur-[120px]"
+        />
+        <div
           aria-hidden
-          className="pointer-events-none absolute left-12 bottom-24 text-neon-cyan animate-sway"
-        >
-          <SparkStar size={28} />
-        </span>
+          className="absolute -right-20 top-24 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-20 blur-[100px]"
+        />
 
-        <div className="relative mx-auto max-w-container px-6 pb-28 pt-20 lg:px-10 lg:pb-36 lg:pt-28">
-          {/* 2026-06-15 再構成: Hero を左右 2 カラムに。左 45% テキスト / 右 55% 横3行マーキー。
-              SP/タブレットでは縦積み (上テキスト / 下マーキー)、デスクトップは items-center で
-              縦中心揃え */}
-          <div className="flex flex-col items-center gap-10 lg:flex-row lg:gap-12">
-            <div className="w-full lg:w-[45%]">
-              <EyebrowLabel text="AILIER — AI CREATORS PLATFORM" />
+        <div className="relative mx-auto max-w-container px-6 pb-16 pt-16 lg:px-10 lg:pb-20 lg:pt-20">
+          <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-14">
+            {/* === 左カラム: テキスト + CTA === */}
+            <div className="w-full motion-safe:animate-[fadeUp_.45s_ease-out_both] lg:w-[44%]">
+              <EyebrowLabel text="AI CREATORS PLATFORM" />
 
-              <h1 className="mt-8 text-[2.4rem] font-black leading-[1.1] tracking-tight sm:text-[3.6rem] lg:text-[4.8rem]">
+              <h1 className="mt-6 text-[2.5rem] font-black leading-[1.08] tracking-tight sm:text-[3.6rem] lg:text-[3.75rem]">
                 <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
                   AIクリエイター
                 </span>
                 と、
                 <br />
-                <span className="text-white">企業をつなぐ</span>
-                <span className="text-neon-pink">。</span>
+                <span className="text-white">企業をつなぐ。</span>
               </h1>
 
-              <p className="mt-8 max-w-xl text-[15px] leading-[2] text-white/70">
+              <p className="mt-6 max-w-xl text-[15px] leading-[1.9] text-white/75">
                 Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
                 <span className="font-bold text-white">
                   SNS広告動画・商品紹介・採用動画
                 </span>
                 を依頼できる専門マッチングプラットフォーム。
                 <br />
-                撮影不要・完全リモート・低予算で、構成から完成までAIクリエイターにおまかせ。
+                撮影不要・完全リモート・低予算で、構成から完成までおまかせ。
               </p>
 
-              <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              {/* CTA: 主 1 + 副 1 (NN/g: filled は 1 つに絞る・具体的ラベル) */}
+              <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-base font-bold text-white shadow-[0_0_28px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(255,77,157,0.6)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-pink"
+                >
+                  無料ではじめる
+                  <span aria-hidden>→</span>
+                </Link>
                 <Link
                   href="/creators"
-                  className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-4 text-base font-bold text-white shadow-[0_0_30px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(255,77,157,0.6)]"
+                  className="inline-flex items-center justify-center gap-2 rounded-pill border-2 border-white/30 bg-white/[0.04] px-7 py-3.5 text-base font-bold text-white transition-colors hover:border-white/60 hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
                 >
-                  <span>AIクリエイターを探す</span>
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
-                </Link>
-                <Link
-                  href="#features"
-                  className="group inline-flex items-center justify-between gap-3 rounded-pill border-2 border-white/30 bg-white/5 px-7 py-4 text-base font-bold text-white transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
-                >
-                  <span>機能を見る</span>
-                  <span className="transition-transform group-hover:translate-x-1">
-                    →
-                  </span>
+                  クリエイターを探す
+                  <span aria-hidden>→</span>
                 </Link>
               </div>
-
-              {/* 2026-06-15 撤去: 最短納期/従来コスト/クリエイティブ量/撮影費 の 4 メトリクス */}
             </div>
 
-            {/* 右カラム: 3 行横マーキー */}
-            <div className="w-full lg:w-[55%]">
-              <HeroVideoMarquee creators={allCreators} />
+            {/* === 右カラム: 縦 9:16 グリッド === */}
+            <div className="w-full lg:w-[56%]">
+              <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
+            </div>
+          </div>
+
+          {/* Hero 直下の対応 AI ツール 1 段 (静的・自動スクロールなし) */}
+          <div className="mt-14 border-t border-white/10 pt-8">
+            <p className="text-center text-[10px] font-bold uppercase tracking-[0.22em] text-white/45">
+              Supports leading AI tools
+            </p>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 sm:gap-x-12">
+              {AI_TOOL_LABELS.map((t) => (
+                <span
+                  key={t}
+                  className="text-sm font-bold tracking-tight text-white/55 transition-colors hover:text-white"
+                >
+                  {t}
+                </span>
+              ))}
             </div>
           </div>
         </div>
+      </section>
 
-        {/* 2026-06-15 撤去: AI ツール名称の横スライド Marquee */}
+      {/* =================================================
+          VALUE PROPS — 定性 4 カラム (旧 stats 4 数値の代替)
+            NN/g: 「最短 2 日」「AB案 10 倍」など誇張数値や少なさが露呈する
+            実数を避け、撮影不要/完全リモート/一貫/登録無料 で示す
+          ================================================= */}
+      <section className="relative bg-neon-midnight py-14 text-white">
+        <div className="relative mx-auto max-w-container px-6 lg:px-10">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {VALUE_PROPS.map((v) => {
+              const Icon = v.icon;
+              return (
+                <div
+                  key={v.title}
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+                >
+                  <span
+                    aria-hidden
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-neon-pink/15 to-neon-purple/15 text-neon-pink"
+                  >
+                    <Icon size={20} strokeWidth={1.8} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">{v.title}</p>
+                    <p className="mt-1 text-xs leading-[1.7] text-white/65">
+                      {v.body}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </section>
 
       {/* =================================================
@@ -279,7 +428,7 @@ export default async function HomePage() {
               bullets={[
                 "縦型 / 横型 / 正方形 が混在する自然なグリッド",
                 "ホバーで動画再生、クリックで詳細モーダル",
-                "❤️ いいねでお気に入りクリエイターを発見",
+                "いいねでお気に入りクリエイターを発見",
               ]}
               cta={{ href: "/portfolios", label: "作品を見る" }}
               mock={
@@ -376,27 +525,30 @@ export default async function HomePage() {
                 step: "STEP 1",
                 title: "クリエイターを探す",
                 body: "ジャンル・料金・実績で絞り込み、ポートフォリオをホバー再生で比較。気になるクリエイターをブックマーク。",
-                emoji: "🔍",
+                Icon: Search,
               },
               {
                 step: "STEP 2",
                 title: "依頼を相談する",
                 body: "詳細ページから「依頼を相談」をクリック。AI 見積もりチャットや直接メッセージで、内容・本数・尺をすり合わせ。",
-                emoji: "💬",
+                Icon: MessageCircle,
               },
               {
                 step: "STEP 3",
                 title: "制作・納品 ＋ 検収",
                 body: "エスクローで仮払い → 制作開始 → 納品確認後に自動送金。進行中はメッセージ画面で一気通貫。",
-                emoji: "🎬",
+                Icon: Clapperboard,
               },
             ].map((s, i) => (
               <div
                 key={s.step}
                 className="group relative rounded-2xl border border-white/10 bg-white/[0.04] p-7 pt-12 backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)]"
               >
-                <span className="absolute -top-6 left-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-pink to-neon-purple text-2xl shadow-[0_0_20px_rgba(255,77,157,0.6)]">
-                  {s.emoji}
+                <span
+                  aria-hidden
+                  className="absolute -top-6 left-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-neon-pink to-neon-purple text-white shadow-[0_0_20px_rgba(255,77,157,0.6)]"
+                >
+                  <s.Icon size={24} strokeWidth={2} />
                 </span>
                 <p className="text-[10px] font-bold tracking-[0.18em] text-neon-cyan">
                   {s.step}
@@ -416,70 +568,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* =================================================
-          ACHIEVEMENTS — 数値
-          ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-24 text-white">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-[420px] w-[820px] -translate-x-1/2 rounded-full bg-neon-purple opacity-15 blur-[160px]" />
-
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <div className="text-center">
-            <EyebrowLabel text="ACHIEVEMENTS / 実績" tone="purple" />
-            <h2 className="mt-6 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
-              AIクリエイターと案件のマッチングを
-              <br className="sm:hidden" />
-              <span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">
-                数字で見る
-              </span>
-            </h2>
-          </div>
-
-          <div className="mt-14 grid gap-6 sm:grid-cols-3">
-            {[
-              {
-                label: "Number of creators",
-                jp: "登録クリエイター",
-                num: creatorCount,
-                unit: "人+",
-                color: "from-neon-pink to-neon-purple",
-              },
-              {
-                label: "Number of works",
-                jp: "公開作品数",
-                num: portfolioCount,
-                unit: "本+",
-                color: "from-neon-cyan to-neon-purple",
-              },
-              {
-                label: "Genres covered",
-                jp: "取扱ジャンル",
-                num: genreCount,
-                unit: "カテゴリ",
-                color: "from-neon-sunset to-neon-pink",
-              },
-            ].map((s) => (
-              <div
-                key={s.jp}
-                className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] p-8 backdrop-blur-sm"
-              >
-                <div
-                  className={`absolute inset-x-0 top-0 h-px bg-gradient-to-r ${s.color} opacity-60`}
-                />
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">
-                  {s.label}
-                </p>
-                <p className="mt-2 text-sm font-bold text-white/85">{s.jp}</p>
-                <p
-                  className={`mt-4 bg-gradient-to-r ${s.color} bg-clip-text text-[3.25rem] font-black leading-none text-transparent`}
-                >
-                  {s.num.toLocaleString()}
-                </p>
-                <p className="mt-2 text-sm font-bold text-white/65">{s.unit}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 2026-06-16 撤去: ACHIEVEMENTS 数値セクション
+          (Baymard/NN/g: 「登録クリエイター 22 人」「公開作品 23 本」のような
+          低い実数を大きく見せる演出は negative social proof になり逆効果。
+          価値プロップ (撮影不要/完全リモート/一貫/登録無料) は Hero 直下に
+          静的に配置済) */}
+      <span aria-hidden className="hidden">{genreCount}</span>
 
       {/* =================================================
           USE CASES — 案件例 (対応ジャンル)

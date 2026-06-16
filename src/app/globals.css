@@ -19,23 +19,20 @@
   :is(p, h1, h2, h3, h4, h5, h6, span, a, button, li, label, input, textarea):lang(ja) {
     font-family: 'Zen Kaku Gothic New', 'Lato', 'Noto Sans JP', sans-serif;
   }
-  /* Material Symbols (絵文字撤去後の共通アイコン)。
-     ローカルフォント名で指定し、JP フォントの fallback に巻き込まれないようにする。
-     :lang(ja) のルールよりも具体性を上げるためクラスセレクタを併用。 */
-  .material-symbols-outlined,
-  span.material-symbols-outlined {
-    font-family: 'Material Symbols Outlined' !important;
-    font-weight: normal;
-    font-style: normal;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
+  /* 2026-06-16: 絵文字撤去アイコンは lucide-react SVG に切替えたため、
+     旧 .material-symbols-outlined のフォント定義は不要 */
+
+  /* Hero の左カラムが軽くフェードアップする一発演出。
+     NN/g: UI アニメーションは控えめ・短く・一度だけ。 */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
   ::selection {
     background: #ff4d9d;
