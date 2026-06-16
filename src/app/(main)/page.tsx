@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getCreators } from "@/lib/supabase/queries";
 // 2026-06-16 Step 3: RetroSun (旧 CLOSING の浮遊装飾) は撤去のため import 削除
-import { HeroVideoGrid, type GridTile } from "@/components/home/hero-video-grid";
+// 2026-06-17: 旧 HeroVideoGrid (縦自動マーキー) は HeroCinematic に置き換え。
+// (HeroVideoGrid 自体は /portfolios 用に残置)
+import { HeroCinematic, type CinematicTile } from "@/components/home/hero-cinematic";
 import {
   Sparkles,
   Building2,
@@ -31,95 +33,30 @@ export const revalidate = 300;
  *  で統一 (Axis 風)。
  * ============================================================= */
 
-// MP4 直リンクのみを対象に Hero グリッド用タイルを抽出。
-// 各タイルは元動画の比率 (aspect_ratio: vertical / horizontal / square) を
-// そのまま GridTile に持たせる (= グリッドで原寸表示できる)。
-const MP4_RE = /\.mp4(\?|$)/i;
-function extractHeroTiles(
-  creators: Awaited<ReturnType<typeof getCreators>>
-): GridTile[] {
-  const out: GridTile[] = [];
-  for (const c of creators) {
-    for (const p of c.portfolio_items) {
-      if (p.media_type !== "video") continue;
-      if (!p.video_url || !MP4_RE.test(p.video_url)) continue;
-      const a =
-        p.aspect_ratio === "vertical"
-          ? ("vertical" as const)
-          : p.aspect_ratio === "square"
-            ? ("square" as const)
-            : ("video" as const);
-      out.push({
-        src: p.video_url,
-        poster: p.thumbnail_url ?? null,
-        href: `/creators/${c.id}`,
-        alt: `${c.profiles.display_name} の作品「${p.title}」`,
-        aspect: a,
-      });
-    }
-  }
-  return out;
-}
+// ===== HeroCinematic 用の動画ソース =====
+// 2026-06-17: フルスクリーン背景動画 + 右下に重なる小映像 2 枚 の構造に刷新。
+// 旧 HeroVideoGrid 用の Masonry 配列 (extractHeroTiles / FALLBACK_HERO_TILES)
+// は撤去。素材差し替えは下の HERO_BG_VIDEO / HERO_OVERLAYS を編集する。
 
-// ★ 本番素材への差し替えポイント ★
-// 本配列を編集するだけで仮素材 → AI 生成作品へ置換可能。
-// aspect は "video" (16:9) / "vertical" (9:16) / "square" (1:1) / "tall" (4:5)
-// を混在させると Masonry っぽい不揃いな並びになり、対応形式の幅広さを伝えやすい。
-const FALLBACK_HERO_TILES: GridTile[] = [
+// ★ 背景フル動画 (差し替えポイント) ★
+const HERO_BG_VIDEO: { src: string; poster?: string | null } = {
+  // MDN CC0 — 抽象的な花の動画。Axis 風アンビエント感に合うため仮採用
+  src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+  poster: null,
+};
+
+// ★ 右下に重なる小映像 2 枚 (差し替えポイント) ★
+const HERO_OVERLAYS: CinematicTile[] = [
   {
-    src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4",
-    poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 1 (仮素材)",
-    aspect: "vertical",
-  },
-  {
-    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 2 (仮素材)",
-    aspect: "video",
-  },
-  {
-    src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4",
-    poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 3 (仮素材)",
-    aspect: "video",
-  },
-  {
+    // タイル A (メイン、横長): Big Buck Bunny アニメサンプル
     src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4",
     poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 4 (仮素材)",
-    aspect: "square",
-  },
-  {
-    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
-    poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 5 (仮素材)",
-    aspect: "vertical",
-  },
-  {
-    src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/Jellyfish_1080_10s_2MB.mp4",
-    poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 6 (仮素材)",
-    aspect: "tall",
-  },
-  {
-    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 7 (仮素材)",
     aspect: "video",
   },
   {
-    src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4",
+    // タイル B (サブ、縦長): Jellyfish 海中動画
+    src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4",
     poster: null,
-    href: "/portfolios",
-    alt: "作品サンプル 8 (仮素材)",
     aspect: "vertical",
   },
 ];
@@ -164,78 +101,24 @@ export default async function HomePage() {
   const allCreators = await getCreators();
 
   const genreCount = GENRES.length;
-
-  // Hero 動画タイル: DB から 8 件以上集まれば DB 素材、無ければ仮素材
-  const dbTiles = extractHeroTiles(allCreators);
-  const heroTiles = dbTiles.length >= 6 ? dbTiles : FALLBACK_HERO_TILES;
+  // allCreators は他セクション (今後の "Featured creators" 等) で使用想定。
+  // Hero は HeroCinematic に固定動画を渡す構造に刷新したため tiles 計算は撤去。
+  void allCreators;
 
   return (
     <>
       {/* =================================================
-          HERO — Axis Ov Films 系ハイエンドへの全面改修 (Step 2 / 2026-06-16)
-            ・装飾 (グリッドパターン / ネオングロウブロブ) を完全撤去
-            ・タイポを Fraunces 大型 (display) + Noto Serif JP (heading) +
-              Inter (mono タグ) のバイリンガル構造に
-            ・CTA は .btn-axis / .btn-axis-ghost (細ピル + 小さなサンドドット)
-            ・スクロール演出は RevealOnScroll で stagger フェードアップ
+          HERO — Cinematic フルスクリーン (axis-ov-films.co.jp オマージュ / 2026-06-17)
+            ・100svh 背景動画 + 右下に重なる小映像 2 枚
+            ・テキストは左上 Axis スタイル (mono ラベル + Fraunces 大型)
+            ・全 video は autoPlay muted loop playsInline + reduced-motion 制御
           ================================================= */}
-      <section className="relative overflow-hidden bg-ink-deep text-paper">
-        <div className="relative mx-auto max-w-wide px-6 py-section-y-sm lg:px-10 lg:py-section-y">
-          <div className="flex flex-col items-center gap-16 lg:flex-row lg:gap-24">
-            {/* === 左カラム: テキスト + CTA === */}
-            <div className="w-full lg:w-[44%]">
-              <RevealOnScroll delay={0}>
-                <p className="eyebrow-mono">
-                  (01 — AILIER for AI Creators)
-                </p>
-              </RevealOnScroll>
+      <HeroCinematic bg={HERO_BG_VIDEO} overlays={HERO_OVERLAYS} />
 
-              <RevealOnScroll delay={80}>
-                <h1 className="headline-display mt-8 text-paper text-[clamp(3rem,7vw,5.5rem)]">
-                  Frames of{" "}
-                  <span className="italic text-sand">tomorrow.</span>
-                </h1>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={160}>
-                <p className="heading-jp mt-6 text-[1.25rem] text-paper/85 sm:text-[1.5rem]">
-                  AIクリエイターと、企業をつなぐ。
-                </p>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={240}>
-                <p className="body-jp mt-10 max-w-prose-jp text-[15px]">
-                  Sora、Veo、Runway、Seedance。
-                  <br />
-                  新しい映像言語を操るクリエイターと、
-                  <br />
-                  語るべき物語を持つ企業が、ひとつの卓を囲む場所。
-                </p>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={360}>
-                <div className="mt-12 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                  <Link href="/register" className="btn-axis">
-                    Get started
-                  </Link>
-                  <Link href="/creators" className="btn-axis-ghost">
-                    クリエイターを探す
-                  </Link>
-                </div>
-              </RevealOnScroll>
-            </div>
-
-            {/* === 右カラム: 縦自動マーキー × 原寸アスペクト Masonry (3 列) === */}
-            <RevealOnScroll delay={150} className="w-full lg:w-[56%]">
-              <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
-            </RevealOnScroll>
-          </div>
-
-          {/* Hero 直下の対応 AI モデル 1 段 — 罫線で領域を区切る Axis 風 */}
-          <RevealOnScroll
-            delay={120}
-            className="mt-section-y-sm border-t border-paper/10 pt-12"
-          >
+      {/* Hero 直下: Compatible models 罫線帯 — Hero の続きの暗帯として独立 */}
+      <section className="relative bg-ink-deep text-paper">
+        <div className="relative mx-auto max-w-wide px-gutter pt-16 lg:pt-24">
+          <RevealOnScroll delay={0} className="border-t border-paper/10 pt-12">
             <p className="eyebrow-mono text-center">Compatible models</p>
             {/* 2026-06-16 Step 4: ブランド名 (Sora/Veo/...) はサンセリフが自然。
                 Fraunces (font-display) を装飾セリフに使うのは違和感のため Inter に。 */}
