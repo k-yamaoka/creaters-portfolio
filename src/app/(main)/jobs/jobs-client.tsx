@@ -21,7 +21,9 @@ type Job = {
   created_at: string;
   client: {
     id: string;
+    // 公開ページでは利用しないが、応募時に内部参照する可能性に備えて型は維持
     company_name: string | null;
+    industry: string | null;
     profiles: { display_name: string };
   };
 };
@@ -629,10 +631,10 @@ export function JobsPageClient({
           {filtered.length > 0 ? (
             <div className="space-y-4">
               {filtered.map((job) => {
-                const clientName =
-                  job.client?.company_name ||
-                  job.client?.profiles?.display_name ||
-                  "企業";
+                // 2026-06-16: 公開ページ (/jobs / /jobs/[id]) では企業名を伏せる。
+                // 代わりに「業種カテゴリ」(industry) を出し、企業名は
+                // マイページの応募済み案件 / 取引管理画面でのみ開示する。
+                const clientCategory = job.client?.industry || "業種非公開";
                 // 2026-06-16: マイページ「応募済み案件」のカードと UI/テキスト
                 //   サイズ・カラーを揃え、上部の色付き帯と右側の大きな締切ボックス
                 //   を撤去。ステータスバッジは title の右に shrink-0 のピル。
@@ -695,7 +697,7 @@ export function JobsPageClient({
                           )}
                         </div>
                         <p className="mt-1 text-sm text-[#828282]">
-                          {clientName}
+                          {clientCategory}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {job.genres.slice(0, 3).map((genre) => (

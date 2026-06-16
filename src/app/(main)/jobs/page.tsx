@@ -21,6 +21,7 @@ export default async function JobsPage() {
       client:client_profiles!jobs_client_id_fkey (
         id,
         company_name,
+        industry,
         profiles!client_profiles_user_id_fkey ( display_name )
       )
     `

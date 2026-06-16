@@ -114,14 +114,10 @@ export default async function JobDetailPage({
                 <h1 className="truncate text-2xl font-bold text-gray-900 sm:text-3xl" title={job.title}>
                   {job.title}
                 </h1>
+                {/* 2026-06-16: 企業名は伏せ、業種カテゴリのみ公開。
+                    企業名は応募済み案件/取引管理画面でのみ開示する。 */}
                 <p className="mt-2 text-sm text-gray-500">
-                  {clientData.company_name ||
-                    clientData.profiles.display_name}
-                  {clientData.industry && (
-                    <span className="ml-2 text-gray-400">
-                      ({clientData.industry})
-                    </span>
-                  )}
+                  {clientData.industry || "業種非公開"}<span className="ml-2 text-gray-400">の企業</span>
                 </p>
               </div>
               {(job.budget_min || job.budget_max) && (
@@ -247,19 +243,18 @@ export default async function JobDetailPage({
                           メッセージ機能が解放されました
                         </p>
                         <p className="mt-0.5 text-xs text-neon-purple-deep/80">
-                          {clientData.company_name ||
-                            clientData.profiles.display_name}{" "}
-                          にメッセージを送れます
+                          この企業にメッセージを送れます (企業名は
+                          「応募済み案件」画面で確認できます)
                         </p>
                       </div>
                     </div>
                     {user && (
                       <MessageDialog
                         partnerUserId={clientData.user_id}
-                        partnerName={
-                          clientData.company_name ||
-                          clientData.profiles.display_name
-                        }
+                        // 公開ページでは企業名を伏せる仕様 (2026-06-16)。
+                        // ダイアログ内の partner 表記は「依頼企業」で代替し、
+                        // 実名は応募済み案件画面でのみ開示する。
+                        partnerName="依頼企業"
                         currentUserId={user.id}
                         senderRole={
                           user.role === "creator" ||
@@ -311,30 +306,19 @@ export default async function JobDetailPage({
         <div className="space-y-6">
           <div className="sticky top-24">
             <div className="grid grid-cols-[1fr,auto] divide-x divide-gray-200 rounded-2xl border border-gray-200 bg-white shadow-card">
-              {/* 掲載企業 */}
+              {/* 掲載企業 — 公開ページでは業種カテゴリのみ表示 (2026-06-16) */}
               <div className="min-w-0 p-5">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500">
                   掲載企業
                 </h3>
                 <p className="mt-2 truncate text-lg font-bold text-gray-900">
-                  {clientData.company_name ||
-                    clientData.profiles.display_name}
+                  {clientData.industry || "業種非公開"}
                 </p>
-                {clientData.industry && (
-                  <p className="mt-1 text-sm text-gray-500">
-                    {clientData.industry}
-                  </p>
-                )}
-                {clientData.company_url && (
-                  <a
-                    href={clientData.company_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-block text-sm text-neon-purple-deep hover:underline"
-                  >
-                    企業サイト ↗
-                  </a>
-                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  ※ 企業名は応募後、応募済み案件画面で確認できます
+                </p>
+                {/* 2026-06-16: 企業サイトリンクは公開ページから削除
+                    (企業名特定につながるため) */}
               </div>
 
               {/* 応募数 — 縦区切り線で隣接 */}
