@@ -164,6 +164,11 @@ const config: Config = {
         "marquee-vertical-slow": "marquee-vertical 80s linear infinite",
         "marquee-vertical-reverse": "marquee-vertical-reverse 55s linear infinite",
         "marquee-vertical-reverse-slow": "marquee-vertical-reverse 90s linear infinite",
+        // Hero グリッド 4 列用の中速帯 (1 周 40〜60s で機械的にならない散らし)
+        "marquee-v-42": "marquee-vertical 42s linear infinite",
+        "marquee-v-rev-50": "marquee-vertical-reverse 50s linear infinite",
+        "marquee-v-58": "marquee-vertical 58s linear infinite",
+        "marquee-v-rev-46": "marquee-vertical-reverse 46s linear infinite",
         "toast-in": "toast-in 220ms ease-out",
         wiggle: "wiggle 4s ease-in-out infinite",
         float: "float 6s ease-in-out infinite",

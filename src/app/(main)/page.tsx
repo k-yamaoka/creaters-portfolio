@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCreators } from "@/lib/supabase/queries";
 import { RetroSun } from "@/components/ui/illustrations-retrowave";
-import { HeroVideoGrid } from "@/components/home/hero-video-grid";
+import { HeroVideoGrid, type GridTile } from "@/components/home/hero-video-grid";
 import {
   Sparkles,
   Building2,
@@ -50,74 +50,95 @@ function EyebrowLabel({
 }
 
 // MP4 直リンクのみを対象に Hero グリッド用タイルを抽出。
+// 各タイルは元動画の比率 (aspect_ratio: vertical / horizontal / square) を
+// そのまま GridTile に持たせる (= グリッドで原寸表示できる)。
 const MP4_RE = /\.mp4(\?|$)/i;
 function extractHeroTiles(
   creators: Awaited<ReturnType<typeof getCreators>>
-): {
-  src: string;
-  poster: string | null;
-  href: string;
-  alt: string;
-}[] {
-  const out: ReturnType<typeof extractHeroTiles> = [];
+): GridTile[] {
+  const out: GridTile[] = [];
   for (const c of creators) {
     for (const p of c.portfolio_items) {
       if (p.media_type !== "video") continue;
       if (!p.video_url || !MP4_RE.test(p.video_url)) continue;
+      const a =
+        p.aspect_ratio === "vertical"
+          ? ("vertical" as const)
+          : p.aspect_ratio === "square"
+            ? ("square" as const)
+            : ("video" as const);
       out.push({
         src: p.video_url,
         poster: p.thumbnail_url ?? null,
         href: `/creators/${c.id}`,
         alt: `${c.profiles.display_name} の作品「${p.title}」`,
+        aspect: a,
       });
     }
   }
   return out;
 }
 
-// DB が空のときの仮素材 (実 AI 作品が貯まるまでの暫定)。
-// 本番素材への差し替えは「この配列を編集するだけ」で完了する。
-const FALLBACK_HERO_TILES: {
-  src: string;
-  poster: string | null;
-  href: string;
-  alt: string;
-}[] = [
+// ★ 本番素材への差し替えポイント ★
+// 本配列を編集するだけで仮素材 → AI 生成作品へ置換可能。
+// aspect は "video" (16:9) / "vertical" (9:16) / "square" (1:1) / "tall" (4:5)
+// を混在させると Masonry っぽい不揃いな並びになり、対応形式の幅広さを伝えやすい。
+const FALLBACK_HERO_TILES: GridTile[] = [
   {
     src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4",
     poster: null,
     href: "/portfolios",
     alt: "作品サンプル 1 (仮素材)",
+    aspect: "vertical",
   },
   {
     src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     poster: null,
     href: "/portfolios",
     alt: "作品サンプル 2 (仮素材)",
+    aspect: "video",
   },
   {
     src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4",
     poster: null,
     href: "/portfolios",
     alt: "作品サンプル 3 (仮素材)",
+    aspect: "video",
   },
   {
     src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4",
     poster: null,
     href: "/portfolios",
     alt: "作品サンプル 4 (仮素材)",
+    aspect: "square",
   },
   {
     src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
     poster: null,
     href: "/portfolios",
     alt: "作品サンプル 5 (仮素材)",
+    aspect: "vertical",
   },
   {
     src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/1080/Jellyfish_1080_10s_2MB.mp4",
     poster: null,
     href: "/portfolios",
     alt: "作品サンプル 6 (仮素材)",
+    aspect: "tall",
+  },
+  {
+    src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 7 (仮素材)",
+    aspect: "video",
+  },
+  {
+    src: "https://test-videos.co.uk/vids/sintel/mp4/h264/720/Sintel_720_10s_2MB.mp4",
+    poster: null,
+    href: "/portfolios",
+    alt: "作品サンプル 8 (仮素材)",
+    aspect: "vertical",
   },
 ];
 
@@ -240,9 +261,9 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* === 右カラム: 縦 9:16 グリッド === */}
+            {/* === 右カラム: 縦自動マーキー × 原寸アスペクト Masonry === */}
             <div className="w-full lg:w-[56%]">
-              <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
+              <HeroVideoGrid tiles={heroTiles} desktopColumns={4} />
             </div>
           </div>
 
