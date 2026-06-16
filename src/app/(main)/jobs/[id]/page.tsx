@@ -97,7 +97,7 @@ export default async function JobDetailPage({
       <div className="mx-auto max-w-container px-6 py-10 lg:px-[6.25rem]">
       {/* Breadcrumb */}
       <nav className="mb-8 text-sm text-gray-500">
-        <Link href="/jobs" className="hover:text-neon-purple-deep">
+        <Link href="/jobs" className="transition-colors hover:text-ink">
           AI動画案件を探す
         </Link>
         <span className="mx-2">/</span>
@@ -111,7 +111,10 @@ export default async function JobDetailPage({
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <h1 className="truncate text-2xl font-bold text-gray-900 sm:text-3xl" title={job.title}>
+                <h1
+                  className="truncate font-display text-2xl font-medium tracking-tight text-gray-900 sm:text-3xl"
+                  title={job.title}
+                >
                   {job.title}
                 </h1>
                 {/* 2026-06-16: 企業名は伏せ、業種カテゴリのみ公開。

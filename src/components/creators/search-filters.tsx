@@ -67,7 +67,7 @@ export function SearchTopBar({
           className="rounded-lg border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition-colors focus:border-neon-pink focus:bg-white/10 focus:ring-1 focus:ring-neon-pink"
         >
           {SORT_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value} className="bg-neon-midnight-deep">
+            <option key={option.value} value={option.value} className="bg-ink-deep">
               {option.label}
             </option>
           ))}

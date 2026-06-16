@@ -95,28 +95,17 @@ export function CreatorsPageClient({
 
   return (
     <>
-      {/* Hero band */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-16 text-white">
-        <div
-          className="absolute inset-0 opacity-25"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            maskImage:
-              "radial-gradient(ellipse at center, black 30%, transparent 80%)",
-          }}
-        />
-        <div className="absolute -left-32 top-0 h-[320px] w-[320px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
-        <div className="absolute -right-20 bottom-0 h-[280px] w-[280px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
-
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <h1 className="text-[2rem] font-black leading-[1.2] sm:text-[3rem] lg:text-[3.5rem]">
-            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-              専門家
-            </span>
-            をツールから選ぶ。
+      {/* 2026-06-17 Step 4-F: Axis 系トーン同期。グラデ + グロウブロブ撤去、
+          見出しを headline-display + 日本語小サブのバイリンガル構造に。 */}
+      <section className="relative bg-ink-deep py-section-y-sm text-paper">
+        <div className="relative mx-auto max-w-wide px-gutter">
+          <p className="eyebrow-mono">(Creators)</p>
+          <h1 className="headline-display mt-6 text-[clamp(2.25rem,5vw,4rem)] text-paper">
+            Choose your <span className="italic text-sand">specialist.</span>
           </h1>
+          <p className="heading-jp mt-4 text-paper/75">
+            ツールから専門家を選ぶ。
+          </p>
         </div>
       </section>
 
@@ -180,7 +169,7 @@ export function CreatorsPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-neon-midnight-deep/95 p-6 backdrop-blur-md">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-ink-deep/95 p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-black text-white">絞り込み</h2>
                 <button
@@ -373,7 +362,7 @@ function CreatorRow({
       <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
         {/* 左: アバター (大型化) */}
         <div className="col-span-3 sm:col-span-2">
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-neon-midnight">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-ink">
             {profiles.avatar_url ? (
               <Image
                 src={profiles.avatar_url}
@@ -466,7 +455,7 @@ function CreatorRow({
 
       {/* === サムネイル行 (ホバー再生対応) === */}
       {thumbs.length > 0 && (
-        <div className="grid grid-cols-2 gap-1 border-t border-white/10 bg-neon-midnight/40 p-1 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-1 border-t border-white/10 bg-ink/40 p-1 sm:grid-cols-4">
           {thumbs.map((t) => (
             <ThumbnailCard
               key={t.id}
@@ -535,7 +524,7 @@ function ThumbnailCard({
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
-      className={`group/tile relative aspect-video overflow-hidden rounded-md bg-neon-midnight-deep transition-all duration-300 ease-out ${
+      className={`group/tile relative aspect-video overflow-hidden rounded-md bg-ink-deep transition-all duration-300 ease-out ${
         hover
           ? "z-30 scale-[1.08] shadow-[0_25px_60px_-10px_rgba(255,77,157,0.55)]"
           : "z-0"

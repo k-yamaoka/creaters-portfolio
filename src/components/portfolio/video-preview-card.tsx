@@ -68,7 +68,7 @@ export function VideoPreviewCard({
   return (
     <div
       ref={rootRef}
-      className={`relative overflow-hidden bg-neon-midnight-deep ${className}`}
+      className={`relative overflow-hidden bg-ink-deep ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >

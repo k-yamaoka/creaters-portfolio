@@ -219,20 +219,24 @@ export function JobsPageClient({
     budgetMax < BUDGET_CEIL;
 
   return (
-    <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
-      {/* Header — タイトルを大きく + グラデーションでハイライト */}
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-[2.25rem] font-black leading-tight sm:text-[3.25rem]">
-            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-              AI動画案件
-            </span>
-            <span className="text-[#222]">を探す</span>
-          </h1>
-          <p className="mt-3 text-base text-[#828282]">
-            企業が掲載した AI 動画制作の募集案件から、あなたの AI スキルに合う仕事を見つけましょう
-          </p>
-        </div>
+    // 2026-06-17 Step 4-F: 本ページは元々ライト UI 前提 (白カード + ダーク
+    // テキスト) のため bg-paper ラッパーで包む。body の bg-ink-deep からは
+    // 切り離して独立した白背景にする。
+    <div className="bg-paper text-ink">
+      <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
+        {/* Axis 系見出しに同期 — グラデを撤去、Fraunces + 明朝の対バイリンガル */}
+        <div className="mb-10 flex items-end justify-between gap-4">
+          <div>
+            <p className="font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-ink/45">
+              (Jobs)
+            </p>
+            <h1 className="mt-4 font-display text-[clamp(2rem,5vw,3.75rem)] font-medium leading-[1.05] tracking-tight text-ink">
+              Find your next <span className="italic text-ink/65">brief.</span>
+            </h1>
+            <p className="mt-4 max-w-prose-jp text-sm leading-[2.1] tracking-[0.04em] text-ink/65">
+              企業が掲載した AI 動画制作の募集案件から、あなたの AI スキルに合う仕事を。
+            </p>
+          </div>
         <button
           type="button"
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
@@ -734,6 +738,7 @@ export function JobsPageClient({
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

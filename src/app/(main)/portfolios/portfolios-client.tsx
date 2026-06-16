@@ -76,14 +76,15 @@ export function PortfoliosPageClient({
 
   return (
     <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
-      {/* Page Header */}
-      <div className="mb-8 flex items-end justify-between">
+      {/* 2026-06-17 Step 4-F: 見出しを Axis 系の Fraunces + 明朝に同期 */}
+      <div className="mb-12 flex items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-white sm:text-[2.5rem]">
-            AI動画ポートフォリオ
+          <p className="eyebrow-mono">(Works)</p>
+          <h1 className="headline-display mt-4 text-[clamp(2rem,5vw,3.75rem)] text-paper">
+            All <span className="italic text-sand">works.</span>
           </h1>
-          <p className="mt-3 text-sm text-white/65">
-            Sora / Veo / Runway / Midjourney などを使いこなすAIクリエイターの作品一覧。気になる作品から詳細へ。
+          <p className="body-jp mt-4 max-w-prose-jp text-sm text-paper/65">
+            Sora・Veo・Runway を使いこなす AI クリエイターの作品一覧。
           </p>
         </div>
         {/* Mobile filter toggle */}
@@ -130,7 +131,7 @@ export function PortfoliosPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-neon-midnight-deep/95 p-6 backdrop-blur-md">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-ink-deep/95 p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-black text-white">絞り込み</h2>
                 <button
