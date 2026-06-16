@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Clapperboard,
 } from "lucide-react";
+import { SlideInWhenVisible } from "@/components/ui/slide-in-when-visible";
 import {
   BrowserFrame,
   MockCreatorsList,
@@ -261,9 +262,9 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* === 右カラム: 縦自動マーキー × 原寸アスペクト Masonry === */}
+            {/* === 右カラム: 縦自動マーキー × 原寸アスペクト Masonry (3 列) === */}
             <div className="w-full lg:w-[56%]">
-              <HeroVideoGrid tiles={heroTiles} desktopColumns={4} />
+              <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
             </div>
           </div>
 
@@ -800,6 +801,14 @@ function FeatureRow({
   mock: React.ReactNode;
   reverse?: boolean;
 }) {
+  // テキストとモックは「自分が最終的に居る側の外側」から滑り込む。
+  // reverse=false : テキスト左 / モック右 → textDir=left, mockDir=right
+  // reverse=true  : テキスト右 / モック左 → textDir=right, mockDir=left
+  const textDir = reverse ? "right" : "left";
+  const mockDir = reverse ? "left" : "right";
+
+  // 内部 stagger: ラベル → 見出し → 説明 → 箇条書き → CTA を 80ms 刻みで
+  // (合計 ≦ 0.5s)。bullets はインデックスごとに更に +80ms ずつ追加。
   return (
     <div
       className={`grid grid-cols-1 items-center gap-10 lg:gap-16 ${
@@ -807,37 +816,57 @@ function FeatureRow({
       }`}
     >
       <div className={reverse ? "lg:order-2" : ""}>
-        <span className="inline-block rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-black tracking-[0.18em] text-neon-pink-soft">
-          {no}
-        </span>
-        <h3 className="mt-4 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
-          {title}
-        </h3>
-        <p className="mt-5 text-sm leading-[2] text-white/70">{body}</p>
+        <SlideInWhenVisible direction={textDir} delay={0}>
+          <span className="inline-block rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-black tracking-[0.18em] text-neon-pink-soft">
+            {no}
+          </span>
+        </SlideInWhenVisible>
+        <SlideInWhenVisible direction={textDir} delay={80}>
+          <h3 className="mt-4 text-[1.75rem] font-black leading-[1.2] sm:text-[2.25rem]">
+            {title}
+          </h3>
+        </SlideInWhenVisible>
+        <SlideInWhenVisible direction={textDir} delay={160}>
+          <p className="mt-5 text-sm leading-[2] text-white/70">{body}</p>
+        </SlideInWhenVisible>
         <ul className="mt-6 space-y-2.5">
-          {bullets.map((b) => (
-            <li
+          {bullets.map((b, i) => (
+            <SlideInWhenVisible
               key={b}
-              className="flex items-start gap-2.5 text-sm text-white/80"
+              direction={textDir}
+              delay={240 + i * 80}
             >
-              <span className="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
-                ✓
-              </span>
-              {b}
-            </li>
+              <li className="flex items-start gap-2.5 text-sm text-white/80">
+                <span className="mt-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
+                  ✓
+                </span>
+                {b}
+              </li>
+            </SlideInWhenVisible>
           ))}
         </ul>
-        <Link
-          href={cta.href}
-          className="group mt-7 inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 text-sm font-bold text-neon-pink-soft transition-colors hover:bg-neon-pink/20"
+        <SlideInWhenVisible
+          direction={textDir}
+          delay={240 + bullets.length * 80}
         >
-          {cta.label}
-          <span className="transition-transform group-hover:translate-x-1">
-            →
-          </span>
-        </Link>
+          <Link
+            href={cta.href}
+            className="group mt-7 inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-5 py-2.5 text-sm font-bold text-neon-pink-soft transition-colors hover:bg-neon-pink/20"
+          >
+            {cta.label}
+            <span className="transition-transform group-hover:translate-x-1">
+              →
+            </span>
+          </Link>
+        </SlideInWhenVisible>
       </div>
-      <div className={reverse ? "lg:order-1" : ""}>{mock}</div>
+      <SlideInWhenVisible
+        direction={mockDir}
+        delay={120}
+        className={reverse ? "lg:order-1" : ""}
+      >
+        {mock}
+      </SlideInWhenVisible>
     </div>
   );
 }
