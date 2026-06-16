@@ -218,13 +218,21 @@
      ============================================================ */
 
   /* 巨大ディスプレイ見出し — Fraunces セリフを主役にする。
-     "We" / "Movie" / "Every story starts with us." 相当。 */
+     "We" / "Movie" / "Every story starts with us." 相当。
+     2026-06-16 Step 4: OpenType フィーチャを有効化し、品位を底上げ。
+     - opsz 144: 大型ディスプレイ用に最適化された opt サイズ
+     - SOFT 100: 角の柔らかさをわずかに増やしハイエンドな印象
+     - WONK 0: 標準字形 (奇抜な swash を抑制)
+     - liga / calt / kern: 標準的なリガチャと文脈異字、カーニング */
   .headline-display {
     font-family: 'Fraunces', 'Noto Serif JP', serif;
     font-weight: 700;
-    font-variation-settings: "opsz" 144, "SOFT" 0;
+    font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 0;
+    font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
     letter-spacing: -0.02em;
     line-height: 0.95;
+    text-rendering: optimizeLegibility;
+    text-wrap: balance;
   }
   /* 日本語の中見出し (明朝). スクリーンに対し余裕を持った行間。 */
   .heading-jp {
@@ -232,6 +240,9 @@
     font-weight: 500;
     letter-spacing: 0.02em;
     line-height: 1.6;
+    /* palt = JP プロポーショナル詰め (Step 4 で全 JP テキストに有効化) */
+    font-feature-settings: "palt" 1, "kern" 1;
+    text-rendering: optimizeLegibility;
   }
   /* 日本語本文 — 明朝、行間広め、字間 0.04em で詩的な落ち着き */
   .body-jp {
@@ -240,6 +251,8 @@
     line-height: 2.1;
     letter-spacing: 0.04em;
     color: rgba(255, 255, 255, 0.78);
+    font-feature-settings: "palt" 1, "kern" 1;
+    text-rendering: optimizeLegibility;
   }
   /* 番号タグ・小ラベル (060 / Service / Works) — JetBrains Mono */
   .eyebrow-mono {
@@ -262,6 +275,9 @@
     @apply border-paper/70 text-paper;
     background-color: rgba(232, 214, 205, 0.05);
   }
+  .btn-axis:focus-visible {
+    @apply outline-none ring-2 ring-sand/60 ring-offset-2 ring-offset-ink-deep;
+  }
   .btn-axis::after {
     content: "";
     display: inline-block;
@@ -282,6 +298,9 @@
   }
   .btn-axis-ghost:hover {
     @apply border-paper/60 text-paper;
+  }
+  .btn-axis-ghost:focus-visible {
+    @apply outline-none ring-2 ring-sand/60 ring-offset-2 ring-offset-ink-deep;
   }
   /* 暗背景上の極細罫線 (Axis の領域分割). 縦罫線にも使えるよう左/右両方を提供 */
   .rule-thin {

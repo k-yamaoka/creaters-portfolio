@@ -262,7 +262,7 @@ function Tile({
       onFocus={onRequestPlay}
       onBlur={onRequestStop}
       onTouchStart={onRequestPlay}
-      className={`group relative block ${aspect} overflow-hidden rounded-md border border-paper/8 bg-ink outline-none transition-transform duration-500 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-sand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep`}
+      className={`group relative block ${aspect} overflow-hidden rounded-md border border-paper/8 bg-ink outline-none transition-transform duration-500 ease-out hover:scale-[1.012] focus-visible:ring-2 focus-visible:ring-sand/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep`}
       aria-hidden={ariaHidden}
       tabIndex={ariaHidden ? -1 : 0}
       aria-label={ariaHidden ? undefined : `${tile.alt} (作品を開く)`}
@@ -275,8 +275,8 @@ function Tile({
           alt=""
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 240px"
-          className={`object-cover transition-opacity duration-300 ${
-            isPlaying ? "opacity-0" : "opacity-100"
+          className={`object-cover transition-all duration-500 ease-out ${
+            isPlaying ? "scale-105 opacity-0" : "scale-100 opacity-100"
           }`}
           unoptimized
         />
@@ -297,16 +297,16 @@ function Tile({
         loop
         playsInline
         preload="none"
-        className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-          isPlaying ? "opacity-100" : "opacity-0"
+        className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ease-out ${
+          isPlaying ? "scale-100 opacity-100" : "scale-105 opacity-0"
         }`}
         aria-hidden="true"
       />
 
-      {/* 下端 scrim + 再生ヒント (Axis 風に静かに) */}
+      {/* 下端 scrim + 再生ヒント (Axis 風に静かに、ゆっくりフェード) */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex items-end justify-end gap-2 bg-gradient-to-t from-black/55 via-black/10 to-transparent p-2.5">
         <span
-          className={`inline-flex items-center gap-1 rounded-pill border border-paper/15 bg-paper/[0.05] px-2 py-0.5 text-[9px] font-medium tracking-wider text-paper/85 backdrop-blur-sm transition-opacity ${
+          className={`inline-flex items-center gap-1 rounded-pill border border-paper/15 bg-paper/[0.05] px-2 py-0.5 text-[9px] font-medium tracking-wider text-paper/85 backdrop-blur-sm transition-opacity duration-500 ease-out ${
             isPlaying ? "opacity-0" : "opacity-0 group-hover:opacity-100"
           }`}
         >

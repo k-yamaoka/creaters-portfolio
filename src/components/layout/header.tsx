@@ -206,44 +206,46 @@ export function Header({
         mobileMuted: "mb-2 text-sm text-gray-500",
       }
     : {
+        // 2026-06-16 Step 4: ダーク (LP) テーマを Axis Ov Films 系へ刷新。
+        // 旧 neon-midnight-deep/neon-pink hover を ink-deep/sand に統一。
         header:
-          "fixed left-0 right-0 top-0 z-50 border-b border-white/5 bg-neon-midnight-deep/85 backdrop-blur-xl",
-        logoText: "font-display text-xl font-black tracking-tight text-white",
+          "fixed left-0 right-0 top-0 z-50 border-b border-paper/10 bg-ink-deep/85 backdrop-blur-xl",
+        logoText: "font-display text-xl font-medium tracking-tight text-paper",
         logoSubtitle:
-          "mt-1 text-[9px] font-medium uppercase tracking-[0.22em] text-white/40",
+          "mt-1 font-mono text-[9px] font-medium uppercase tracking-[0.22em] text-paper/40",
         navLink:
-          "rounded-pill px-4 py-2 text-[13px] font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink",
+          "rounded-pill px-4 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-paper/70 transition-colors hover:text-paper",
         iconBtn:
-          "relative flex h-10 w-10 items-center justify-center rounded-pill text-white/80 transition-colors hover:bg-white/10 hover:text-neon-pink",
+          "relative flex h-10 w-10 items-center justify-center rounded-pill text-paper/70 transition-colors hover:text-paper",
         userMenuBtn:
-          "flex items-center gap-2 rounded-pill border border-white/15 bg-white/5 px-3 py-2 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:border-neon-pink/60 hover:text-neon-pink",
+          "flex items-center gap-2 rounded-pill border border-paper/20 bg-transparent px-3 py-2 text-xs font-medium text-paper transition-colors hover:border-paper/60",
         dropdown:
-          "absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-xl border border-white/10 bg-neon-midnight-deep shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
+          "absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-md border border-paper/15 bg-ink-deep shadow-[0_8px_30px_rgba(0,0,0,0.6)]",
         dropdownSm:
-          "absolute right-0 top-full z-50 mt-3 w-52 overflow-hidden rounded-xl border border-white/10 bg-neon-midnight-deep shadow-[0_8px_30px_rgba(0,0,0,0.5)]",
-        dropdownHeader: "border-b border-white/10 bg-white/5 px-4 py-3",
-        dropdownHeaderText: "text-sm font-bold text-white",
-        dropdownSubText: "truncate text-xs text-white/60",
-        notifEmpty: "px-4 py-10 text-center text-sm text-white/50",
+          "absolute right-0 top-full z-50 mt-3 w-52 overflow-hidden rounded-md border border-paper/15 bg-ink-deep shadow-[0_8px_30px_rgba(0,0,0,0.6)]",
+        dropdownHeader: "border-b border-paper/10 px-4 py-3",
+        dropdownHeaderText: "font-display text-sm font-medium text-paper",
+        dropdownSubText: "truncate text-xs text-paper/55",
+        notifEmpty: "px-4 py-10 text-center text-sm text-paper/45",
         notifItem:
-          "block border-b border-white/5 px-4 py-3 transition-colors last:border-0 hover:bg-white/5",
-        notifTitleUnread: "text-sm font-bold text-white",
-        notifTitle: "text-sm text-white/70",
-        notifBody: "mt-0.5 truncate text-xs text-white/60",
-        notifMeta: "mt-1 text-[10px] text-white/40",
+          "block border-b border-paper/8 px-4 py-3 transition-colors last:border-0 hover:bg-paper/[0.03]",
+        notifTitleUnread: "text-sm font-medium text-paper",
+        notifTitle: "text-sm text-paper/65",
+        notifBody: "mt-0.5 truncate text-xs text-paper/55",
+        notifMeta: "mt-1 font-mono text-[10px] uppercase tracking-wider text-paper/35",
         menuItem:
-          "block px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-white/5 hover:text-neon-pink",
+          "block px-4 py-2.5 text-sm font-medium text-paper/85 transition-colors hover:bg-paper/[0.04] hover:text-paper",
         logoutBtn:
-          "w-full border-t border-white/10 px-4 py-2.5 text-left text-sm font-medium text-neon-pink transition-colors hover:bg-neon-pink/10",
+          "w-full border-t border-paper/10 px-4 py-2.5 text-left text-sm font-medium text-paper/65 transition-colors hover:bg-paper/[0.04] hover:text-paper",
         loginLink:
-          "rounded-pill px-4 py-2 text-sm font-bold text-white/85 transition-colors hover:bg-white/10 hover:text-neon-pink",
+          "rounded-pill px-4 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-paper/70 transition-colors hover:text-paper",
         mobileBtn:
-          "flex h-10 w-10 items-center justify-center rounded-pill border border-white/15 text-white md:hidden",
+          "flex h-10 w-10 items-center justify-center rounded-pill border border-paper/20 text-paper md:hidden",
         mobileMenu:
-          "fixed inset-x-0 top-[80px] border-t border-white/5 bg-neon-midnight-deep md:hidden",
+          "fixed inset-x-0 top-[80px] border-t border-paper/10 bg-ink-deep md:hidden",
         mobileLink:
-          "flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-white",
-        mobileMuted: "mb-2 text-sm text-white/60",
+          "flex items-center justify-between border-b border-paper/10 py-4 font-display text-lg font-medium text-paper",
+        mobileMuted: "mb-2 text-sm text-paper/55",
       };
 
   return (
@@ -261,7 +263,7 @@ export function Header({
             </span>
             <span className="flex flex-col leading-none">
               <span className={T.logoText}>
-                AI<span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">LIER</span>
+                AILIER<span className="text-sand">.</span>
               </span>
               <span className={T.logoSubtitle}>
                 AI creators × business
@@ -318,10 +320,13 @@ export function Header({
               {showPostJobCta && (
                 <Link
                   href="/dashboard/jobs/new"
-                  className="mr-1 inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.6)]"
+                  className={
+                    isLight
+                      ? "btn-primary mr-1 text-xs"
+                      : "btn-axis mr-1"
+                  }
                 >
-                  案件を発注する
-                  <span aria-hidden>→</span>
+                  {isLight ? "案件を発注する" : "Post a job"}
                 </Link>
               )}
               {/* Message icon */}
@@ -529,10 +534,9 @@ export function Header({
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.6)]"
+                className={isLight ? "btn-primary text-xs" : "btn-axis"}
               >
-                無料ではじめる
-                <span aria-hidden>→</span>
+                {isLight ? "無料ではじめる" : "Get started"}
               </Link>
             </>
           )}
@@ -606,11 +610,11 @@ export function Header({
             {showPostJobCta && (
               <Link
                 href="/dashboard/jobs/new"
-                className="flex items-center justify-between border-b border-white/10 py-4 text-lg font-bold text-neon-pink"
+                className={`${T.mobileLink} text-sand`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                案件を発注する
-                <span>→</span>
+                {isLight ? "案件を発注する" : "Post a job"}
+                <span aria-hidden>→</span>
               </Link>
             )}
             {user && (
@@ -666,10 +670,10 @@ export function Header({
                   </Link>
                   <Link
                     href="/register"
-                    className="btn-neon justify-center"
+                    className={isLight ? "btn-primary justify-center" : "btn-axis justify-center"}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    無料ではじめる
+                    {isLight ? "無料ではじめる" : "Get started"}
                   </Link>
                 </>
               )}

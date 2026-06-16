@@ -237,11 +237,13 @@ export default async function HomePage() {
             className="mt-section-y-sm border-t border-paper/10 pt-12"
           >
             <p className="eyebrow-mono text-center">Compatible models</p>
+            {/* 2026-06-16 Step 4: ブランド名 (Sora/Veo/...) はサンセリフが自然。
+                Fraunces (font-display) を装飾セリフに使うのは違和感のため Inter に。 */}
             <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-paper/10">
               {AI_TOOL_LABELS.map((t) => (
                 <span
                   key={t}
-                  className="px-6 font-display text-base font-medium tracking-tight text-paper/55 transition-colors hover:text-paper sm:px-8"
+                  className="px-6 font-sans text-sm font-medium tracking-tight text-paper/55 transition-colors hover:text-paper sm:px-8 sm:text-base"
                 >
                   {t}
                 </span>
@@ -495,7 +497,7 @@ export default async function HomePage() {
               <RevealOnScroll
                 key={s.step}
                 delay={i * 100}
-                className="p-10 sm:p-12"
+                className="p-8 sm:p-10 lg:p-12"
               >
                 <s.Icon
                   size={28}
@@ -551,18 +553,22 @@ export default async function HomePage() {
             <ul className="divide-y divide-paper/10">
               {GENRES.map((g, i) => {
                 const num = String(i + 1).padStart(2, "0");
+                const total = String(GENRES.length).padStart(2, "0");
                 return (
                   <li
                     key={g}
-                    className="group flex items-baseline justify-between gap-6 py-6 transition-colors hover:bg-paper/[0.02] sm:py-8"
+                    className="group py-6 transition-colors hover:bg-paper/[0.02] sm:py-8"
                   >
-                    <span className="eyebrow-mono shrink-0">{num}</span>
-                    <h3 className="font-display flex-1 text-center text-2xl font-medium tracking-tight text-paper transition-colors group-hover:text-sand sm:text-3xl lg:text-4xl">
-                      {g}
-                    </h3>
-                    <span className="eyebrow-mono shrink-0">
-                      / {String(GENRES.length).padStart(2, "0")}
-                    </span>
+                    {/* SP: 番号 + ジャンル名を縦並び (横並びだと長文ジャンル名が被る) */}
+                    <div className="flex items-baseline justify-between gap-4 sm:gap-6">
+                      <span className="eyebrow-mono shrink-0">{num}</span>
+                      <h3 className="font-display flex-1 text-right text-xl font-medium tracking-tight text-paper transition-colors group-hover:text-sand sm:text-center sm:text-3xl lg:text-4xl">
+                        {g}
+                      </h3>
+                      <span className="eyebrow-mono hidden shrink-0 sm:inline">
+                        / {total}
+                      </span>
+                    </div>
                   </li>
                 );
               })}
@@ -629,18 +635,18 @@ export default async function HomePage() {
                 return (
                   <li key={i}>
                     <details className="group">
-                      <summary className="flex cursor-pointer list-none items-baseline justify-between gap-6 py-8">
-                        <span className="flex flex-1 items-baseline gap-6">
+                      <summary className="flex cursor-pointer list-none items-baseline justify-between gap-4 py-6 sm:gap-6 sm:py-8">
+                        <span className="flex min-w-0 flex-1 items-baseline gap-3 sm:gap-6">
                           <span className="eyebrow-mono shrink-0">
                             Q.{num}
                           </span>
-                          <span className="font-display text-lg font-medium text-paper sm:text-xl">
+                          <span className="font-display min-w-0 text-base font-medium text-paper sm:text-xl">
                             {f.q}
                           </span>
                         </span>
                         <span
                           aria-hidden
-                          className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-paper/30 text-paper/60 transition-transform duration-300 group-open:rotate-180"
+                          className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-paper/30 text-paper/60 transition-transform duration-300 group-open:rotate-180"
                         >
                           <svg
                             className="h-3 w-3"
@@ -657,9 +663,11 @@ export default async function HomePage() {
                           </svg>
                         </span>
                       </summary>
-                      <div className="flex items-start gap-6 pb-10">
+                      <div className="flex items-start gap-3 pb-8 sm:gap-6 sm:pb-10">
                         <span className="eyebrow-mono shrink-0">A.{num}</span>
-                        <p className="body-jp text-paper/70">{f.a}</p>
+                        <p className="body-jp text-sm text-paper/70 sm:text-base">
+                          {f.a}
+                        </p>
                       </div>
                     </details>
                   </li>
@@ -742,7 +750,7 @@ function FeatureRow({
 
   return (
     <div
-      className={`grid grid-cols-1 items-start gap-12 lg:gap-24 ${
+      className={`grid grid-cols-1 items-start gap-8 sm:gap-12 lg:gap-24 ${
         reverse ? "lg:grid-cols-[1.62fr,1fr]" : "lg:grid-cols-[1fr,1.62fr]"
       }`}
     >

@@ -61,7 +61,9 @@ export function BrowserFrame({
           {url}
         </div>
       </div>
-      <div className="relative">{children}</div>
+      {/* SP で内部の固定幅 mock がはみ出す対策。
+          overflow-x-hidden で物理的にトリミングし、横スクロールを阻止。 */}
+      <div className="relative overflow-x-hidden">{children}</div>
     </div>
   );
 }
@@ -96,65 +98,55 @@ export function MockCreatorsList() {
       tier: "normal" as const,
     },
   ];
+  // 2026-06-16 Step 4: Axis 風モノトーンに彩度下げ。
+  // neon-pink/purple/cyan/sunset → paper/sand/ink の階調のみ。
   return (
-    <div className="space-y-2.5 bg-neon-midnight-deep p-4">
+    <div className="space-y-0 divide-y divide-paper/10 bg-ink p-4">
       {rows.map((r, i) => (
-        <div
-          key={i}
-          className={`relative overflow-hidden rounded-xl border p-3 ${
-            r.tier === "gold"
-              ? "border-neon-sunset/60 bg-neon-sunset/[0.07]"
-              : r.tier === "silver"
-                ? "border-neon-cyan/40 bg-neon-cyan/[0.05]"
-                : "border-white/10 bg-white/[0.04]"
-          }`}
-        >
+        <div key={i} className="relative py-3 first:pt-0 last:pb-0">
           {r.tier === "gold" && (
-            <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-sunset to-neon-pink px-2 py-0.5 text-[8px] font-black text-white">
-              <Star size={10} fill="currentColor" strokeWidth={0} /> 人気
-              <Heart size={10} fill="currentColor" strokeWidth={0} /> 128
+            <span className="absolute right-0 top-3 inline-flex items-center gap-1 font-mono text-[8px] font-medium uppercase tracking-[0.2em] text-sand">
+              <Star size={9} fill="currentColor" strokeWidth={0} /> Top
             </span>
           )}
-          <div className={`flex items-start gap-3 ${r.tier === "gold" ? "mt-4" : ""}`}>
-            <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-base font-black text-white shadow-[0_0_12px_rgba(255,77,157,0.4)] ${
-                i === 0
-                  ? "bg-gradient-to-br from-neon-pink to-neon-purple"
-                  : i === 1
-                    ? "bg-gradient-to-br from-neon-cyan to-neon-purple"
-                    : "bg-gradient-to-br from-neon-sunset to-neon-pink"
-              }`}
-            >
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-paper/15 bg-paper/[0.04] font-display text-base font-medium text-paper">
               {r.name[0]}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-black text-white">{r.name}</span>
-                <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-white/80">
+              <div className="flex items-center gap-2">
+                <span className="font-display text-sm font-medium text-paper">
+                  {r.name}
+                </span>
+                <span className="inline-flex items-center gap-1 font-mono text-[9px] text-paper/55">
                   <Heart
                     size={9}
                     fill="currentColor"
                     strokeWidth={0}
-                    className="text-neon-pink"
+                    className="text-sand"
                   />
                   {r.tier === "gold" ? 128 : r.tier === "silver" ? 64 : 12}
                 </span>
               </div>
-              <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-white/65">
+              <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-paper/60">
                 {r.bio}
               </p>
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                <span className="rounded-pill bg-gradient-to-r from-neon-pink/25 to-neon-purple/25 px-1.5 py-0.5 text-[9px] font-bold text-white">
+              <div className="mt-1.5 flex flex-wrap gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-sand">
                   {r.tag}
                 </span>
-                <span className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-1.5 py-0.5 text-[9px] font-bold text-neon-purple">
-                  {r.genre}
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-paper/45">
+                  · {r.genre}
                 </span>
               </div>
             </div>
-            <div className="shrink-0 rounded-lg border border-neon-pink/30 bg-neon-pink/5 px-2.5 py-1.5 text-right">
-              <p className="text-[8px] font-bold text-white/55">最低対応金額</p>
-              <p className="text-[13px] font-black text-neon-pink">{r.price}</p>
+            <div className="shrink-0 text-right">
+              <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-paper/45">
+                From
+              </p>
+              <p className="font-display text-[13px] font-medium text-paper">
+                {r.price}
+              </p>
             </div>
           </div>
         </div>
@@ -167,32 +159,31 @@ export function MockCreatorsList() {
  *  Mock: /portfolios 作品グリッド
  * ============================================================ */
 export function MockPortfoliosGrid() {
+  // 2026-06-16 Step 4: Axis 風モノトーンに。グラデは paper の階調のみ。
   const tiles = [
-    { aspect: "aspect-video", g: "from-neon-pink to-neon-purple", n: 24 },
-    { aspect: "aspect-square", g: "from-neon-cyan to-neon-purple", n: 87 },
-    { aspect: "aspect-[9/16]", g: "from-neon-sunset to-neon-pink", n: 41 },
-    { aspect: "aspect-video", g: "from-neon-purple to-neon-magenta", n: 12 },
-    { aspect: "aspect-[9/16]", g: "from-neon-cyan to-neon-sunset", n: 56 },
-    { aspect: "aspect-square", g: "from-neon-pink to-neon-cyan", n: 9 },
+    { aspect: "aspect-video", opacity: "from-paper/[0.18] to-paper/[0.04]", n: 24 },
+    { aspect: "aspect-square", opacity: "from-paper/[0.12] to-paper/[0.02]", n: 87 },
+    { aspect: "aspect-[9/16]", opacity: "from-paper/[0.22] to-paper/[0.06]", n: 41 },
+    { aspect: "aspect-video", opacity: "from-paper/[0.10] to-paper/[0.02]", n: 12 },
+    { aspect: "aspect-[9/16]", opacity: "from-paper/[0.16] to-paper/[0.03]", n: 56 },
+    { aspect: "aspect-square", opacity: "from-paper/[0.20] to-paper/[0.05]", n: 9 },
   ];
   return (
-    <div className="bg-neon-midnight-deep p-3">
+    <div className="bg-ink p-3">
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {tiles.map((t, i) => (
           <div
             key={i}
-            className={`relative ${t.aspect} overflow-hidden rounded-md border border-white/10`}
+            className={`relative ${t.aspect} overflow-hidden rounded-sm border border-paper/8`}
           >
-            <div className={`absolute inset-0 bg-gradient-to-br ${t.g}`} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            {/* Like button overlay */}
-            <span className="absolute right-1 top-1 z-10 inline-flex items-center gap-1 rounded-pill border border-white/30 bg-black/40 px-1.5 py-0.5 text-[9px] font-bold text-white backdrop-blur-sm">
-              <Heart size={9} fill="currentColor" strokeWidth={0} className="text-neon-pink" />
+            <div className={`absolute inset-0 bg-gradient-to-br ${t.opacity}`} />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+            <span className="absolute right-1 top-1 z-10 inline-flex items-center gap-1 font-mono text-[9px] text-paper/85">
+              <Heart size={8} fill="currentColor" strokeWidth={0} className="text-sand" />
               {t.n}
             </span>
-            {/* play indicator */}
-            <span className="absolute bottom-1 left-1 inline-flex items-center rounded-full bg-black/50 p-1 text-white backdrop-blur-sm">
-              <Play size={8} fill="currentColor" strokeWidth={0} />
+            <span className="absolute bottom-1 left-1 inline-flex items-center text-paper/65">
+              <Play size={9} fill="currentColor" strokeWidth={0} />
             </span>
           </div>
         ))}
@@ -206,58 +197,60 @@ export function MockPortfoliosGrid() {
  * ============================================================ */
 export function MockCreatorDetail() {
   return (
-    <div className="space-y-3 bg-neon-midnight-deep p-4">
+    <div className="space-y-3 bg-ink p-4">
       {/* Hero row */}
       <div className="flex items-start gap-3">
-        <div className="h-14 w-14 shrink-0 rounded-xl border-2 border-neon-pink/60 bg-gradient-to-br from-neon-pink to-neon-purple shadow-[0_0_16px_rgba(255,77,157,0.4)]" />
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-paper/15 bg-paper/[0.04] font-display text-base font-medium text-paper">
+          山
+        </div>
         <div className="min-w-0 flex-1">
-          <span className="rounded-pill bg-neon-cyan/15 px-1.5 py-0.5 text-[9px] font-black text-neon-cyan">
-            認証済み
+          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-sand">
+            Verified
           </span>
-          <p className="mt-1.5 text-base font-black text-white">山田 太郎</p>
-          <p className="mt-0.5 inline-flex items-center gap-1.5 text-[10px] text-white/65">
-            <Sparkles size={11} className="text-neon-pink" /> 作品 24 件 ·
-            <Heart size={11} fill="currentColor" strokeWidth={0} className="text-neon-pink" />
-            総いいね 128
+          <p className="mt-1.5 font-display text-base font-medium text-paper">
+            山田 太郎
+          </p>
+          <p className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-paper/55">
+            <Sparkles size={10} className="text-sand" /> 24 works ·
+            <Heart size={10} fill="currentColor" strokeWidth={0} className="text-sand" />
+            128
           </p>
         </div>
-        <div className="aspect-video w-32 shrink-0 rounded-lg border border-white/15 bg-gradient-to-br from-neon-pink to-neon-purple shadow-[0_8px_20px_-8px_rgba(255,77,157,0.5)]">
-          <span className="float-left m-1 inline-flex items-center gap-0.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-1.5 py-0.5 text-[8px] font-black text-white">
-            <Star size={9} fill="currentColor" strokeWidth={0} /> 代表作
+        <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-sm border border-paper/15 bg-gradient-to-br from-paper/[0.18] to-paper/[0.04]">
+          <span className="absolute left-1 top-1 inline-flex items-center gap-0.5 font-mono text-[8px] uppercase tracking-[0.16em] text-sand">
+            <Star size={8} fill="currentColor" strokeWidth={0} /> Featured
           </span>
         </div>
       </div>
 
       {/* CTA */}
-      <div className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2.5 text-center text-xs font-bold text-white shadow-[0_0_18px_rgba(255,77,157,0.45)]">
-        <Briefcase size={13} strokeWidth={2.4} />
-        このクリエイターに依頼を相談
+      <div className="inline-flex w-full items-center justify-center gap-2 rounded-pill border border-paper/20 px-4 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-paper">
+        <Briefcase size={12} strokeWidth={1.6} />
+        Request a quote
       </div>
 
       {/* Minimum plan panel */}
-      <div className="rounded-xl border border-neon-pink/30 bg-neon-pink/[0.08] p-3">
-        <div className="flex items-baseline gap-2">
-          <span className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2 py-0.5 text-[9px] font-black text-white">
-            最低対応プラン
+      <div className="border-t border-paper/10 pt-3">
+        <div className="flex items-baseline gap-3">
+          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-paper/45">
+            From
           </span>
-          <span className="text-base font-black text-neon-pink">¥30,000</span>
-          <span className="text-[10px] font-bold text-white/55">〜 から相談可</span>
+          <span className="font-display text-base font-medium text-sand">
+            ¥30,000
+          </span>
         </div>
-        <p className="mt-1.5 text-[10px] leading-snug text-white/75">
+        <p className="mt-2 text-[10px] leading-relaxed text-paper/65">
           縦型 SNS 広告 15 秒 ×1 本。修正 2 回まで含む。Sora 2 + Runway で AB 案 3 種同時提案。
         </p>
-        <div className="mt-2 flex flex-wrap gap-1">
-          <span className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-white/85">
-            <Check size={9} strokeWidth={3} />
-            AB案 3 種
+        <div className="mt-2 flex flex-wrap gap-3">
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/65">
+            <Check size={9} strokeWidth={2} className="text-sand" /> AB×3
           </span>
-          <span className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-1.5 py-0.5 text-[8px] font-bold text-white/85">
-            <Check size={9} strokeWidth={3} />
-            縦型 9:16 対応
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/65">
+            <Check size={9} strokeWidth={2} className="text-sand" /> 9:16
           </span>
-          <span className="inline-flex items-center gap-1 rounded-pill bg-white/10 px-1.5 py-0.5 text-[8px] font-bold text-white/75">
-            <Clock size={9} strokeWidth={2.4} />
-            納期 3 日
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/65">
+            <Clock size={9} strokeWidth={1.6} /> 3 days
           </span>
         </div>
       </div>
@@ -270,27 +263,27 @@ export function MockCreatorDetail() {
  * ============================================================ */
 export function MockEstimateChat() {
   return (
-    <div className="space-y-2 bg-neon-midnight-deep p-4">
-      <p className="inline-flex items-center gap-1 text-[10px] font-bold text-neon-cyan">
-        <Bot size={12} strokeWidth={2} />
-        AI 見積もりアシスタント
+    <div className="space-y-2 bg-ink p-4">
+      <p className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-sand">
+        <Bot size={11} strokeWidth={1.8} />
+        AI Estimate
       </p>
-      <div className="rounded-2xl rounded-tl-sm bg-white/[0.06] p-2.5 text-[11px] leading-relaxed text-white/85">
+      <div className="rounded-sm border-l-2 border-paper/15 bg-paper/[0.04] p-2.5 text-[11px] leading-relaxed text-paper/80">
         ご依頼内容のイメージを教えてください。たとえば「30 秒の SNS 広告動画
         を 3 本」など。
       </div>
-      <div className="ml-auto max-w-[80%] rounded-2xl rounded-tr-sm bg-gradient-to-r from-neon-pink to-neon-purple p-2.5 text-[11px] leading-relaxed text-white">
+      <div className="ml-auto max-w-[80%] rounded-sm border-r-2 border-sand bg-paper/[0.06] p-2.5 text-[11px] leading-relaxed text-paper/85">
         コスメ D2C 向け縦型 SNS 広告、15 秒 × 5 本を 1 週間で。
       </div>
-      <div className="rounded-2xl rounded-tl-sm bg-white/[0.06] p-2.5 text-[11px] leading-relaxed text-white/85">
-        おすすめは「<b className="text-neon-pink">スピード AB 案 パック</b>」。
-        概算 <b className="text-neon-pink">¥150,000 〜 ¥200,000</b>。
-        AB 各 1 案 × 5 本、3 営業日納品。正確な見積もりはメッセージで直接ご相談ください。
+      <div className="rounded-sm border-l-2 border-paper/15 bg-paper/[0.04] p-2.5 text-[11px] leading-relaxed text-paper/80">
+        おすすめは「<b className="font-medium text-sand">スピード AB 案 パック</b>」。
+        概算 <b className="font-medium text-sand">¥150,000 〜 ¥200,000</b>。
+        AB 各 1 案 × 5 本、3 営業日納品。
       </div>
-      <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-[10px] text-white/45">
+      <div className="flex items-center gap-2 border-t border-paper/10 px-1 py-2 text-[10px] text-paper/40">
         メッセージを入力…
-        <span className="ml-auto rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-2 py-0.5 text-[9px] font-black text-white">
-          送信
+        <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.18em] text-paper/65">
+          Send
         </span>
       </div>
     </div>
@@ -305,59 +298,53 @@ export function MockOrders() {
     {
       title: "縦型 SNS 広告 15 秒 ×5 本",
       client: "コスメ D2C ブランド X",
-      status: "制作中",
-      color: "bg-neon-cyan/20 text-neon-cyan",
+      status: "In progress",
       amount: "¥150,000",
     },
     {
       title: "コーポレートサイト ヒーロー動画",
       client: "SaaS スタートアップ Y",
-      status: "納品済",
-      color: "bg-neon-sunset/20 text-neon-sunset",
+      status: "Delivered",
       amount: "¥320,000",
     },
     {
       title: "プロダクト紹介 ループ動画",
       client: "EC モール Z",
-      status: "支払完了",
-      color: "bg-emerald-400/20 text-emerald-300",
+      status: "Settled",
       amount: "¥80,000",
     },
   ];
   return (
-    <div className="space-y-2 bg-neon-midnight-deep p-4">
-      <div className="mb-2 flex items-center justify-between rounded-lg border border-emerald-400/30 bg-emerald-400/10 px-3 py-2">
-        <p className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300">
-          <ShieldCheck size={12} strokeWidth={2.2} />
-          エスクロー預かり中
+    <div className="bg-ink p-4">
+      <div className="mb-3 flex items-center justify-between border-y border-paper/10 py-3">
+        <p className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-sand">
+          <ShieldCheck size={11} strokeWidth={1.6} />
+          Escrow held
         </p>
-        <p className="text-xs font-black text-emerald-300">¥230,000</p>
+        <p className="font-display text-sm font-medium text-paper">¥230,000</p>
       </div>
-      {rows.map((r, i) => (
-        <div
-          key={i}
-          className="rounded-lg border border-white/10 bg-white/[0.04] p-2.5"
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="truncate text-[11px] font-bold text-white">
-                {r.title}
-              </p>
-              <p className="mt-0.5 text-[10px] text-white/55">{r.client}</p>
-            </div>
-            <div className="text-right">
-              <span
-                className={`inline-flex rounded-pill px-1.5 py-0.5 text-[8px] font-bold ${r.color}`}
-              >
-                {r.status}
-              </span>
-              <p className="mt-0.5 text-[11px] font-black text-white">
-                {r.amount}
-              </p>
+      <div className="divide-y divide-paper/10">
+        {rows.map((r, i) => (
+          <div key={i} className="py-3 first:pt-0 last:pb-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-display text-[12px] font-medium text-paper">
+                  {r.title}
+                </p>
+                <p className="mt-0.5 text-[10px] text-paper/50">{r.client}</p>
+              </div>
+              <div className="text-right">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-paper/60">
+                  {r.status}
+                </span>
+                <p className="mt-0.5 font-display text-[12px] font-medium text-paper">
+                  {r.amount}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
