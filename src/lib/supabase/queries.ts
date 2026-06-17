@@ -41,6 +41,15 @@ export type CreatorWithRelations = {
     genre: string | null;
     tags: string[];
     is_featured?: boolean;
+    // 00055 で追加
+    used_ai_tools?: string[];
+    role_scope?: string | null;
+    external_url?: string | null;
+    display_tag?: string | null;
+    // 00057 で追加 (Adobe Stock 型検索ファセット)
+    duration_seconds?: number | null;
+    visual_style?: string | null;
+    resolution?: string | null;
   }[];
   // 旧 service_packages は 00050 migration で完全撤去。
   // クリエイターの価格は minimum_order_amount に集約。
@@ -60,7 +69,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution
       )
       `
     )
@@ -90,7 +99,7 @@ export async function getCreatorById(
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution
       )
       `
     )

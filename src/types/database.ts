@@ -82,6 +82,24 @@ export type CreatorSearchFilters = {
   sortBy?: "recommended" | "rating" | "price_low" | "price_high";
 };
 
+// /portfolios (作品単位) の Adobe Stock 型検索フィルター。
+// CreatorSearchFilters と異なり、絞り込みは portfolio_items 単位で行う。
+// すべての値は URL クエリパラメータと同期する (?orientation=vertical&tool=veo&...)
+export type Orientation = "horizontal" | "vertical" | "square";
+export type DurationBucket = "u15" | "u60" | "u180" | "o180";
+export type Resolution = "1080p" | "2k" | "4k";
+
+export type PortfolioSearchFilters = {
+  keyword?: string;
+  genres?: string[];
+  orientations?: Orientation[];
+  aiTools?: string[];
+  visualStyles?: string[];
+  durations?: DurationBucket[];
+  resolutions?: Resolution[];
+  sortBy?: "recommended" | "newest" | "rating" | "price_low" | "price_high";
+};
+
 export type JobSearchFilters = {
   keyword?: string;
   genres?: string[];
