@@ -47,7 +47,7 @@ export function SectionTabs({ tabs }: { tabs: SectionTab[] }) {
   };
 
   return (
-    <div className="sticky top-20 z-30 -mx-6 border-y border-white/10 bg-paper/85 px-6 backdrop-blur-md lg:-mx-10 lg:px-10">
+    <div className="sticky top-20 z-30 -mx-6 border-y border-ink/10 bg-paper/85 px-6 backdrop-blur-md lg:-mx-10 lg:px-10">
       <div className="mx-auto flex max-w-container gap-1 overflow-x-auto py-3 scrollbar-hide">
         {tabs.map((tab) => {
           const isActive = active === tab.id;
@@ -58,8 +58,8 @@ export function SectionTabs({ tabs }: { tabs: SectionTab[] }) {
               onClick={() => scrollTo(tab.id)}
               className={`group flex shrink-0 items-center gap-1.5 rounded-pill border px-4 py-2 text-xs font-bold transition-all ${
                 isActive
-                  ? "border-neon-pink/60 bg-gradient-to-r from-neon-pink/20 to-neon-purple/20 text-white shadow-[0_0_14px_rgba(255,77,157,0.35)]"
-                  : "border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white"
+                  ? "border-neon-pink/60 bg-gradient-to-r from-neon-pink/20 to-neon-purple/20 text-ink shadow-[0_0_14px_rgba(255,77,157,0.35)]"
+                  : "border-ink/15 bg-ink/[0.04] text-ink/70 hover:border-ink/30 hover:text-ink"
               }`}
             >
               <span className="text-[13px]">{tab.emoji}</span>

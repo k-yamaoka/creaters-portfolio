@@ -82,7 +82,7 @@ export function VideoModal({
           type="button"
           onClick={onClose}
           aria-label="閉じる"
-          className="absolute -right-1 -top-12 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/20 lg:-right-12 lg:top-0"
+          className="absolute -right-1 -top-12 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-ink/30 bg-ink/10 text-ink backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-ink/15 lg:-right-12 lg:top-0"
         >
           <svg
             className="h-5 w-5"
@@ -98,7 +98,7 @@ export function VideoModal({
         {/* Media area */}
         <div className="flex flex-1 items-center justify-center">
           <div
-            className={`relative w-full overflow-hidden rounded-2xl border border-white/15 bg-ink/5 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8)] ${aspectClass}`}
+            className={`relative w-full overflow-hidden rounded-2xl border border-ink/15 bg-ink/5 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8)] ${aspectClass}`}
           >
             {isImage && (item.image_url || item.thumbnail_url) && (
               <Image
@@ -123,25 +123,25 @@ export function VideoModal({
         </div>
 
         {/* Side panel */}
-        <aside className="flex w-full shrink-0 flex-col gap-4 rounded-2xl border border-white/10 bg-paper/90 p-5 backdrop-blur-sm lg:w-[300px]">
+        <aside className="flex w-full shrink-0 flex-col gap-4 rounded-2xl border border-ink/10 bg-paper/90 p-5 backdrop-blur-sm lg:w-[300px]">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink/55">
               作品
             </p>
-            <h3 className="mt-1 text-lg font-black text-white">{item.title}</h3>
+            <h3 className="mt-1 text-lg font-black text-ink">{item.title}</h3>
             {item.description && (
-              <p className="mt-2 line-clamp-4 text-xs leading-[1.85] text-white/65">
+              <p className="mt-2 line-clamp-4 text-xs leading-[1.85] text-ink/70">
                 {item.description}
               </p>
             )}
           </div>
 
-          <div className="border-t border-white/10 pt-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
+          <div className="border-t border-ink/10 pt-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-ink/55">
               クリエイター
             </p>
             <div className="mt-3 flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/15 bg-ink/5">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-ink/15 bg-ink/5">
                 {creator.avatar_url ? (
                   <Image
                     src={creator.avatar_url}
@@ -156,7 +156,7 @@ export function VideoModal({
                   </div>
                 )}
               </div>
-              <span className="text-sm font-bold text-white">
+              <span className="text-sm font-bold text-ink">
                 {creator.display_name}
               </span>
             </div>

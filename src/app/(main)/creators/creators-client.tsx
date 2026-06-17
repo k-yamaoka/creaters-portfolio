@@ -129,7 +129,7 @@ export function CreatorsPageClient({
         <button
           type="button"
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="flex items-center gap-2 rounded-pill border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm lg:hidden"
+          className="flex items-center gap-2 rounded-pill border border-ink/20 bg-ink/[0.04] px-4 py-2.5 text-sm font-bold text-ink backdrop-blur-sm lg:hidden"
         >
           <svg
             className="h-4 w-4"
@@ -169,13 +169,13 @@ export function CreatorsPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-paper/95 p-6 backdrop-blur-md">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-ink/15 bg-paper p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-black text-white">絞り込み</h2>
+                <h2 className="text-lg font-black text-ink">絞り込み</h2>
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-white/10 text-white/70"
+                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-ink/10 text-ink/70"
                 >
                   <svg
                     className="h-5 w-5"
@@ -299,13 +299,13 @@ function CreatorRow({
       ? "border-neon-sunset/60 hover:border-neon-sunset/80 hover:shadow-[0_25px_60px_-15px_rgba(255,174,59,0.55)]"
       : tier === "silver"
         ? "border-neon-cyan/40 hover:border-neon-cyan/60 hover:shadow-[0_25px_60px_-15px_rgba(77,213,247,0.45)]"
-        : "border-white/10 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]";
+        : "border-ink/10 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]";
   const tierBg =
     tier === "gold"
       ? "bg-neon-sunset/[0.07]"
       : tier === "silver"
         ? "bg-neon-cyan/[0.05]"
-        : "bg-white/[0.04]";
+        : "bg-ink/[0.03]";
   // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
   // is_featured カラム未マイグレーションでも壊れないよう optional 扱い。
   // thumbnail_url が無くても video_url があれば ThumbnailCard 側で first frame /
@@ -362,7 +362,7 @@ function CreatorRow({
       <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
         {/* 左: アバター (大型化) */}
         <div className="col-span-3 sm:col-span-2">
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-ink/5">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-ink/15 bg-ink/5">
             {profiles.avatar_url ? (
               <Image
                 src={profiles.avatar_url}
@@ -382,17 +382,17 @@ function CreatorRow({
         {/* 中央: 名前・bio・タグ */}
         <div className="col-span-9 min-w-0 sm:col-span-7">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-black text-white sm:text-xl">
+            <h3 className="text-lg font-black text-ink sm:text-xl">
               {profiles.display_name}
             </h3>
             {/* いいね: 0 件のときだけ "♥0"、他者が押した後は数字を隠して ♥ のみ */}
             <span
-              className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-white ${
+              className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-ink ${
                 tier === "gold"
                   ? "bg-neon-sunset/25 text-neon-sunset"
                   : totalLikes > 0
-                    ? "bg-white/10"
-                    : "bg-white/5 text-white/60"
+                    ? "bg-ink/10"
+                    : "bg-ink/[0.04] text-ink/65"
               }`}
             >
               <MIcon name="favorite" fill size={12} className="text-neon-pink" />
@@ -406,7 +406,7 @@ function CreatorRow({
           </div>
 
           {creator.bio && (
-            <p className="mt-2 line-clamp-2 text-sm leading-[1.75] text-white/65">
+            <p className="mt-2 line-clamp-2 text-sm leading-[1.75] text-ink/70">
               {creator.bio}
             </p>
           )}
@@ -417,7 +417,7 @@ function CreatorRow({
               {creator.strengths.slice(0, 2).map((s) => (
                 <span
                   key={`st-${s}`}
-                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/25 to-neon-purple/25 px-3 py-1 text-[11px] font-bold text-white shadow-[0_0_10px_rgba(255,77,157,0.25)]"
+                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-[11px] font-bold text-ink shadow-[0_0_10px_rgba(255,77,157,0.15)]"
                 >
                   <MIcon name="auto_awesome" fill size={12} /> {s}
                 </span>
@@ -443,7 +443,7 @@ function CreatorRow({
         {/* 右: 最低対応金額 (上下中央寄せ、認証リボンと被らないよう mt-8 確保) */}
         <div className="col-span-12 flex items-center justify-end sm:col-span-3 sm:mt-8">
           <div className="rounded-2xl border border-neon-pink/30 bg-neon-pink/5 px-5 py-4 text-right backdrop-blur-sm">
-            <p className="text-[10px] font-bold tracking-wider text-white/50">
+            <p className="text-[10px] font-bold tracking-wider text-ink/55">
               最低対応金額
             </p>
             <p className="mt-1 text-xl font-black text-neon-pink sm:text-2xl">
@@ -455,7 +455,7 @@ function CreatorRow({
 
       {/* === サムネイル行 (ホバー再生対応) === */}
       {thumbs.length > 0 && (
-        <div className="grid grid-cols-2 gap-1 border-t border-white/10 bg-ink/40 p-1 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-1 border-t border-ink/10 bg-ink/40 p-1 sm:grid-cols-4">
           {thumbs.map((t) => (
             <ThumbnailCard
               key={t.id}

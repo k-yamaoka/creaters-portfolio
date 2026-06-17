@@ -95,7 +95,7 @@ export function VideoPreviewCard({
           loading="lazy"
         />
       ) : (
-        <div className="flex h-full items-center justify-center text-white/40">
+        <div className="flex h-full items-center justify-center text-ink/50">
           <svg
             className="h-12 w-12"
             fill="none"
@@ -160,7 +160,7 @@ export function VideoPreviewCard({
       {/* Loading indicator */}
       {isHovering && hasVideo && !mediaLoaded && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-ink/30 border-t-white" />
         </div>
       )}
     </div>

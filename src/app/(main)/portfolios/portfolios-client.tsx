@@ -91,7 +91,7 @@ export function PortfoliosPageClient({
         <button
           type="button"
           onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="flex items-center gap-2 rounded-pill border border-white/20 bg-white/5 px-4 py-2.5 text-sm font-bold text-white backdrop-blur-sm lg:hidden"
+          className="flex items-center gap-2 rounded-pill border border-ink/20 bg-ink/[0.04] px-4 py-2.5 text-sm font-bold text-ink backdrop-blur-sm lg:hidden"
         >
           <svg
             className="h-4 w-4"
@@ -131,13 +131,13 @@ export function PortfoliosPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-paper/95 p-6 backdrop-blur-md">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-ink/15 bg-paper p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-black text-white">絞り込み</h2>
+                <h2 className="text-lg font-black text-ink">絞り込み</h2>
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-white/10 text-white/70"
+                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-ink/10 text-ink/70"
                 >
                   <svg
                     className="h-5 w-5"
@@ -182,7 +182,7 @@ export function PortfoliosPageClient({
           ) : (
             <div className="mt-20 text-center">
               <svg
-                className="mx-auto h-16 w-16 text-white/20"
+                className="mx-auto h-16 w-16 text-ink/20"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1}
@@ -194,10 +194,10 @@ export function PortfoliosPageClient({
                   d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
                 />
               </svg>
-              <h3 className="mt-6 text-xl font-black text-white">
+              <h3 className="mt-6 text-xl font-black text-ink">
                 該当する作品が見つかりませんでした
               </h3>
-              <p className="mt-2 text-sm text-white/65">
+              <p className="mt-2 text-sm text-ink/70">
                 検索条件を変更して、もう一度お試しください
               </p>
               <button

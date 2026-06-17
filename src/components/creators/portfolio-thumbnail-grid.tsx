@@ -71,7 +71,7 @@ export function PortfolioThumbnailGrid({
   return (
     <div className="space-y-6">
       {filtered.length === 0 && (
-        <div className="py-12 text-center text-sm text-white/60">
+        <div className="py-12 text-center text-sm text-ink/65">
           該当する作品がありません
         </div>
       )}
@@ -147,7 +147,7 @@ function PortfolioCardTile({
         }
       }}
       aria-label={`${portfolio.title} を再生`}
-      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-white/10 bg-ink/5 text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-neon-pink`}
+      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-ink/10 bg-ink/5 text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-neon-pink`}
     >
       {/* Media */}
       {isImage ? (
@@ -160,7 +160,7 @@ function PortfolioCardTile({
             sizes={imageSizes}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-paper text-xs text-white/60">
+          <div className="flex h-full w-full items-center justify-center bg-paper text-xs text-ink/65">
             画像なし
           </div>
         )
@@ -180,7 +180,7 @@ function PortfolioCardTile({
       {aspectLabel && (
         <span className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-pill bg-black/70 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
           {portfolio.aspect_ratio === "vertical" ? "縦型" : "正方形"}
-          <span className="text-white/70">{aspectLabel}</span>
+          <span className="text-ink/70">{aspectLabel}</span>
         </span>
       )}
 
@@ -204,7 +204,7 @@ function PortfolioCardTile({
       {/* Hover overlay: creator info のみ (LikeButton は外に出した) */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 translate-y-full bg-gradient-to-t from-black/95 via-black/70 to-transparent px-3 pb-3 pt-10 transition-transform duration-300 group-hover:translate-y-0">
         <div className="pointer-events-auto flex min-w-0 items-center gap-2">
-          <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/20 bg-ink/5">
+          <div className="relative h-7 w-7 shrink-0 overflow-hidden rounded-full border border-ink/20 bg-ink/5">
             {creator.profiles.avatar_url ? (
               <Image
                 src={creator.profiles.avatar_url}
