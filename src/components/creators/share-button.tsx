@@ -65,7 +65,7 @@ export function ShareButton({
             className="fixed inset-0 z-30 cursor-default"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-12 z-40 w-56 overflow-hidden rounded-xl border border-white/15 bg-ink-deep/95 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6)] backdrop-blur-md">
+          <div className="absolute right-0 top-12 z-40 w-56 overflow-hidden rounded-xl border border-white/15 bg-paper/95 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6)] backdrop-blur-md">
             <button
               type="button"
               onClick={() => {

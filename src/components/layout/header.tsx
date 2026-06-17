@@ -159,13 +159,11 @@ export function Header({
     user?.email?.split("@")[0] ||
     "ユーザー";
 
-  // ===== ライトテーマ判定 (ダッシュボード配下のみ白基調) =====
+  // ===== テーマ判定 (2026-06-17: サイト全体を白基調に統一) =====
+  // 旧仕様: dashboard 配下のみ light、それ以外 dark。
+  // 新仕様: 常に light。例外として home top の Hero (動画 dark) の上に重なる
+  // ときだけ Header を「透過モード」で白文字に切替 (over dark video)。
   const pathname = usePathname() ?? "";
-  const isLight = pathname.startsWith("/dashboard");
-
-  // ===== Home (`/`) かつページ最上部のときだけヘッダーを完全透過にする =====
-  // (axis-ov-films.co.jp 風: Hero の動画が header の裏まで広がって見える)
-  // しきい値 80px を超えてスクロールしたら通常の dark solid に戻す。
   const isHome = pathname === "/";
   const [scrolledPast, setScrolledPast] = useState(false);
   useEffect(() => {
@@ -175,7 +173,9 @@ export function Header({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [isHome]);
-  const isTransparent = isHome && !scrolledPast && !isLight;
+  const isTransparent = isHome && !scrolledPast;
+  // 透過時 (=Hero 直上) は白文字 dark テーマの T を使用、それ以外は light。
+  const isLight = !isTransparent;
 
   // 主要なクラス群をテーマ別に集約。ロジック (構造) は同じ、色だけ切替え。
   const T = isLight

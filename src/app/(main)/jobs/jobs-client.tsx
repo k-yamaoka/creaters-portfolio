@@ -220,7 +220,7 @@ export function JobsPageClient({
 
   return (
     // 2026-06-17 Step 4-F: 本ページは元々ライト UI 前提 (白カード + ダーク
-    // テキスト) のため bg-paper ラッパーで包む。body の bg-ink-deep からは
+    // テキスト) のため bg-paper ラッパーで包む。body の bg-paper からは
     // 切り離して独立した白背景にする。
     <div className="bg-paper text-ink">
       <div className="mx-auto max-w-container px-6 py-10 lg:px-10">

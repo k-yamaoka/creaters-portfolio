@@ -99,7 +99,7 @@ export function OrderTodoBanner({
         {todo.viewerAction && (
           <Link
             href={todo.viewerAction.href}
-            className="ml-auto inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-pill bg-ink px-3.5 py-2 text-[11px] font-bold text-paper transition-opacity hover:opacity-80"
+            className="ml-auto inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-pill bg-ink/5 px-3.5 py-2 text-[11px] font-bold text-ink transition-opacity hover:opacity-80"
           >
             <span>{todo.viewerAction.label}</span>
             <span aria-hidden>→</span>

@@ -11,11 +11,12 @@
 @layer base {
   html {
     color-scheme: dark;
-    /* 純黒に近い深ネイビーへ (旧 #0f0826 ネオン紫紺から脱却) */
-    background-color: #06080b;
+    /* 2026-06-17: サイト全体を白基調に統一。Hero (動画背景) のみ暗くする
+       ためここは paper のままで、Hero セクションで bg-ink-deep を明示する。 */
+    background-color: #ffffff;
   }
   body {
-    @apply bg-ink-deep text-paper antialiased;
+    @apply bg-paper text-ink antialiased;
     /* 既定本文は Inter (英文) + Noto Sans JP (旧 Zen Kaku は fallback) */
     font-family: 'Inter', 'Noto Sans JP', 'Zen Kaku Gothic New', sans-serif;
     font-feature-settings: "palt";
@@ -255,13 +256,15 @@
     text-rendering: optimizeLegibility;
   }
   /* 番号タグ・小ラベル (060 / Service / Works) — JetBrains Mono */
+  /* 2026-06-17: 白基調化に伴いデフォルト色はダーク (rgba ink) に。
+     暗背景 (Hero 等) では Tailwind ユーティリティで text-paper/60 を上書きする。 */
   .eyebrow-mono {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-weight: 500;
     font-size: 11px;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(10, 13, 18, 0.55);
   }
   /* Axis "Contact" ボタン風 — 細ボーダー + 内側に小さなドット + 余白広め */
   .btn-axis {
@@ -301,6 +304,45 @@
   }
   .btn-axis-ghost:focus-visible {
     @apply outline-none ring-2 ring-sand/60 ring-offset-2 ring-offset-ink-deep;
+  }
+  /* === ライト (白基調) 版 Axis ボタン === */
+  /* 2026-06-17: サイト全体を白基調にした際に、白背景でも使える Axis ボタン。
+     構造は同じだが色だけ反転 (paper → ink, ring-offset → paper)。 */
+  .btn-axis-light {
+    @apply inline-flex items-center justify-between gap-3 rounded-pill border border-ink/25 bg-transparent px-5 py-2 text-xs font-medium text-ink transition-colors;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 168px;
+  }
+  .btn-axis-light:hover {
+    @apply border-ink/70 text-ink;
+    background-color: rgba(184, 132, 95, 0.06);
+  }
+  .btn-axis-light:focus-visible {
+    @apply outline-none ring-2 ring-sand/60 ring-offset-2 ring-offset-paper;
+  }
+  .btn-axis-light::after {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background-color: #b8845f;
+    box-shadow: 0 0 0 1px rgba(184, 132, 95, 0.4);
+  }
+  .btn-axis-ghost-light {
+    @apply inline-flex items-center justify-center gap-3 rounded-pill border border-ink/20 bg-transparent px-5 py-2 text-xs font-medium text-ink/85 transition-colors;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-width: 168px;
+  }
+  .btn-axis-ghost-light:hover {
+    @apply border-ink/60 text-ink;
+  }
+  .btn-axis-ghost-light:focus-visible {
+    @apply outline-none ring-2 ring-sand/60 ring-offset-2 ring-offset-paper;
   }
   /* 暗背景上の極細罫線 (Axis の領域分割). 縦罫線にも使えるよう左/右両方を提供 */
   .rule-thin {

@@ -1,41 +1,30 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 /**
- * 2026-06-16 Step 4: Footer を Axis Ov Films 系の引き算ハイエンドに刷新。
- * - ダーク (LP / 公開ページ) は bg-ink-deep、巨大 AILIER. ロゴ、罫線分割の
- *   "(Menu)" "(Our social)" カラム構造
- * - ライト (dashboard) は従来の薄グレー基調を維持 (構造は同形に揃える)
+ * 2026-06-17: サイト全体を白基調に統一したのに合わせ、Footer を Axis Ov Films
+ * 系の単一 light テーマに統合 (旧 dark / 旧 dashboard light の二系統を撤去)。
+ * - bg-paper (白) + 巨大 AILIER. ロゴ + "(Menu) / (Creator) / (Support) /
+ *   (Our social)" の 4 カラム mono ラベル構造はそのまま継承。
  */
 export function Footer() {
-  const pathname = usePathname() ?? "";
-  const isLight = pathname.startsWith("/dashboard");
-
-  const T = isLight
-    ? {
-        footer: "relative mt-10 bg-[#F8F9FA] text-gray-800 border-t border-gray-200",
-        logoText: "font-display text-[clamp(2.5rem,7vw,5rem)] font-medium leading-none tracking-tight text-gray-900",
-        sectionLabel: "font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-gray-400",
-        link: "font-display text-sm font-medium text-gray-700 transition-colors hover:text-neon-pink",
-        muted: "text-[11px] text-gray-500",
-        copyLink: "underline-offset-2 transition-colors hover:text-neon-pink hover:underline",
-        divider: "border-t border-gray-200",
-      }
-    : {
-        footer: "relative mt-10 bg-ink-deep text-paper",
-        logoText: "font-display text-[clamp(2.5rem,7vw,5rem)] font-medium leading-none tracking-tight text-paper",
-        sectionLabel: "font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/45",
-        link: "font-display text-sm font-medium text-paper/85 transition-colors hover:text-sand",
-        muted: "text-[11px] text-paper/50",
-        copyLink: "underline-offset-2 transition-colors hover:text-sand hover:underline",
-        divider: "border-t border-paper/10",
-      };
+  const T = {
+    footer: "relative mt-10 bg-paper text-ink border-t border-ink/10",
+    logoText:
+      "font-display text-[clamp(2.5rem,7vw,5rem)] font-medium leading-none tracking-tight text-ink",
+    sectionLabel:
+      "font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-ink/45",
+    link:
+      "font-display text-sm font-medium text-ink/80 transition-colors hover:text-sand",
+    muted: "text-[11px] text-ink/55",
+    copyLink:
+      "underline-offset-2 transition-colors hover:text-sand hover:underline",
+    divider: "border-t border-ink/10",
+    crafted: "font-mono text-[10px] uppercase tracking-[0.22em] text-ink/40",
+  };
 
   return (
     <footer className={T.footer}>
-      <div className={`mx-auto max-w-wide px-gutter py-section-y-sm lg:py-20 ${T.divider}`}>
+      <div className={`mx-auto max-w-wide px-gutter py-section-y-sm lg:py-20`}>
         {/* 巨大ロゴ + 5 カラム */}
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.6fr_2.4fr] lg:gap-16">
           {/* 左: ブランドロゴ — Axis "axis." 直系の Fraunces 巨大表記 */}
@@ -103,9 +92,7 @@ export function Footer() {
               Comhuman-Quality Co., Ltd.
             </a>
           </p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-paper/35">
-            Crafted in Tokyo
-          </p>
+          <p className={T.crafted}>Crafted in Tokyo</p>
         </div>
       </div>
     </footer>

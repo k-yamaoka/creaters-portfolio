@@ -338,7 +338,7 @@ export default function AiMockHome() {
             </div>
             <Link
               href="/ai-mock/creators"
-              className="group inline-flex items-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
+              className="group inline-flex items-center gap-2 rounded-pill border-2 border-ink bg-white px-5 py-2.5 text-sm font-bold text-ink transition-all hover:-translate-y-0.5 hover:bg-ink/5 hover:text-ink"
             >
               すべて見る ({AI_CREATORS.length}名)
               <span className="transition-transform group-hover:translate-x-1">
@@ -579,7 +579,7 @@ export default function AiMockHome() {
                   className={`mt-8 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
                     plan.featured
                       ? "bg-neon-pink text-white hover:bg-neon-pink-soft"
-                      : "border-2 border-ink bg-paper text-ink hover:bg-ink hover:text-paper"
+                      : "border-2 border-ink bg-paper text-ink hover:bg-ink/5 hover:text-ink"
                   }`}
                 >
                   <span>このプランで選ぶ</span>

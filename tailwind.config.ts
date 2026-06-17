@@ -61,12 +61,13 @@ const config: Config = {
         "ink-muted": "#5e636b", // 控え目テキスト
         "ink-soft": "#9298a1", // 補助 (キャプション)
         rule: "#1a1f27", // 暗背景上の薄い罫線
-        // 唯一のアクセント (Axis "We" ブロック) — ベージュピンク。
-        // 既存 accent.* (warm yellow scale) は他で利用中のため衝突回避で sand に。
+        // 2026-06-17: サイト全体を白基調に振った際に、薄ベージュ #e8d6cd だと
+        // 白背景でほぼ見えなくなるため、深めのセピアに置換。
+        // 暗背景 (Hero) では従来通り華やかなアクセントとして機能する。
         sand: {
-          DEFAULT: "#e8d6cd",
-          deep: "#d8c4b6",
-          soft: "#f4ede4",
+          DEFAULT: "#b8845f", // セピア (Axis 風 warm brown)
+          deep: "#8a5e3f", // 強調用
+          soft: "#f4ede4", // ライト背景 (paper-warm) は維持
         },
         // Soft accent backgrounds
         sky: "#dceaf4",

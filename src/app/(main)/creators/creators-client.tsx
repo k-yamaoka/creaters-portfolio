@@ -97,13 +97,13 @@ export function CreatorsPageClient({
     <>
       {/* 2026-06-17 Step 4-F: Axis 系トーン同期。グラデ + グロウブロブ撤去、
           見出しを headline-display + 日本語小サブのバイリンガル構造に。 */}
-      <section className="relative bg-ink-deep py-section-y-sm text-paper">
+      <section className="relative bg-paper py-section-y-sm text-ink">
         <div className="relative mx-auto max-w-wide px-gutter">
           <p className="eyebrow-mono">(Creators)</p>
-          <h1 className="headline-display mt-6 text-[clamp(2.25rem,5vw,4rem)] text-paper">
+          <h1 className="headline-display mt-6 text-[clamp(2.25rem,5vw,4rem)] text-ink">
             Choose your <span className="italic text-sand">specialist.</span>
           </h1>
-          <p className="heading-jp mt-4 text-paper/75">
+          <p className="heading-jp mt-4 text-ink/75">
             ツールから専門家を選ぶ。
           </p>
         </div>
@@ -169,7 +169,7 @@ export function CreatorsPageClient({
               className="absolute inset-0 bg-black/40"
               onClick={() => setMobileFiltersOpen(false)}
             />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-ink-deep/95 p-6 backdrop-blur-md">
+            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/15 bg-paper/95 p-6 backdrop-blur-md">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-black text-white">絞り込み</h2>
                 <button
@@ -362,7 +362,7 @@ function CreatorRow({
       <div className="grid grid-cols-12 gap-4 p-5 sm:gap-6 sm:p-6">
         {/* 左: アバター (大型化) */}
         <div className="col-span-3 sm:col-span-2">
-          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-ink">
+          <div className="relative aspect-square overflow-hidden rounded-2xl border border-white/15 bg-ink/5">
             {profiles.avatar_url ? (
               <Image
                 src={profiles.avatar_url}
@@ -524,7 +524,7 @@ function ThumbnailCard({
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
-      className={`group/tile relative aspect-video overflow-hidden rounded-md bg-ink-deep transition-all duration-300 ease-out ${
+      className={`group/tile relative aspect-video overflow-hidden rounded-md bg-paper transition-all duration-300 ease-out ${
         hover
           ? "z-30 scale-[1.08] shadow-[0_25px_60px_-10px_rgba(255,77,157,0.55)]"
           : "z-0"

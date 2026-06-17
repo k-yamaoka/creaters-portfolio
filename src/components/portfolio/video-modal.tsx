@@ -98,7 +98,7 @@ export function VideoModal({
         {/* Media area */}
         <div className="flex flex-1 items-center justify-center">
           <div
-            className={`relative w-full overflow-hidden rounded-2xl border border-white/15 bg-ink shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8)] ${aspectClass}`}
+            className={`relative w-full overflow-hidden rounded-2xl border border-white/15 bg-ink/5 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.8)] ${aspectClass}`}
           >
             {isImage && (item.image_url || item.thumbnail_url) && (
               <Image
@@ -123,7 +123,7 @@ export function VideoModal({
         </div>
 
         {/* Side panel */}
-        <aside className="flex w-full shrink-0 flex-col gap-4 rounded-2xl border border-white/10 bg-ink-deep/90 p-5 backdrop-blur-sm lg:w-[300px]">
+        <aside className="flex w-full shrink-0 flex-col gap-4 rounded-2xl border border-white/10 bg-paper/90 p-5 backdrop-blur-sm lg:w-[300px]">
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/50">
               作品
@@ -141,7 +141,7 @@ export function VideoModal({
               クリエイター
             </p>
             <div className="mt-3 flex items-center gap-3">
-              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/15 bg-ink">
+              <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/15 bg-ink/5">
                 {creator.avatar_url ? (
                   <Image
                     src={creator.avatar_url}

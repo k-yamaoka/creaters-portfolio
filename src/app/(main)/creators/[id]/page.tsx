@@ -217,7 +217,7 @@ export default async function CreatorDetailPage({
       {/* =================================================
           HERO BAND
           ================================================= */}
-      <section className="relative overflow-hidden bg-ink-deep py-16 text-white">
+      <section className="relative overflow-hidden bg-paper py-16 text-white">
         {/* カバー画像 (任意) — 設定時は背景に敷いて 0.35 でオーバーレイ */}
         {coverImageUrl && (
           <>
@@ -266,7 +266,7 @@ export default async function CreatorDetailPage({
             {/* 左ブロック: Avatar + 名前/ステータス (内部 gap-6 で密結合) */}
             <div className="flex flex-1 items-center gap-6">
               {/* Avatar */}
-              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-ink shadow-[0_0_24px_rgba(255,77,157,0.4)]">
+              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-ink/5 shadow-[0_0_24px_rgba(255,77,157,0.4)]">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -386,7 +386,7 @@ export default async function CreatorDetailPage({
             {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
               <Link
                 href="#portfolio"
-                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-ink-deep shadow-[0_18px_40px_-15px_rgba(255,77,157,0.45)] transition-transform hover:-translate-y-0.5 lg:w-[clamp(380px,40vw,480px)]"
+                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-paper shadow-[0_18px_40px_-15px_rgba(255,77,157,0.45)] transition-transform hover:-translate-y-0.5 lg:w-[clamp(380px,40vw,480px)]"
                 aria-label="代表作を見る"
               >
                 <VideoPreviewCard
@@ -650,7 +650,7 @@ export default async function CreatorDetailPage({
 
       {/* Similar Creators */}
       {similarCreators.length > 0 && (
-        <section className="relative overflow-hidden border-t border-white/10 bg-ink py-20">
+        <section className="relative overflow-hidden border-t border-white/10 bg-ink/5 py-20">
           <div className="pointer-events-none absolute -right-32 top-12 h-[400px] w-[400px] rounded-full bg-neon-purple opacity-15 blur-[120px] animate-glow-pulse-slow" />
 
           <div className="relative mx-auto max-w-container px-6 lg:px-10">
@@ -721,7 +721,7 @@ export default async function CreatorDetailPage({
       )}
 
       {/* Mobile sticky bottom CTA (lg 未満) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-ink-deep/95 px-4 py-3 backdrop-blur-md lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-paper/95 px-4 py-3 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-container items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">

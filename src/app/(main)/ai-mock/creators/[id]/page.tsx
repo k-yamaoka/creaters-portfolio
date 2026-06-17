@@ -279,7 +279,7 @@ export default async function CreatorDetailPage({
                         className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-pill px-4 py-2 text-xs font-bold transition-all hover:-translate-y-0.5 ${
                           i === 1
                             ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_15px_rgba(255,77,157,0.3)]"
-                            : "border-2 border-ink bg-paper text-ink hover:bg-ink hover:text-paper"
+                            : "border-2 border-ink bg-paper text-ink hover:bg-ink/5 hover:text-ink"
                         }`}
                       >
                         このプランで依頼する →

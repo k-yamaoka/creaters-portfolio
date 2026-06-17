@@ -116,17 +116,17 @@ export default async function HomePage() {
       <HeroCinematic bg={HERO_BG_VIDEO} overlays={HERO_OVERLAYS} />
 
       {/* Hero 直下: Compatible models 罫線帯 — Hero の続きの暗帯として独立 */}
-      <section className="relative bg-ink-deep text-paper">
+      <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter pt-16 lg:pt-24">
-          <RevealOnScroll delay={0} className="border-t border-paper/10 pt-12">
+          <RevealOnScroll delay={0} className="border-t border-ink/10 pt-12">
             <p className="eyebrow-mono text-center">Compatible models</p>
             {/* 2026-06-16 Step 4: ブランド名 (Sora/Veo/...) はサンセリフが自然。
                 Fraunces (font-display) を装飾セリフに使うのは違和感のため Inter に。 */}
-            <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-paper/10">
+            <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-ink/10">
               {AI_TOOL_LABELS.map((t) => (
                 <span
                   key={t}
-                  className="px-6 font-sans text-sm font-medium tracking-tight text-paper/55 transition-colors hover:text-paper sm:px-8 sm:text-base"
+                  className="px-6 font-sans text-sm font-medium tracking-tight text-ink/55 transition-colors hover:text-ink sm:px-8 sm:text-base"
                 >
                   {t}
                 </span>
@@ -139,9 +139,9 @@ export default async function HomePage() {
       {/* =================================================
           VALUE PROPS — 罫線で 4 等分された単一の帯 (Axis 風)
           ================================================= */}
-      <section className="relative bg-ink-deep text-paper">
+      <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-6 lg:px-10">
-          <div className="grid grid-cols-1 divide-y divide-paper/10 border-y border-paper/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+          <div className="grid grid-cols-1 divide-y divide-ink/10 border-y border-ink/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
             {VALUE_PROPS.map((v, i) => {
               const Icon = v.icon;
               return (
@@ -156,10 +156,10 @@ export default async function HomePage() {
                     className="text-sand"
                     aria-hidden
                   />
-                  <p className="mt-8 font-display text-lg font-medium text-paper">
+                  <p className="mt-8 font-display text-lg font-medium text-ink">
                     {v.title}
                   </p>
-                  <p className="body-jp mt-3 text-sm text-paper/60">
+                  <p className="body-jp mt-3 text-sm text-ink/60">
                     {v.body}
                   </p>
                 </RevealOnScroll>
@@ -174,14 +174,14 @@ export default async function HomePage() {
             ・「お悩み 3 つ → 解決」のセールス構造を捨て、沈黙の余白で物語る
             ・Axis 直系の "Create together. Nurture together." を主見出しに
           ================================================= */}
-      <section className="relative bg-ink-deep text-paper">
+      <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
           <RevealOnScroll delay={0}>
             <p className="eyebrow-mono">(02 — Co-creation)</p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={80}>
-            <h2 className="headline-display mt-12 text-[clamp(2.5rem,6vw,5rem)] text-paper">
+            <h2 className="headline-display mt-12 text-[clamp(2.5rem,6vw,5rem)] text-ink">
               Create together.
               <br />
               <span className="italic text-sand">Nurture together.</span>
@@ -199,7 +199,7 @@ export default async function HomePage() {
           </RevealOnScroll>
 
           <RevealOnScroll delay={320}>
-            <p className="body-jp mt-10 max-w-prose-jp text-sm text-paper/55">
+            <p className="body-jp mt-10 max-w-prose-jp text-sm text-ink/55">
               私たちは、企業の物語をクリエイターと共に編む場所をつくります。
               映像が、誰かの一日を変えるかもしれない。その可能性に、最も近い人と、
               最も静かな手触りで向き合うために。
@@ -211,7 +211,7 @@ export default async function HomePage() {
       {/* =================================================
           03 — Service (旧 FEATURES) — 5 機能をアシンメトリーに展開
           ================================================= */}
-      <section id="features" className="relative bg-ink-deep text-paper">
+      <section id="features" className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
@@ -219,14 +219,14 @@ export default async function HomePage() {
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
-                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
                   Movie commerce,
                   <br />
                   <span className="italic text-sand">end-to-end.</span>
                 </h2>
               </RevealOnScroll>
               <RevealOnScroll delay={200}>
-                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
                   発注前の比較から、見積もり相談、納品・決済まで。
                   案件に必要なすべてが、ひとつのプラットフォームに。
                 </p>
@@ -335,7 +335,7 @@ export default async function HomePage() {
       {/* =================================================
           04 — Process (旧 HOW TO USE) — 3 ステップを罫線縦割りに
           ================================================= */}
-      <section id="how" className="relative bg-ink-deep text-paper">
+      <section id="how" className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
@@ -343,20 +343,20 @@ export default async function HomePage() {
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
-                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
                   How it{" "}
                   <span className="italic text-sand">works.</span>
                 </h2>
               </RevealOnScroll>
               <RevealOnScroll delay={200}>
-                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
                   発注の流れ、3 つのステップで。
                 </p>
               </RevealOnScroll>
             </div>
           </div>
 
-          <div className="mt-section-y-sm grid grid-cols-1 border-y border-paper/10 divide-y divide-paper/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+          <div className="mt-section-y-sm grid grid-cols-1 border-y border-ink/10 divide-y divide-ink/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
             {[
               {
                 step: "Step 01",
@@ -389,10 +389,10 @@ export default async function HomePage() {
                   aria-hidden
                 />
                 <p className="eyebrow-mono mt-10">{s.step}</p>
-                <h3 className="font-display mt-3 text-2xl font-medium text-paper">
+                <h3 className="font-display mt-3 text-2xl font-medium text-ink">
                   {s.title}
                 </h3>
-                <p className="body-jp mt-4 text-sm text-paper/65">{s.body}</p>
+                <p className="body-jp mt-4 text-sm text-ink/65">{s.body}</p>
               </RevealOnScroll>
             ))}
           </div>
@@ -405,7 +405,7 @@ export default async function HomePage() {
       {/* =================================================
           05 — Categories (旧 USE CASES) — 罫線で組まれた目次風タイポ
           ================================================= */}
-      <section className="relative bg-ink-deep text-paper">
+      <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
@@ -413,14 +413,14 @@ export default async function HomePage() {
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
-                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
                   Ten genres,
                   <br />
                   <span className="italic text-sand">one stage.</span>
                 </h2>
               </RevealOnScroll>
               <RevealOnScroll delay={200}>
-                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
                   全 {genreCount} カテゴリに対応。業界・尺・媒体を問わず、
                   AIで実現できる映像クリエイティブを発注できます。
                 </p>
@@ -431,9 +431,9 @@ export default async function HomePage() {
           {/* 「目次」風の縦リスト。各行に番号 + 大字ジャンル + 番号 */}
           <RevealOnScroll
             delay={120}
-            className="mt-section-y-sm border-y border-paper/10"
+            className="mt-section-y-sm border-y border-ink/10"
           >
-            <ul className="divide-y divide-paper/10">
+            <ul className="divide-y divide-ink/10">
               {GENRES.map((g, i) => {
                 const num = String(i + 1).padStart(2, "0");
                 const total = String(GENRES.length).padStart(2, "0");
@@ -445,7 +445,7 @@ export default async function HomePage() {
                     {/* SP: 番号 + ジャンル名を縦並び (横並びだと長文ジャンル名が被る) */}
                     <div className="flex items-baseline justify-between gap-4 sm:gap-6">
                       <span className="eyebrow-mono shrink-0">{num}</span>
-                      <h3 className="font-display flex-1 text-right text-xl font-medium tracking-tight text-paper transition-colors group-hover:text-sand sm:text-center sm:text-3xl lg:text-4xl">
+                      <h3 className="font-display flex-1 text-right text-xl font-medium tracking-tight text-ink transition-colors group-hover:text-sand sm:text-center sm:text-3xl lg:text-4xl">
                         {g}
                       </h3>
                       <span className="eyebrow-mono hidden shrink-0 sm:inline">
@@ -463,7 +463,7 @@ export default async function HomePage() {
       {/* =================================================
           06 — FAQ — 罫線で区切ったアコーディオン (カード型廃止)
           ================================================= */}
-      <section className="relative bg-ink-deep text-paper">
+      <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
@@ -471,12 +471,12 @@ export default async function HomePage() {
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
-                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-paper">
+                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
                   <span className="italic text-sand">Questions.</span>
                 </h2>
               </RevealOnScroll>
               <RevealOnScroll delay={200}>
-                <p className="body-jp mt-8 max-w-prose-jp text-paper/70">
+                <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
                   発注前に、よくある質問。
                 </p>
               </RevealOnScroll>
@@ -485,9 +485,9 @@ export default async function HomePage() {
 
           <RevealOnScroll
             delay={120}
-            className="mt-section-y-sm border-y border-paper/10"
+            className="mt-section-y-sm border-y border-ink/10"
           >
-            <ul className="divide-y divide-paper/10">
+            <ul className="divide-y divide-ink/10">
               {[
                 {
                   q: "動画 1 本の費用はどれくらいかかりますか？",
@@ -523,13 +523,13 @@ export default async function HomePage() {
                           <span className="eyebrow-mono shrink-0">
                             Q.{num}
                           </span>
-                          <span className="font-display min-w-0 text-base font-medium text-paper sm:text-xl">
+                          <span className="font-display min-w-0 text-base font-medium text-ink sm:text-xl">
                             {f.q}
                           </span>
                         </span>
                         <span
                           aria-hidden
-                          className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-paper/30 text-paper/60 transition-transform duration-300 group-open:rotate-180"
+                          className="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-ink/30 text-ink/60 transition-transform duration-300 group-open:rotate-180"
                         >
                           <svg
                             className="h-3 w-3"
@@ -548,7 +548,7 @@ export default async function HomePage() {
                       </summary>
                       <div className="flex items-start gap-3 pb-8 sm:gap-6 sm:pb-10">
                         <span className="eyebrow-mono shrink-0">A.{num}</span>
-                        <p className="body-jp text-sm text-paper/70 sm:text-base">
+                        <p className="body-jp text-sm text-ink/70 sm:text-base">
                           {f.a}
                         </p>
                       </div>
@@ -564,14 +564,14 @@ export default async function HomePage() {
       {/* =================================================
           07 — Start — 締めの一行ステートメント (Axis "Every story…" オマージュ)
           ================================================= */}
-      <section className="relative bg-ink-deep text-paper">
+      <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-narrow px-gutter py-section-y-lg text-center">
           <RevealOnScroll delay={0}>
             <p className="eyebrow-mono">(07 — Start)</p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={80}>
-            <h2 className="headline-display mt-12 text-[clamp(2.75rem,7vw,6rem)] text-paper">
+            <h2 className="headline-display mt-12 text-[clamp(2.75rem,7vw,6rem)] text-ink">
               Every story
               <br />
               starts with{" "}
@@ -580,7 +580,7 @@ export default async function HomePage() {
           </RevealOnScroll>
 
           <RevealOnScroll delay={240}>
-            <p className="body-jp mx-auto mt-12 max-w-prose-jp text-paper/60">
+            <p className="body-jp mx-auto mt-12 max-w-prose-jp text-ink/60">
               プロフィール閲覧は無料、依頼前にチャット相談も。
             </p>
           </RevealOnScroll>
@@ -643,25 +643,25 @@ function FeatureRow({
           <p className="eyebrow-mono">{axisNo}</p>
         </SlideInWhenVisible>
         <SlideInWhenVisible direction={textDir} delay={80}>
-          <h3 className="font-display mt-8 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-paper">
+          <h3 className="font-display mt-8 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-ink">
             {title}
           </h3>
         </SlideInWhenVisible>
         <SlideInWhenVisible direction={textDir} delay={160}>
-          <p className="body-jp mt-6 text-paper/70">{body}</p>
+          <p className="body-jp mt-6 text-ink/70">{body}</p>
         </SlideInWhenVisible>
-        <ul className="mt-10 border-t border-paper/10">
+        <ul className="mt-10 border-t border-ink/10">
           {bullets.map((b, i) => (
             <SlideInWhenVisible
               key={b}
               direction={textDir}
               delay={240 + i * 80}
             >
-              <li className="flex items-start gap-4 border-b border-paper/10 py-4">
+              <li className="flex items-start gap-4 border-b border-ink/10 py-4">
                 <span className="eyebrow-mono shrink-0 pt-[3px]">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="body-jp flex-1 text-sm text-paper/80">
+                <span className="body-jp flex-1 text-sm text-ink/80">
                   {b}
                 </span>
               </li>

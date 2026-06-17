@@ -33,29 +33,29 @@ export function BrowserFrame({
 }: BrowserFrameProps) {
   // 2026-06-16 Step 3: Axis 風の簡素な bezel に。
   // 大型 drop shadow / 信号機ドット / 色付き bg を全撤去。
-  // 細い rounded-md と 1px の border-paper/10 だけで画面サンプルを括る。
+  // 細い rounded-md と 1px の border-ink/10 だけで画面サンプルを括る。
   const isDark = variant === "dark";
   return (
     <div
       className={`overflow-hidden rounded-md border ${
-        isDark ? "border-paper/10 bg-ink" : "border-ink/10 bg-paper"
+        isDark ? "border-ink/10 bg-paper" : "border-ink/10 bg-paper"
       }`}
     >
       {/* Minimal address bar — URL を eyebrow-mono 風 mono にする */}
       <div
         className={`flex items-center gap-3 border-b px-4 py-2 ${
-          isDark ? "border-paper/10" : "border-ink/10"
+          isDark ? "border-ink/10" : "border-ink/10"
         }`}
       >
         <span
           aria-hidden
           className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-            isDark ? "bg-paper/30" : "bg-ink/30"
+            isDark ? "bg-ink/30" : "bg-ink/30"
           }`}
         />
         <div
           className={`flex-1 truncate font-mono text-[10px] uppercase tracking-[0.18em] ${
-            isDark ? "text-paper/45" : "text-ink/45"
+            isDark ? "text-ink/45" : "text-ink/45"
           }`}
         >
           {url}
@@ -101,7 +101,7 @@ export function MockCreatorsList() {
   // 2026-06-16 Step 4: Axis 風モノトーンに彩度下げ。
   // neon-pink/purple/cyan/sunset → paper/sand/ink の階調のみ。
   return (
-    <div className="space-y-0 divide-y divide-paper/10 bg-ink p-4">
+    <div className="space-y-0 divide-y divide-ink/10 bg-paper p-4">
       {rows.map((r, i) => (
         <div key={i} className="relative py-3 first:pt-0 last:pb-0">
           {r.tier === "gold" && (
@@ -110,15 +110,15 @@ export function MockCreatorsList() {
             </span>
           )}
           <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-paper/15 bg-paper/[0.04] font-display text-base font-medium text-paper">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-ink/15 bg-ink/[0.04] font-display text-base font-medium text-ink">
               {r.name[0]}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-display text-sm font-medium text-paper">
+                <span className="font-display text-sm font-medium text-ink">
                   {r.name}
                 </span>
-                <span className="inline-flex items-center gap-1 font-mono text-[9px] text-paper/55">
+                <span className="inline-flex items-center gap-1 font-mono text-[9px] text-ink/55">
                   <Heart
                     size={9}
                     fill="currentColor"
@@ -128,23 +128,23 @@ export function MockCreatorsList() {
                   {r.tier === "gold" ? 128 : r.tier === "silver" ? 64 : 12}
                 </span>
               </div>
-              <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-paper/60">
+              <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-ink/60">
                 {r.bio}
               </p>
               <div className="mt-1.5 flex flex-wrap gap-2">
                 <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-sand">
                   {r.tag}
                 </span>
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-paper/45">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink/45">
                   · {r.genre}
                 </span>
               </div>
             </div>
             <div className="shrink-0 text-right">
-              <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-paper/45">
+              <p className="font-mono text-[8px] uppercase tracking-[0.18em] text-ink/45">
                 From
               </p>
-              <p className="font-display text-[13px] font-medium text-paper">
+              <p className="font-display text-[13px] font-medium text-ink">
                 {r.price}
               </p>
             </div>
@@ -169,20 +169,20 @@ export function MockPortfoliosGrid() {
     { aspect: "aspect-square", opacity: "from-paper/[0.20] to-paper/[0.05]", n: 9 },
   ];
   return (
-    <div className="bg-ink p-3">
+    <div className="bg-paper p-3">
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
         {tiles.map((t, i) => (
           <div
             key={i}
-            className={`relative ${t.aspect} overflow-hidden rounded-sm border border-paper/8`}
+            className={`relative ${t.aspect} overflow-hidden rounded-sm border border-ink/8`}
           >
             <div className={`absolute inset-0 bg-gradient-to-br ${t.opacity}`} />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            <span className="absolute right-1 top-1 z-10 inline-flex items-center gap-1 font-mono text-[9px] text-paper/85">
+            <span className="absolute right-1 top-1 z-10 inline-flex items-center gap-1 font-mono text-[9px] text-ink/85">
               <Heart size={8} fill="currentColor" strokeWidth={0} className="text-sand" />
               {t.n}
             </span>
-            <span className="absolute bottom-1 left-1 inline-flex items-center text-paper/65">
+            <span className="absolute bottom-1 left-1 inline-flex items-center text-ink/65">
               <Play size={9} fill="currentColor" strokeWidth={0} />
             </span>
           </div>
@@ -197,26 +197,26 @@ export function MockPortfoliosGrid() {
  * ============================================================ */
 export function MockCreatorDetail() {
   return (
-    <div className="space-y-3 bg-ink p-4">
+    <div className="space-y-3 bg-paper p-4">
       {/* Hero row */}
       <div className="flex items-start gap-3">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-paper/15 bg-paper/[0.04] font-display text-base font-medium text-paper">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md border border-ink/15 bg-ink/[0.04] font-display text-base font-medium text-ink">
           山
         </div>
         <div className="min-w-0 flex-1">
           <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-sand">
             Verified
           </span>
-          <p className="mt-1.5 font-display text-base font-medium text-paper">
+          <p className="mt-1.5 font-display text-base font-medium text-ink">
             山田 太郎
           </p>
-          <p className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-paper/55">
+          <p className="mt-0.5 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-ink/55">
             <Sparkles size={10} className="text-sand" /> 24 works ·
             <Heart size={10} fill="currentColor" strokeWidth={0} className="text-sand" />
             128
           </p>
         </div>
-        <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-sm border border-paper/15 bg-gradient-to-br from-paper/[0.18] to-paper/[0.04]">
+        <div className="relative aspect-video w-32 shrink-0 overflow-hidden rounded-sm border border-ink/15 bg-gradient-to-br from-paper/[0.18] to-paper/[0.04]">
           <span className="absolute left-1 top-1 inline-flex items-center gap-0.5 font-mono text-[8px] uppercase tracking-[0.16em] text-sand">
             <Star size={8} fill="currentColor" strokeWidth={0} /> Featured
           </span>
@@ -224,32 +224,32 @@ export function MockCreatorDetail() {
       </div>
 
       {/* CTA */}
-      <div className="inline-flex w-full items-center justify-center gap-2 rounded-pill border border-paper/20 px-4 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-paper">
+      <div className="inline-flex w-full items-center justify-center gap-2 rounded-pill border border-ink/20 px-4 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.16em] text-ink">
         <Briefcase size={12} strokeWidth={1.6} />
         Request a quote
       </div>
 
       {/* Minimum plan panel */}
-      <div className="border-t border-paper/10 pt-3">
+      <div className="border-t border-ink/10 pt-3">
         <div className="flex items-baseline gap-3">
-          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-paper/45">
+          <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-ink/45">
             From
           </span>
           <span className="font-display text-base font-medium text-sand">
             ¥30,000
           </span>
         </div>
-        <p className="mt-2 text-[10px] leading-relaxed text-paper/65">
+        <p className="mt-2 text-[10px] leading-relaxed text-ink/65">
           縦型 SNS 広告 15 秒 ×1 本。修正 2 回まで含む。Sora 2 + Runway で AB 案 3 種同時提案。
         </p>
         <div className="mt-2 flex flex-wrap gap-3">
-          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/65">
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink/65">
             <Check size={9} strokeWidth={2} className="text-sand" /> AB×3
           </span>
-          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/65">
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink/65">
             <Check size={9} strokeWidth={2} className="text-sand" /> 9:16
           </span>
-          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-paper/65">
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-ink/65">
             <Clock size={9} strokeWidth={1.6} /> 3 days
           </span>
         </div>
@@ -263,26 +263,26 @@ export function MockCreatorDetail() {
  * ============================================================ */
 export function MockEstimateChat() {
   return (
-    <div className="space-y-2 bg-ink p-4">
+    <div className="space-y-2 bg-paper p-4">
       <p className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.18em] text-sand">
         <Bot size={11} strokeWidth={1.8} />
         AI Estimate
       </p>
-      <div className="rounded-sm border-l-2 border-paper/15 bg-paper/[0.04] p-2.5 text-[11px] leading-relaxed text-paper/80">
+      <div className="rounded-sm border-l-2 border-ink/15 bg-ink/[0.04] p-2.5 text-[11px] leading-relaxed text-ink/80">
         ご依頼内容のイメージを教えてください。たとえば「30 秒の SNS 広告動画
         を 3 本」など。
       </div>
-      <div className="ml-auto max-w-[80%] rounded-sm border-r-2 border-sand bg-paper/[0.06] p-2.5 text-[11px] leading-relaxed text-paper/85">
+      <div className="ml-auto max-w-[80%] rounded-sm border-r-2 border-sand bg-paper/[0.06] p-2.5 text-[11px] leading-relaxed text-ink/85">
         コスメ D2C 向け縦型 SNS 広告、15 秒 × 5 本を 1 週間で。
       </div>
-      <div className="rounded-sm border-l-2 border-paper/15 bg-paper/[0.04] p-2.5 text-[11px] leading-relaxed text-paper/80">
+      <div className="rounded-sm border-l-2 border-ink/15 bg-ink/[0.04] p-2.5 text-[11px] leading-relaxed text-ink/80">
         おすすめは「<b className="font-medium text-sand">スピード AB 案 パック</b>」。
         概算 <b className="font-medium text-sand">¥150,000 〜 ¥200,000</b>。
         AB 各 1 案 × 5 本、3 営業日納品。
       </div>
-      <div className="flex items-center gap-2 border-t border-paper/10 px-1 py-2 text-[10px] text-paper/40">
+      <div className="flex items-center gap-2 border-t border-ink/10 px-1 py-2 text-[10px] text-ink/40">
         メッセージを入力…
-        <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.18em] text-paper/65">
+        <span className="ml-auto font-mono text-[9px] uppercase tracking-[0.18em] text-ink/65">
           Send
         </span>
       </div>
@@ -315,29 +315,29 @@ export function MockOrders() {
     },
   ];
   return (
-    <div className="bg-ink p-4">
-      <div className="mb-3 flex items-center justify-between border-y border-paper/10 py-3">
+    <div className="bg-paper p-4">
+      <div className="mb-3 flex items-center justify-between border-y border-ink/10 py-3">
         <p className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-sand">
           <ShieldCheck size={11} strokeWidth={1.6} />
           Escrow held
         </p>
-        <p className="font-display text-sm font-medium text-paper">¥230,000</p>
+        <p className="font-display text-sm font-medium text-ink">¥230,000</p>
       </div>
-      <div className="divide-y divide-paper/10">
+      <div className="divide-y divide-ink/10">
         {rows.map((r, i) => (
           <div key={i} className="py-3 first:pt-0 last:pb-0">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="truncate font-display text-[12px] font-medium text-paper">
+                <p className="truncate font-display text-[12px] font-medium text-ink">
                   {r.title}
                 </p>
-                <p className="mt-0.5 text-[10px] text-paper/50">{r.client}</p>
+                <p className="mt-0.5 text-[10px] text-ink/50">{r.client}</p>
               </div>
               <div className="text-right">
-                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-paper/60">
+                <span className="font-mono text-[9px] uppercase tracking-[0.16em] text-ink/60">
                   {r.status}
                 </span>
-                <p className="mt-0.5 font-display text-[12px] font-medium text-paper">
+                <p className="mt-0.5 font-display text-[12px] font-medium text-ink">
                   {r.amount}
                 </p>
               </div>

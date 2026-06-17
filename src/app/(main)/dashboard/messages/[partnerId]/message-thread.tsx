@@ -519,7 +519,7 @@ export function MessageThread({
             onClick={() => setTemplatesOpen((v) => !v)}
             className={`inline-flex items-center gap-1.5 rounded-md border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors ${
               templatesOpen
-                ? "bg-ink text-paper"
+                ? "bg-ink/5 text-ink"
                 : "bg-white text-ink hover:border-ink hover:bg-paper-deep"
             }`}
           >

@@ -47,7 +47,7 @@ export function SectionTabs({ tabs }: { tabs: SectionTab[] }) {
   };
 
   return (
-    <div className="sticky top-20 z-30 -mx-6 border-y border-white/10 bg-ink-deep/85 px-6 backdrop-blur-md lg:-mx-10 lg:px-10">
+    <div className="sticky top-20 z-30 -mx-6 border-y border-white/10 bg-paper/85 px-6 backdrop-blur-md lg:-mx-10 lg:px-10">
       <div className="mx-auto flex max-w-container gap-1 overflow-x-auto py-3 scrollbar-hide">
         {tabs.map((tab) => {
           const isActive = active === tab.id;

@@ -71,7 +71,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Serif+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
         />
       </head>
-      <body className="min-h-screen bg-ink-deep font-sans text-paper antialiased">
+      <body className="min-h-screen bg-paper font-sans text-ink antialiased">
         {children}
       </body>
     </html>

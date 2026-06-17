@@ -88,7 +88,7 @@ export function InfiniteSlider() {
               </figcaption>
               {/* Bottom title */}
               <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent px-4 pb-4 pt-12">
-                <p className="text-base font-black tracking-tight text-paper">
+                <p className="text-base font-black tracking-tight text-ink">
                   {slide.alt}
                 </p>
               </div>
