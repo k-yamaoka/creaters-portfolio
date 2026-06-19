@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { SlideInWhenVisible } from "@/components/ui/slide-in-when-visible";
 import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
+import { ParallaxImage } from "@/components/ui/parallax";
 import {
   BrowserFrame,
   MockCreatorsList,
@@ -285,8 +286,15 @@ export default async function HomePage() {
 
       {/* =================================================
           03 — Service (旧 FEATURES) — 5 機能をアシンメトリーに展開
+          2026-06-19 Section 3 改修:
+            ・各 FeatureRow に特大背景タイポ (アウトライン文字) をパララックス
+              で敷く (映像を重ねない原則: 動画は前面 1 層のみ、背景は文字)
+            ・親 section に overflow-x: hidden で横スクロールバー防止
           ================================================= */}
-      <section id="features" className="relative bg-paper text-ink">
+      <section
+        id="features"
+        className="relative overflow-x-hidden bg-paper text-ink"
+      >
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
@@ -697,72 +705,99 @@ function FeatureRow({
   mock: React.ReactNode;
   reverse?: boolean;
 }) {
-  // Step 3 (2026-06-16): Axis アシンメトリーへ。
-  // モック側を 62% / テキスト 38% にし、モックを主役に。
-  // 内側の SlideInWhenVisible (横方向 stagger) は 引き続き使用 (高級感の質感)。
+  // Step 3 (2026-06-16): Axis アシンメトリーへ。モック側 62% / テキスト 38%。
+  // 内側の SlideInWhenVisible (横方向 stagger) は 引き続き使用。
+  // 2026-06-19 Section 3 改修: 背面に特大アウトライン番号タイポを敷き、
+  // パララックスで前景テキスト/モックと異なる速度で漂わせる。
   const textDir = reverse ? "right" : "left";
   const mockDir = reverse ? "left" : "right";
 
   // 番号タグ "FEATURE 01 / 060" を Axis "060" 風に組む。
   const axisNo = no.replace("FEATURE ", "Feature ");
+  // 特大タイポ表示用に "FEATURE 01 ／ できること 01" から "01" だけ抽出
+  const bigNumber = no.match(/(\d+)/)?.[1] ?? "00";
 
   return (
-    <div
-      className={`grid grid-cols-1 items-start gap-8 sm:gap-12 lg:gap-24 ${
-        reverse ? "lg:grid-cols-[1.62fr,1fr]" : "lg:grid-cols-[1fr,1.62fr]"
-      }`}
-    >
-      {/* テキスト側 — 上揃え、明朝、罫線リスト */}
-      <div className={reverse ? "lg:order-2" : ""}>
-        <SlideInWhenVisible direction={textDir} delay={0}>
-          <p className="eyebrow-mono">{axisNo}</p>
-        </SlideInWhenVisible>
-        <SlideInWhenVisible direction={textDir} delay={80}>
-          <h3 className="font-display mt-8 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-ink">
-            {title}
-          </h3>
-        </SlideInWhenVisible>
-        <SlideInWhenVisible direction={textDir} delay={160}>
-          <p className="body-jp mt-6 text-ink/70">{body}</p>
-        </SlideInWhenVisible>
-        <ul className="mt-10 border-t border-ink/10">
-          {bullets.map((b, i) => (
-            <SlideInWhenVisible
-              key={b}
-              direction={textDir}
-              delay={240 + i * 80}
-            >
-              <li className="flex items-start gap-4 border-b border-ink/10 py-4">
-                <span className="eyebrow-mono shrink-0 pt-[3px]">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="body-jp flex-1 text-sm text-ink/80">
-                  {b}
-                </span>
-              </li>
-            </SlideInWhenVisible>
-          ))}
-        </ul>
-        <SlideInWhenVisible
-          direction={textDir}
-          delay={240 + bullets.length * 80}
+    <div className="relative">
+      {/* === 背景 特大タイポ (アウトライン) — 映像でなく文字 === */}
+      <ParallaxImage
+        intensity={0.14}
+        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 z-0 ${
+          reverse ? "left-[-8vw] lg:left-[-6vw]" : "right-[-8vw] lg:right-[-6vw]"
+        }`}
+      >
+        <span
+          aria-hidden
+          className="block font-display font-medium leading-none tracking-[-0.04em] text-[clamp(10rem,28vw,24rem)]"
+          style={{
+            color: "transparent",
+            WebkitTextStroke: "1px rgba(10,13,18,0.10)",
+          }}
         >
-          <div className="mt-10">
-            <Link href={cta.href} className="btn-axis-ghost">
-              {cta.label}
-            </Link>
-          </div>
+          {bigNumber}
+        </span>
+      </ParallaxImage>
+
+      <div
+        className={`relative z-10 grid grid-cols-1 items-start gap-8 sm:gap-12 lg:gap-24 ${
+          reverse ? "lg:grid-cols-[1.62fr,1fr]" : "lg:grid-cols-[1fr,1.62fr]"
+        }`}
+      >
+        {/* テキスト側 — 上揃え、明朝、罫線リスト */}
+        <div className={reverse ? "lg:order-2" : ""}>
+          <SlideInWhenVisible direction={textDir} delay={0}>
+            <p className="eyebrow-mono">{axisNo}</p>
+          </SlideInWhenVisible>
+          <SlideInWhenVisible direction={textDir} delay={80}>
+            <h3 className="font-display mt-8 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-ink">
+              {title}
+            </h3>
+          </SlideInWhenVisible>
+          <SlideInWhenVisible direction={textDir} delay={160}>
+            <p className="body-jp mt-6 text-ink/70">{body}</p>
+          </SlideInWhenVisible>
+          <ul className="mt-10 border-t border-ink/10">
+            {bullets.map((b, i) => (
+              <SlideInWhenVisible
+                key={b}
+                direction={textDir}
+                delay={240 + i * 80}
+              >
+                <li className="flex items-start gap-4 border-b border-ink/10 py-4">
+                  <span className="eyebrow-mono shrink-0 pt-[3px]">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="body-jp flex-1 text-sm text-ink/80">
+                    {b}
+                  </span>
+                </li>
+              </SlideInWhenVisible>
+            ))}
+          </ul>
+          <SlideInWhenVisible
+            direction={textDir}
+            delay={240 + bullets.length * 80}
+          >
+            <div className="mt-10">
+              {/* 白基調なので light 版 ghost を使用 */}
+              <Link href={cta.href} className="btn-axis-ghost-light">
+                {cta.label}
+              </Link>
+            </div>
+          </SlideInWhenVisible>
+        </div>
+
+        {/* モック側 — 操作画面の動画 / モックを 1 層だけ重ねる
+            (映像を重ねない原則: 背景は特大タイポのみ、動画は前面 1 層) */}
+        <SlideInWhenVisible
+          direction={mockDir}
+          delay={120}
+          className={reverse ? "lg:order-1" : ""}
+        >
+          {/* parallax で背景タイポと前面モックの速度差を作り奥行きを出す */}
+          <ParallaxImage intensity={0.05}>{mock}</ParallaxImage>
         </SlideInWhenVisible>
       </div>
-
-      {/* モック側 — 主役に */}
-      <SlideInWhenVisible
-        direction={mockDir}
-        delay={120}
-        className={reverse ? "lg:order-1" : ""}
-      >
-        {mock}
-      </SlideInWhenVisible>
     </div>
   );
 }
