@@ -11,7 +11,7 @@ import {
 import { GENRES, AI_TOOLS, AI_TOOL_CATEGORIES } from "@/lib/constants";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { TrashIcon } from "@/components/ui/trash-icon";
-import { MIcon } from "@/components/ui/m-icon";
+import { Video } from "lucide-react";
 
 type PortfolioItem = {
   id: string;
@@ -575,7 +575,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                             <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-pink/30 border-t-neon-pink" />
                           </div>
                         ) : (
-                          <MIcon name="movie" size={24} className="text-green-700" />
+                          <Video size={24} strokeWidth={1.6} className="text-green-700" aria-hidden />
                         )}
                         <div className="flex-1">
                           <p className="text-sm font-medium text-green-700">
@@ -647,7 +647,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                           </>
                         ) : (
                           <>
-                            <MIcon name="movie" size={36} className="text-neon-purple-deep" />
+                            <Video size={36} strokeWidth={1.6} className="text-neon-purple-deep" aria-hidden />
                             <span className="text-sm font-bold text-neon-purple-deep">
                               クリックして動画を選択
                             </span>

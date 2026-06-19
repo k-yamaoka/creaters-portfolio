@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLikeDeltaApply } from "@/components/portfolio/like-delta-context";
-import { MIcon } from "@/components/ui/m-icon";
+import { Heart } from "lucide-react";
 
 /**
  * ポートフォリオ作品のいいねボタン。
@@ -107,10 +107,11 @@ export function LikeButton({
           : "border-white/30 bg-black/40 text-white/90 hover:border-neon-pink/40 hover:bg-black/60"
       } ${pending ? "opacity-70" : ""}`}
     >
-      <MIcon
-        name="favorite"
-        fill={liked}
+      <Heart
         size={16}
+        strokeWidth={1.8}
+        fill={liked ? "currentColor" : "none"}
+        aria-hidden
         className={`transition-transform ${liked ? "scale-110 text-white" : "text-white/90"}`}
       />
       {/* showCount=true のときだけ数字を出す。それ以外は sr-only で a11y のみ。 */}

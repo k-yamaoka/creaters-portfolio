@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { PortfolioGrid } from "@/components/portfolio/portfolio-grid";
-import { MIcon } from "@/components/ui/m-icon";
+import { Heart } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "いいねした動画",
@@ -68,7 +68,7 @@ export default async function LikesPage() {
           MY FAVORITES
         </p>
         <h1 className="mt-4 inline-flex items-center gap-3 text-3xl font-black tracking-tight text-white sm:text-[2.5rem]">
-          <MIcon name="favorite" fill className="text-neon-pink" size={36} />
+          <Heart size={36} strokeWidth={1.6} fill="currentColor" className="text-neon-pink" aria-hidden />
           いいねした動画
         </h1>
         <p className="mt-2 text-sm text-white/65">

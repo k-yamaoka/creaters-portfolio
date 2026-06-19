@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
-import { MIcon } from "@/components/ui/m-icon";
+import { Video, Building2, Heart, Smile, Meh, Frown } from "lucide-react";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
 import {
   DashboardLatestActivity,
@@ -254,7 +254,7 @@ export default async function DashboardPage() {
       {isCreator && !hasCreatorProfile && (
         <div className="mt-6 rounded-2xl border-2 border-dashed border-neon-purple/30 bg-neon-purple/10 p-6">
           <div className="flex items-center gap-3">
-            <MIcon name="movie" size={36} className="text-neon-purple-deep" />
+            <Video size={36} strokeWidth={1.6} className="text-neon-purple-deep" aria-hidden />
             <div className="flex-1">
               <h2 className="font-bold text-gray-900">クリエイタープロフィールを作成しましょう</h2>
               <p className="mt-1 text-sm text-gray-500">プロフィールを設定すると、クライアントからの検索結果に表示されます</p>
@@ -270,7 +270,7 @@ export default async function DashboardPage() {
       {!isCreator && !isAdmin && !hasClientProfile && (
         <div className="mt-6 rounded-2xl border-2 border-dashed border-neon-purple/30 bg-neon-purple/10 p-6">
           <div className="flex items-center gap-3">
-            <MIcon name="apartment" size={36} className="text-neon-purple-deep" />
+            <Building2 size={36} strokeWidth={1.6} className="text-neon-purple-deep" aria-hidden />
             <div className="flex-1">
               <h2 className="font-bold text-gray-900">企業情報を登録しましょう</h2>
               <p className="mt-1 text-sm text-gray-500">企業情報を登録すると、クリエイターへの依頼がスムーズになります</p>
@@ -292,25 +292,18 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-500">評価</p>
-              {user.creator_profile!.review_count > 0 && (
-                <MIcon
-                  name={
-                    user.creator_profile!.rating >= 2.5
-                      ? "sentiment_very_satisfied"
-                      : user.creator_profile!.rating >= 1.5
-                        ? "sentiment_neutral"
-                        : "sentiment_dissatisfied"
-                  }
-                  size={28}
-                  className={
-                    user.creator_profile!.rating >= 2.5
+              {user.creator_profile!.review_count > 0 &&
+                (() => {
+                  const r = user.creator_profile!.rating;
+                  const Icon = r >= 2.5 ? Smile : r >= 1.5 ? Meh : Frown;
+                  const cls =
+                    r >= 2.5
                       ? "text-green-500"
-                      : user.creator_profile!.rating >= 1.5
+                      : r >= 1.5
                         ? "text-yellow-500"
-                        : "text-gray-400"
-                  }
-                />
-              )}
+                        : "text-gray-400";
+                  return <Icon size={28} strokeWidth={1.6} className={cls} aria-hidden />;
+                })()}
             </div>
             {user.creator_profile!.review_count > 0 ? (
               <div className="mt-2 grid grid-cols-2 items-end gap-4">
@@ -345,7 +338,7 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-500">総いいね数</p>
-              <MIcon name="favorite" fill size={28} className="text-neon-pink" />
+              <Heart size={28} strokeWidth={1.6} fill="currentColor" className="text-neon-pink" aria-hidden />
             </div>
             <p className="mt-2 text-3xl font-bold text-gray-900">
               {totalLikes.toLocaleString()}

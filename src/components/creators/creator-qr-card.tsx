@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { MIcon } from "@/components/ui/m-icon";
+import { Check, Link2 } from "lucide-react";
 
 type Props = {
   /** 完全な URL (例: https://ailier.app/creators/abc) */
@@ -192,7 +192,11 @@ export function CreatorQrCard({ url, creatorName }: Props) {
         onClick={copyUrl}
         className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-pill border border-white/15 bg-white/[0.03] px-3 py-2 text-[11px] text-white/75 transition-colors hover:border-white/30 hover:bg-white/10"
       >
-        <MIcon name={copied ? "check" : "link"} size={14} />
+        {copied ? (
+          <Check size={14} strokeWidth={1.8} aria-hidden />
+        ) : (
+          <Link2 size={14} strokeWidth={1.8} aria-hidden />
+        )}
         {copied ? "URL をコピーしました" : "URL をコピー"}
       </button>
 

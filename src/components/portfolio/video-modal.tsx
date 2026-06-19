@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LikeButton } from "./like-button";
-import { MIcon } from "@/components/ui/m-icon";
+import { User, ArrowRight } from "lucide-react";
 
 export type VideoModalItem = {
   id: string;
@@ -178,10 +178,10 @@ export function VideoModal({
             onClick={onClose}
           >
             <span className="inline-flex items-center gap-1.5">
-              <MIcon name="person" size={18} />
+              <User size={18} strokeWidth={1.8} aria-hidden />
               プロフィールへ
             </span>
-            <MIcon name="arrow_forward" size={18} />
+            <ArrowRight size={18} strokeWidth={1.8} aria-hidden />
           </Link>
         </aside>
       </div>

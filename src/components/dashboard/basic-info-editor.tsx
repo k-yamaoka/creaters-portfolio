@@ -5,7 +5,7 @@ import Image from "next/image";
 import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { updateBasicInfo } from "@/app/(main)/dashboard/profile/actions";
 import { AvatarCropModal } from "./avatar-crop-modal";
-import { MIcon } from "@/components/ui/m-icon";
+import { CreditCard } from "lucide-react";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB (Storage バケット上限と整合)
 const ALLOWED_MIME = [
@@ -361,7 +361,7 @@ export function BasicInfoEditor({
               <p className="mt-1 text-sm text-gray-500">{roleLabel}</p>
               {isCreator && (
                 <p className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-neon-pink/10 px-3 py-1 text-xs font-bold text-neon-pink-deep">
-                  <MIcon name="payments" size={14} />
+                  <CreditCard size={14} strokeWidth={1.8} aria-hidden />
                   最低受注金額:{" "}
                   {minAmountSaved == null
                     ? "応相談"

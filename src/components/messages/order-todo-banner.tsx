@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getOrderTodo, type Role } from "@/lib/order-todo";
 import { getStatusMeta } from "@/lib/order-status";
-import { MIcon } from "@/components/ui/m-icon";
+import { X, AlertTriangle, Hourglass } from "lucide-react";
 
 /**
  * メッセージ画面で「いま自分が何をすべきか」を黄色背景のバナーで表示する。
@@ -44,16 +44,14 @@ export function OrderTodoBanner({
           }`}
           aria-hidden
         >
-          <MIcon
-            name={
-              isCancelled
-                ? "close"
-                : isMyTurn
-                  ? "priority_high"
-                  : "hourglass_empty"
-            }
-            size={16}
-          />
+          {(() => {
+            const Icon = isCancelled
+              ? X
+              : isMyTurn
+                ? AlertTriangle
+                : Hourglass;
+            return <Icon size={16} strokeWidth={1.8} aria-hidden />;
+          })()}
         </div>
 
         <div className="min-w-0 flex-1">

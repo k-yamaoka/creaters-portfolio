@@ -9,7 +9,7 @@ import {
   deleteNotification,
 } from "@/lib/actions/notifications";
 import { NeonStar } from "@/components/ui/illustrations-retrowave";
-import { MIcon } from "@/components/ui/m-icon";
+import { Heart } from "lucide-react";
 
 type User = {
   id: string;
@@ -525,7 +525,7 @@ export function Header({
                         className={`${T.menuItem} inline-flex items-center gap-2`}
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <MIcon name="favorite" fill size={16} className="text-neon-pink" />
+                        <Heart size={16} strokeWidth={1.8} fill="currentColor" className="text-neon-pink" aria-hidden />
                         いいねした動画
                       </Link>
                       <Link

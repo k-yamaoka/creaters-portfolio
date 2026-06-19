@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { MIcon } from "@/components/ui/m-icon";
+import { Building2, Video } from "lucide-react";
 
 /**
  * Supabase Auth から返ってきた英語エラーメッセージを日本語に置き換える。
@@ -217,7 +217,7 @@ export default function RegisterPage() {
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
-                  <MIcon name="apartment" size={22} />
+                  <Building2 size={22} strokeWidth={1.6} aria-hidden />
                   <div className="mt-1">依頼者</div>
                 </button>
                 <button
@@ -229,7 +229,7 @@ export default function RegisterPage() {
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
-                  <MIcon name="movie" size={22} />
+                  <Video size={22} strokeWidth={1.6} aria-hidden />
                   <div className="mt-1">クリエイター</div>
                 </button>
               </div>

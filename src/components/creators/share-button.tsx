@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MIcon } from "@/components/ui/m-icon";
+import { Check, Link2 } from "lucide-react";
 
 /**
  * 詳細ページのシェアボタン。
@@ -73,7 +73,11 @@ export function ShareButton({
               }}
               className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-white transition-colors hover:bg-white/10"
             >
-              <MIcon name={copied ? "check" : "link"} size={18} />
+              {copied ? (
+                <Check size={18} strokeWidth={1.8} aria-hidden />
+              ) : (
+                <Link2 size={18} strokeWidth={1.8} aria-hidden />
+              )}
               {copied ? "コピーしました" : "URL をコピー"}
             </button>
             <a
