@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { getCreators, type CreatorWithRelations } from "@/lib/supabase/queries";
-// 2026-06-19: Hero を再度 2 カラム構造 (左テキスト + 右 3 列縦自動マーキー) に。
-// 「動画の上に動画を重ねない」原則のため HeroCinematic は撤去。
+// 2026-06-19: Hero を axis-ov-films.co.jp 風の "100svh フルスクリーン動画 +
+// テキストオーバーレイ" 構造に。Supabase 投入済 18 本をシャッフルで順次再生。
+// 旧 2 カラム (HeroVideoGrid 縦自動マーキー) は撤去。
 import {
-  HeroVideoGrid,
-  type GridTile,
-} from "@/components/home/hero-video-grid";
+  HeroFullscreen,
+  type FullscreenVideoSource,
+} from "@/components/home/hero-fullscreen";
 import {
   Sparkles,
   Building2,
@@ -35,49 +36,36 @@ export const revalidate = 300;
  *  で統一 (Axis 風)。
  * ============================================================= */
 
-// ===== Hero 右カラム の作品タイル抽出 =====
+// ===== Hero フルスクリーン用 動画ソース抽出 =====
 // 2026-06-19: 仮素材 (MDN flower.mp4 / Big Buck Bunny / Jellyfish) は完全撤去。
-// Supabase に投入済の AILIER Showcase クリエイター (creator_id = 6f57594d-...)
-// の portfolio_items (mp4 + poster 付き) を Hero 右グリッドに表示する。
-//
-// 振り分け優先度:
-//  1. usage_role='hero'  (明示的に Hero 用と指定された作品)
-//  2. is_featured=true   (注目作品)
-//  3. その他全作品       (Hero 未指定だが Works 一覧用)
-// 順に並べ、3 列 Marquee 用に十分な数 (>= 15) を確保。
+// Supabase 投入済 AILIER Showcase の portfolio_items から mp4 のみを集めて
+// HeroFullscreen に渡す。クライアント側でシャッフル→順次再生する。
 
-function aspectToGridAspect(
-  a: "vertical" | "horizontal" | "square"
-): GridTile["aspect"] {
-  return a === "vertical" ? "vertical" : a === "square" ? "square" : "video";
-}
-
-function extractHeroTiles(creators: CreatorWithRelations[]): GridTile[] {
-  type Scored = { tile: GridTile; rank: number };
+function extractHeroVideos(
+  creators: CreatorWithRelations[]
+): FullscreenVideoSource[] {
+  type Scored = { src: string; poster: string | null; rank: number };
   const out: Scored[] = [];
   for (const c of creators) {
     for (const p of c.portfolio_items) {
       if (p.media_type !== "video") continue;
       if (!p.video_url) continue;
-      // mp4 直リンクのみ Hero に出す (YouTube / Vimeo の埋め込みは Marquee で不適)
+      // mp4 直リンクのみ (YouTube / Vimeo は埋め込み iframe が必要で
+      // フルスクリーン背景には不適)
       if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
-      const rank =
+      // 横型優先 (フルスクリーン背景は 16:9 が最も自然) で並べる
+      const orientationRank = p.aspect_ratio === "horizontal" ? 0 : 1;
+      const roleRank =
         p.usage_role === "hero" ? 0 : p.is_featured ? 1 : 2;
       out.push({
-        tile: {
-          src: p.video_url,
-          poster: p.thumbnail_url ?? null,
-          href: `/creators/${c.id}`,
-          alt: `${c.profiles.display_name} ${p.title}`,
-          aspect: aspectToGridAspect(p.aspect_ratio),
-        },
-        rank,
+        src: p.video_url,
+        poster: p.thumbnail_url ?? null,
+        rank: orientationRank * 10 + roleRank,
       });
     }
   }
-  // rank 昇順 → Hero 用 / Featured / その他 の順で前から並ぶ
   out.sort((a, b) => a.rank - b.rank);
-  return out.map((s) => s.tile);
+  return out.map(({ src, poster }) => ({ src, poster }));
 }
 
 // Hero 直下に並べる対応 AI ツール (静的 1 段、自動スクロールなし)。
@@ -120,85 +108,92 @@ export default async function HomePage() {
   const allCreators = await getCreators();
 
   const genreCount = GENRES.length;
-  const heroTiles = extractHeroTiles(allCreators);
+  const heroVideos = extractHeroVideos(allCreators);
 
   return (
     <>
       {/* =================================================
-          HERO — 左テキスト + 右 3 列縦自動マーキー (2026-06-19 改修)
-            ・spec: 「動画の上に動画を重ねない」原則を遵守
-            ・左カラム (lg:44%): 固定 / 右カラム (lg:56%): スクロール
-            ・10 秒で価値提案 (NN/g) / 左カラム CTA は主従 1 つずつ
+          HERO — axis-ov-films.co.jp 風 フルスクリーン (2026-06-19 改修)
+            ・100svh 背景動画 を 18 本シャッフルで連続再生
+            ・テキスト/CTA は左下にオーバーレイ (動画の上に動画を重ねない原則)
+            ・暗背景 + 白文字。Header は透過モードのまま (home top で発火)
           ================================================= */}
-      <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-wide px-6 pb-12 pt-16 lg:px-10 lg:pb-section-y lg:pt-24">
-          <div className="grid items-center gap-12 lg:grid-cols-[44%_56%] lg:gap-16">
-            {/* === 左カラム: テキスト + CTA (動かさない) === */}
-            <div className="order-2 lg:order-1">
-              <RevealOnScroll delay={0}>
-                <p className="inline-flex items-center gap-2 rounded-pill border border-ink/15 bg-ink/[0.03] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-ink/65">
-                  <span
-                    aria-hidden
-                    className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-neon-pink to-neon-cyan"
-                  />
-                  AI Creators Platform
-                </p>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={120}>
-                <h1 className="headline-display mt-7 text-[clamp(2.5rem,5.5vw,4rem)] leading-[1.05] text-ink">
-                  <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                    AIクリエイター
-                  </span>
-                  と、
-                  <br />
-                  企業をつなぐ。
-                </h1>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={240}>
-                <p className="body-jp mt-7 max-w-prose-jp text-[15px] leading-[1.95] text-ink/75">
-                  Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
-                  SNS広告動画・商品紹介・採用動画を依頼できる専門マッチング
-                  プラットフォーム。撮影不要・完全リモート・低予算で、
-                  構成から完成までおまかせ。
-                </p>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={360}>
-                <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                  {/* 主 CTA (filled) — 動詞 + 目的語 (NN/g) */}
-                  <Link
-                    href="/register"
-                    className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,77,157,0.45)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(255,77,157,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
-                  >
-                    無料ではじめる
-                  </Link>
-                  {/* 副 CTA (outline) */}
-                  <Link href="/creators" className="btn-axis-ghost-light">
-                    クリエイターを探す
-                  </Link>
-                </div>
-              </RevealOnScroll>
-            </div>
-
-            {/* === 右カラム: 3 列縦自動マーキー (HeroVideoGrid) === */}
-            <div className="order-1 lg:order-2">
-              {heroTiles.length > 0 ? (
-                <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
-              ) : (
-                <div className="flex h-[480px] items-center justify-center rounded-md border border-ink/10 bg-ink/[0.03] text-sm text-ink/55">
-                  作品データを読み込み中…
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Hero 直下: Compatible models 静的 1 段 (自動スクロール無し / Midjourney 除外) */}
-          <RevealOnScroll
-            delay={0}
-            className="mt-16 border-t border-ink/10 pt-12 lg:mt-24"
+      <HeroFullscreen videos={heroVideos}>
+        {/* === 左サイド: 縦書き mono ラベル === */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-6 top-1/2 hidden -translate-y-1/2 md:block"
+        >
+          <p
+            className="font-mono text-[10px] uppercase tracking-[0.32em] text-paper/45"
+            style={{ writingMode: "vertical-rl" }}
           >
+            (AILIER — REEL 2026)
+          </p>
+        </div>
+
+        {/* === 下端: テキスト + CTA (Axis 風 左寄せ) === */}
+        <div className="mt-auto pb-20 pt-32 sm:pb-28 lg:pb-32">
+          <div className="max-w-xl lg:max-w-2xl">
+            <RevealOnScroll delay={0}>
+              <p className="inline-flex items-center gap-2 rounded-pill border border-paper/20 bg-paper/[0.04] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/75 backdrop-blur-sm">
+                <span
+                  aria-hidden
+                  className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-neon-pink to-neon-cyan"
+                />
+                AI Creators Platform
+              </p>
+            </RevealOnScroll>
+
+            <RevealOnScroll delay={120}>
+              <h1 className="headline-display mt-6 text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper">
+                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                  AIクリエイター
+                </span>
+                と、
+                <br />
+                企業をつなぐ。
+              </h1>
+            </RevealOnScroll>
+
+            <RevealOnScroll delay={240}>
+              <p className="body-jp mt-6 max-w-prose-jp text-sm text-paper/85 sm:text-base">
+                Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
+                SNS広告動画・商品紹介・採用動画を依頼できる専門マッチング
+                プラットフォーム。撮影不要・完全リモート・低予算で、構成から
+                完成までおまかせ。
+              </p>
+            </RevealOnScroll>
+
+            <RevealOnScroll delay={360}>
+              <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,77,157,0.55)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(255,77,157,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep"
+                >
+                  無料ではじめる
+                </Link>
+                <Link href="/creators" className="btn-axis-ghost">
+                  クリエイターを探す
+                </Link>
+              </div>
+            </RevealOnScroll>
+
+            {/* スクロールヒント */}
+            <RevealOnScroll delay={520} className="mt-12">
+              <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-paper/55">
+                <span aria-hidden>▾</span>
+                <span>(Scroll to explore)</span>
+              </span>
+            </RevealOnScroll>
+          </div>
+        </div>
+      </HeroFullscreen>
+
+      {/* Hero 直下: Compatible models 静的 1 段 (NN/g: 自動スクロール禁止 / Midjourney 除外) */}
+      <section className="relative bg-paper text-ink">
+        <div className="relative mx-auto max-w-wide px-gutter pt-16 lg:pt-24">
+          <RevealOnScroll delay={0} className="border-t border-ink/10 pt-12">
             <p className="eyebrow-mono text-center">Compatible models</p>
             <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-ink/10">
               {AI_TOOL_LABELS.map((t) => (
