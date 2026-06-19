@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { getCreators } from "@/lib/supabase/queries";
-// 2026-06-16 Step 3: RetroSun (旧 CLOSING の浮遊装飾) は撤去のため import 削除
-// 2026-06-17: 旧 HeroVideoGrid (縦自動マーキー) は HeroCinematic に置き換え。
-// (HeroVideoGrid 自体は /portfolios 用に残置)
-import { HeroCinematic, type CinematicTile } from "@/components/home/hero-cinematic";
+import { getCreators, type CreatorWithRelations } from "@/lib/supabase/queries";
+// 2026-06-19: Hero を再度 2 カラム構造 (左テキスト + 右 3 列縦自動マーキー) に。
+// 「動画の上に動画を重ねない」原則のため HeroCinematic は撤去。
+import {
+  HeroVideoGrid,
+  type GridTile,
+} from "@/components/home/hero-video-grid";
 import {
   Sparkles,
   Building2,
@@ -33,33 +35,50 @@ export const revalidate = 300;
  *  で統一 (Axis 風)。
  * ============================================================= */
 
-// ===== HeroCinematic 用の動画ソース =====
-// 2026-06-17: フルスクリーン背景動画 + 右下に重なる小映像 2 枚 の構造に刷新。
-// 旧 HeroVideoGrid 用の Masonry 配列 (extractHeroTiles / FALLBACK_HERO_TILES)
-// は撤去。素材差し替えは下の HERO_BG_VIDEO / HERO_OVERLAYS を編集する。
+// ===== Hero 右カラム の作品タイル抽出 =====
+// 2026-06-19: 仮素材 (MDN flower.mp4 / Big Buck Bunny / Jellyfish) は完全撤去。
+// Supabase に投入済の AILIER Showcase クリエイター (creator_id = 6f57594d-...)
+// の portfolio_items (mp4 + poster 付き) を Hero 右グリッドに表示する。
+//
+// 振り分け優先度:
+//  1. usage_role='hero'  (明示的に Hero 用と指定された作品)
+//  2. is_featured=true   (注目作品)
+//  3. その他全作品       (Hero 未指定だが Works 一覧用)
+// 順に並べ、3 列 Marquee 用に十分な数 (>= 15) を確保。
 
-// ★ 背景フル動画 (差し替えポイント) ★
-const HERO_BG_VIDEO: { src: string; poster?: string | null } = {
-  // MDN CC0 — 抽象的な花の動画。Axis 風アンビエント感に合うため仮採用
-  src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-  poster: null,
-};
+function aspectToGridAspect(
+  a: "vertical" | "horizontal" | "square"
+): GridTile["aspect"] {
+  return a === "vertical" ? "vertical" : a === "square" ? "square" : "video";
+}
 
-// ★ 右下に重なる小映像 2 枚 (差し替えポイント) ★
-const HERO_OVERLAYS: CinematicTile[] = [
-  {
-    // タイル A (メイン、横長): Big Buck Bunny アニメサンプル
-    src: "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_2MB.mp4",
-    poster: null,
-    aspect: "video",
-  },
-  {
-    // タイル B (サブ、縦長): Jellyfish 海中動画
-    src: "https://test-videos.co.uk/vids/jellyfish/mp4/h264/720/Jellyfish_720_10s_2MB.mp4",
-    poster: null,
-    aspect: "vertical",
-  },
-];
+function extractHeroTiles(creators: CreatorWithRelations[]): GridTile[] {
+  type Scored = { tile: GridTile; rank: number };
+  const out: Scored[] = [];
+  for (const c of creators) {
+    for (const p of c.portfolio_items) {
+      if (p.media_type !== "video") continue;
+      if (!p.video_url) continue;
+      // mp4 直リンクのみ Hero に出す (YouTube / Vimeo の埋め込みは Marquee で不適)
+      if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      const rank =
+        p.usage_role === "hero" ? 0 : p.is_featured ? 1 : 2;
+      out.push({
+        tile: {
+          src: p.video_url,
+          poster: p.thumbnail_url ?? null,
+          href: `/creators/${c.id}`,
+          alt: `${c.profiles.display_name} ${p.title}`,
+          aspect: aspectToGridAspect(p.aspect_ratio),
+        },
+        rank,
+      });
+    }
+  }
+  // rank 昇順 → Hero 用 / Featured / その他 の順で前から並ぶ
+  out.sort((a, b) => a.rank - b.rank);
+  return out.map((s) => s.tile);
+}
 
 // Hero 直下に並べる対応 AI ツール (静的 1 段、自動スクロールなし)。
 // NN/g: 自動マーキー禁止 / Midjourney は除外。
@@ -101,27 +120,86 @@ export default async function HomePage() {
   const allCreators = await getCreators();
 
   const genreCount = GENRES.length;
-  // allCreators は他セクション (今後の "Featured creators" 等) で使用想定。
-  // Hero は HeroCinematic に固定動画を渡す構造に刷新したため tiles 計算は撤去。
-  void allCreators;
+  const heroTiles = extractHeroTiles(allCreators);
 
   return (
     <>
       {/* =================================================
-          HERO — Cinematic フルスクリーン (axis-ov-films.co.jp オマージュ / 2026-06-17)
-            ・100svh 背景動画 + 右下に重なる小映像 2 枚
-            ・テキストは左上 Axis スタイル (mono ラベル + Fraunces 大型)
-            ・全 video は autoPlay muted loop playsInline + reduced-motion 制御
+          HERO — 左テキスト + 右 3 列縦自動マーキー (2026-06-19 改修)
+            ・spec: 「動画の上に動画を重ねない」原則を遵守
+            ・左カラム (lg:44%): 固定 / 右カラム (lg:56%): スクロール
+            ・10 秒で価値提案 (NN/g) / 左カラム CTA は主従 1 つずつ
           ================================================= */}
-      <HeroCinematic bg={HERO_BG_VIDEO} overlays={HERO_OVERLAYS} />
-
-      {/* Hero 直下: Compatible models 罫線帯 — Hero の続きの暗帯として独立 */}
       <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-wide px-gutter pt-16 lg:pt-24">
-          <RevealOnScroll delay={0} className="border-t border-ink/10 pt-12">
+        <div className="relative mx-auto max-w-wide px-6 pb-12 pt-16 lg:px-10 lg:pb-section-y lg:pt-24">
+          <div className="grid items-center gap-12 lg:grid-cols-[44%_56%] lg:gap-16">
+            {/* === 左カラム: テキスト + CTA (動かさない) === */}
+            <div className="order-2 lg:order-1">
+              <RevealOnScroll delay={0}>
+                <p className="inline-flex items-center gap-2 rounded-pill border border-ink/15 bg-ink/[0.03] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-ink/65">
+                  <span
+                    aria-hidden
+                    className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-neon-pink to-neon-cyan"
+                  />
+                  AI Creators Platform
+                </p>
+              </RevealOnScroll>
+
+              <RevealOnScroll delay={120}>
+                <h1 className="headline-display mt-7 text-[clamp(2.5rem,5.5vw,4rem)] leading-[1.05] text-ink">
+                  <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                    AIクリエイター
+                  </span>
+                  と、
+                  <br />
+                  企業をつなぐ。
+                </h1>
+              </RevealOnScroll>
+
+              <RevealOnScroll delay={240}>
+                <p className="body-jp mt-7 max-w-prose-jp text-[15px] leading-[1.95] text-ink/75">
+                  Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
+                  SNS広告動画・商品紹介・採用動画を依頼できる専門マッチング
+                  プラットフォーム。撮影不要・完全リモート・低予算で、
+                  構成から完成までおまかせ。
+                </p>
+              </RevealOnScroll>
+
+              <RevealOnScroll delay={360}>
+                <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                  {/* 主 CTA (filled) — 動詞 + 目的語 (NN/g) */}
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,77,157,0.45)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(255,77,157,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
+                  >
+                    無料ではじめる
+                  </Link>
+                  {/* 副 CTA (outline) */}
+                  <Link href="/creators" className="btn-axis-ghost-light">
+                    クリエイターを探す
+                  </Link>
+                </div>
+              </RevealOnScroll>
+            </div>
+
+            {/* === 右カラム: 3 列縦自動マーキー (HeroVideoGrid) === */}
+            <div className="order-1 lg:order-2">
+              {heroTiles.length > 0 ? (
+                <HeroVideoGrid tiles={heroTiles} desktopColumns={3} />
+              ) : (
+                <div className="flex h-[480px] items-center justify-center rounded-md border border-ink/10 bg-ink/[0.03] text-sm text-ink/55">
+                  作品データを読み込み中…
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Hero 直下: Compatible models 静的 1 段 (自動スクロール無し / Midjourney 除外) */}
+          <RevealOnScroll
+            delay={0}
+            className="mt-16 border-t border-ink/10 pt-12 lg:mt-24"
+          >
             <p className="eyebrow-mono text-center">Compatible models</p>
-            {/* 2026-06-16 Step 4: ブランド名 (Sora/Veo/...) はサンセリフが自然。
-                Fraunces (font-display) を装飾セリフに使うのは違和感のため Inter に。 */}
             <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-ink/10">
               {AI_TOOL_LABELS.map((t) => (
                 <span
