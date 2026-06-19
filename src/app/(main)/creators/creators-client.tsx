@@ -10,6 +10,7 @@ import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
 import { useInViewport } from "@/hooks/use-in-viewport";
 import { derivePosterUrl } from "@/lib/video-poster";
+import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 
 export function CreatorsPageClient({
   creators,
@@ -101,7 +102,10 @@ export function CreatorsPageClient({
         <div className="relative mx-auto max-w-wide px-gutter">
           <p className="eyebrow-mono">(Creators)</p>
           <h1 className="headline-display mt-6 text-[clamp(2.25rem,5vw,4rem)] text-ink">
-            Choose your <span className="italic text-sand">specialist.</span>
+            Choose your{" "}
+            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text italic text-transparent">
+              specialist.
+            </span>
           </h1>
           <p className="heading-jp mt-4 text-ink/75">
             ツールから専門家を選ぶ。
@@ -211,14 +215,20 @@ export function CreatorsPageClient({
         <div className="min-w-0 flex-1">
           {visibleCreators.length > 0 ? (
             <ul className="space-y-4">
-              {visibleCreators.map((c) => (
-                <li key={c.id}>
+              {visibleCreators.map((c, i) => (
+                // 60ms ずつ stagger で順に下からフェードイン。
+                // 先頭 8 件以降は遅延を 480ms で打ち止め (遅延しすぎ防止)。
+                <RevealOnScroll
+                  key={c.id}
+                  as="li"
+                  delay={Math.min(i, 8) * 60}
+                >
                   <CreatorRow
                     creator={c}
                     likedIds={likedIdSet}
                     isAuthed={isAuthed}
                   />
-                </li>
+                </RevealOnScroll>
               ))}
             </ul>
           ) : (
@@ -294,12 +304,15 @@ function CreatorRow({
   // ティア判定
   const tier: "gold" | "silver" | "normal" =
     totalLikes >= 100 ? "gold" : totalLikes >= 50 ? "silver" : "normal";
+  // tier 別のボーダーカラーは保持しつつ、影は柔らかい中性カラーに統一。
+  // 派手な neon 色グロウだとサイト全体の白基調から浮くため、
+  // 共通の "soft long shadow" + わずかな border 強調だけにする。
   const tierRing =
     tier === "gold"
-      ? "border-neon-sunset/60 hover:border-neon-sunset/80 hover:shadow-[0_25px_60px_-15px_rgba(255,174,59,0.55)]"
+      ? "border-neon-sunset/60 hover:border-neon-sunset/80"
       : tier === "silver"
-        ? "border-neon-cyan/40 hover:border-neon-cyan/60 hover:shadow-[0_25px_60px_-15px_rgba(77,213,247,0.45)]"
-        : "border-ink/10 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]";
+        ? "border-neon-cyan/40 hover:border-neon-cyan/60"
+        : "border-ink/10 hover:border-ink/25";
   const tierBg =
     tier === "gold"
       ? "bg-neon-sunset/[0.07]"
@@ -323,7 +336,7 @@ function CreatorRow({
   return (
     <Link
       href={`/creators/${creator.id}`}
-      className={`group relative block overflow-hidden rounded-2xl border backdrop-blur-sm transition-all hover:-translate-y-1 ${tierBg} ${tierRing}`}
+      className={`group relative block overflow-hidden rounded-2xl border backdrop-blur-sm transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.08)] ${tierBg} ${tierRing}`}
     >
       {/* 人気クリエイターバッジ (gold/silver のみ) — 左上に表示、認証リボンの逆側 */}
       {tier !== "normal" && (
@@ -454,8 +467,10 @@ function CreatorRow({
       </div>
 
       {/* === サムネイル行 (ホバー再生対応) === */}
+      {/* 2026-06-17: 旧 bg-ink/40 (暗グレー帯) を白基調に統一。
+          サムネ間のすき間を取って各タイルを「白カード上で浮く写真」風に演出。 */}
       {thumbs.length > 0 && (
-        <div className="grid grid-cols-2 gap-1 border-t border-ink/10 bg-ink/40 p-1 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 border-t border-gray-100 bg-paper p-2 sm:grid-cols-4 sm:gap-3 sm:p-3">
           {thumbs.map((t) => (
             <ThumbnailCard
               key={t.id}
@@ -524,9 +539,9 @@ function ThumbnailCard({
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
-      className={`group/tile relative aspect-video overflow-hidden rounded-md bg-paper transition-all duration-300 ease-out ${
+      className={`group/tile relative aspect-video overflow-hidden rounded-lg border border-gray-100 bg-paper shadow-sm transition-all duration-300 ease-out ${
         hover
-          ? "z-30 scale-[1.08] shadow-[0_25px_60px_-10px_rgba(255,77,157,0.55)]"
+          ? "z-30 scale-[1.08] shadow-[0_18px_40px_-12px_rgba(0,0,0,0.18)]"
           : "z-0"
       }`}
     >
