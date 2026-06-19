@@ -10,6 +10,7 @@ import {
 import { HeroUnderBand, type BandWork } from "@/components/home/hero-under-band";
 import { WorksDigest, type DigestWork } from "@/components/home/works-digest";
 import { MarqueeText } from "@/components/home/marquee-text";
+import { AccentVideoTile } from "@/components/home/accent-video-tile";
 import {
   Sparkles,
   Building2,
@@ -93,6 +94,47 @@ function extractBandWorks(creators: CreatorWithRelations[]): BandWork[] {
   return out.slice(0, 4);
 }
 
+// 静的セクションの視線確保用 アクセント動画。Section 9 項目 1 (常に視界に
+// 動く映像) の補完。Co-creation には縦型 1 枚、Value Props には横 3 枚を割当。
+type AccentSource = {
+  id: string;
+  videoUrl: string;
+  posterUrl: string | null;
+  href: string;
+  orientation: "horizontal" | "vertical" | "square";
+};
+
+function extractAccentVideos(creators: CreatorWithRelations[]): {
+  vertical: AccentSource | null;
+  horizontals: AccentSource[];
+} {
+  const all: AccentSource[] = [];
+  for (const c of creators) {
+    for (const p of c.portfolio_items) {
+      if (p.media_type !== "video" || !p.video_url) continue;
+      if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      all.push({
+        id: p.id,
+        videoUrl: p.video_url,
+        posterUrl: p.thumbnail_url ?? null,
+        href: `/creators/${c.id}`,
+        orientation:
+          p.aspect_ratio === "vertical"
+            ? "vertical"
+            : p.aspect_ratio === "square"
+              ? "square"
+              : "horizontal",
+      });
+    }
+  }
+  const vertical =
+    all.find((a) => a.orientation === "vertical") ??
+    all.find((a) => a.orientation === "square") ??
+    null;
+  const horizontals = all.filter((a) => a.orientation === "horizontal").slice(0, 3);
+  return { vertical, horizontals };
+}
+
 // Works ダイジェスト用 — 全 mp4 作品をフラット化、アスペクト比は数値に換算
 function extractDigestWorks(creators: CreatorWithRelations[]): DigestWork[] {
   const out: DigestWork[] = [];
@@ -164,6 +206,7 @@ export default async function HomePage() {
   const heroVideos = extractHeroVideos(allCreators);
   const bandWorks = extractBandWorks(allCreators);
   const digestWorks = extractDigestWorks(allCreators);
+  const accent = extractAccentVideos(allCreators);
 
   return (
     <>
@@ -280,9 +323,26 @@ export default async function HomePage() {
 
       {/* =================================================
           VALUE PROPS — 罫線で 4 等分された単一の帯 (Axis 風)
+          2026-06-19 Section 9 補完: 上部に小動画帯 3 本を添えて
+          「視界に動く映像」を維持する
           ================================================= */}
       <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-6 lg:px-10">
+          {/* アクセント動画帯 (3 本横並び、装飾扱い) */}
+          {accent.horizontals.length > 0 && (
+            <div className="mb-px grid grid-cols-3 gap-px">
+              {accent.horizontals.map((a) => (
+                <AccentVideoTile
+                  key={a.id}
+                  videoUrl={a.videoUrl}
+                  posterUrl={a.posterUrl}
+                  aspectRatio="horizontal"
+                  href={a.href}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 divide-y divide-ink/10 border-y border-ink/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
             {VALUE_PROPS.map((v, i) => {
               const Icon = v.icon;
@@ -315,38 +375,57 @@ export default async function HomePage() {
           02 — Co-creation (旧 PAIN POINTS を完全撤去 / Axis "We" オマージュ)
             ・「お悩み 3 つ → 解決」のセールス構造を捨て、沈黙の余白で物語る
             ・Axis 直系の "Create together. Nurture together." を主見出しに
+            ・2026-06-19 Section 9 補完: 右に縦型アクセント動画を 1 枚配置
           ================================================= */}
       <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
-          <RevealOnScroll delay={0}>
-            <p className="eyebrow-mono">(02 — Co-creation)<span className="ml-2 text-ink/35">／ 共創</span></p>
-          </RevealOnScroll>
+        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
+          <div className="grid items-start gap-12 lg:grid-cols-[1fr,280px] lg:gap-20">
+            {/* === 左: テキストブロック (既存) === */}
+            <div className="max-w-narrow">
+              <RevealOnScroll delay={0}>
+                <p className="eyebrow-mono">(02 — Co-creation)<span className="ml-2 text-ink/35">／ 共創</span></p>
+              </RevealOnScroll>
 
-          <RevealOnScroll delay={80}>
-            <h2 className="headline-display mt-12 text-[clamp(2.5rem,6vw,5rem)] text-ink">
-              Create together.
-              <br />
-              <span className="italic text-sand">Nurture together.</span>
-            </h2>
-          </RevealOnScroll>
+              <RevealOnScroll delay={80}>
+                <h2 className="headline-display mt-12 text-[clamp(2.5rem,6vw,5rem)] text-ink">
+                  Create together.
+                  <br />
+                  <span className="italic text-sand">Nurture together.</span>
+                </h2>
+              </RevealOnScroll>
 
-          <RevealOnScroll delay={200}>
-            <p className="body-jp mt-12 max-w-prose-jp">
-              目の前のひとつが、大切にしていること。
-              <br />
-              いま、誰に何を届けたいのか。
-              <br />
-              どんな未来を描こうとしているのか。
-            </p>
-          </RevealOnScroll>
+              <RevealOnScroll delay={200}>
+                <p className="body-jp mt-12 max-w-prose-jp">
+                  目の前のひとつが、大切にしていること。
+                  <br />
+                  いま、誰に何を届けたいのか。
+                  <br />
+                  どんな未来を描こうとしているのか。
+                </p>
+              </RevealOnScroll>
 
-          <RevealOnScroll delay={320}>
-            <p className="body-jp mt-10 max-w-prose-jp text-sm text-ink/55">
-              私たちは、企業の物語をクリエイターと共に編む場所をつくります。
-              映像が、誰かの一日を変えるかもしれない。その可能性に、最も近い人と、
-              最も静かな手触りで向き合うために。
-            </p>
-          </RevealOnScroll>
+              <RevealOnScroll delay={320}>
+                <p className="body-jp mt-10 max-w-prose-jp text-sm text-ink/55">
+                  私たちは、企業の物語をクリエイターと共に編む場所をつくります。
+                  映像が、誰かの一日を変えるかもしれない。その可能性に、最も近い人と、
+                  最も静かな手触りで向き合うために。
+                </p>
+              </RevealOnScroll>
+            </div>
+
+            {/* === 右: 縦型アクセント動画 (装飾、視界に動きを維持) === */}
+            {accent.vertical && (
+              <RevealOnScroll delay={160} className="hidden lg:block">
+                <AccentVideoTile
+                  videoUrl={accent.vertical.videoUrl}
+                  posterUrl={accent.vertical.posterUrl}
+                  aspectRatio={accent.vertical.orientation}
+                  href={accent.vertical.href}
+                  caption="Now playing"
+                />
+              </RevealOnScroll>
+            )}
+          </div>
         </div>
       </section>
 
