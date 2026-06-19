@@ -46,6 +46,28 @@ export const revalidate = 300;
 // Supabase 投入済 AILIER Showcase の portfolio_items から mp4 のみを集めて
 // HeroFullscreen に渡す。クライアント側でシャッフル→順次再生する。
 
+// 既存 DB に残る demo / stock 動画 URL の Blacklist。これらは初期 seed の
+// クリエイターに紐づく残骸で、最大 28MB のフリー素材が初期ロードを 9 秒以上
+// 遅延させる原因 (Lighthouse mobile LCP 9.3s)。AILIER Showcase 18 本以外で
+// これらのドメイン / パターンに合致する動画は TOP の全セクションで除外する。
+const STOCK_URL_BLACKLIST = [
+  "samplelib.com",
+  "download.samplelib.com",
+  "res.cloudinary.com/demo",
+  "test-videos.co.uk",
+  "interactive-examples.mdn.mozilla.net",
+  "Big_Buck_Bunny",
+  "sea_turtle",
+  "elephants",
+  "kitten",
+];
+function isStockUrl(url: string | null | undefined): boolean {
+  if (!url) return true;
+  return STOCK_URL_BLACKLIST.some((needle) =>
+    url.toLowerCase().includes(needle.toLowerCase())
+  );
+}
+
 function extractHeroVideos(
   creators: CreatorWithRelations[]
 ): FullscreenVideoSource[] {
@@ -58,6 +80,7 @@ function extractHeroVideos(
       // mp4 直リンクのみ (YouTube / Vimeo は埋め込み iframe が必要で
       // フルスクリーン背景には不適)
       if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      if (isStockUrl(p.video_url)) continue;
       // 横型優先 (フルスクリーン背景は 16:9 が最も自然) で並べる
       const orientationRank = p.aspect_ratio === "horizontal" ? 0 : 1;
       const roleRank =
@@ -80,6 +103,7 @@ function extractBandWorks(creators: CreatorWithRelations[]): BandWork[] {
     for (const p of c.portfolio_items) {
       if (p.media_type !== "video" || !p.video_url) continue;
       if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      if (isStockUrl(p.video_url)) continue;
       if (!p.is_featured) continue;
       out.push({
         id: p.id,
@@ -113,6 +137,7 @@ function extractAccentVideos(creators: CreatorWithRelations[]): {
     for (const p of c.portfolio_items) {
       if (p.media_type !== "video" || !p.video_url) continue;
       if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      if (isStockUrl(p.video_url)) continue;
       all.push({
         id: p.id,
         videoUrl: p.video_url,
@@ -142,6 +167,7 @@ function extractDigestWorks(creators: CreatorWithRelations[]): DigestWork[] {
     for (const p of c.portfolio_items) {
       if (p.media_type !== "video" || !p.video_url) continue;
       if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      if (isStockUrl(p.video_url)) continue;
       const aspectRatio =
         p.aspect_ratio === "vertical"
           ? 9 / 16
