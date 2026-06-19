@@ -165,18 +165,19 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
       className={`relative h-[100svh] min-h-[600px] w-full overflow-hidden bg-ink-deep text-paper ${className}`}
       aria-label="AILIER — AI クリエイターと企業をつなぐ"
     >
-      {/* === Poster 画像 (LCP 候補) — Image priority で <link rel=preload> 自動付与 === */}
+      {/* === Poster 画像 — 通常 lazy 読込 (priority 無し)。
+          priority を付けると <link rel=preload> がモバイル帯域を奪い TBT が
+          悪化することを Lighthouse 計測で確認したため外している。 === */}
       {current?.poster && (
         <Image
           key={`poster-${current.src}`}
           src={current.poster}
           alt=""
           fill
-          priority
           sizes="100vw"
+          fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out"
           style={{
-            // video が再生開始したら poster をフェードアウト
             opacity: videoReady && !reducedMotion ? 0 : 1,
           }}
         />
