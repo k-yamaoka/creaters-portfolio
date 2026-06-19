@@ -7,6 +7,9 @@ import {
   HeroFullscreen,
   type FullscreenVideoSource,
 } from "@/components/home/hero-fullscreen";
+import { HeroUnderBand, type BandWork } from "@/components/home/hero-under-band";
+import { WorksDigest, type DigestWork } from "@/components/home/works-digest";
+import { MarqueeText } from "@/components/home/marquee-text";
 import {
   Sparkles,
   Building2,
@@ -69,6 +72,55 @@ function extractHeroVideos(
   return out.map(({ src, poster }) => ({ src, poster }));
 }
 
+// Hero 直下動画帯用 — is_featured=true の作品を 4 本まで
+function extractBandWorks(creators: CreatorWithRelations[]): BandWork[] {
+  const out: BandWork[] = [];
+  for (const c of creators) {
+    for (const p of c.portfolio_items) {
+      if (p.media_type !== "video" || !p.video_url) continue;
+      if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      if (!p.is_featured) continue;
+      out.push({
+        id: p.id,
+        videoUrl: p.video_url,
+        posterUrl: p.thumbnail_url ?? null,
+        href: `/creators/${c.id}`,
+        title: p.title,
+        creatorName: c.profiles.display_name,
+      });
+    }
+  }
+  return out.slice(0, 4);
+}
+
+// Works ダイジェスト用 — 全 mp4 作品をフラット化、アスペクト比は数値に換算
+function extractDigestWorks(creators: CreatorWithRelations[]): DigestWork[] {
+  const out: DigestWork[] = [];
+  for (const c of creators) {
+    for (const p of c.portfolio_items) {
+      if (p.media_type !== "video" || !p.video_url) continue;
+      if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
+      const aspectRatio =
+        p.aspect_ratio === "vertical"
+          ? 9 / 16
+          : p.aspect_ratio === "square"
+            ? 1
+            : 16 / 9;
+      out.push({
+        id: p.id,
+        videoUrl: p.video_url,
+        posterUrl: p.thumbnail_url ?? null,
+        href: `/creators/${c.id}`,
+        title: p.title,
+        creatorName: c.profiles.display_name,
+        genre: p.genre,
+        aspectRatio,
+      });
+    }
+  }
+  return out;
+}
+
 // Hero 直下に並べる対応 AI ツール (静的 1 段、自動スクロールなし)。
 // NN/g: 自動マーキー禁止 / Midjourney は除外。
 const AI_TOOL_LABELS = [
@@ -110,6 +162,8 @@ export default async function HomePage() {
 
   const genreCount = GENRES.length;
   const heroVideos = extractHeroVideos(allCreators);
+  const bandWorks = extractBandWorks(allCreators);
+  const digestWorks = extractDigestWorks(allCreators);
 
   return (
     <>
@@ -190,6 +244,18 @@ export default async function HomePage() {
           </div>
         </div>
       </HeroFullscreen>
+
+      {/* Section 5: Hero 直下動画帯 — 注目 4 本を横一列に並べ常時微再生 */}
+      <HeroUnderBand works={bandWorks} />
+
+      {/* Section 5: マーキーテキスト (Hero 帯と Compatible models の間) */}
+      <div className="relative bg-paper py-6">
+        <MarqueeText
+          phrase="AI Video Creators — For Business"
+          speed="h-45"
+          tone="ink"
+        />
+      </div>
 
       {/* Hero 直下: Compatible models 静的 1 段 (NN/g: 自動スクロール禁止 / Midjourney 除外) */}
       <section className="relative bg-paper text-ink">
@@ -283,6 +349,18 @@ export default async function HomePage() {
           </RevealOnScroll>
         </div>
       </section>
+
+      {/* Section 5: Works ダイジェスト — タブ切替で 18 本フィルタリング */}
+      <WorksDigest works={digestWorks} />
+
+      {/* Section 5: マーキーテキスト (Works → FEATURE 区切り) */}
+      <div className="relative bg-paper py-6">
+        <MarqueeText
+          phrase="View More Works — Made With AI"
+          speed="h-38"
+          tone="ink"
+        />
+      </div>
 
       {/* =================================================
           03 — Service (旧 FEATURES) — 5 機能をアシンメトリーに展開
