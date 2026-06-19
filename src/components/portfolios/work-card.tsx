@@ -13,12 +13,8 @@ type Props = {
   onClick: (w: WorkEntry) => void;
 };
 
-function aspectClass(a: WorkEntry["aspect_ratio"]): string {
-  return a === "vertical"
-    ? "aspect-[9/16]"
-    : a === "square"
-      ? "aspect-square"
-      : "aspect-video";
+function aspectRatioNum(a: WorkEntry["aspect_ratio"]): number {
+  return a === "vertical" ? 9 / 16 : a === "square" ? 1 : 16 / 9;
 }
 
 function orientationLabel(a: WorkEntry["aspect_ratio"]): string {
@@ -41,14 +37,19 @@ function primaryAiTool(w: WorkEntry): string | null {
 }
 
 /**
- * Adobe Stock 型の作品カード。
+ * Adobe Stock 型 の作品カード (Justified Layout 用)。
  *
  * 設計:
+ * - 親 <div className="flex flex-wrap gap-px"> の子として配置される前提
+ * - flex-grow: aspectRatio, flex-basis: aspectRatio*220px, height: clamp で
+ *   行ごとに高さが揃いつつ各行の右端まで埋まる (Flickr/Google 画像検索方式)
+ * - 隙間 1px (親 gap-px) + 角丸なし + 余白ゼロ (spec)
  * - 既定 = poster (thumbnail_url / image_url) 静止画
  * - 画面内に入ったら IntersectionObserver で <video preload=metadata> を mount
  *   (画面外のときは video を unmount 同等にして DOM/メモリを節約)
- * - hover (PC) / focus 時に play、leave で pause + currentTime=0
+ * - hover / focus 時に play、leave で pause + currentTime=0
  * - prefers-reduced-motion: reduce 時は hover 再生を無効化、クリックで詳細モーダル
+ * - ★ホバー効果は明度変化のみ (scale 拡大しない = レイアウト不動 / 隙間維持)
  * - メタオーバーレイ:
  *   - 右上: ♡ (常時、hover で透過 0 → 100 に)
  *   - 左上: 尺バッジ (常時表示)
@@ -112,7 +113,7 @@ export function WorkCard({ work, isLiked, isAuthed, onClick }: Props) {
   const duration = formatDuration(work.duration_seconds);
   const orientation = orientationLabel(work.aspect_ratio);
   const tool = primaryAiTool(work);
-  const aspect = aspectClass(work.aspect_ratio);
+  const ratio = aspectRatioNum(work.aspect_ratio);
 
   return (
     <div
@@ -131,7 +132,14 @@ export function WorkCard({ work, isLiked, isAuthed, onClick }: Props) {
       onFocus={() => setHovering(true)}
       onBlur={() => setHovering(false)}
       aria-label={`${work.title} を再生`}
-      className={`group relative ${aspect} mb-3 inline-block w-full cursor-pointer overflow-hidden rounded-md border border-ink/10 bg-ink/5 align-top transition-shadow duration-200 hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.25)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2`}
+      style={{
+        // Justified Layout: 行高さ固定 + 幅は aspect ratio に比例
+        // flex-grow=ratio で広い作品ほど行内で多く伸びる (行右端まで埋まる)
+        flexGrow: ratio,
+        flexBasis: `${ratio * 220}px`,
+        height: "clamp(150px, 22vw, 260px)",
+      }}
+      className="group relative block cursor-pointer overflow-hidden bg-ink/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
     >
       {/* Poster (image) — 常時表示。video が再生中はその下に隠れる */}
       {poster ? (
@@ -164,6 +172,12 @@ export function WorkCard({ work, isLiked, isAuthed, onClick }: Props) {
           }`}
         />
       )}
+
+      {/* ホバー時 明度変化のオーバーレイ (scale 拡大しない = レイアウト不動 / 隙間維持) */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-200 group-hover:bg-black/15"
+      />
 
       {/* 上部グラデーション (尺 + ♡ の可読性確保) */}
       <div

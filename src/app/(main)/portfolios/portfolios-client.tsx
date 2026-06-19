@@ -226,8 +226,9 @@ export function PortfoliosPageClient({
             <EmptyState onReset={() => replaceFilters({ sortBy: filters.sortBy })} />
           ) : (
             <>
-              {/* CSS columns Masonry — 各カードは aspect_ratio で原寸表示 */}
-              <div className="columns-2 gap-3 md:columns-3 lg:columns-3 xl:columns-4">
+              {/* Justified Layout — flex-wrap + 1px gap + 行高さ揃え (Flickr 方式)
+                  各カードは aspect_ratio に比例した width / 固定 height で配置 */}
+              <div className="flex flex-wrap gap-px bg-ink/[0.05]">
                 {visibleWorks.map((w) => (
                   <WorkCard
                     key={w.id}
