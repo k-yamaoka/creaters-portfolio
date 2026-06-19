@@ -288,7 +288,7 @@ export function Header({
               {/* 透過モード (home 最上部) では subtitle を隠してミニマルに */}
               {!isTransparent && (
                 <span className={T.logoSubtitle}>
-                  AI creators × business
+                  AIクリエイター × 企業のマッチング
                 </span>
               )}
             </span>

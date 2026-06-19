@@ -129,10 +129,11 @@ export function PortfoliosPageClient({
     <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
       {/* ===== ヘッダ ===== */}
       <div className="mb-8">
-        <p className="eyebrow-mono">(Works)</p>
+        <p className="eyebrow-mono">(Works)<span className="ml-2 text-ink/35">／ 制作実績</span></p>
         <h1 className="headline-display mt-4 text-[clamp(2rem,5vw,3.75rem)] text-ink">
           All <span className="italic text-sand">works.</span>
         </h1>
+        <p className="mt-2 font-sans text-sm text-ink/55">制作実績（すべての作品）</p>
         <p className="body-jp mt-3 max-w-prose-jp text-sm text-ink/65">
           Sora・Veo・Runway を使いこなす AI クリエイターの作品一覧。
         </p>

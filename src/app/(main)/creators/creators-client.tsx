@@ -100,13 +100,14 @@ export function CreatorsPageClient({
           見出しを headline-display + 日本語小サブのバイリンガル構造に。 */}
       <section className="relative bg-paper py-section-y-sm text-ink">
         <div className="relative mx-auto max-w-wide px-gutter">
-          <p className="eyebrow-mono">(Creators)</p>
+          <p className="eyebrow-mono">(Creators)<span className="ml-2 text-ink/35">／ クリエイター</span></p>
           <h1 className="headline-display mt-6 text-[clamp(2.25rem,5vw,4rem)] text-ink">
             Choose your{" "}
             <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text italic text-transparent">
               specialist.
             </span>
           </h1>
+          <p className="mt-2 font-sans text-sm text-ink/55">クリエイターを探す</p>
           <p className="heading-jp mt-4 text-ink/75">
             ツールから専門家を選ぶ。
           </p>

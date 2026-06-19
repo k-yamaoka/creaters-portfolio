@@ -194,7 +194,9 @@ export default async function HomePage() {
       <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter pt-16 lg:pt-24">
           <RevealOnScroll delay={0} className="border-t border-ink/10 pt-12">
-            <p className="eyebrow-mono text-center">Compatible models</p>
+            <p className="eyebrow-mono text-center">
+              Compatible models<span className="ml-2 text-ink/35">／ 対応AIモデル</span>
+            </p>
             <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-ink/10">
               {AI_TOOL_LABELS.map((t) => (
                 <span
@@ -250,7 +252,7 @@ export default async function HomePage() {
       <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
           <RevealOnScroll delay={0}>
-            <p className="eyebrow-mono">(02 — Co-creation)</p>
+            <p className="eyebrow-mono">(02 — Co-creation)<span className="ml-2 text-ink/35">／ 共創</span></p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={80}>
@@ -288,7 +290,7 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
-              <p className="eyebrow-mono">(03 — Service)</p>
+              <p className="eyebrow-mono">(03 — Service)<span className="ml-2 text-ink/35">／ サービス内容</span></p>
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
@@ -312,7 +314,7 @@ export default async function HomePage() {
           <div className="mt-section-y-sm space-y-section-y-sm lg:mt-section-y lg:space-y-section-y">
             {/* F1: クリエイター検索 */}
             <FeatureRow
-              no="FEATURE 01"
+              no="FEATURE 01 ／ できること 01"
               title="AIクリエイター検索"
               body="ジャンル・料金・強み・対応尺で絞り込み、人気度ティアでハイライトされたクリエイターを一覧で比較。ホバーで作品サムネが自動再生されます。"
               bullets={[
@@ -331,7 +333,7 @@ export default async function HomePage() {
             {/* F2: ポートフォリオ閲覧 */}
             <FeatureRow
               reverse
-              no="FEATURE 02"
+              no="FEATURE 02 ／ できること 02"
               title="ポートフォリオ閲覧"
               body="クリエイター横断で作品をまとめて見られる作品ギャラリー。横型・縦型・正方形が混在した自然な並び。気に入った作品にはいいね（即時集計）も。"
               bullets={[
@@ -349,7 +351,7 @@ export default async function HomePage() {
 
             {/* F3: 詳細 + 最低対応プラン */}
             <FeatureRow
-              no="FEATURE 03"
+              no="FEATURE 03 ／ できること 03"
               title="クリエイター詳細 ＋ 最低対応プラン公開"
               body="代表作 / 強み / 対応尺 / 使用ソフトをまとめて把握。最低対応プランは内容・納期・修正回数まで開示されているので、相談前にイメージが固まります。"
               bullets={[
@@ -368,7 +370,7 @@ export default async function HomePage() {
             {/* F4: AI 見積もりチャット */}
             <FeatureRow
               reverse
-              no="FEATURE 04"
+              no="FEATURE 04 ／ できること 04"
               title="AI 見積もりチャット"
               body="クリエイターの公開料金を元に、AI が概算見積もりと推奨プランを即時返答。「気軽に相談」のハードルを最小化します。"
               bullets={[
@@ -386,7 +388,7 @@ export default async function HomePage() {
 
             {/* F5: 取引管理 (エスクロー) */}
             <FeatureRow
-              no="FEATURE 05"
+              no="FEATURE 05 ／ できること 05"
               title="エスクロー決済 ＋ 取引管理"
               body="発注金額はプラットフォームが預かり、納品確認後にクリエイターへ送金。両者にとって安全な取引フローと、進行中の案件を一覧で管理できるダッシュボード。"
               bullets={[
@@ -412,7 +414,7 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
-              <p className="eyebrow-mono">(04 — Process)</p>
+              <p className="eyebrow-mono">(04 — Process)<span className="ml-2 text-ink/35">／ ご利用の流れ</span></p>
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
@@ -482,7 +484,7 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
-              <p className="eyebrow-mono">(05 — Categories)</p>
+              <p className="eyebrow-mono">(05 — Categories)<span className="ml-2 text-ink/35">／ ジャンル</span></p>
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
@@ -540,7 +542,7 @@ export default async function HomePage() {
         <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
-              <p className="eyebrow-mono">(06 — FAQ)</p>
+              <p className="eyebrow-mono">(06 — FAQ)<span className="ml-2 text-ink/35">／ よくある質問</span></p>
             </RevealOnScroll>
             <div>
               <RevealOnScroll delay={80}>
@@ -640,7 +642,7 @@ export default async function HomePage() {
       <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-narrow px-gutter py-section-y-lg text-center">
           <RevealOnScroll delay={0}>
-            <p className="eyebrow-mono">(07 — Start)</p>
+            <p className="eyebrow-mono">(07 — Start)<span className="ml-2 text-ink/35">／ はじめる</span></p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={80}>

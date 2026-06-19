@@ -36,41 +36,43 @@ export function Footer() {
             </Link>
             <div className={T.muted}>
               <p>〒100-0001</p>
-              <p>AI creators × business platform</p>
+              <p>AIクリエイター × 企業のマッチングプラットフォーム</p>
               <p className="mt-3">2026 Comhuman-Quality Co., Ltd.</p>
             </div>
           </div>
 
           {/* 右: メニュー & ソーシャル */}
+          {/* 2026-06-19 Section 6-2: 全リンクに日本語小ラベルを併記。
+              英字を主役 (font-display) + 直下に mono 小フォント JP。 */}
           <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
-            <FooterColumn label="(Menu)" labelCls={T.sectionLabel}>
-              <FooterLink href="/creators" cls={T.link}>Creators</FooterLink>
-              <FooterLink href="/portfolios" cls={T.link}>Works</FooterLink>
-              <FooterLink href="/how-it-works" cls={T.link}>Service</FooterLink>
-              <FooterLink href="/pricing" cls={T.link}>Pricing</FooterLink>
-              <FooterLink href="/for-business" cls={T.link}>For Business</FooterLink>
+            <FooterColumn label="(Menu)" sublabel="メニュー" labelCls={T.sectionLabel}>
+              <FooterLink href="/creators" cls={T.link} sub="クリエイター">Creators</FooterLink>
+              <FooterLink href="/portfolios" cls={T.link} sub="制作実績">Works</FooterLink>
+              <FooterLink href="/how-it-works" cls={T.link} sub="サービス内容">Service</FooterLink>
+              <FooterLink href="/pricing" cls={T.link} sub="料金プラン">Pricing</FooterLink>
+              <FooterLink href="/for-business" cls={T.link} sub="企業のご担当者へ">For Business</FooterLink>
             </FooterColumn>
 
-            <FooterColumn label="(Creator)" labelCls={T.sectionLabel}>
-              <FooterLink href="/register" cls={T.link}>Join</FooterLink>
-              <FooterLink href="/creator-guide" cls={T.link}>Guidelines</FooterLink>
+            <FooterColumn label="(Creator)" sublabel="クリエイターの方へ" labelCls={T.sectionLabel}>
+              <FooterLink href="/register" cls={T.link} sub="登録する">Join</FooterLink>
+              <FooterLink href="/creator-guide" cls={T.link} sub="ガイドライン">Guidelines</FooterLink>
             </FooterColumn>
 
-            <FooterColumn label="(Support)" labelCls={T.sectionLabel}>
-              <FooterLink href="/help" cls={T.link}>Help</FooterLink>
-              <FooterLink href="/terms" cls={T.link}>Terms</FooterLink>
-              <FooterLink href="/privacy" cls={T.link}>Privacy</FooterLink>
-              <FooterLink href="/company" cls={T.link}>Company</FooterLink>
+            <FooterColumn label="(Support)" sublabel="サポート" labelCls={T.sectionLabel}>
+              <FooterLink href="/help" cls={T.link} sub="ヘルプ">Help</FooterLink>
+              <FooterLink href="/terms" cls={T.link} sub="利用規約">Terms</FooterLink>
+              <FooterLink href="/privacy" cls={T.link} sub="プライバシー">Privacy</FooterLink>
+              <FooterLink href="/company" cls={T.link} sub="運営会社">Company</FooterLink>
             </FooterColumn>
 
-            <FooterColumn label="(Our social)" labelCls={T.sectionLabel}>
-              <FooterExternal href="https://www.instagram.com/" cls={T.link}>
+            <FooterColumn label="(Our social)" sublabel="公式SNS" labelCls={T.sectionLabel}>
+              <FooterExternal href="https://www.instagram.com/" cls={T.link} sub="インスタグラム">
                 Instagram
               </FooterExternal>
-              <FooterExternal href="https://x.com/" cls={T.link}>
+              <FooterExternal href="https://x.com/" cls={T.link} sub="X (旧Twitter)">
                 X
               </FooterExternal>
-              <FooterExternal href="https://youtube.com/" cls={T.link}>
+              <FooterExternal href="https://youtube.com/" cls={T.link} sub="ユーチューブ">
                 Youtube
               </FooterExternal>
             </FooterColumn>
@@ -101,16 +103,21 @@ export function Footer() {
 
 function FooterColumn({
   label,
+  sublabel,
   labelCls,
   children,
 }: {
   label: string;
+  sublabel?: string;
   labelCls: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
       <p className={labelCls}>{label}</p>
+      {sublabel && (
+        <p className="mt-1 font-sans text-[10px] text-ink/55">{sublabel}</p>
+      )}
       <ul className="mt-4 space-y-3">{children}</ul>
     </div>
   );
@@ -119,16 +126,23 @@ function FooterColumn({
 function FooterLink({
   href,
   cls,
+  sub,
   children,
 }: {
   href: string;
   cls: string;
+  sub?: string;
   children: React.ReactNode;
 }) {
   return (
     <li>
-      <Link href={href} className={cls}>
-        {children}
+      <Link href={href} className={`group/fl block ${cls}`}>
+        <span className="block">{children}</span>
+        {sub && (
+          <span className="mt-0.5 block font-sans text-[10px] text-ink/45 transition-colors group-hover/fl:text-ink/70">
+            {sub}
+          </span>
+        )}
       </Link>
     </li>
   );
@@ -137,16 +151,28 @@ function FooterLink({
 function FooterExternal({
   href,
   cls,
+  sub,
   children,
 }: {
   href: string;
   cls: string;
+  sub?: string;
   children: React.ReactNode;
 }) {
   return (
     <li>
-      <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
-        {children}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`group/fl block ${cls}`}
+      >
+        <span className="block">{children}</span>
+        {sub && (
+          <span className="mt-0.5 block font-sans text-[10px] text-ink/45 transition-colors group-hover/fl:text-ink/70">
+            {sub}
+          </span>
+        )}
       </a>
     </li>
   );
