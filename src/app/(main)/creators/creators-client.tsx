@@ -4,7 +4,9 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
-import { MIcon } from "@/components/ui/m-icon";
+// 2026-06-19 Section 6: Material Symbols (MIcon) は lucide-react に統一。
+// OS 絵文字相当の MIcon も含めて廃止し、ライン系で一貫した質感に揃える。
+import { Star, Sparkles, Heart, BadgeCheck, Video } from "lucide-react";
 import { LikeButton } from "@/components/portfolio/like-button";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
@@ -348,9 +350,13 @@ function CreatorRow({
               : "bg-gradient-to-r from-neon-cyan to-neon-purple shadow-[0_0_14px_rgba(77,213,247,0.45)]"
           }`}
         >
-          <MIcon name={tier === "gold" ? "star" : "auto_awesome"} fill size={12} />
+          {tier === "gold" ? (
+            <Star size={12} strokeWidth={1.8} fill="currentColor" aria-hidden />
+          ) : (
+            <Sparkles size={12} strokeWidth={1.8} fill="currentColor" aria-hidden />
+          )}
           {tier === "gold" ? "人気" : "注目"}
-          <MIcon name="favorite" fill size={12} />
+          <Heart size={12} strokeWidth={1.8} fill="currentColor" aria-hidden />
           {totalLikes}
         </span>
       )}
@@ -362,7 +368,7 @@ function CreatorRow({
         >
           {/* ナナメ折り込みリボン本体 */}
           <div className="absolute right-[-44px] top-[18px] w-[170px] rotate-45 bg-gradient-to-r from-neon-sunset via-neon-pink to-neon-sunset py-1 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_4px_12px_rgba(255,174,59,0.55)]">
-            <MIcon name="verified" fill size={12} className="-mt-0.5" /> 認証済
+            <BadgeCheck size={12} strokeWidth={1.8} fill="currentColor" className="-mt-0.5 inline-block" aria-hidden /> 認証済
           </div>
           {/* リボン下部の折り影 */}
           <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-neon-sunset/80 shadow-[0_0_8px_rgba(255,174,59,0.4)]" />
@@ -409,12 +415,18 @@ function CreatorRow({
                     : "bg-ink/[0.04] text-ink/65"
               }`}
             >
-              <MIcon name="favorite" fill size={12} className="text-neon-pink" />
+              <Heart
+                size={12}
+                strokeWidth={1.8}
+                fill="currentColor"
+                className="text-neon-pink"
+                aria-hidden
+              />
               {totalLikes === 0 && <span>0</span>}
             </span>
             {/* 作品数のみ表示 (経験年数バッジと作品を見る CTA は撤去) */}
             <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
-              <MIcon name="movie" size={12} />
+              <Video size={12} strokeWidth={1.8} aria-hidden />
               作品 {creator.portfolio_items.length} 件
             </span>
           </div>
@@ -433,7 +445,7 @@ function CreatorRow({
                   key={`st-${s}`}
                   className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-[11px] font-bold text-ink shadow-[0_0_10px_rgba(255,77,157,0.15)]"
                 >
-                  <MIcon name="auto_awesome" fill size={12} /> {s}
+                  <Sparkles size={12} strokeWidth={1.8} fill="currentColor" aria-hidden /> {s}
                 </span>
               ))}
             </div>
