@@ -50,6 +50,8 @@ export type CreatorWithRelations = {
     duration_seconds?: number | null;
     visual_style?: string | null;
     resolution?: string | null;
+    // 00058 で追加 (TOP / FEATURE / Works の自動振り分け)
+    usage_role?: "works" | "hero" | "feature";
   }[];
   // 旧 service_packages は 00050 migration で完全撤去。
   // クリエイターの価格は minimum_order_amount に集約。
@@ -69,7 +71,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role
       )
       `
     )
@@ -99,7 +101,7 @@ export async function getCreatorById(
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role
       )
       `
     )
