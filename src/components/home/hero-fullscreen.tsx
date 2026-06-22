@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 
 /**
  * 100svh のフルスクリーン背景動画を、複数本のソースからランダムに切り替えて
@@ -44,21 +43,12 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-type WindowWithIdle = Window & {
-  requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
 export function HeroFullscreen({ videos, children, className = "" }: Props) {
   // クライアントマウント時にシャッフル順序を確定 (毎回ロードで違う順)。
   // 空配列ガード。1 本なら "ループっぽく" 同じものを使う (onEnded を無視)
   const [order, setOrder] = useState<FullscreenVideoSource[]>(videos);
   const [cursor, setCursor] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
-  // 2026-06-19 Section 8 パフォ: 初期ロードは poster のみ表示 (Image priority で
-  // LCP 候補にする)。requestIdleCallback でメインスレッドが空いてから <video>
-  // をマウントすることで Speed Index / TTI の悪化を防ぐ。
-  const [videoReady, setVideoReady] = useState(false);
   const [opacity, setOpacity] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -76,31 +66,6 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
     return () => mq.removeEventListener("change", apply);
   }, []);
 
-  // Lazy video mount: ブラウザがアイドルになった後で <video> を mount
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (videos.length === 0) return;
-    const w = window as WindowWithIdle;
-    const cb = () => setVideoReady(true);
-    let idleHandle: number | null = null;
-    let timeoutHandle: number | null = null;
-    if (typeof w.requestIdleCallback === "function") {
-      idleHandle = w.requestIdleCallback(cb, { timeout: 1500 });
-    } else {
-      timeoutHandle = window.setTimeout(cb, 800);
-    }
-    return () => {
-      if (idleHandle != null && typeof w.cancelIdleCallback === "function") {
-        try {
-          w.cancelIdleCallback(idleHandle);
-        } catch {
-          /* ignore */
-        }
-      }
-      if (timeoutHandle != null) window.clearTimeout(timeoutHandle);
-    };
-  }, [videos.length]);
-
   // 動画切替時のフェードイン
   useEffect(() => {
     setOpacity(0);
@@ -108,8 +73,7 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
     return () => window.clearTimeout(t);
   }, [cursor]);
 
-  // 再生制御 (reduced-motion 時は pause + currentTime=0)。videoReady を依存に
-  // 入れて、lazy mount 直後に明示的に play() を呼ぶ (autoPlay 属性のフォールバック)。
+  // 再生制御 (reduced-motion 時は pause + currentTime=0)
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -126,7 +90,7 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
         /* autoplay rejection (browser policy) */
       });
     }
-  }, [cursor, reducedMotion, videoReady]);
+  }, [cursor, reducedMotion]);
 
   const handleEnded = useCallback(() => {
     if (reducedMotion) return;
@@ -165,25 +129,7 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
       className={`relative h-[100svh] min-h-[600px] w-full overflow-hidden bg-ink-deep text-paper ${className}`}
       aria-label="AILIER — AI クリエイターと企業をつなぐ"
     >
-      {/* === Poster 画像 (LCP 候補) — Image priority で <link rel=preload> 自動付与 === */}
-      {current?.poster && (
-        <Image
-          key={`poster-${current.src}`}
-          src={current.poster}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out"
-          style={{
-            // video が再生開始したら poster をフェードアウト
-            opacity: videoReady && !reducedMotion ? 0 : 1,
-          }}
-        />
-      )}
-
-      {/* === 背景動画 — idle 後にマウント。reduced-motion 時は永久に非マウント === */}
-      {current && videoReady && !reducedMotion && (
+      {current && (
         <video
           ref={videoRef}
           key={current.src}
