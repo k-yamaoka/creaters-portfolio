@@ -7,10 +7,13 @@ import Link from "next/link";
  *   (Our social)" の 4 カラム mono ラベル構造はそのまま継承。
  */
 export function Footer() {
+  // 2026-06-22: 余白とロゴサイズを引き締めて 5 カラムグリッドに整列。
+  // - 旧 py-20 / mt-32 / clamp(2.5rem,7vw,5rem) などの巨大なサイズを半減。
+  // - 左ロゴ + 4 リンクカラム = 計 5 列の grid-cols-5 で全体高さを抑制。
   const T = {
-    footer: "relative mt-10 bg-paper text-ink border-t border-ink/10",
+    footer: "relative mt-12 bg-paper text-ink border-t border-ink/10",
     logoText:
-      "font-display text-[clamp(2.5rem,7vw,5rem)] font-medium leading-none tracking-tight text-ink",
+      "font-display text-4xl font-medium leading-none tracking-tight text-ink",
     sectionLabel:
       "font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-ink/45",
     link:
@@ -24,64 +27,59 @@ export function Footer() {
 
   return (
     <footer className={T.footer}>
-      <div className={`mx-auto max-w-wide px-gutter py-section-y-sm lg:py-20`}>
-        {/* 巨大ロゴ + 5 カラム */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.6fr_2.4fr] lg:gap-16">
-          {/* 左: ブランドロゴ — Axis "axis." 直系の Fraunces 巨大表記 */}
-          <div className="flex flex-col justify-between gap-12">
+      <div className="mx-auto max-w-wide px-gutter py-10 lg:py-12">
+        {/* ロゴ + 4 リンクカラム を 1 行 5 列 (lg) に統合 */}
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-10">
+          {/* 左: ブランドロゴ (テキスト 4xl) */}
+          <div className="col-span-2 sm:col-span-3 lg:col-span-1">
             <Link href="/" className="inline-block">
               <span className={T.logoText}>
                 AILIER<span className="text-sand">.</span>
               </span>
             </Link>
-            <div className={T.muted}>
-              <p>〒100-0001</p>
-              <p>AIクリエイター × 企業のマッチングプラットフォーム</p>
-              <p className="mt-3">2026 Comhuman-Quality Co., Ltd.</p>
+            <div className={`${T.muted} mt-4 space-y-0.5`}>
+              <p>AIクリエイター × 企業のマッチング</p>
+              <p>Comhuman-Quality Co., Ltd.</p>
             </div>
           </div>
 
-          {/* 右: メニュー & ソーシャル */}
-          {/* 2026-06-19 Section 6-2: 全リンクに日本語小ラベルを併記。
-              英字を主役 (font-display) + 直下に mono 小フォント JP。 */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4">
-            <FooterColumn label="(Menu)" sublabel="メニュー" labelCls={T.sectionLabel}>
-              <FooterLink href="/creators" cls={T.link} sub="クリエイター">Creators</FooterLink>
-              <FooterLink href="/portfolios" cls={T.link} sub="制作実績">Works</FooterLink>
-              <FooterLink href="/how-it-works" cls={T.link} sub="サービス内容">Service</FooterLink>
-              <FooterLink href="/pricing" cls={T.link} sub="料金プラン">Pricing</FooterLink>
-              <FooterLink href="/for-business" cls={T.link} sub="企業のご担当者へ">For Business</FooterLink>
-            </FooterColumn>
+          {/* 4 リンクカラム (lg は 4 列、ロゴと合わせて grid-cols-5) */}
+          <FooterColumn label="(Menu)" sublabel="メニュー" labelCls={T.sectionLabel}>
+            <FooterLink href="/creators" cls={T.link} sub="クリエイター">Creators</FooterLink>
+            <FooterLink href="/portfolios" cls={T.link} sub="制作実績">Works</FooterLink>
+            <FooterLink href="/how-it-works" cls={T.link} sub="サービス内容">Service</FooterLink>
+            <FooterLink href="/pricing" cls={T.link} sub="料金プラン">Pricing</FooterLink>
+            <FooterLink href="/for-business" cls={T.link} sub="企業のご担当者へ">For Business</FooterLink>
+          </FooterColumn>
 
-            <FooterColumn label="(Creator)" sublabel="クリエイターの方へ" labelCls={T.sectionLabel}>
-              <FooterLink href="/register" cls={T.link} sub="登録する">Join</FooterLink>
-              <FooterLink href="/creator-guide" cls={T.link} sub="ガイドライン">Guidelines</FooterLink>
-            </FooterColumn>
+          <FooterColumn label="(Creator)" sublabel="クリエイターの方へ" labelCls={T.sectionLabel}>
+            <FooterLink href="/register" cls={T.link} sub="登録する">Join</FooterLink>
+            <FooterLink href="/creator-guide" cls={T.link} sub="ガイドライン">Guidelines</FooterLink>
+          </FooterColumn>
 
-            <FooterColumn label="(Support)" sublabel="サポート" labelCls={T.sectionLabel}>
-              <FooterLink href="/help" cls={T.link} sub="ヘルプ">Help</FooterLink>
-              <FooterLink href="/terms" cls={T.link} sub="利用規約">Terms</FooterLink>
-              <FooterLink href="/privacy" cls={T.link} sub="プライバシー">Privacy</FooterLink>
-              <FooterLink href="/company" cls={T.link} sub="運営会社">Company</FooterLink>
-            </FooterColumn>
+          <FooterColumn label="(Support)" sublabel="サポート" labelCls={T.sectionLabel}>
+            <FooterLink href="/help" cls={T.link} sub="ヘルプ">Help</FooterLink>
+            <FooterLink href="/terms" cls={T.link} sub="利用規約">Terms</FooterLink>
+            <FooterLink href="/privacy" cls={T.link} sub="プライバシー">Privacy</FooterLink>
+            <FooterLink href="/company" cls={T.link} sub="運営会社">Company</FooterLink>
+          </FooterColumn>
 
-            <FooterColumn label="(Our social)" sublabel="公式SNS" labelCls={T.sectionLabel}>
-              <FooterExternal href="https://www.instagram.com/" cls={T.link} sub="インスタグラム">
-                Instagram
-              </FooterExternal>
-              <FooterExternal href="https://x.com/" cls={T.link} sub="X (旧Twitter)">
-                X
-              </FooterExternal>
-              <FooterExternal href="https://youtube.com/" cls={T.link} sub="ユーチューブ">
-                Youtube
-              </FooterExternal>
-            </FooterColumn>
-          </div>
+          <FooterColumn label="(Our social)" sublabel="公式SNS" labelCls={T.sectionLabel}>
+            <FooterExternal href="https://www.instagram.com/" cls={T.link} sub="インスタグラム">
+              Instagram
+            </FooterExternal>
+            <FooterExternal href="https://x.com/" cls={T.link} sub="X (旧Twitter)">
+              X
+            </FooterExternal>
+            <FooterExternal href="https://youtube.com/" cls={T.link} sub="ユーチューブ">
+              Youtube
+            </FooterExternal>
+          </FooterColumn>
         </div>
 
-        {/* Bottom bar */}
+        {/* Bottom bar — 余白も縮める */}
         <div
-          className={`mt-section-y-sm flex flex-col items-start justify-between gap-3 ${T.divider} pt-8 sm:flex-row sm:items-center`}
+          className={`mt-10 flex flex-col items-start justify-between gap-2 ${T.divider} pt-5 sm:flex-row sm:items-center`}
         >
           <p className={T.muted}>
             &copy; 2026 AILIER by{" "}

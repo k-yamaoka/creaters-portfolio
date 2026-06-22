@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { SearchFilters, SearchTopBar } from "@/components/creators/search-filters";
+import { SearchTopBar } from "@/components/creators/search-filters";
 // 2026-06-19 Section 6: Material Symbols (MIcon) は lucide-react に統一。
 // OS 絵文字相当の MIcon も含めて廃止し、ライン系で一貫した質感に揃える。
 import { Star, Sparkles, Heart, BadgeCheck, Video } from "lucide-react";
@@ -32,7 +32,8 @@ export function CreatorsPageClient({
   const [filters, setFilters] = useState<CreatorSearchFilters>({
     sortBy: "recommended",
   });
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  // 2026-06-22 リスト/グリッド切替。既定はリスト (= 横長カード)。
+  const [isGridView, setIsGridView] = useState(false);
 
   const filteredCreators = useMemo(() => {
     let result = [...creators];
@@ -52,6 +53,38 @@ export function CreatorsPageClient({
     if (filters.genres && filters.genres.length > 0) {
       result = result.filter((c) =>
         filters.genres!.some((g) => c.genres.includes(g))
+      );
+    }
+
+    // 2026-06-22 単一ジャンル (dropdown)
+    if (filters.genre) {
+      result = result.filter((c) => c.genres.includes(filters.genre!));
+    }
+
+    // 2026-06-22 予算帯フィルタ (5 万円 / 10 万円バケット)
+    if (filters.budgetTier && filters.budgetTier !== "all") {
+      result = result.filter((c) => {
+        const a = c.minimum_order_amount;
+        if (a == null) return false; // 応相談は除外
+        switch (filters.budgetTier) {
+          case "u50k":
+            return a < 50000;
+          case "50k_100k":
+            return a >= 50000 && a < 100000;
+          case "o100k":
+            return a >= 100000;
+        }
+      });
+    }
+
+    // 2026-06-22 「すぐに対応可能」トグル — availability_status が 'available'
+    // ないし null (未設定 = 受付中とみなさない) の判定
+    if (filters.availableNow) {
+      result = result.filter(
+        (c) =>
+          c.availability_status === "available" ||
+          c.availability_status === "open" ||
+          c.availability_status === "free"
       );
     }
 
@@ -131,96 +164,38 @@ export function CreatorsPageClient({
           </div>
         )}
 
-        {/* Mobile filter button */}
-        <div className="mb-6 flex items-center justify-end">
-        <button
-          type="button"
-          onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-          className="flex items-center gap-2 rounded-pill border border-ink/20 bg-ink/[0.04] px-4 py-2.5 text-sm font-bold text-ink backdrop-blur-sm lg:hidden"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.7}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
-            />
-          </svg>
-          絞り込み
-        </button>
-      </div>
-
+      {/* 2026-06-22 サイドバーを撤去し、検索バー横にフィルタを集約 */}
       <SearchTopBar
         filters={filters}
         onFilterChange={setFilters}
         resultCount={visibleCreators.length}
+        isGridView={isGridView}
+        onViewToggle={setIsGridView}
       />
 
-      <div className="flex gap-8">
-        <div className="hidden lg:block">
-          <SearchFilters
-            filters={filters}
-            onFilterChange={setFilters}
-            resultCount={visibleCreators.length}
-          />
-        </div>
-
-        {mobileFiltersOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden">
-            <div
-              className="absolute inset-0 bg-black/40"
-              onClick={() => setMobileFiltersOpen(false)}
-            />
-            <div className="absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-ink/15 bg-paper p-6 backdrop-blur-md">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-black text-ink">絞り込み</h2>
-                <button
-                  type="button"
-                  onClick={() => setMobileFiltersOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-pill bg-ink/10 text-ink/70"
+      <div className="min-w-0">
+        {visibleCreators.length > 0 ? (
+          isGridView ? (
+            // === グリッド表示: サムネ大 + 下部にコンパクトプロフィール ===
+            <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {visibleCreators.map((c, i) => (
+                <RevealOnScroll
+                  key={c.id}
+                  as="li"
+                  delay={Math.min(i, 8) * 60}
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18 18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-              <SearchFilters
-                filters={filters}
-                onFilterChange={setFilters}
-                resultCount={visibleCreators.length}
-              />
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen(false)}
-                className="btn-primary mt-6 w-full"
-              >
-                {visibleCreators.length}件を表示
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="min-w-0 flex-1">
-          {visibleCreators.length > 0 ? (
+                  <CreatorGridCard
+                    creator={c}
+                    likedIds={likedIdSet}
+                    isAuthed={isAuthed}
+                  />
+                </RevealOnScroll>
+              ))}
+            </ul>
+          ) : (
+            // === リスト表示: 横長カード ===
             <ul className="space-y-4">
               {visibleCreators.map((c, i) => (
-                // 60ms ずつ stagger で順に下からフェードイン。
-                // 先頭 8 件以降は遅延を 480ms で打ち止め (遅延しすぎ防止)。
                 <RevealOnScroll
                   key={c.id}
                   as="li"
@@ -234,7 +209,8 @@ export function CreatorsPageClient({
                 </RevealOnScroll>
               ))}
             </ul>
-          ) : (
+          )
+        ) : (
             <div className="mt-20 text-center">
               <svg
                 className="mx-auto h-16 w-16 text-ink/20"
@@ -265,7 +241,6 @@ export function CreatorsPageClient({
             </div>
           )}
         </div>
-      </div>
       </div>
     </>
   );
@@ -624,5 +599,118 @@ function ThumbnailCard({
         />
       </div>
     </div>
+  );
+}
+
+/* =============================================================
+ *  CreatorGridCard — Pinterest 風 グリッドビュー用 コンパクトカード
+ *  サムネを大きく見せて、クリエイター情報を下部にコンパクトに添える。
+ * ============================================================= */
+function CreatorGridCard({
+  creator,
+  likedIds: _likedIds,
+  isAuthed: _isAuthed,
+}: {
+  creator: CreatorWithRelations;
+  likedIds?: Set<string>;
+  isAuthed?: boolean;
+}) {
+  void _likedIds;
+  void _isAuthed;
+  const { profiles } = creator;
+  const unitPrice = formatMinAmount(creator.minimum_order_amount);
+
+  // 代表サムネ 1 枚 (featured 優先、なければ最初の作品)
+  const hasVisual = (p: CreatorWithRelations["portfolio_items"][0]) =>
+    !!p.thumbnail_url || !!p.video_url;
+  const featured = creator.portfolio_items.filter(
+    (p) => p.is_featured === true && hasVisual(p)
+  );
+  const cover =
+    featured[0] ?? creator.portfolio_items.filter(hasVisual)[0] ?? null;
+
+  const totalLikes = creator.portfolio_items.reduce(
+    (sum, p) => sum + (p.like_count ?? 0),
+    0
+  );
+
+  return (
+    <Link
+      href={`/creators/${creator.id}`}
+      className="group relative block overflow-hidden rounded-2xl border border-ink/10 bg-paper transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:border-ink/25 hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.08)]"
+    >
+      {/* === サムネ (大) === */}
+      <div className="relative aspect-video w-full overflow-hidden bg-ink/[0.04]">
+        {cover?.thumbnail_url ? (
+          <Image
+            src={cover.thumbnail_url}
+            alt={cover.title}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-ink/40">
+            作品準備中
+          </div>
+        )}
+        {profiles.is_verified && (
+          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-pill bg-paper/95 px-2 py-1 text-[10px] font-bold text-ink shadow-sm">
+            <BadgeCheck
+              size={10}
+              strokeWidth={1.8}
+              fill="currentColor"
+              aria-hidden
+              className="text-neon-sunset"
+            />
+            認証
+          </span>
+        )}
+      </div>
+
+      {/* === プロフィール (コンパクト) === */}
+      <div className="flex items-start gap-3 p-4">
+        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-ink/10 bg-ink/[0.04]">
+          {profiles.avatar_url ? (
+            <Image
+              src={profiles.avatar_url}
+              alt={profiles.display_name}
+              fill
+              className="object-cover"
+              sizes="40px"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-xs font-bold text-white">
+              {profiles.display_name[0]}
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-sm font-bold text-ink">
+            {profiles.display_name}
+          </h3>
+          <p className="mt-0.5 flex items-center gap-1 text-[11px] text-ink/55">
+            <Heart
+              size={11}
+              strokeWidth={1.8}
+              fill="currentColor"
+              className="text-neon-pink"
+              aria-hidden
+            />
+            {totalLikes}
+            <span className="mx-1 text-ink/25">·</span>
+            作品 {creator.portfolio_items.length} 件
+          </p>
+        </div>
+        <span className="shrink-0 text-right">
+          <span className="block text-[9px] tracking-wider text-ink/45">
+            最低対応
+          </span>
+          <span className="text-xs font-bold text-neon-pink">
+            {unitPrice ?? "応相談"}
+          </span>
+        </span>
+      </div>
+    </Link>
   );
 }

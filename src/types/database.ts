@@ -76,8 +76,14 @@ export type Message = {
 export type CreatorSearchFilters = {
   keyword?: string;
   genres?: string[];
+  // 2026-06-22 単一ジャンル選択化 (UI ドロップダウン化)
+  genre?: string;
   budgetMin?: number;
   budgetMax?: number;
+  // 2026-06-22 予算帯ドロップダウン (5 万 / 10 万 のバケット)
+  budgetTier?: "all" | "u50k" | "50k_100k" | "o100k";
+  // 2026-06-22 「すぐに対応可能」トグル
+  availableNow?: boolean;
   deliveryDays?: number;
   sortBy?: "recommended" | "rating" | "price_low" | "price_high";
 };
