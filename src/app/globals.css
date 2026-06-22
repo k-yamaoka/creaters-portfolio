@@ -18,14 +18,14 @@
   body {
     @apply bg-paper text-ink antialiased;
     /* 既定本文は Inter (英文) + Noto Sans JP (旧 Zen Kaku は fallback) */
-    font-family: 'Inter', 'Noto Sans JP', 'Zen Kaku Gothic New', sans-serif;
+    font-family: var(--font-inter), 'Noto Sans JP', 'Zen Kaku Gothic New', sans-serif;
     font-feature-settings: "palt";
     letter-spacing: 0.01em;
   }
   /* 日本語本文は Noto Serif JP (明朝) を主軸に。
      UI 用の input / button / label はサンセリフのまま保持 (可読性のため)。 */
   :is(p, h1, h2, h3, h4, h5, h6, li):lang(ja) {
-    font-family: 'Noto Serif JP', 'Zen Kaku Gothic New', 'Noto Sans JP', serif;
+    font-family: var(--font-noto-serif-jp), 'Zen Kaku Gothic New', 'Noto Sans JP', serif;
     font-weight: 400;
   }
   :is(span, a):lang(ja) {
@@ -226,7 +226,7 @@
      - WONK 0: 標準字形 (奇抜な swash を抑制)
      - liga / calt / kern: 標準的なリガチャと文脈異字、カーニング */
   .headline-display {
-    font-family: 'Fraunces', 'Noto Serif JP', serif;
+    font-family: var(--font-fraunces), var(--font-noto-serif-jp), serif;
     font-weight: 700;
     font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 0;
     font-feature-settings: "liga" 1, "calt" 1, "kern" 1;
@@ -237,7 +237,7 @@
   }
   /* 日本語の中見出し (明朝). スクリーンに対し余裕を持った行間。 */
   .heading-jp {
-    font-family: 'Noto Serif JP', serif;
+    font-family: var(--font-noto-serif-jp), serif;
     font-weight: 500;
     letter-spacing: 0.02em;
     line-height: 1.6;
@@ -247,7 +247,7 @@
   }
   /* 日本語本文 — 明朝、行間広め、字間 0.04em で詩的な落ち着き */
   .body-jp {
-    font-family: 'Noto Serif JP', serif;
+    font-family: var(--font-noto-serif-jp), serif;
     font-weight: 400;
     line-height: 2.1;
     letter-spacing: 0.04em;
@@ -259,7 +259,7 @@
   /* 2026-06-17: 白基調化に伴いデフォルト色はダーク (rgba ink) に。
      暗背景 (Hero 等) では Tailwind ユーティリティで text-paper/60 を上書きする。 */
   .eyebrow-mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
     font-weight: 500;
     font-size: 11px;
     letter-spacing: 0.22em;
@@ -269,7 +269,7 @@
   /* Axis "Contact" ボタン風 — 細ボーダー + 内側に小さなドット + 余白広め */
   .btn-axis {
     @apply inline-flex items-center justify-between gap-3 rounded-pill border border-paper/25 bg-transparent px-5 py-2 text-xs font-medium text-paper transition-colors;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     min-width: 168px;
@@ -294,7 +294,7 @@
      主 CTA の隣に静かに並べる用。 */
   .btn-axis-ghost {
     @apply inline-flex items-center justify-center gap-3 rounded-pill border border-paper/20 bg-transparent px-5 py-2 text-xs font-medium text-paper/85 transition-colors;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     min-width: 168px;
@@ -310,7 +310,7 @@
      構造は同じだが色だけ反転 (paper → ink, ring-offset → paper)。 */
   .btn-axis-light {
     @apply inline-flex items-center justify-between gap-3 rounded-pill border border-ink/25 bg-transparent px-5 py-2 text-xs font-medium text-ink transition-colors;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     min-width: 168px;
@@ -333,7 +333,7 @@
   }
   .btn-axis-ghost-light {
     @apply inline-flex items-center justify-center gap-3 rounded-pill border border-ink/20 bg-transparent px-5 py-2 text-xs font-medium text-ink/85 transition-colors;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     min-width: 168px;

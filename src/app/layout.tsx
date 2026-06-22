@@ -1,5 +1,41 @@
 import type { Metadata } from "next";
+// 2026-06-22 Section 8 パフォ: Google Fonts CSS (<link>) は render-blocking で
+// mobile Lighthouse の Speed Index を ~1.5s 悪化させていた。next/font/google で
+// セルフホスト化し、preconnect も不要に。CSS 変数で tailwind に注入する。
+import { Fraunces, Noto_Serif_JP, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+// Fraunces は variable font。axes を指定する場合は weight を "variable" にする
+// (next/font の制約)。weight 400-800 の範囲は variable axis でカバー。
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: "variable",
+  axes: ["opsz"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
+
+const notoSerifJp = Noto_Serif_JP({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "700"],
+  display: "swap",
+  variable: "--font-noto-serif-jp",
+  preload: false,
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
+});
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://creaters-portfolio.vercel.app";
 
@@ -58,20 +94,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        {/* 2026-06-16: ハイエンド土台への移行 (Step 1)。
-            Display = Fraunces (英文セリフ), 本文 JA = Noto Serif JP (明朝),
-            英文 UI = Inter, 番号/ラベル = JetBrains Mono に統一。
-            旧 Zen Kaku Gothic New / Lato は globals.css に互換用 fallback
-            として残置するが、新規 UI では使わない。 */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Noto+Serif+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-        />
-      </head>
+    <html
+      lang="ja"
+      className={`${fraunces.variable} ${notoSerifJp.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+    >
       <body className="min-h-screen bg-paper font-sans text-ink antialiased">
         {children}
       </body>

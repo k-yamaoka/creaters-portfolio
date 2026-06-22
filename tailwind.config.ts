@@ -9,16 +9,16 @@ const config: Config = {
     extend: {
       fontFamily: {
         // 2026-06-16 Step 1: ハイエンド土台へ刷新。
-        // Display (英文・巨大見出し) = Fraunces セリフ (Axis "We" / "Movie" 系)
+        // 2026-06-22: next/font/google でセルフホスト化、CSS 変数で受ける。
+        // Display (英文・巨大見出し) = Fraunces セリフ
         // serif (本文/見出し JA) = Noto Serif JP (明朝)
-        // sans (英文 UI / Fallback JA) = Inter + Noto Sans JP + 旧 Zen Kaku
+        // sans (英文 UI / Fallback JA) = Inter + Noto Sans JP
         // mono (番号/ラベル) = JetBrains Mono
-        // latin は旧 Lato 系の互換キー (削除はせずに残置)
-        sans: ['"Inter"', '"Noto Sans JP"', '"Zen Kaku Gothic New"', "sans-serif"],
-        serif: ['"Noto Serif JP"', "serif"],
-        display: ['"Fraunces"', '"Noto Serif JP"', "serif"],
-        mono: ['"JetBrains Mono"', "ui-monospace", "monospace"],
-        latin: ['"Inter"', '"Lato"', "sans-serif"],
+        sans: ['var(--font-inter)', '"Noto Sans JP"', '"Zen Kaku Gothic New"', "sans-serif"],
+        serif: ['var(--font-noto-serif-jp)', "serif"],
+        display: ['var(--font-fraunces)', 'var(--font-noto-serif-jp)', "serif"],
+        mono: ['var(--font-jetbrains-mono)', "ui-monospace", "monospace"],
+        latin: ['var(--font-inter)', '"Lato"', "sans-serif"],
       },
       colors: {
         // Primary = soft blue (ref: #2e6ca0)
