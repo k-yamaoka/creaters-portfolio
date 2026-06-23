@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
-import { Check, Link2 } from "lucide-react";
+import { Check, Link2, Download } from "lucide-react";
 
 type Props = {
   /** 完全な URL (例: https://ailier.app/creators/abc) */
@@ -15,14 +15,11 @@ type Props = {
  * クリエイター詳細ページの URL を QR コード化し、
  * 名刺に印刷できる PNG / SVG をダウンロードできるカード。
  *
- * 設計:
- * - error correction level "H" (30%) で多少の汚れ・印刷劣化に耐える
- * - margin (quiet zone) 4 セル (規格上限) で読み取り安定性確保
- * - PNG は 1024px の高解像度で出力 (名刺の 2cm 印刷で 1300dpi 相当)
- * - SVG はベクター出力なのでサイズ無限大、Illustrator/Photoshop でそのまま使用可
- * - 配色は印刷互換のため black on white 固定
- *
- * 全 QR 生成はクライアントサイドで完結し、URL は外部に送信しない。
+ * 2026-06-23 ライトテーマ化:
+ *  - 旧 bg-white/[0.04] / text-white を gray-* に統一
+ *  - 旧ヘッダの装飾ドット (シアン点) を撤去、「SNS・ポートフォリオをチェック」
+ *    の明確なラベルに置き換えて意図を伝える
+ *  - 印刷向け仕様 (誤り訂正 H / 1024px PNG / ベクター SVG) は変更なし
  */
 export function CreatorQrCard({ url, creatorName }: Props) {
   const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
@@ -59,7 +56,6 @@ export function CreatorQrCard({ url, creatorName }: Props) {
     document.body.appendChild(a);
     a.click();
     a.remove();
-    // メモリ解放は次の tick で
     setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
   };
 
@@ -73,14 +69,12 @@ export function CreatorQrCard({ url, creatorName }: Props) {
     setBusy("png");
     setError(null);
     try {
-      // 1024px の高解像度 PNG
       const dataUrl = await QRCode.toDataURL(url, {
         errorCorrectionLevel: "H",
         margin: 4,
         width: 1024,
         color: { dark: "#000000", light: "#FFFFFF" },
       });
-      // dataURL → Blob 変換 (canvas を経由しない方が高速)
       const res = await fetch(dataUrl);
       const blob = await res.blob();
       triggerDownload(blob, `${safeName}-qr.png`);
@@ -121,23 +115,22 @@ export function CreatorQrCard({ url, creatorName }: Props) {
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur-sm shadow-[0_18px_40px_-20px_rgba(157,92,255,0.35)]">
+    <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-sm font-bold text-white">
-          <span className="inline-block h-2 w-2 rounded-full bg-neon-cyan mr-2 align-middle shadow-[0_0_8px_rgba(77,213,247,0.7)]" />
-          ページ QR コード
+        <h3 className="text-sm font-bold text-gray-900">
+          SNS・ポートフォリオをチェック
         </h3>
-        <span className="rounded-pill bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/65">
+        <span className="rounded-pill border border-gray-200 bg-gray-50 px-2 py-0.5 text-[10px] font-bold text-gray-600">
           名刺対応
         </span>
       </div>
-      <p className="mt-1 text-[11px] leading-relaxed text-white/55">
-        印刷しても読み取れる高品質 QR (誤り訂正 30%)。名刺や紹介資料にそのまま貼れます。
+      <p className="mt-1 text-[11px] leading-relaxed text-gray-600">
+        スマートフォンで読み取ると、このページを開きます。名刺や紹介資料にそのまま貼って配布できます (印刷劣化に耐える誤り訂正 30%)。
       </p>
 
       {/* QR Preview — 白パディング付きで印刷時のクワイエットゾーンを再現 */}
       <div className="mt-4 flex justify-center">
-        <div className="rounded-xl bg-white p-3 shadow-[0_8px_20px_-8px_rgba(0,0,0,0.35)]">
+        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
           {previewDataUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -158,7 +151,7 @@ export function CreatorQrCard({ url, creatorName }: Props) {
       {error && (
         <p
           role="alert"
-          className="mt-3 rounded-md bg-red-500/15 px-3 py-1.5 text-[11px] text-red-300"
+          className="mt-3 rounded-md bg-red-50 px-3 py-1.5 text-[11px] text-red-700"
         >
           {error}
         </p>
@@ -170,18 +163,18 @@ export function CreatorQrCard({ url, creatorName }: Props) {
           type="button"
           onClick={downloadPng}
           disabled={!previewDataUrl || busy !== null}
-          className="inline-flex items-center justify-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-2 text-[11px] font-bold text-white shadow-[0_0_14px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(255,77,157,0.6)] disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-2 text-[11px] font-bold text-white shadow-[0_4px_12px_-4px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_18px_-6px_rgba(255,77,157,0.6)] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <DownloadIcon />
+          <Download size={14} strokeWidth={1.8} aria-hidden />
           {busy === "png" ? "出力中…" : "PNG"}
         </button>
         <button
           type="button"
           onClick={downloadSvg}
           disabled={!previewDataUrl || busy !== null}
-          className="inline-flex items-center justify-center gap-1.5 rounded-pill border border-white/30 bg-white/5 px-3 py-2 text-[11px] font-bold text-white transition-colors hover:border-white/60 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-2 text-[11px] font-bold text-gray-900 transition-colors hover:border-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <DownloadIcon />
+          <Download size={14} strokeWidth={1.8} aria-hidden />
           {busy === "svg" ? "出力中…" : "SVG"}
         </button>
       </div>
@@ -190,7 +183,7 @@ export function CreatorQrCard({ url, creatorName }: Props) {
       <button
         type="button"
         onClick={copyUrl}
-        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-pill border border-white/15 bg-white/[0.03] px-3 py-2 text-[11px] text-white/75 transition-colors hover:border-white/30 hover:bg-white/10"
+        className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-pill border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] text-gray-700 transition-colors hover:border-gray-400 hover:bg-gray-100"
       >
         {copied ? (
           <Check size={14} strokeWidth={1.8} aria-hidden />
@@ -200,27 +193,9 @@ export function CreatorQrCard({ url, creatorName }: Props) {
         {copied ? "URL をコピーしました" : "URL をコピー"}
       </button>
 
-      <p className="mt-3 text-[10px] leading-relaxed text-white/45">
+      <p className="mt-3 text-[10px] leading-relaxed text-gray-500">
         ※ PNG は 1024×1024px の高解像度、SVG はベクターなので拡大しても劣化しません。
       </p>
     </div>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg
-      className="h-3.5 w-3.5"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={2}
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
-      />
-    </svg>
   );
 }

@@ -15,6 +15,7 @@ import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
 import { TotalLikesBadge } from "@/components/creators/total-likes-badge";
 import { CreatorQrCard } from "@/components/creators/creator-qr-card";
+import { SocialLinkRow } from "@/components/creators/social-link-row";
 // SectionTabs はクリエイター詳細の上部からは撤去 (ユーザー判断: タブナビ不要)
 
 export default async function CreatorDetailPage({
@@ -200,61 +201,25 @@ export default async function CreatorDetailPage({
     ? AVAIL_BADGE[availabilityStatus]
     : undefined;
 
-  // SNS リンクの表示順 + ラベル
-  const SOCIAL_DISPLAY: Array<{ key: string; label: string }> = [
-    { key: "website", label: "Web" },
-    { key: "youtube", label: "YouTube" },
-    { key: "x", label: "X" },
-    { key: "instagram", label: "Instagram" },
-    { key: "tiktok", label: "TikTok" },
-  ];
-  const socialEntries = SOCIAL_DISPLAY.filter(
-    (s) => !!socialLinks[s.key]
-  ).map((s) => ({ key: s.key, label: s.label, url: socialLinks[s.key] }));
+  // SNS リンクは <SocialLinkRow /> 側で順序 + ラベル + アイコンを管理する
 
   return (
     <LikeDeltaProvider>
       {/* =================================================
           HERO BAND
           ================================================= */}
-      <section className="relative overflow-hidden bg-paper py-16 text-white">
-        {/* カバー画像 (任意) — 設定時は背景に敷いて 0.35 でオーバーレイ */}
-        {coverImageUrl && (
-          <>
-            <Image
-              src={coverImageUrl}
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="absolute inset-0 object-cover opacity-35"
-              unoptimized
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-neon-midnight-deep/40 via-neon-midnight-deep/55 to-neon-midnight-deep" />
-          </>
-        )}
-        <div
-          className="absolute inset-0 opacity-25"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(157,92,255,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(157,92,255,0.15) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            maskImage:
-              "radial-gradient(ellipse at center, black 30%, transparent 80%)",
-          }}
-        />
-        <div className="absolute -left-32 top-0 h-[360px] w-[360px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
-        <div className="absolute -right-20 bottom-0 h-[300px] w-[300px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
-
+      {/* 2026-06-23 ライトテーマ化: 旧 cover image + 紫グリッド + ネオン blob を
+          完全撤去。Hero は border-bottom + 純白の bg-paper のみのクリーンな帯に。 */}
+      <section className="relative bg-paper py-12 text-gray-900 border-b border-gray-200">
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           {/* Breadcrumb + Share */}
           <div className="mb-6 flex items-center justify-between gap-3">
-            <nav className="text-xs text-white/60">
+            <nav className="text-xs text-gray-500">
               <Link href="/creators" className="hover:text-neon-pink">
                 AIクリエイターを探す
               </Link>
               <span className="mx-2">/</span>
-              <span className="text-white">{displayName}</span>
+              <span className="text-gray-900">{displayName}</span>
             </nav>
             <ShareButton creatorName={displayName} />
           </div>
@@ -266,7 +231,7 @@ export default async function CreatorDetailPage({
             {/* 左ブロック: Avatar + 名前/ステータス (内部 gap-6 で密結合) */}
             <div className="flex flex-1 items-center gap-6">
               {/* Avatar */}
-              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border-2 border-neon-pink/60 bg-ink/5 shadow-[0_0_24px_rgba(255,77,157,0.4)]">
+              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -301,10 +266,10 @@ export default async function CreatorDetailPage({
                     </span>
                   )}
                 </div>
-                <h1 className="mt-3 font-display text-3xl font-medium tracking-tight sm:text-[2.5rem]">
+                <h1 className="mt-3 font-display text-3xl font-medium tracking-tight text-gray-900 sm:text-[2.5rem]">
                   {displayName}
                 </h1>
-                <div className="mt-4 flex flex-wrap gap-3 text-sm text-white/70">
+                <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
                   <span className="inline-flex items-center gap-1.5">
                     <Video size={16} strokeWidth={1.8} className="text-neon-pink" aria-hidden />
                     作品 {creator.portfolio_items.length} 件
@@ -317,8 +282,8 @@ export default async function CreatorDetailPage({
                   <span
                     className={`inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-[11px] font-bold ${
                       isFresh
-                        ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan"
-                        : "border-white/15 bg-white/5 text-white/70"
+                        ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan-soft"
+                        : "border-gray-200 bg-gray-50 text-gray-700"
                     }`}
                   >
                     {isFresh && (
@@ -327,19 +292,19 @@ export default async function CreatorDetailPage({
                     {activityLabel}
                   </span>
                   {replyRate !== null && (
-                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/80">
+                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold text-gray-700">
                       <MessageCircle size={12} strokeWidth={1.8} aria-hidden />
                       返信率 {replyRate}%
                     </span>
                   )}
                   {receivedCount !== null && receivedCount !== undefined && (
-                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/70">
+                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold text-gray-600">
                       過去90日 {receivedCount}件の問い合わせ
                     </span>
                   )}
                   {typicalFirstDraftDays != null && (
                     <span
-                      className="inline-flex items-center gap-1.5 rounded-pill border border-neon-purple/30 bg-neon-purple/10 px-3 py-1 text-[11px] font-bold text-neon-purple-deep"
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-3 py-1 text-[11px] font-bold text-neon-purple-deep"
                       title="初稿提出までの目安日数 (クリエイター自己申告)"
                     >
                       <svg
@@ -361,23 +326,10 @@ export default async function CreatorDetailPage({
                   )}
                 </div>
 
-                {/* SNS / 外部リンク (未入力は表示しない) */}
-                {socialEntries.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-1.5">
-                    {socialEntries.map((s) => (
-                      <a
-                        key={s.key}
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-pill border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-bold text-white/80 transition-colors hover:border-neon-pink hover:text-neon-pink"
-                      >
-                        {s.label}
-                        <span aria-hidden>↗</span>
-                      </a>
-                    ))}
-                  </div>
-                )}
+                {/* SNS / 外部リンク (アイコン化、未入力は表示しない) */}
+                <div className="mt-4">
+                  <SocialLinkRow links={socialLinks} />
+                </div>
               </div>
             </div>
 
@@ -386,7 +338,7 @@ export default async function CreatorDetailPage({
             {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
               <Link
                 href="#portfolio"
-                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-paper shadow-[0_18px_40px_-15px_rgba(255,77,157,0.45)] transition-transform hover:-translate-y-0.5 lg:w-[clamp(380px,40vw,480px)]"
+                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-paper shadow-md transition-transform hover:-translate-y-0.5 lg:w-[clamp(380px,40vw,480px)]"
                 aria-label="代表作を見る"
               >
                 <VideoPreviewCard
@@ -433,19 +385,19 @@ export default async function CreatorDetailPage({
 
           {/* 最低受注金額 — Hero 直下に大きく表示 */}
           {minPackagePrice !== null && (
-            <div className="mt-6 rounded-2xl border border-neon-pink/30 bg-neon-pink/[0.08] p-5 backdrop-blur-md shadow-[0_18px_40px_-15px_rgba(255,77,157,0.35)]">
+            <div className="mt-6 rounded-2xl border border-neon-pink/30 bg-neon-pink/[0.05] p-5">
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[10px] font-black tracking-wider text-white">
                   最低受注金額
                 </span>
                 <span className="text-xl font-black text-neon-pink sm:text-2xl">
                   ¥{minPackagePrice.toLocaleString()}〜
-                  <span className="ml-1 text-xs font-bold text-white/60">
+                  <span className="ml-1 text-xs font-bold text-gray-600">
                     から相談可
                   </span>
                 </span>
               </div>
-              <p className="mt-3 text-[11px] text-white/55">
+              <p className="mt-3 text-[11px] text-gray-600">
                 ※ 仕様/尺/本数で見積もりは変動します。「依頼を相談」から具体条件をすり合わせできます。
               </p>
             </div>
@@ -453,37 +405,32 @@ export default async function CreatorDetailPage({
         </div>
       </section>
 
+      {/* 2026-06-23 ライトテーマ化: glow blobs / card backdrop / 文字色を
+          全面的に gray-* に振り直す。装飾アイコン (点) は意味を持たないため撤去。 */}
       <div className="relative mx-auto max-w-container px-6 py-12 lg:px-10">
-        {/* Glow blobs */}
-        <div className="pointer-events-none absolute -left-32 top-32 h-[500px] w-[500px] rounded-full bg-neon-pink opacity-10 blur-[140px] animate-glow-pulse-slow" />
-        <div className="pointer-events-none absolute -right-24 top-[800px] h-[420px] w-[420px] rounded-full bg-neon-cyan opacity-10 blur-[120px] animate-glow-pulse" />
-
         <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-3">
           {/* Left Column: Profile + Portfolio */}
           <div className="space-y-6 lg:col-span-2">
             {/* Profile */}
             <div
               id="profile"
-              className="scroll-mt-32 rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(255,77,157,0.15)] sm:p-8"
+              className="scroll-mt-32 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
             >
-              <h2 className="text-lg font-black text-white">
-                <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle shadow-[0_0_8px_rgba(255,77,157,0.7)]" />
-                プロフィール
-              </h2>
-              <p className="mt-4 whitespace-pre-line text-sm leading-[2] text-white/70">
+              <h2 className="text-lg font-bold text-gray-900">プロフィール</h2>
+              <p className="mt-4 whitespace-pre-line text-sm leading-[2] text-gray-700">
                 {creator.bio}
               </p>
 
               {creator.genres.length > 0 && (
                 <div className="mt-6">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
                     得意ジャンル
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {creator.genres.map((genre) => (
                       <span
                         key={genre}
-                        className="rounded-pill border border-neon-purple/40 bg-neon-purple/15 px-3 py-1 text-xs font-bold text-neon-purple"
+                        className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-3 py-1 text-xs font-bold text-neon-purple-deep"
                       >
                         {genre}
                       </span>
@@ -495,19 +442,16 @@ export default async function CreatorDetailPage({
 
             {/* 強み */}
             {creator.strengths.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(255,77,157,0.15)] sm:p-8">
-                <h2 className="text-lg font-black text-white">
-                  <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle shadow-[0_0_8px_rgba(255,77,157,0.7)]" />
-                  強み
-                </h2>
-                <p className="mt-1 text-xs text-white/55">
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-lg font-bold text-gray-900">強み</h2>
+                <p className="mt-1 text-xs text-gray-500">
                   AIクリエイターの中で「この人を選ぶ理由」
                 </p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {creator.strengths.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-[0_0_14px_rgba(255,77,157,0.45)]"
+                      className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-[0_0_14px_rgba(255,77,157,0.35)]"
                     >
                       <Sparkles size={14} strokeWidth={1.8} fill="currentColor" aria-hidden /> {s}
                     </span>
@@ -518,16 +462,13 @@ export default async function CreatorDetailPage({
 
             {/* 得意映像尺 */}
             {creator.video_lengths.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(77,213,247,0.15)] sm:p-8">
-                <h2 className="text-lg font-black text-white">
-                  <span className="inline-block h-2 w-2 rounded-full bg-neon-cyan mr-2 align-middle shadow-[0_0_8px_rgba(77,213,247,0.7)]" />
-                  得意映像尺
-                </h2>
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-lg font-bold text-gray-900">得意映像尺</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {creator.video_lengths.map((l) => (
                     <span
                       key={l}
-                      className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan"
+                      className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft"
                     >
                       {l}
                     </span>
@@ -538,22 +479,19 @@ export default async function CreatorDetailPage({
 
             {/* 使用 AI ツール — マッチング指標 (00054 で UI 復活) */}
             {creator.ai_tools.length > 0 && (
-              <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(255,77,157,0.18)] sm:p-8">
-                <h2 className="text-lg font-black text-white">
-                  <span className="inline-block h-2 w-2 rounded-full bg-neon-pink mr-2 align-middle shadow-[0_0_8px_rgba(255,77,157,0.7)]" />
-                  使用 AI ツール
-                </h2>
+              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+                <h2 className="text-lg font-bold text-gray-900">使用 AI ツール</h2>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {creator.ai_tools.map((t) => (
                     <span
                       key={t}
-                      className="rounded-pill border border-neon-pink/40 bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-xs font-bold text-white/90"
+                      className="rounded-pill border border-neon-pink/40 bg-gradient-to-r from-neon-pink/10 to-neon-purple/10 px-3 py-1 text-xs font-bold text-gray-900"
                     >
                       {t}
                     </span>
                   ))}
                 </div>
-                <p className="mt-3 text-[11px] text-white/50">
+                <p className="mt-3 text-[11px] text-gray-500">
                   クリエイター自己申告。マッチング検索の対象になります。
                 </p>
               </div>
@@ -563,12 +501,11 @@ export default async function CreatorDetailPage({
             {creator.portfolio_items.length > 0 && (
               <div
                 id="portfolio"
-                className="scroll-mt-32 rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(157,92,255,0.15)] sm:p-8"
+                className="scroll-mt-32 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
               >
-                <h2 className="mb-6 text-lg font-black text-white">
-                  <span className="inline-block h-2 w-2 rounded-full bg-neon-purple mr-2 align-middle shadow-[0_0_8px_rgba(157,92,255,0.7)]" />
+                <h2 className="mb-6 text-lg font-bold text-gray-900">
                   ポートフォリオ
-                  <span className="ml-2 text-xs font-bold text-white/50">
+                  <span className="ml-2 text-xs font-medium text-gray-500">
                     (代表作は上部に表示中)
                   </span>
                 </h2>
@@ -580,10 +517,9 @@ export default async function CreatorDetailPage({
             {/* Reviews */}
             <div
               id="reviews"
-              className="scroll-mt-32 rounded-2xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(255,174,59,0.15)] sm:p-8"
+              className="scroll-mt-32 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
             >
-              <h2 className="mb-6 text-lg font-black text-white">
-                <span className="inline-block h-2 w-2 rounded-full bg-neon-sunset mr-2 align-middle shadow-[0_0_8px_rgba(255,174,59,0.7)]" />
+              <h2 className="mb-6 text-lg font-bold text-gray-900">
                 レビュー({reviews?.length ?? 0}件)
               </h2>
               <ReviewList
@@ -598,33 +534,34 @@ export default async function CreatorDetailPage({
             </div>
           </div>
 
-          {/* Right Column: 最低対応金額 + AI 見積もり + CTA */}
+          {/* Right Column: 最低対応金額 + AI 見積もり + CTA
+              2026-06-23: top-40 → top-24 でヘッダ直下に追従、白基調化 */}
           <div id="pricing" className="scroll-mt-32 space-y-5">
-            <div className="sticky top-40 space-y-5">
+            <div className="sticky top-24 space-y-5">
               {/* Minimum price card */}
-              <div className="overflow-hidden rounded-2xl border border-neon-pink/40 bg-gradient-to-br from-neon-pink/15 to-neon-purple/15 backdrop-blur-sm shadow-[0_20px_50px_-10px_rgba(255,77,157,0.4)]">
+              <div className="overflow-hidden rounded-2xl border border-neon-pink/30 bg-white shadow-md">
                 <div className="bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-[0.16em] text-white">
                   最低対応金額
                 </div>
                 <div className="p-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-sm text-white/70">¥</span>
+                    <span className="text-sm text-gray-600">¥</span>
                     <span className="text-4xl font-black tracking-tight text-neon-pink sm:text-5xl">
                       {minPackagePrice !== null
                         ? minPackagePrice.toLocaleString()
                         : "応相談"}
                     </span>
                     {minPackagePrice !== null && (
-                      <span className="text-xs text-white/60">〜</span>
+                      <span className="text-xs text-gray-500">〜</span>
                     )}
                   </div>
-                  <p className="mt-2 text-xs leading-[1.85] text-white/65">
+                  <p className="mt-2 text-xs leading-[1.85] text-gray-700">
                     上記は最安パッケージ価格です。実際の金額は依頼内容によって変動します。詳細は下の AI に聞くか、メッセージでご相談ください。
                   </p>
 
                   <Link
                     href={orderHref}
-                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
+                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(255,77,157,0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(255,77,157,0.75)]"
                   >
                     <span className="inline-flex items-center gap-2">
                       <Briefcase size={16} strokeWidth={1.8} aria-hidden />
@@ -648,19 +585,17 @@ export default async function CreatorDetailPage({
         </div>
       </div>
 
-      {/* Similar Creators */}
+      {/* Similar Creators — 2026-06-23 白基調化 */}
       {similarCreators.length > 0 && (
-        <section className="relative overflow-hidden border-t border-white/10 bg-ink/5 py-20">
-          <div className="pointer-events-none absolute -right-32 top-12 h-[400px] w-[400px] rounded-full bg-neon-purple opacity-15 blur-[120px] animate-glow-pulse-slow" />
-
+        <section className="relative border-t border-gray-200 bg-gray-50 py-16">
           <div className="relative mx-auto max-w-container px-6 lg:px-10">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
               <div>
-                <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+                <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan-soft">
                   <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
                   SIMILAR CREATORS
                 </p>
-                <h2 className="mt-4 text-2xl font-black text-white sm:text-3xl">
+                <h2 className="mt-4 text-2xl font-bold text-gray-900 sm:text-3xl">
                   似た領域の{" "}
                   <span className="bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">
                     AIクリエイター
@@ -669,7 +604,7 @@ export default async function CreatorDetailPage({
               </div>
               <Link
                 href="/creators"
-                className="group inline-flex items-center gap-2 rounded-pill border border-white/30 bg-white/5 px-5 py-2.5 text-sm font-bold text-white backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10"
+                className="group inline-flex items-center gap-2 rounded-pill border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-gray-900 transition-all hover:-translate-y-0.5 hover:border-gray-500"
               >
                 すべて見る
                 <span className="transition-transform group-hover:translate-x-1">
@@ -690,7 +625,7 @@ export default async function CreatorDetailPage({
                   <Link
                     key={c.id}
                     href={`/creators/${c.id}`}
-                    className="group block overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm transition-all duration-500 hover:-translate-y-2 hover:border-neon-pink/40 hover:shadow-[0_25px_60px_-15px_rgba(255,77,157,0.4)]"
+                    className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_15px_35px_-15px_rgba(255,77,157,0.35)]"
                   >
                     <div
                       className="relative aspect-[4/3] w-full"
@@ -700,15 +635,15 @@ export default async function CreatorDetailPage({
                           : gradients[idx % gradients.length],
                       }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/30 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3">
-                        <p className="text-base font-black text-white">
+                        <p className="text-base font-bold text-white drop-shadow">
                           {c.profiles?.display_name ?? "クリエイター"}
                         </p>
                       </div>
                     </div>
                     <div className="p-4">
-                      <p className="line-clamp-2 text-xs text-white/65">
+                      <p className="line-clamp-2 text-xs text-gray-600">
                         {c.bio || "クリエイター"}
                       </p>
                     </div>
@@ -720,11 +655,11 @@ export default async function CreatorDetailPage({
         </section>
       )}
 
-      {/* Mobile sticky bottom CTA (lg 未満) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-paper/95 px-4 py-3 backdrop-blur-md lg:hidden">
+      {/* Mobile sticky bottom CTA (lg 未満) — 白基調化 */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-paper/95 px-4 py-3 backdrop-blur-md lg:hidden">
         <div className="mx-auto flex max-w-container items-center gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
               最安料金
             </p>
             <p className="text-base font-black text-neon-pink">
@@ -735,7 +670,7 @@ export default async function CreatorDetailPage({
           </div>
           <Link
             href={orderHref}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.45)]"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(255,77,157,0.5)]"
           >
             依頼を相談
             <span>→</span>

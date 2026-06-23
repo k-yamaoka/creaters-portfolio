@@ -3,12 +3,19 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState } from "react";
-import { Bot } from "lucide-react";
+import { Bot, SendHorizonal, MessageSquare } from "lucide-react";
 
 /**
  * クリエイター詳細ページの「AI 見積もり相談」チャット。
  * - useChat hook で /api/creators/[id]/estimate を呼び出し
  * - サンプル質問のクイックボタンを 3 つ用意
+ *
+ * 2026-06-23 ライトテーマ化 + チャット UX 強化:
+ *  - bg-white/[0.04] / text-white を gray-* に統一
+ *  - メッセージエリアの背景をわずかにグレー (bg-gray-50) にしてチャットだと
+ *    一目で分かる視覚ヒエラルキー
+ *  - 入力欄に明確な border + focus 時に neon-purple リング
+ *  - 送信ボタンを大きめのグラデピル + アイコン + ラベル "送信" で訴求
  */
 export function EstimateChatBot({ creatorId }: { creatorId: string }) {
   const [input, setInput] = useState("");
@@ -34,30 +41,34 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
   ];
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm shadow-[0_20px_50px_-15px_rgba(157,92,255,0.2)]">
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       {/* Header */}
-      <div className="border-b border-white/10 bg-gradient-to-r from-neon-cyan/10 to-neon-purple/10 px-5 py-4">
+      <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gradient-to-r from-neon-cyan/10 to-neon-purple/10 px-5 py-4">
         <div className="flex items-center gap-2">
           <span
             aria-hidden
-            className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple text-white shadow-[0_0_10px_rgba(157,92,255,0.5)]"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple text-white shadow-[0_4px_10px_-4px_rgba(157,92,255,0.6)]"
           >
-            <Bot size={14} strokeWidth={2.2} />
+            <Bot size={16} strokeWidth={2} />
           </span>
           <div>
-            <h3 className="text-sm font-black text-white">AI 見積もり相談</h3>
-            <p className="text-[10px] text-white/60">
+            <h3 className="text-sm font-bold text-gray-900">AI 見積もり相談</h3>
+            <p className="text-[10px] text-gray-600">
               依頼内容を伝えると概算を即答します
             </p>
           </div>
         </div>
+        <span className="hidden items-center gap-1 rounded-pill border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-bold text-gray-600 sm:inline-flex">
+          <MessageSquare size={10} strokeWidth={2} aria-hidden />
+          Chat
+        </span>
       </div>
 
-      {/* Messages */}
-      <div className="max-h-[360px] min-h-[120px] overflow-y-auto px-4 py-3">
+      {/* Messages area — bg-gray-50 でチャットだと一目で分かる */}
+      <div className="max-h-[360px] min-h-[140px] overflow-y-auto bg-gray-50 px-4 py-3">
         {messages.length === 0 ? (
           <div className="space-y-2">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-white/50">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
               よくある質問
             </p>
             {QUICK_PROMPTS.map((q) => (
@@ -65,7 +76,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
                 key={q}
                 type="button"
                 onClick={() => send(q)}
-                className="block w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-left text-xs text-white/80 transition-all hover:border-neon-cyan/40 hover:bg-white/[0.07] hover:text-white"
+                className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-left text-xs text-gray-800 transition-all hover:border-neon-cyan/50 hover:bg-neon-cyan/[0.05] hover:text-gray-900"
               >
                 {q}
               </button>
@@ -86,8 +97,8 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
                   <div
                     className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-xs leading-[1.7] ${
                       m.role === "user"
-                        ? "bg-gradient-to-r from-neon-pink/25 to-neon-purple/25 text-white"
-                        : "border border-white/10 bg-white/[0.04] text-white/90"
+                        ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_4px_12px_-6px_rgba(255,77,157,0.5)]"
+                        : "border border-gray-200 bg-white text-gray-800"
                     }`}
                   >
                     {text}
@@ -96,7 +107,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
               );
             })}
             {isLoading && (
-              <div className="flex items-center gap-1.5 px-3.5 text-[11px] text-white/50">
+              <div className="flex items-center gap-1.5 px-3.5 text-[11px] text-gray-500">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
                 考え中…
               </div>
@@ -105,41 +116,31 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
         )}
       </div>
 
-      {/* Input */}
+      {/* Input — 明確な border + focus ring */}
       <form
         onSubmit={(e) => {
           e.preventDefault();
           send(input);
         }}
-        className="flex items-center gap-2 border-t border-white/10 bg-white/[0.02] px-3 py-2.5"
+        className="flex items-end gap-2 border-t border-gray-200 bg-white p-3"
       >
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           disabled={isLoading}
-          placeholder="依頼内容を入力(例: 縦型15秒×5本)"
-          className="flex-1 rounded-pill bg-white/5 px-4 py-2 text-xs text-white placeholder-white/40 outline-none transition-colors focus:bg-white/10 disabled:opacity-50"
+          placeholder="依頼内容を入力 (例: 縦型15秒×5本)"
+          aria-label="AI 見積もりの質問"
+          className="flex-1 rounded-pill border border-gray-300 bg-white px-4 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-neon-purple focus:ring-2 focus:ring-neon-purple/20 disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.45)] transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 text-xs font-bold text-white shadow-[0_4px_12px_-4px_rgba(255,77,157,0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_18px_-6px_rgba(255,77,157,0.7)] disabled:opacity-40 disabled:hover:translate-y-0"
           aria-label="送信"
         >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"
-            />
-          </svg>
+          <SendHorizonal size={14} strokeWidth={2} aria-hidden />
+          送信
         </button>
       </form>
     </div>
