@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, SlidersHorizontal } from "lucide-react";
-import { PortfolioFiltersSidebar } from "@/components/portfolios/portfolio-filters-sidebar";
+import { Search, X } from "lucide-react";
+import { PortfolioFiltersBar } from "@/components/portfolios/portfolio-filters-bar";
 import { WorkCard } from "@/components/portfolios/work-card";
 import {
   VideoModal,
@@ -122,25 +122,24 @@ export function PortfoliosPageClient({
       }
     : null;
 
-  // モバイルドロワー
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-
   return (
-    <div className="mx-auto max-w-container px-6 py-10 lg:px-10">
+    // 2026-06-23: max-w-container → 撤去。コンテナを画面幅いっぱいに広げ、
+    // 作品グリッドが全幅表示されるようにする。両端 px-gutter は維持。
+    <div className="px-6 py-10 lg:px-10">
       {/* ===== ヘッダ ===== */}
       <div className="mb-8">
         <p className="eyebrow-mono">(Works)<span className="ml-2 text-ink/35">／ 制作実績</span></p>
         <h1 className="headline-display mt-4 text-[clamp(2rem,5vw,3.75rem)] text-ink">
           All <span className="italic text-sand">works.</span>
         </h1>
-        <p className="mt-2 font-sans text-sm text-ink/55">制作実績（すべての作品）</p>
+        <p className="mt-2 font-sans text-sm text-ink/55">制作実績(すべての作品)</p>
         <p className="body-jp mt-3 max-w-prose-jp text-sm text-ink/65">
           Sora・Veo・Runway を使いこなす AI クリエイターの作品一覧。
         </p>
       </div>
 
       {/* ===== トップツールバー (検索 + 並び順 + 件数) ===== */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* 検索バー */}
         <div className="relative flex-1">
           <Search
@@ -169,7 +168,7 @@ export function PortfoliosPageClient({
           )}
         </div>
 
-        {/* 並び順 */}
+        {/* 並び順 + 件数 */}
         <div className="flex items-center gap-3">
           <label className="shrink-0 text-xs text-ink/65">並び順</label>
           <select
@@ -190,106 +189,52 @@ export function PortfoliosPageClient({
             ))}
           </select>
 
-          {/* 件数 */}
           <p className="hidden whitespace-nowrap text-sm text-ink/65 sm:block">
             <span className="font-medium text-ink">{filteredWorks.length}</span> 件
           </p>
-
-          {/* モバイル: 絞り込みボタン */}
-          <button
-            type="button"
-            onClick={() => setMobileFiltersOpen(true)}
-            className="inline-flex items-center gap-2 rounded-md border border-ink/15 bg-paper px-3 py-2.5 text-sm font-medium text-ink hover:border-ink/30 lg:hidden"
-          >
-            <SlidersHorizontal size={14} strokeWidth={1.6} aria-hidden />
-            絞り込み
-          </button>
         </div>
       </div>
 
-      {/* ===== 2 カラム本体 ===== */}
-      <div className="flex gap-8">
-        {/* 左サイドバー (lg 以上) */}
-        <div className="hidden w-[260px] shrink-0 lg:block">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-2">
-            <PortfolioFiltersSidebar
-              filters={filters}
-              onChange={replaceFilters}
-              totalCount={filteredWorks.length}
-            />
+      {/* ===== 上部展開型 絞り込みバー (旧 左サイドバー を置き換え) ===== */}
+      <PortfolioFiltersBar
+        filters={filters}
+        onChange={replaceFilters}
+        totalCount={filteredWorks.length}
+      />
+
+      {/* ===== 作品グリッド (画面幅いっぱい) ===== */}
+      {filteredWorks.length === 0 ? (
+        <EmptyState
+          onReset={() => replaceFilters({ sortBy: filters.sortBy })}
+        />
+      ) : (
+        <>
+          {/* Justified Layout — flex-wrap + 1px gap + 行高さ揃え (Flickr 方式)
+              各カードは aspect_ratio に比例した width / 固定 height で配置 */}
+          <div className="flex flex-wrap gap-px bg-ink/[0.05]">
+            {visibleWorks.map((w) => (
+              <WorkCard
+                key={w.id}
+                work={w}
+                isLiked={likedIdSet.has(w.id)}
+                isAuthed={isAuthed}
+                onClick={setModalWork}
+              />
+            ))}
           </div>
-        </div>
 
-        {/* 右グリッド */}
-        <div className="min-w-0 flex-1">
-          {filteredWorks.length === 0 ? (
-            <EmptyState onReset={() => replaceFilters({ sortBy: filters.sortBy })} />
-          ) : (
-            <>
-              {/* Justified Layout — flex-wrap + 1px gap + 行高さ揃え (Flickr 方式)
-                  各カードは aspect_ratio に比例した width / 固定 height で配置 */}
-              <div className="flex flex-wrap gap-px bg-ink/[0.05]">
-                {visibleWorks.map((w) => (
-                  <WorkCard
-                    key={w.id}
-                    work={w}
-                    isLiked={likedIdSet.has(w.id)}
-                    isAuthed={isAuthed}
-                    onClick={setModalWork}
-                  />
-                ))}
-              </div>
-
-              {canLoadMore && (
-                <div className="mt-10 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={() => setPage((p) => p + 1)}
-                    className="btn-axis-light"
-                  >
-                    もっと見る ({filteredWorks.length - visibleWorks.length} 件)
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* ===== モバイルドロワー (絞り込み) ===== */}
-      {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileFiltersOpen(false)}
-            aria-hidden
-          />
-          <div className="absolute bottom-0 left-0 right-0 max-h-[88vh] overflow-y-auto rounded-t-3xl border-t border-ink/15 bg-paper p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-ink">絞り込み</h2>
+          {canLoadMore && (
+            <div className="mt-10 flex justify-center">
               <button
                 type="button"
-                onClick={() => setMobileFiltersOpen(false)}
-                aria-label="閉じる"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/10 text-ink/70"
+                onClick={() => setPage((p) => p + 1)}
+                className="btn-axis-light"
               >
-                <X size={16} strokeWidth={2} aria-hidden />
+                もっと見る ({filteredWorks.length - visibleWorks.length} 件)
               </button>
             </div>
-            <PortfolioFiltersSidebar
-              filters={filters}
-              onChange={replaceFilters}
-              totalCount={filteredWorks.length}
-            />
-            <button
-              type="button"
-              onClick={() => setMobileFiltersOpen(false)}
-              className="btn-axis-light mt-6 w-full"
-            >
-              {filteredWorks.length} 件を表示
-            </button>
-          </div>
-        </div>
+          )}
+        </>
       )}
 
       {/* ===== モーダル ===== */}
