@@ -185,7 +185,7 @@ export function FullscreenVideoModal({
               <Link
                 href={creatorHref}
                 onClick={(e) => e.stopPropagation()}
-                className="group inline-flex items-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-2.5 text-xs font-bold text-white shadow-[0_8px_22px_-8px_rgba(255,77,157,0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_30px_-8px_rgba(255,77,157,0.7)]"
+                className="group inline-flex items-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-2.5 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
               >
                 クリエイター詳細を見る
                 <ArrowRight

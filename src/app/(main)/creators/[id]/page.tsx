@@ -342,7 +342,9 @@ export default async function CreatorDetailPage({
             </div>
 
             {/* 右: メイン作品 — 名前ブロックに完全密着、横幅大きめ (最大 480px)。
-                ホバーで再生、クリックでポートフォリオセクションへスクロール。 */}
+                2026-06-24: ホバー待ちせず、ページ表示と同時に muted/autoplay/loop
+                で再生する。リンクは保持 (クリックで詳細モーダル相当の動線を残す
+                ため #portfolio へスクロール)。 */}
             {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
               <Link
                 href="#portfolio"
@@ -356,9 +358,10 @@ export default async function CreatorDetailPage({
                   alt={mainWork.title}
                   sizes="(max-width: 1024px) 100vw, 480px"
                   className="absolute inset-0 h-full w-full"
-                  showPlayIcon
+                  autoPlay
+                  showPlayIcon={false}
                 />
-                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_4px_10px_-2px_rgba(255,77,157,0.4)]">
+                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm">
                   ★ 代表作
                 </span>
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-8">
@@ -369,41 +372,9 @@ export default async function CreatorDetailPage({
               </Link>
             )}
             </div>
-
-            {/* Hero CTA + 最低受注金額 (カード内 同行) */}
-            <div className="mt-6 flex flex-col items-stretch gap-4 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                {minPackagePrice !== null ? (
-                  <>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                      最低受注金額
-                    </p>
-                    <p className="mt-1 text-2xl font-black tracking-tight text-neon-pink">
-                      ¥{minPackagePrice.toLocaleString()}
-                      <span className="ml-1 text-sm font-bold text-gray-500">
-                        〜
-                      </span>
-                    </p>
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-600">
-                    料金は <span className="font-bold text-gray-900">応相談</span>
-                  </p>
-                )}
-              </div>
-              <Link
-                href={orderHref}
-                className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_28px_-12px_rgba(255,77,157,0.55)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_38px_-12px_rgba(255,77,157,0.7)]"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Briefcase size={18} strokeWidth={1.8} aria-hidden />
-                  このクリエイターに依頼を相談
-                </span>
-                <span className="transition-transform group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
-            </div>
+            {/* 2026-06-24: 旧 Hero CTA + 最低受注金額 横長バーは撤去。
+                右カラム sticky の「最低対応金額カード + 依頼ボタン」と
+                完全に重複するため。 */}
           </div>
         </section>
 
@@ -452,7 +423,7 @@ export default async function CreatorDetailPage({
                   {creator.strengths.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-[0_0_14px_rgba(255,77,157,0.35)]"
+                      className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-sm"
                     >
                       <Sparkles size={14} strokeWidth={1.8} fill="currentColor" aria-hidden /> {s}
                     </span>
@@ -563,7 +534,7 @@ export default async function CreatorDetailPage({
 
                   <Link
                     href={orderHref}
-                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_10px_28px_-12px_rgba(255,77,157,0.55)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_38px_-12px_rgba(255,77,157,0.7)]"
+                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md"
                   >
                     <span className="inline-flex items-center gap-2">
                       <Briefcase size={16} strokeWidth={1.8} aria-hidden />
@@ -683,7 +654,7 @@ export default async function CreatorDetailPage({
           </div>
           <Link
             href={orderHref}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(255,77,157,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_-8px_rgba(255,77,157,0.7)]"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
           >
             依頼を相談
             <span>→</span>

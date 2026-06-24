@@ -374,10 +374,10 @@ function CreatorRow({
       {/* 人気クリエイターバッジ (gold/silver のみ) — 左上に表示、認証リボンの逆側 */}
       {tier !== "normal" && (
         <span
-          className={`absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[10px] font-black text-white shadow-[0_0_10px_rgba(0,0,0,0.3)] ${
+          className={`absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[10px] font-black text-white shadow-sm ${
             tier === "gold"
-              ? "bg-gradient-to-r from-neon-sunset to-neon-pink shadow-[0_0_14px_rgba(255,174,59,0.55)]"
-              : "bg-gradient-to-r from-neon-cyan to-neon-purple shadow-[0_0_14px_rgba(77,213,247,0.45)]"
+              ? "bg-gradient-to-r from-neon-sunset to-neon-pink"
+              : "bg-gradient-to-r from-neon-cyan to-neon-purple"
           }`}
         >
           {tier === "gold" ? (
@@ -401,7 +401,7 @@ function CreatorRow({
             <BadgeCheck size={12} strokeWidth={1.8} fill="currentColor" className="-mt-0.5 inline-block" aria-hidden /> 認証済
           </div>
           {/* リボン下部の折り影 */}
-          <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-neon-sunset/80 shadow-[0_0_8px_rgba(255,174,59,0.4)]" />
+          <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-neon-sunset/80" />
         </div>
       )}
       <span className="sr-only">
@@ -473,7 +473,7 @@ function CreatorRow({
               {creator.strengths.slice(0, 2).map((s) => (
                 <span
                   key={`st-${s}`}
-                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-[11px] font-bold text-ink shadow-[0_0_10px_rgba(255,77,157,0.15)]"
+                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-[11px] font-bold text-ink"
                 >
                   <Sparkles size={12} strokeWidth={1.8} fill="currentColor" aria-hidden /> {s}
                 </span>

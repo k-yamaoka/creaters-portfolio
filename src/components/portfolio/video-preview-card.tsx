@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useInViewport } from "@/hooks/use-in-viewport";
 import { derivePosterUrl } from "@/lib/video-poster";
@@ -13,12 +13,17 @@ type VideoPreviewCardProps = {
   sizes?: string;
   className?: string;
   showPlayIcon?: boolean;
+  /** 2026-06-24: true なら hover 待ちせず、画面内に入った瞬間に
+   *  muted autoplay loop で常時再生する (代表作の没入演出用)。
+   *  prefers-reduced-motion: reduce 時は autoplay を抑止。 */
+  autoPlay?: boolean;
 };
 
 /**
  * MP4 動画用プレビューカード。
  * - SNS 埋め込み (YouTube / Vimeo / TikTok / Instagram) は廃止
- * - hover 時に <video> を再生
+ * - 既定: hover 時に <video> を再生
+ * - autoPlay=true: 画面内に入ったら常時 autoplay (muted/loop/playsInline)
  * - サムネ画像が読み込めない場合は背景のみ表示
  * - <video> は viewport (+300px) に入ったタイミングで mount し、初期表示を軽くする
  * - Cloudinary 動画は拡張子 .jpg で first frame をポスター画像として即取得
@@ -31,10 +36,12 @@ export function VideoPreviewCard({
   sizes = "(max-width: 640px) 100vw, 50vw",
   className = "",
   showPlayIcon = true,
+  autoPlay = false,
 }: VideoPreviewCardProps) {
   void _videoPlatform; // 互換維持で受け取るだけ
   const [isHovering, setIsHovering] = useState(false);
   const [mediaLoaded, setMediaLoaded] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const { ref: rootRef, inView } = useInViewport<HTMLDivElement>("300px");
@@ -42,8 +49,39 @@ export function VideoPreviewCard({
   const hasVideo = !!videoUrl;
   const posterUrl = derivePosterUrl(videoUrl);
   const shouldRenderVideo = hasVideo && inView;
+  // autoPlay 時は hover 状態を常時 true と等価扱いにして video を可視 + 再生
+  const effectiveHovering = autoPlay ? !reducedMotion : isHovering;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(mq.matches);
+    const apply = () => setReducedMotion(mq.matches);
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  // autoPlay モード: video が mount されたら明示的に play()
+  useEffect(() => {
+    if (!autoPlay) return;
+    const v = videoRef.current;
+    if (!v) return;
+    if (reducedMotion) {
+      try {
+        v.pause();
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+    v.muted = true;
+    v.play().catch(() => {
+      /* autoplay rejection */
+    });
+  }, [autoPlay, shouldRenderVideo, reducedMotion]);
 
   const handleMouseEnter = () => {
+    if (autoPlay) return; // 常時再生中なので hover ロジック不要
     timeoutRef.current = setTimeout(() => {
       setIsHovering(true);
       if (videoRef.current) {
@@ -53,6 +91,7 @@ export function VideoPreviewCard({
   };
 
   const handleMouseLeave = () => {
+    if (autoPlay) return;
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -79,7 +118,7 @@ export function VideoPreviewCard({
           alt={alt}
           fill
           className={`object-cover transition-all duration-500 ${
-            isHovering && mediaLoaded ? "opacity-0" : "opacity-100"
+            effectiveHovering && mediaLoaded ? "opacity-0" : "opacity-100"
           }`}
           sizes={sizes}
         />
@@ -90,7 +129,7 @@ export function VideoPreviewCard({
           src={posterUrl}
           alt={alt}
           className={`absolute inset-0 h-full w-full object-cover transition-all duration-500 ${
-            isHovering && mediaLoaded ? "opacity-0" : "opacity-100"
+            effectiveHovering && mediaLoaded ? "opacity-0" : "opacity-100"
           }`}
           loading="lazy"
         />
@@ -123,6 +162,7 @@ export function VideoPreviewCard({
           muted
           loop
           playsInline
+          autoPlay={autoPlay && !reducedMotion}
           preload="metadata"
           onLoadedMetadata={(e) => {
             try {
@@ -134,7 +174,7 @@ export function VideoPreviewCard({
           onLoadedData={() => setMediaLoaded(true)}
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
             thumbnailUrl || posterUrl
-              ? isHovering && mediaLoaded
+              ? effectiveHovering && mediaLoaded
                 ? "opacity-100"
                 : "opacity-0"
               : "opacity-100"
@@ -142,8 +182,8 @@ export function VideoPreviewCard({
         />
       )}
 
-      {/* Play icon */}
-      {showPlayIcon && !(isHovering && mediaLoaded) && (
+      {/* Play icon — 常時再生モードでは出さない */}
+      {showPlayIcon && !autoPlay && !(isHovering && mediaLoaded) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
           <div className="scale-0 rounded-full bg-white/90 p-3.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
             <svg

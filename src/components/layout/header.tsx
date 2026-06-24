@@ -278,7 +278,7 @@ export function Header({
             className="group/logo flex items-center gap-2.5"
             aria-label="AILIER ホーム"
           >
-            <span className="block text-neon-pink transition-transform group-hover/logo:rotate-12 drop-shadow-[0_0_8px_rgba(255,77,157,0.6)]">
+            <span className="block text-neon-pink transition-transform group-hover/logo:rotate-12">
               <NeonStar size={32} />
             </span>
             <span className="flex flex-col leading-none">

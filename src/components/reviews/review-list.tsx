@@ -22,11 +22,12 @@ function getRatingDisplay(rating: number) {
 
 export function ReviewList({ reviews }: { reviews: Review[] }) {
   if (reviews.length === 0) {
+    // 2026-06-24: 旧 🌱 (seedling) アイコン + 「初回依頼で次の顧客に役立つ評価を…」
+    // の冗長文を撤去。ライトテーマに合わせて gray-* に切替。
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-5 text-sm text-white/60">
-        <span className="text-xl">🌱</span>
-        <span>まだレビューがありません。初回依頼で次の顧客に役立つ評価を残せます。</span>
-      </div>
+      <p className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-5 text-center text-sm text-gray-600">
+        まだレビューがありません。
+      </p>
     );
   }
 
@@ -41,30 +42,30 @@ export function ReviewList({ reviews }: { reviews: Review[] }) {
         return (
           <div
             key={review.id}
-            className="border-b border-white/10 pb-4 last:border-0"
+            className="border-b border-gray-100 pb-4 last:border-0"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-700">
                   {clientName[0]}
                 </div>
-                <span className="text-sm font-medium text-white">
+                <span className="text-sm font-medium text-gray-900">
                   {clientName}
                 </span>
               </div>
-              <span className="text-xs text-white/50">
+              <span className="text-xs text-gray-500">
                 {formatDateJP(review.created_at)}
               </span>
             </div>
             {/* Emoji rating */}
             <div className="mt-2 flex items-center gap-2">
               <span className="text-xl">{ratingDisplay.emoji}</span>
-              <span className="text-sm font-medium text-white/80">
+              <span className="text-sm font-medium text-gray-700">
                 {ratingDisplay.label}
               </span>
             </div>
             {review.comment && (
-              <p className="mt-2 text-sm leading-relaxed text-white/75">
+              <p className="mt-2 text-sm leading-relaxed text-gray-700">
                 {review.comment}
               </p>
             )}
