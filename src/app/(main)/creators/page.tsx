@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCreators, getCurrentUser } from "@/lib/supabase/queries";
 import { fixMissingThumbnails } from "@/lib/video-thumbnail";
+import { extractHeroVideos } from "@/lib/hero-videos";
 import { createClient } from "@/lib/supabase/server";
 import { CreatorsPageClient } from "./creators-client";
 
@@ -37,6 +38,8 @@ export default async function CreatorsPage() {
     likedIds = (data ?? []).map((r) => r.portfolio_item_id as string);
   }
 
+  const heroVideos = extractHeroVideos(creators);
+
   return (
     <CreatorsPageClient
       creators={creators}
@@ -44,6 +47,7 @@ export default async function CreatorsPage() {
       viewerCreatorId={user?.creator_profile?.id ?? null}
       likedIds={likedIds}
       isAuthed={!!authUser}
+      heroVideos={heroVideos}
     />
   );
 }

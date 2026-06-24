@@ -3,10 +3,8 @@ import { getCreators, type CreatorWithRelations } from "@/lib/supabase/queries";
 // 2026-06-19: Hero を axis-ov-films.co.jp 風の "100svh フルスクリーン動画 +
 // テキストオーバーレイ" 構造に。Supabase 投入済 18 本をシャッフルで順次再生。
 // 旧 2 カラム (HeroVideoGrid 縦自動マーキー) は撤去。
-import {
-  HeroFullscreen,
-  type FullscreenVideoSource,
-} from "@/components/home/hero-fullscreen";
+import { HeroFullscreen } from "@/components/home/hero-fullscreen";
+import { extractHeroVideos, isStockUrl } from "@/lib/hero-videos";
 import { HeroUnderBand, type BandWork } from "@/components/home/hero-under-band";
 import { WorksDigest, type DigestWork } from "@/components/home/works-digest";
 import { MarqueeText } from "@/components/home/marquee-text";
@@ -46,55 +44,8 @@ export const revalidate = 300;
 // Supabase 投入済 AILIER Showcase の portfolio_items から mp4 のみを集めて
 // HeroFullscreen に渡す。クライアント側でシャッフル→順次再生する。
 
-// 既存 DB に残る demo / stock 動画 URL の Blacklist。これらは初期 seed の
-// クリエイターに紐づく残骸で、最大 28MB のフリー素材が初期ロードを 9 秒以上
-// 遅延させる原因 (Lighthouse mobile LCP 9.3s)。AILIER Showcase 18 本以外で
-// これらのドメイン / パターンに合致する動画は TOP の全セクションで除外する。
-const STOCK_URL_BLACKLIST = [
-  "samplelib.com",
-  "download.samplelib.com",
-  "res.cloudinary.com/demo",
-  "test-videos.co.uk",
-  "interactive-examples.mdn.mozilla.net",
-  "Big_Buck_Bunny",
-  "sea_turtle",
-  "elephants",
-  "kitten",
-];
-function isStockUrl(url: string | null | undefined): boolean {
-  if (!url) return true;
-  return STOCK_URL_BLACKLIST.some((needle) =>
-    url.toLowerCase().includes(needle.toLowerCase())
-  );
-}
-
-function extractHeroVideos(
-  creators: CreatorWithRelations[]
-): FullscreenVideoSource[] {
-  type Scored = { src: string; poster: string | null; rank: number };
-  const out: Scored[] = [];
-  for (const c of creators) {
-    for (const p of c.portfolio_items) {
-      if (p.media_type !== "video") continue;
-      if (!p.video_url) continue;
-      // mp4 直リンクのみ (YouTube / Vimeo は埋め込み iframe が必要で
-      // フルスクリーン背景には不適)
-      if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
-      if (isStockUrl(p.video_url)) continue;
-      // 横型優先 (フルスクリーン背景は 16:9 が最も自然) で並べる
-      const orientationRank = p.aspect_ratio === "horizontal" ? 0 : 1;
-      const roleRank =
-        p.usage_role === "hero" ? 0 : p.is_featured ? 1 : 2;
-      out.push({
-        src: p.video_url,
-        poster: p.thumbnail_url ?? null,
-        rank: orientationRank * 10 + roleRank,
-      });
-    }
-  }
-  out.sort((a, b) => a.rank - b.rank);
-  return out.map(({ src, poster }) => ({ src, poster }));
-}
+// extractHeroVideos / isStockUrl / STOCK_URL_BLACKLIST は 2026-06-24 から
+// src/lib/hero-videos.ts に移管し、/creators・/portfolios と共有している。
 
 // Hero 直下動画帯用 — is_featured=true の作品を 4 本まで
 function extractBandWorks(creators: CreatorWithRelations[]): BandWork[] {

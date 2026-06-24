@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getCreators } from "@/lib/supabase/queries";
 import { fixMissingThumbnails } from "@/lib/video-thumbnail";
+import { extractHeroVideos } from "@/lib/hero-videos";
 import { createClient } from "@/lib/supabase/server";
 import { PortfoliosPageClient } from "./portfolios-client";
 
@@ -32,11 +33,14 @@ export default async function PortfoliosPage() {
     likedIds = (data ?? []).map((r) => r.portfolio_item_id as string);
   }
 
+  const heroVideos = extractHeroVideos(creators);
+
   return (
     <PortfoliosPageClient
       creators={creators}
       likedIds={likedIds}
       isAuthed={!!user}
+      heroVideos={heroVideos}
     />
   );
 }

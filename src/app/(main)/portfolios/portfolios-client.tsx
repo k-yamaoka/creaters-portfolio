@@ -7,6 +7,10 @@ import { PortfolioFiltersBar } from "@/components/portfolios/portfolio-filters-b
 import { WorkCard } from "@/components/portfolios/work-card";
 import { FullscreenVideoModal } from "@/components/portfolio/fullscreen-video-modal";
 import {
+  HeroFullscreen,
+  type FullscreenVideoSource,
+} from "@/components/home/hero-fullscreen";
+import {
   applyPortfolioFilters,
   flattenCreatorsToWorks,
   readFiltersFromQuery,
@@ -33,10 +37,13 @@ export function PortfoliosPageClient({
   creators,
   likedIds = [],
   isAuthed = false,
+  heroVideos = [],
 }: {
   creators: CreatorWithRelations[];
   likedIds?: string[];
   isAuthed?: boolean;
+  /** ページ最上部の HeroFullscreen 背景動画 (空のとき Hero 非表示) */
+  heroVideos?: FullscreenVideoSource[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -97,20 +104,40 @@ export function PortfoliosPageClient({
   const [modalWork, setModalWork] = useState<WorkEntry | null>(null);
 
   return (
-    // 2026-06-23: max-w-container → 撤去。コンテナを画面幅いっぱいに広げ、
-    // 作品グリッドが全幅表示されるようにする。両端 px-gutter は維持。
-    <div className="px-6 py-10 lg:px-10">
-      {/* ===== ヘッダ ===== */}
-      <div className="mb-8">
-        <p className="eyebrow-mono">(Works)<span className="ml-2 text-ink/35">／ 制作実績</span></p>
-        <h1 className="headline-display mt-4 text-[clamp(2rem,5vw,3.75rem)] text-ink">
-          All <span className="italic text-sand">works.</span>
-        </h1>
-        <p className="mt-2 font-sans text-sm text-ink/55">制作実績(すべての作品)</p>
-        <p className="body-jp mt-3 max-w-prose-jp text-sm text-ink/65">
-          Sora・Veo・Runway を使いこなす AI クリエイターの作品一覧。
-        </p>
-      </div>
+    <>
+      {/* === 2026-06-24: ページ最上部に TOP と同じ HeroFullscreen を配置 ===
+          18 本シャッフルで連続再生 + テキストオーバーレイ。ページタイトル
+          (All works. / 制作実績) をフルスクリーン動画の上に重ねる。 */}
+      {heroVideos.length > 0 && (
+        <HeroFullscreen videos={heroVideos}>
+          <div className="mt-auto pb-20 pt-32 sm:pb-28 lg:pb-32">
+            <div className="max-w-xl lg:max-w-2xl">
+              <p className="inline-flex items-center gap-2 rounded-pill border border-paper/20 bg-paper/[0.04] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/75 backdrop-blur-sm">
+                (Works) ／ 制作実績
+              </p>
+              <h1 className="headline-display mt-6 text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper">
+                All{" "}
+                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text italic text-transparent">
+                  works.
+                </span>
+              </h1>
+              <p className="body-jp mt-6 max-w-prose-jp text-sm text-paper/85 sm:text-base">
+                Sora・Veo・Runway を使いこなす AI クリエイターの作品一覧。
+                気になった動画はクリックすると大画面でフルスクリーン再生されます。
+              </p>
+              <span className="mt-10 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-paper/55">
+                <span aria-hidden>▾</span>
+                <span>(Scroll to browse works)</span>
+              </span>
+            </div>
+          </div>
+        </HeroFullscreen>
+      )}
+
+      {/* 2026-06-23: max-w-container → 撤去。コンテナを画面幅いっぱいに広げ、
+          作品グリッドが全幅表示されるようにする。両端 px-gutter は維持。
+          2026-06-24: Hero がページ上部に来たため py-10 → pt-12 で詰める */}
+      <div className="px-6 pb-10 pt-12 lg:px-10">
 
       {/* ===== トップツールバー (検索 + 並び順 + 件数) ===== */}
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -223,7 +250,8 @@ export function PortfoliosPageClient({
           onClose={() => setModalWork(null)}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }
 

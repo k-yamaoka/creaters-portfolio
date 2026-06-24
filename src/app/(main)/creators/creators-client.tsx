@@ -9,6 +9,10 @@ import { SearchTopBar } from "@/components/creators/search-filters";
 import { Star, Sparkles, Heart, BadgeCheck, Video } from "lucide-react";
 import { LikeButton } from "@/components/portfolio/like-button";
 import { FullscreenVideoModal } from "@/components/portfolio/fullscreen-video-modal";
+import {
+  HeroFullscreen,
+  type FullscreenVideoSource,
+} from "@/components/home/hero-fullscreen";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
 import { useInViewport } from "@/hooks/use-in-viewport";
@@ -21,12 +25,15 @@ export function CreatorsPageClient({
   viewerCreatorId,
   likedIds = [],
   isAuthed = false,
+  heroVideos = [],
 }: {
   creators: CreatorWithRelations[];
   viewerRole?: "creator" | "client" | "admin" | null;
   viewerCreatorId?: string | null;
   likedIds?: string[];
   isAuthed?: boolean;
+  /** ページ最上部の HeroFullscreen 背景動画 (空のとき Hero 非表示) */
+  heroVideos?: FullscreenVideoSource[];
 }) {
   const likedIdSet = useMemo(() => new Set(likedIds), [likedIds]);
   const isCreatorViewer = viewerRole === "creator";
@@ -166,23 +173,34 @@ export function CreatorsPageClient({
 
   return (
     <>
-      {/* 2026-06-17 Step 4-F: Axis 系トーン同期。グラデ + グロウブロブ撤去、
-          見出しを headline-display + 日本語小サブのバイリンガル構造に。 */}
-      <section className="relative bg-paper py-section-y-sm text-ink">
-        <div className="relative mx-auto max-w-wide px-gutter">
-          <p className="eyebrow-mono">(Creators)<span className="ml-2 text-ink/35">／ クリエイター</span></p>
-          <h1 className="headline-display mt-6 text-[clamp(2.25rem,5vw,4rem)] text-ink">
-            Choose your{" "}
-            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text italic text-transparent">
-              specialist.
-            </span>
-          </h1>
-          <p className="mt-2 font-sans text-sm text-ink/55">クリエイターを探す</p>
-          <p className="heading-jp mt-4 text-ink/75">
-            ツールから専門家を選ぶ。
-          </p>
-        </div>
-      </section>
+      {/* 2026-06-24: ページ最上部に TOP と同じ HeroFullscreen を配置。
+          18 本シャッフルで連続再生 + テキストオーバーレイ (Choose your specialist) */}
+      {heroVideos.length > 0 && (
+        <HeroFullscreen videos={heroVideos}>
+          <div className="mt-auto pb-20 pt-32 sm:pb-28 lg:pb-32">
+            <div className="max-w-xl lg:max-w-2xl">
+              <p className="inline-flex items-center gap-2 rounded-pill border border-paper/20 bg-paper/[0.04] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/75 backdrop-blur-sm">
+                (Creators) ／ クリエイター
+              </p>
+              <h1 className="headline-display mt-6 text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper">
+                Choose your{" "}
+                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text italic text-transparent">
+                  specialist.
+                </span>
+              </h1>
+              <p className="body-jp mt-6 max-w-prose-jp text-sm text-paper/85 sm:text-base">
+                Sora・Veo・Runway・Seedance を使いこなす AI クリエイターを、
+                ツール・ジャンル・料金で検索。気になるカードをクリックすると
+                代表作が大画面で再生されます。
+              </p>
+              <span className="mt-10 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-paper/55">
+                <span aria-hidden>▾</span>
+                <span>(Scroll to browse creators)</span>
+              </span>
+            </div>
+          </div>
+        </HeroFullscreen>
+      )}
 
       <div className="mx-auto max-w-container px-6 pb-10 pt-6 lg:px-10">
         {/* クリエイター本人向け案内 — search bar 直上に密着させ、Hero との余白を埋める */}
