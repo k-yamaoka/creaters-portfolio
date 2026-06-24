@@ -8,6 +8,7 @@ import { SearchTopBar } from "@/components/creators/search-filters";
 // OS 絵文字相当の MIcon も含めて廃止し、ライン系で一貫した質感に揃える。
 import { Star, Sparkles, Heart, BadgeCheck, Video } from "lucide-react";
 import { LikeButton } from "@/components/portfolio/like-button";
+import { FullscreenVideoModal } from "@/components/portfolio/fullscreen-video-modal";
 import type { CreatorWithRelations } from "@/lib/supabase/queries";
 import type { CreatorSearchFilters } from "@/types/database";
 import { useInViewport } from "@/hooks/use-in-viewport";
@@ -34,6 +35,40 @@ export function CreatorsPageClient({
   });
   // 2026-06-22 リスト/グリッド切替。既定はリスト (= 横長カード)。
   const [isGridView, setIsGridView] = useState(false);
+
+  // 2026-06-24 クリック時に開くフルスクリーン動画プレビュー。
+  // 代表作 (is_featured または mp4 を持つ先頭作品) を再生する。
+  const [previewCreator, setPreviewCreator] = useState<CreatorWithRelations | null>(null);
+  const previewWork = useMemo(() => {
+    if (!previewCreator) return null;
+    const hasMp4 = (p: CreatorWithRelations["portfolio_items"][number]) =>
+      p.media_type === "video" &&
+      !!p.video_url &&
+      /\.mp4(\?|$)/i.test(p.video_url);
+    return (
+      previewCreator.portfolio_items.find((p) => p.is_featured && hasMp4(p)) ??
+      previewCreator.portfolio_items.find(hasMp4) ??
+      null
+    );
+  }, [previewCreator]);
+
+  const handleOpenPreview = useCallback(
+    (creator: CreatorWithRelations, e: React.MouseEvent) => {
+      // Cmd/Ctrl/middle click は通常の Link 挙動 (新規タブで詳細ページ) を維持
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      // 代表作 mp4 が無いクリエイターは通常リンク (詳細ページに遷移)
+      const hasMp4 = creator.portfolio_items.some(
+        (p) =>
+          p.media_type === "video" &&
+          !!p.video_url &&
+          /\.mp4(\?|$)/i.test(p.video_url)
+      );
+      if (!hasMp4) return;
+      e.preventDefault();
+      setPreviewCreator(creator);
+    },
+    []
+  );
 
   const filteredCreators = useMemo(() => {
     let result = [...creators];
@@ -188,6 +223,7 @@ export function CreatorsPageClient({
                     creator={c}
                     likedIds={likedIdSet}
                     isAuthed={isAuthed}
+                    onPreviewClick={handleOpenPreview}
                   />
                 </RevealOnScroll>
               ))}
@@ -205,6 +241,7 @@ export function CreatorsPageClient({
                     creator={c}
                     likedIds={likedIdSet}
                     isAuthed={isAuthed}
+                    onPreviewClick={handleOpenPreview}
                   />
                 </RevealOnScroll>
               ))}
@@ -242,6 +279,19 @@ export function CreatorsPageClient({
           )}
         </div>
       </div>
+
+      {/* === フルスクリーン動画プレビュー (代表作 mp4) === */}
+      {previewCreator && previewWork && previewWork.video_url && (
+        <FullscreenVideoModal
+          videoUrl={previewWork.video_url}
+          posterUrl={previewWork.thumbnail_url ?? previewWork.image_url}
+          title={previewWork.title || previewCreator.profiles.display_name}
+          creatorName={previewCreator.profiles.display_name}
+          creatorHref={`/creators/${previewCreator.id}`}
+          likeCount={previewWork.like_count}
+          onClose={() => setPreviewCreator(null)}
+        />
+      )}
     </>
   );
 }
@@ -256,10 +306,14 @@ function CreatorRow({
   creator,
   likedIds,
   isAuthed = false,
+  onPreviewClick,
 }: {
   creator: CreatorWithRelations;
   likedIds?: Set<string>;
   isAuthed?: boolean;
+  /** クリック時にフルスクリーン動画プレビューを開く。代表作 mp4 が無ければ
+   *  通常の Link 挙動 (詳細ページ遷移) にフォールバック (親側で判定) */
+  onPreviewClick?: (creator: CreatorWithRelations, e: React.MouseEvent) => void;
 }) {
   const { profiles } = creator;
   const unitPrice = formatMinAmount(creator.minimum_order_amount);
@@ -314,6 +368,7 @@ function CreatorRow({
   return (
     <Link
       href={`/creators/${creator.id}`}
+      onClick={(e) => onPreviewClick?.(creator, e)}
       className={`group relative block overflow-hidden rounded-2xl border backdrop-blur-sm transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.08)] ${tierBg} ${tierRing}`}
     >
       {/* 人気クリエイターバッジ (gold/silver のみ) — 左上に表示、認証リボンの逆側 */}
@@ -610,10 +665,12 @@ function CreatorGridCard({
   creator,
   likedIds: _likedIds,
   isAuthed: _isAuthed,
+  onPreviewClick,
 }: {
   creator: CreatorWithRelations;
   likedIds?: Set<string>;
   isAuthed?: boolean;
+  onPreviewClick?: (creator: CreatorWithRelations, e: React.MouseEvent) => void;
 }) {
   void _likedIds;
   void _isAuthed;
@@ -637,6 +694,7 @@ function CreatorGridCard({
   return (
     <Link
       href={`/creators/${creator.id}`}
+      onClick={(e) => onPreviewClick?.(creator, e)}
       className="group relative block overflow-hidden rounded-2xl border border-ink/10 bg-paper transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:border-ink/25 hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.08)]"
     >
       {/* === サムネ (大) === */}

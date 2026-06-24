@@ -5,11 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { PortfolioFiltersBar } from "@/components/portfolios/portfolio-filters-bar";
 import { WorkCard } from "@/components/portfolios/work-card";
-import {
-  VideoModal,
-  type VideoModalCreator,
-  type VideoModalItem,
-} from "@/components/portfolio/video-modal";
+import { FullscreenVideoModal } from "@/components/portfolio/fullscreen-video-modal";
 import {
   applyPortfolioFilters,
   flattenCreatorsToWorks,
@@ -97,30 +93,8 @@ export function PortfoliosPageClient({
   );
   const canLoadMore = visibleWorks.length < filteredWorks.length;
 
-  // モーダル
+  // モーダル — クリック時にフルスクリーン動画モーダルを開く
   const [modalWork, setModalWork] = useState<WorkEntry | null>(null);
-  const modalItem: VideoModalItem | null = modalWork
-    ? {
-        id: modalWork.id,
-        title: modalWork.title,
-        description: modalWork.description,
-        media_type: modalWork.media_type,
-        video_url: modalWork.video_url,
-        video_platform: modalWork.video_platform,
-        image_url: modalWork.image_url,
-        thumbnail_url: modalWork.thumbnail_url,
-        aspect_ratio: modalWork.aspect_ratio,
-        like_count: modalWork.like_count,
-        liked: likedIdSet.has(modalWork.id),
-      }
-    : null;
-  const modalCreator: VideoModalCreator | null = modalWork
-    ? {
-        id: modalWork.creator_id,
-        display_name: modalWork.creator_display_name,
-        avatar_url: modalWork.creator_avatar_url,
-      }
-    : null;
 
   return (
     // 2026-06-23: max-w-container → 撤去。コンテナを画面幅いっぱいに広げ、
@@ -237,12 +211,15 @@ export function PortfoliosPageClient({
         </>
       )}
 
-      {/* ===== モーダル ===== */}
-      {modalWork && modalItem && modalCreator && (
-        <VideoModal
-          item={modalItem}
-          creator={modalCreator}
-          isAuthed={isAuthed}
+      {/* ===== フルスクリーン動画モーダル (TOP の HeroFullscreen と同じ体験) ===== */}
+      {modalWork && modalWork.video_url && (
+        <FullscreenVideoModal
+          videoUrl={modalWork.video_url}
+          posterUrl={modalWork.thumbnail_url ?? modalWork.image_url}
+          title={modalWork.title}
+          creatorName={modalWork.creator_display_name}
+          creatorHref={`/creators/${modalWork.creator_id}`}
+          likeCount={modalWork.like_count}
           onClose={() => setModalWork(null)}
         />
       )}
