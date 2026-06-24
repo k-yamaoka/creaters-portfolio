@@ -49,6 +49,24 @@
       transform: translateY(0);
     }
   }
+  /* 2026-06-24: ページ遷移時の軽量フェードイン。300ms ease-out で「フワッ」と現れる。
+     prefers-reduced-motion 時は即時表示 (動きなし)。 */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  .animate-fade-in {
+    animation: fadeIn 300ms ease-out both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in {
+      animation: none;
+    }
+  }
   /* 2026-06-16: ハイエンド ベージュアクセントへ変更 (旧ネオンピンクから) */
   ::selection {
     background: #e8d6cd;

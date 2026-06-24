@@ -174,7 +174,9 @@ export default async function CreatorDetailPage({
   const orderHref = `/dashboard/orders/new?creator_id=${creator.id}`;
 
   // ===== 00054 で追加した拡張フィールド =====
-  const coverImageUrl = creator.cover_image_url ?? null;
+  // 2026-06-24: cover_image_url は Hero 背景に使っていたが、ライトテーマ化で
+  // 背景画像が透かしのように残る問題があったため不使用に。データ自体は保持。
+  void creator.cover_image_url;
   const availabilityStatus = creator.availability_status ?? null;
   const typicalFirstDraftDays = creator.typical_first_draft_days ?? null;
   const socialLinks = creator.social_links ?? {};
@@ -205,15 +207,15 @@ export default async function CreatorDetailPage({
 
   return (
     <LikeDeltaProvider>
-      {/* =================================================
-          HERO BAND
-          ================================================= */}
-      {/* 2026-06-23 ライトテーマ化: 旧 cover image + 紫グリッド + ネオン blob を
-          完全撤去。Hero は border-bottom + 純白の bg-paper のみのクリーンな帯に。 */}
-      <section className="relative bg-paper py-12 text-gray-900 border-b border-gray-200">
-        <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          {/* Breadcrumb + Share */}
-          <div className="mb-6 flex items-center justify-between gap-3">
+      {/* 2026-06-24 Section A: ページ全体を bg-gray-50 + Card UI 構造に再設計。
+          - 各カードは bg-white + rounded-2xl + shadow-sm + border-gray-100 で統一
+          - 上部 (Hero) は「プロフィール概要カード」として 1 つの白カードに集約
+          - メインコンテンツ全体に animate-fade-in (300ms ease-out)
+          - 浮遊感のあるレイヤード構成で安価感を払拭 */}
+      <div className="min-h-screen bg-gray-50 animate-fade-in">
+        {/* === Breadcrumb + Share (薄いバー) === */}
+        <div className="bg-gray-50 pt-6">
+          <div className="mx-auto flex max-w-container items-center justify-between gap-3 px-6 lg:px-10">
             <nav className="text-xs text-gray-500">
               <Link href="/creators" className="hover:text-neon-pink">
                 AIクリエイターを探す
@@ -223,15 +225,21 @@ export default async function CreatorDetailPage({
             </nav>
             <ShareButton creatorName={displayName} />
           </div>
+        </div>
 
-          {/* 左: Avatar + 名前/ステータス、 右: 代表作。
-              名前ブロックと代表作の間は gap を 0 にしてサムネを目一杯大きく見せる。
-              (狭い画面では縦積み) */}
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-0">
-            {/* 左ブロック: Avatar + 名前/ステータス (内部 gap-6 で密結合) */}
+        {/* =================================================
+            プロフィール概要カード (Hero)
+            avatar + 名前 + バッジ + SNS + 代表作 + CTA + 最低受注金額 を
+            1 つの白いカードに集約
+            ================================================= */}
+        <section className="mx-auto max-w-container px-6 pt-6 lg:px-10">
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+            {/* 左: Avatar + 名前/ステータス、 右: 代表作。
+                狭い画面では縦積み */}
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-8">
             <div className="flex flex-1 items-center gap-6">
               {/* Avatar */}
-              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-sm">
+              <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-sm">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -333,12 +341,12 @@ export default async function CreatorDetailPage({
               </div>
             </div>
 
-            {/* 右: メイン作品 — 名前ブロックに完全密着、横幅大きめ (最大 520px / 名前ブロック幅相応)。
+            {/* 右: メイン作品 — 名前ブロックに完全密着、横幅大きめ (最大 480px)。
                 ホバーで再生、クリックでポートフォリオセクションへスクロール。 */}
             {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
               <Link
                 href="#portfolio"
-                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-2xl border border-gray-200 bg-paper shadow-md transition-transform hover:-translate-y-0.5 lg:w-[clamp(380px,40vw,480px)]"
+                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md lg:w-[clamp(360px,38vw,460px)]"
                 aria-label="代表作を見る"
               >
                 <VideoPreviewCard
@@ -346,75 +354,68 @@ export default async function CreatorDetailPage({
                   videoUrl={mainWork.video_url ?? ""}
                   videoPlatform={mainWork.video_platform ?? "mp4"}
                   alt={mainWork.title}
-                  sizes="(max-width: 1024px) 100vw, 520px"
+                  sizes="(max-width: 1024px) 100vw, 480px"
                   className="absolute inset-0 h-full w-full"
                   showPlayIcon
                 />
-                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_0_10px_rgba(255,77,157,0.5)]">
+                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-[0_4px_10px_-2px_rgba(255,77,157,0.4)]">
                   ★ 代表作
                 </span>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-neon-midnight-deep via-neon-midnight-deep/60 to-transparent px-3 pb-2 pt-8">
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-8">
                   <p className="line-clamp-1 text-xs font-bold text-white">
                     {mainWork.title}
                   </p>
                 </div>
               </Link>
             )}
-          </div>
-
-          {/* Hero CTAs */}
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href={orderHref}
-              className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-sm font-bold text-white shadow-[0_0_24px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_32px_rgba(255,77,157,0.6)]"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Briefcase size={18} strokeWidth={1.8} aria-hidden />
-                このクリエイターに依頼を相談
-                {minPackagePrice !== null && (
-                  <span className="ml-2 text-xs font-bold text-white/80">
-                    ¥{minPackagePrice.toLocaleString()}〜
-                  </span>
-                )}
-              </span>
-              <span className="transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </Link>
-          </div>
-
-          {/* 最低受注金額 — Hero 直下に大きく表示 */}
-          {minPackagePrice !== null && (
-            <div className="mt-6 rounded-2xl border border-neon-pink/30 bg-neon-pink/[0.05] p-5">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-0.5 text-[10px] font-black tracking-wider text-white">
-                  最低受注金額
-                </span>
-                <span className="text-xl font-black text-neon-pink sm:text-2xl">
-                  ¥{minPackagePrice.toLocaleString()}〜
-                  <span className="ml-1 text-xs font-bold text-gray-600">
-                    から相談可
-                  </span>
-                </span>
-              </div>
-              <p className="mt-3 text-[11px] text-gray-600">
-                ※ 仕様/尺/本数で見積もりは変動します。「依頼を相談」から具体条件をすり合わせできます。
-              </p>
             </div>
-          )}
-        </div>
-      </section>
 
-      {/* 2026-06-23 ライトテーマ化: glow blobs / card backdrop / 文字色を
-          全面的に gray-* に振り直す。装飾アイコン (点) は意味を持たないため撤去。 */}
-      <div className="relative mx-auto max-w-container px-6 py-12 lg:px-10">
-        <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-3">
+            {/* Hero CTA + 最低受注金額 (カード内 同行) */}
+            <div className="mt-6 flex flex-col items-stretch gap-4 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                {minPackagePrice !== null ? (
+                  <>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                      最低受注金額
+                    </p>
+                    <p className="mt-1 text-2xl font-black tracking-tight text-neon-pink">
+                      ¥{minPackagePrice.toLocaleString()}
+                      <span className="ml-1 text-sm font-bold text-gray-500">
+                        〜
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    料金は <span className="font-bold text-gray-900">応相談</span>
+                  </p>
+                )}
+              </div>
+              <Link
+                href={orderHref}
+                className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-sm font-bold text-white shadow-[0_10px_28px_-12px_rgba(255,77,157,0.55)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_38px_-12px_rgba(255,77,157,0.7)]"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Briefcase size={18} strokeWidth={1.8} aria-hidden />
+                  このクリエイターに依頼を相談
+                </span>
+                <span className="transition-transform group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* 2 カラム本体 — gap-6 で密度高め */}
+        <div className="mx-auto max-w-container px-6 pb-12 pt-6 lg:px-10">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Left Column: Profile + Portfolio */}
-          <div className="space-y-6 lg:col-span-2">
+          <div className="space-y-4 lg:col-span-2">
             {/* Profile */}
             <div
               id="profile"
-              className="scroll-mt-32 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+              className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
             >
               <h2 className="text-lg font-bold text-gray-900">プロフィール</h2>
               <p className="mt-4 whitespace-pre-line text-sm leading-[2] text-gray-700">
@@ -442,7 +443,7 @@ export default async function CreatorDetailPage({
 
             {/* 強み */}
             {creator.strengths.length > 0 && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
                 <h2 className="text-lg font-bold text-gray-900">強み</h2>
                 <p className="mt-1 text-xs text-gray-500">
                   AIクリエイターの中で「この人を選ぶ理由」
@@ -462,7 +463,7 @@ export default async function CreatorDetailPage({
 
             {/* 得意映像尺 */}
             {creator.video_lengths.length > 0 && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
                 <h2 className="text-lg font-bold text-gray-900">得意映像尺</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {creator.video_lengths.map((l) => (
@@ -479,7 +480,7 @@ export default async function CreatorDetailPage({
 
             {/* 使用 AI ツール — マッチング指標 (00054 で UI 復活) */}
             {creator.ai_tools.length > 0 && (
-              <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+              <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
                 <h2 className="text-lg font-bold text-gray-900">使用 AI ツール</h2>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {creator.ai_tools.map((t) => (
@@ -501,7 +502,7 @@ export default async function CreatorDetailPage({
             {creator.portfolio_items.length > 0 && (
               <div
                 id="portfolio"
-                className="scroll-mt-32 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+                className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
               >
                 <h2 className="mb-6 text-lg font-bold text-gray-900">
                   ポートフォリオ
@@ -517,7 +518,7 @@ export default async function CreatorDetailPage({
             {/* Reviews */}
             <div
               id="reviews"
-              className="scroll-mt-32 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
+              className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
             >
               <h2 className="mb-6 text-lg font-bold text-gray-900">
                 レビュー({reviews?.length ?? 0}件)
@@ -534,12 +535,13 @@ export default async function CreatorDetailPage({
             </div>
           </div>
 
-          {/* Right Column: 最低対応金額 + AI 見積もり + CTA
-              2026-06-23: top-40 → top-24 でヘッダ直下に追従、白基調化 */}
-          <div id="pricing" className="scroll-mt-32 space-y-5">
-            <div className="sticky top-24 space-y-5">
+          {/* Right Column: 最低対応金額 + AI 見積もり + QR
+              2026-06-24: 各カードを border-gray-100 + shadow-sm に統一、
+              sticky top-24 で常時画面内に追従。CTA は hover:-translate-y-1。 */}
+          <div id="pricing" className="scroll-mt-32 space-y-4">
+            <div className="sticky top-24 space-y-4">
               {/* Minimum price card */}
-              <div className="overflow-hidden rounded-2xl border border-neon-pink/30 bg-white shadow-md">
+              <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
                 <div className="bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-[0.16em] text-white">
                   最低対応金額
                 </div>
@@ -561,7 +563,7 @@ export default async function CreatorDetailPage({
 
                   <Link
                     href={orderHref}
-                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(255,77,157,0.55)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-8px_rgba(255,77,157,0.75)]"
+                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_10px_28px_-12px_rgba(255,77,157,0.55)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[0_18px_38px_-12px_rgba(255,77,157,0.7)]"
                   >
                     <span className="inline-flex items-center gap-2">
                       <Briefcase size={16} strokeWidth={1.8} aria-hidden />
@@ -585,9 +587,9 @@ export default async function CreatorDetailPage({
         </div>
       </div>
 
-      {/* Similar Creators — 2026-06-23 白基調化 */}
+      {/* Similar Creators — 2026-06-23 白基調化 / 2026-06-24 余白圧縮 */}
       {similarCreators.length > 0 && (
-        <section className="relative border-t border-gray-200 bg-gray-50 py-16">
+        <section className="relative border-t border-gray-100 py-12">
           <div className="relative mx-auto max-w-container px-6 lg:px-10">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
               <div>
@@ -625,16 +627,27 @@ export default async function CreatorDetailPage({
                   <Link
                     key={c.id}
                     href={`/creators/${c.id}`}
-                    className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_15px_35px_-15px_rgba(255,77,157,0.35)]"
+                    className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-md"
                   >
                     <div
-                      className="relative aspect-[4/3] w-full"
+                      className="relative aspect-[4/3] w-full overflow-hidden"
                       style={{
                         background: c.profiles?.avatar_url
-                          ? `url(${c.profiles.avatar_url}) center/cover`
+                          ? undefined
                           : gradients[idx % gradients.length],
                       }}
                     >
+                      {c.profiles?.avatar_url && (
+                        // 静的 background-image だと hover scale が効かないため
+                        // <Image> + group-hover:scale-105 で滑らかな拡大を実現
+                        <Image
+                          src={c.profiles.avatar_url}
+                          alt={c.profiles.display_name ?? "クリエイター"}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 25vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      )}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute bottom-3 left-3 right-3">
                         <p className="text-base font-bold text-white drop-shadow">
@@ -670,12 +683,13 @@ export default async function CreatorDetailPage({
           </div>
           <Link
             href={orderHref}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(255,77,157,0.5)]"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_8px_20px_-8px_rgba(255,77,157,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_28px_-8px_rgba(255,77,157,0.7)]"
           >
             依頼を相談
             <span>→</span>
           </Link>
         </div>
+      </div>
       </div>
     </LikeDeltaProvider>
   );

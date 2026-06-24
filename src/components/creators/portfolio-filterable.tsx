@@ -55,14 +55,14 @@ export function PortfolioFilterable({ items }: { items: Items }) {
               onClick={() => setSelected(tab.value)}
               className={`inline-flex items-center gap-2 rounded-pill border px-3.5 py-1.5 text-xs font-bold transition-all ${
                 isActive
-                  ? "border-neon-pink/60 bg-gradient-to-r from-neon-pink/20 to-neon-purple/20 text-white shadow-[0_0_12px_rgba(255,77,157,0.3)]"
-                  : "border-white/15 bg-white/5 text-white/70 hover:border-white/30 hover:text-white"
+                  ? "border-gray-900 bg-gray-900 text-white"
+                  : "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-900"
               }`}
             >
               {tab.label}
               <span
                 className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-                  isActive ? "bg-white/20 text-white" : "bg-white/10 text-white/70"
+                  isActive ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
                 }`}
               >
                 {count}

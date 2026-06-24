@@ -74,15 +74,18 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           {horizontalItems.map((item) => (
             <div key={item.id} className="group">
-              <div className="relative aspect-video overflow-hidden rounded-xl bg-white">
-                <VideoPreviewCard
-                  thumbnailUrl={item.thumbnail_url}
-                  videoUrl={item.video_url ?? ""}
-                  videoPlatform={item.video_platform}
-                  alt={item.title}
-                  sizes="(max-width: 640px) 100vw, 50vw"
-                  className="h-full w-full"
-                />
+              <div className="relative aspect-video overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md">
+                {/* inner wrapper: hover で内側だけ拡大、border は固定 */}
+                <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-105">
+                  <VideoPreviewCard
+                    thumbnailUrl={item.thumbnail_url}
+                    videoUrl={item.video_url ?? ""}
+                    videoPlatform={item.video_platform}
+                    alt={item.title}
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="h-full w-full"
+                  />
+                </div>
               </div>
               <div className="mt-3 min-w-0">
                 <h3 className="break-words text-sm font-bold text-[#222]">
@@ -124,15 +127,17 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {verticalItems.map((item) => (
               <div key={item.id} className="group">
-                <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-white">
-                  <VideoPreviewCard
-                    thumbnailUrl={item.thumbnail_url}
-                    videoUrl={item.video_url ?? ""}
-                    videoPlatform={item.video_platform}
-                    alt={item.title}
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                    className="h-full w-full"
-                  />
+                <div className="relative aspect-[9/16] overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-md">
+                  <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-105">
+                    <VideoPreviewCard
+                      thumbnailUrl={item.thumbnail_url}
+                      videoUrl={item.video_url ?? ""}
+                      videoPlatform={item.video_platform}
+                      alt={item.title}
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="h-full w-full"
+                    />
+                  </div>
                 </div>
                 <div className="mt-2 min-w-0">
                   <h3 className="line-clamp-2 break-words text-xs font-bold text-[#222]">
