@@ -43,36 +43,31 @@ export function CreatorsPageClient({
   // 2026-06-22 リスト/グリッド切替。既定はリスト (= 横長カード)。
   const [isGridView, setIsGridView] = useState(false);
 
-  // 2026-06-24 クリック時に開くフルスクリーン動画プレビュー。
-  // 代表作 (is_featured または mp4 を持つ先頭作品) を再生する。
-  const [previewCreator, setPreviewCreator] = useState<CreatorWithRelations | null>(null);
-  const previewWork = useMemo(() => {
-    if (!previewCreator) return null;
-    const hasMp4 = (p: CreatorWithRelations["portfolio_items"][number]) =>
-      p.media_type === "video" &&
-      !!p.video_url &&
-      /\.mp4(\?|$)/i.test(p.video_url);
-    return (
-      previewCreator.portfolio_items.find((p) => p.is_featured && hasMp4(p)) ??
-      previewCreator.portfolio_items.find(hasMp4) ??
-      null
-    );
-  }, [previewCreator]);
+  // 2026-06-25 サムネ押下時に開くフルスクリーン動画プレビュー。
+  // ユーザー要望:「サムネを押すと動画、それ以外は詳細ページに遷移」
+  // - カード全体は <Link> のまま (アバター / 名前 / 価格バッジ部分のクリックで
+  //   詳細ページへ通常遷移)
+  // - サムネだけが新しいイベントで stopPropagation + preventDefault してモーダル
+  //   を開く
+  type Preview = {
+    creator: CreatorWithRelations;
+    work: CreatorWithRelations["portfolio_items"][number];
+  };
+  const [preview, setPreview] = useState<Preview | null>(null);
 
-  const handleOpenPreview = useCallback(
-    (creator: CreatorWithRelations, e: React.MouseEvent) => {
-      // Cmd/Ctrl/middle click は通常の Link 挙動 (新規タブで詳細ページ) を維持
+  const handleOpenThumbPreview = useCallback(
+    (
+      creator: CreatorWithRelations,
+      work: CreatorWithRelations["portfolio_items"][number],
+      e: React.MouseEvent
+    ) => {
+      // Cmd/Ctrl/middle click は通常挙動 (上位 Link で新規タブ) に任せる
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
-      // 代表作 mp4 が無いクリエイターは通常リンク (詳細ページに遷移)
-      const hasMp4 = creator.portfolio_items.some(
-        (p) =>
-          p.media_type === "video" &&
-          !!p.video_url &&
-          /\.mp4(\?|$)/i.test(p.video_url)
-      );
-      if (!hasMp4) return;
+      if (!work.video_url || !/\.mp4(\?|$)/i.test(work.video_url)) return;
+      // 上位の Link への propagation を止める (カード全体 click が走らないように)
+      e.stopPropagation();
       e.preventDefault();
-      setPreviewCreator(creator);
+      setPreview({ creator, work });
     },
     []
   );
@@ -241,7 +236,7 @@ export function CreatorsPageClient({
                     creator={c}
                     likedIds={likedIdSet}
                     isAuthed={isAuthed}
-                    onPreviewClick={handleOpenPreview}
+                    onThumbPreviewClick={handleOpenThumbPreview}
                   />
                 </RevealOnScroll>
               ))}
@@ -259,7 +254,7 @@ export function CreatorsPageClient({
                     creator={c}
                     likedIds={likedIdSet}
                     isAuthed={isAuthed}
-                    onPreviewClick={handleOpenPreview}
+                    onThumbPreviewClick={handleOpenThumbPreview}
                   />
                 </RevealOnScroll>
               ))}
@@ -298,16 +293,16 @@ export function CreatorsPageClient({
         </div>
       </div>
 
-      {/* === フルスクリーン動画プレビュー (代表作 mp4) === */}
-      {previewCreator && previewWork && previewWork.video_url && (
+      {/* === フルスクリーン動画プレビュー (押されたサムネの作品) === */}
+      {preview && preview.work.video_url && (
         <FullscreenVideoModal
-          videoUrl={previewWork.video_url}
-          posterUrl={previewWork.thumbnail_url ?? previewWork.image_url}
-          title={previewWork.title || previewCreator.profiles.display_name}
-          creatorName={previewCreator.profiles.display_name}
-          creatorHref={`/creators/${previewCreator.id}`}
-          likeCount={previewWork.like_count}
-          onClose={() => setPreviewCreator(null)}
+          videoUrl={preview.work.video_url}
+          posterUrl={preview.work.thumbnail_url ?? preview.work.image_url}
+          title={preview.work.title || preview.creator.profiles.display_name}
+          creatorName={preview.creator.profiles.display_name}
+          creatorHref={`/creators/${preview.creator.id}`}
+          likeCount={preview.work.like_count}
+          onClose={() => setPreview(null)}
         />
       )}
     </>
@@ -324,14 +319,19 @@ function CreatorRow({
   creator,
   likedIds,
   isAuthed = false,
-  onPreviewClick,
+  onThumbPreviewClick,
 }: {
   creator: CreatorWithRelations;
   likedIds?: Set<string>;
   isAuthed?: boolean;
-  /** クリック時にフルスクリーン動画プレビューを開く。代表作 mp4 が無ければ
-   *  通常の Link 挙動 (詳細ページ遷移) にフォールバック (親側で判定) */
-  onPreviewClick?: (creator: CreatorWithRelations, e: React.MouseEvent) => void;
+  /** サムネクリック時にフルスクリーンモーダルを開くハンドラ。
+   *  カード全体の Link 挙動 (詳細ページ遷移) を妨げないため、サムネ側で
+   *  stopPropagation + preventDefault してから呼び出す前提。 */
+  onThumbPreviewClick?: (
+    creator: CreatorWithRelations,
+    work: CreatorWithRelations["portfolio_items"][number],
+    e: React.MouseEvent
+  ) => void;
 }) {
   const { profiles } = creator;
   const unitPrice = formatMinAmount(creator.minimum_order_amount);
@@ -386,7 +386,6 @@ function CreatorRow({
   return (
     <Link
       href={`/creators/${creator.id}`}
-      onClick={(e) => onPreviewClick?.(creator, e)}
       className={`group relative block overflow-hidden rounded-2xl border backdrop-blur-sm transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.08)] ${tierBg} ${tierRing}`}
     >
       {/* 人気クリエイターバッジ (gold/silver のみ) — 左上に表示、認証リボンの逆側 */}
@@ -539,6 +538,9 @@ function CreatorRow({
               liked={likedIds?.has(t.id) ?? false}
               isAuthed={isAuthed}
               onLikeChange={(delta) => applyLikeDelta(t.id, delta)}
+              onPreviewClick={(e) =>
+                onThumbPreviewClick?.(creator, t, e)
+              }
             />
           ))}
         </div>
@@ -558,12 +560,15 @@ function ThumbnailCard({
   liked = false,
   isAuthed = false,
   onLikeChange,
+  onPreviewClick,
 }: {
   item: CreatorWithRelations["portfolio_items"][0];
   liked?: boolean;
   isAuthed?: boolean;
   /** いいね数の delta を親 (CreatorRow) に伝搬 */
   onLikeChange?: (delta: number) => void;
+  /** サムネクリック時に親へ通知 (上位 Link への伝搬阻止は親側で実施済の前提) */
+  onPreviewClick?: (e: React.MouseEvent) => void;
 }) {
   const [hover, setHover] = useState(false);
   const [broken, setBroken] = useState(false);
@@ -593,14 +598,37 @@ function ThumbnailCard({
   // サムネ画像が読み込めない場合はタイル自体を非表示にする
   if (broken) return null;
 
+  // role=button + onClick + keyboard 対応で a11y を確保。上位 Link への
+  // 伝搬は親 (CreatorRow → CreatorsPageClient.handleOpenThumbPreview) で
+  // stopPropagation + preventDefault する。
+  const handleActivate = (e: React.MouseEvent | React.KeyboardEvent) => {
+    onPreviewClick?.(e as React.MouseEvent);
+  };
   return (
     <div
       ref={rootRef}
+      role={onPreviewClick ? "button" : undefined}
+      tabIndex={onPreviewClick ? 0 : undefined}
+      aria-label={onPreviewClick ? `${item.title} を再生` : undefined}
+      onClick={onPreviewClick ? handleActivate : undefined}
+      onKeyDown={
+        onPreviewClick
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                handleActivate(e);
+              }
+            }
+          : undefined
+      }
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
       className={`group/tile relative aspect-video overflow-hidden rounded-lg border border-gray-100 bg-paper shadow-sm transition-all duration-300 ease-out ${
+        onPreviewClick ? "cursor-pointer" : ""
+      } ${
         hover
           ? "z-30 scale-[1.08] shadow-[0_18px_40px_-12px_rgba(0,0,0,0.18)]"
           : "z-0"
@@ -683,12 +711,16 @@ function CreatorGridCard({
   creator,
   likedIds: _likedIds,
   isAuthed: _isAuthed,
-  onPreviewClick,
+  onThumbPreviewClick,
 }: {
   creator: CreatorWithRelations;
   likedIds?: Set<string>;
   isAuthed?: boolean;
-  onPreviewClick?: (creator: CreatorWithRelations, e: React.MouseEvent) => void;
+  onThumbPreviewClick?: (
+    creator: CreatorWithRelations,
+    work: CreatorWithRelations["portfolio_items"][number],
+    e: React.MouseEvent
+  ) => void;
 }) {
   void _likedIds;
   void _isAuthed;
@@ -709,14 +741,46 @@ function CreatorGridCard({
     0
   );
 
+  const coverIsPlayable =
+    !!cover?.video_url && /\.mp4(\?|$)/i.test(cover.video_url);
   return (
     <Link
       href={`/creators/${creator.id}`}
-      onClick={(e) => onPreviewClick?.(creator, e)}
       className="group relative block overflow-hidden rounded-2xl border border-ink/10 bg-paper transition-all duration-300 ease-out will-change-transform hover:-translate-y-1.5 hover:border-ink/25 hover:shadow-[0_18px_40px_-12px_rgba(0,0,0,0.08)]"
     >
-      {/* === サムネ (大) === */}
-      <div className="relative aspect-video w-full overflow-hidden bg-ink/[0.04]">
+      {/* === サムネ (大) ===
+          2026-06-25: サムネ click だけがフルスクリーン動画モーダル、それ以外
+          の領域 (アバター / 名前 / 価格) は Link で詳細ページに遷移する。 */}
+      <div
+        role={coverIsPlayable ? "button" : undefined}
+        tabIndex={coverIsPlayable ? 0 : undefined}
+        aria-label={
+          coverIsPlayable ? `${cover?.title ?? "代表作"} を再生` : undefined
+        }
+        onClick={
+          coverIsPlayable
+            ? (e) => onThumbPreviewClick?.(creator, cover!, e)
+            : undefined
+        }
+        onKeyDown={
+          coverIsPlayable
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onThumbPreviewClick?.(
+                    creator,
+                    cover!,
+                    e as unknown as React.MouseEvent
+                  );
+                }
+              }
+            : undefined
+        }
+        className={`relative aspect-video w-full overflow-hidden bg-ink/[0.04] ${
+          coverIsPlayable ? "cursor-pointer" : ""
+        }`}
+      >
         {cover?.thumbnail_url ? (
           <Image
             src={cover.thumbnail_url}
