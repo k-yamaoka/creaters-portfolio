@@ -163,7 +163,7 @@ export function CreatorQrCard({ url, creatorName }: Props) {
           type="button"
           onClick={downloadPng}
           disabled={!previewDataUrl || busy !== null}
-          className="inline-flex items-center justify-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-2 text-[11px] font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 rounded-pill bg-indigo-600 px-3 py-2 text-[11px] font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Download size={14} strokeWidth={1.8} aria-hidden />
           {busy === "png" ? "出力中…" : "PNG"}

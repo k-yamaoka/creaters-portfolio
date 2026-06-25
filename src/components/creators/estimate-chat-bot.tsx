@@ -43,11 +43,11 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gradient-to-r from-neon-cyan/10 to-neon-purple/10 px-5 py-4">
+      <div className="flex items-center justify-between gap-3 border-b border-gray-200 bg-gray-50 px-5 py-4">
         <div className="flex items-center gap-2">
           <span
             aria-hidden
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-neon-cyan to-neon-purple text-white shadow-sm"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm"
           >
             <Bot size={16} strokeWidth={2} />
           </span>
@@ -97,7 +97,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
                   <div
                     className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-xs leading-[1.7] ${
                       m.role === "user"
-                        ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-sm"
+                        ? "bg-indigo-600 text-white shadow-sm"
                         : "border border-gray-200 bg-white text-gray-800"
                     }`}
                   >
@@ -136,7 +136,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
         <button
           type="submit"
           disabled={isLoading || !input.trim()}
-          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:opacity-40 disabled:hover:translate-y-0"
+          className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-pill bg-indigo-600 px-4 text-xs font-bold text-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:opacity-40 disabled:hover:translate-y-0"
           aria-label="送信"
         >
           <SendHorizonal size={14} strokeWidth={2} aria-hidden />

@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 import { ReviewList } from "@/components/reviews/review-list";
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";
-import { Video, MessageCircle, Briefcase, Sparkles, ArrowRight } from "lucide-react";
+import { Video, Briefcase, Sparkles, ArrowRight, BadgeCheck } from "lucide-react";
 import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
@@ -54,53 +54,8 @@ export default async function CreatorDetailPage({
   }
   void viewerRole; // role 情報は今後の権限分岐用に保持
 
-  // ===== アクティビティ シグナル(過去90日分) =====
-  const ninetyDaysAgo = new Date(
-    Date.now() - 90 * 24 * 60 * 60 * 1000
-  ).toISOString();
-
-  // クリエイターが受信した DM 数 (過去90日)
-  const { count: receivedCount } = await supabase
-    .from("messages")
-    .select("*", { count: "exact", head: true })
-    .eq("receiver_id", creator.user_id)
-    .gte("created_at", ninetyDaysAgo);
-
-  // クリエイターが送信した DM 数 (過去90日)
-  const { count: sentCount } = await supabase
-    .from("messages")
-    .select("*", { count: "exact", head: true })
-    .eq("sender_id", creator.user_id)
-    .gte("created_at", ninetyDaysAgo);
-
-  // 最終アクティビティ(最新の送信メッセージ)
-  const { data: lastMessage } = await supabase
-    .from("messages")
-    .select("created_at")
-    .eq("sender_id", creator.user_id)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  // 受信に対する返信率 (粗い指標)
-  const replyRate =
-    receivedCount && receivedCount > 0
-      ? Math.min(100, Math.round(((sentCount ?? 0) / receivedCount) * 100))
-      : null;
-
-  const lastActiveAt = lastMessage?.created_at ?? creator.updated_at;
-  const daysSinceActive = Math.floor(
-    (Date.now() - new Date(lastActiveAt).getTime()) / (24 * 60 * 60 * 1000)
-  );
-  const activityLabel =
-    daysSinceActive === 0
-      ? "今日アクティブ"
-      : daysSinceActive < 7
-        ? `${daysSinceActive}日前にアクティブ`
-        : daysSinceActive < 30
-          ? `${Math.floor(daysSinceActive / 7)}週間前にアクティブ`
-          : `${Math.floor(daysSinceActive / 30)}ヶ月前にアクティブ`;
-  const isFresh = daysSinceActive < 7;
+  // 2026-06-25: 「アクティブ」「過去90日問い合わせ」「返信率」表示は UI から
+  // 撤去したため、関連の messages 集計クエリも撤去 (DB 負荷低減)。
 
   const { data: reviews } = await supabase
     .from("reviews")
@@ -180,23 +135,23 @@ export default async function CreatorDetailPage({
   const availabilityStatus = creator.availability_status ?? null;
   const typicalFirstDraftDays = creator.typical_first_draft_days ?? null;
   const socialLinks = creator.social_links ?? {};
-  // 稼働状況のバッジ表記
+  // 稼働状況のバッジ表記 (2026-06-25: ライトテーマ用に高コントラスト化)
   const AVAIL_BADGE: Record<string, { label: string; cls: string }> = {
     accepting: {
       label: "案件受付中",
-      cls: "bg-green-500/20 text-green-300 border-green-400/40",
+      cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
     },
     consultation_only: {
       label: "要相談",
-      cls: "bg-yellow-500/20 text-yellow-300 border-yellow-400/40",
+      cls: "bg-amber-50 text-amber-700 border-amber-200",
     },
     busy: {
       label: "繁忙",
-      cls: "bg-orange-500/20 text-orange-300 border-orange-400/40",
+      cls: "bg-orange-50 text-orange-700 border-orange-200",
     },
     paused: {
       label: "停止中",
-      cls: "bg-gray-500/20 text-gray-300 border-gray-400/40",
+      cls: "bg-gray-100 text-gray-700 border-gray-200",
     },
   };
   const availBadge = availabilityStatus
@@ -258,13 +213,19 @@ export default async function CreatorDetailPage({
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   {isVerified && (
-                    <span className="rounded-pill bg-neon-cyan/15 px-2 py-0.5 text-[10px] font-black text-neon-cyan">
+                    <span className="inline-flex items-center gap-1 rounded-pill bg-blue-50 px-2.5 py-0.5 text-[11px] font-bold text-blue-700">
+                      <BadgeCheck
+                        size={11}
+                        strokeWidth={2}
+                        fill="currentColor"
+                        aria-hidden
+                      />
                       認証済み
                     </span>
                   )}
                   {availBadge && (
                     <span
-                      className={`inline-flex items-center gap-1 rounded-pill border px-2.5 py-0.5 text-[10px] font-black ${availBadge.cls}`}
+                      className={`inline-flex items-center gap-1 rounded-pill border px-2.5 py-0.5 text-[11px] font-bold ${availBadge.cls}`}
                     >
                       <span
                         aria-hidden
@@ -285,31 +246,11 @@ export default async function CreatorDetailPage({
                   <TotalLikesBadge initialTotal={totalLikes} />
                 </div>
 
-                {/* Activity signals */}
+                {/* Activity signals — 2026-06-25:
+                    「〇週間前にアクティブ」「過去90日 N件の問い合わせ」
+                    「返信率」を撤去 (ユーザー要望: 不要表示)。
+                    初稿目安バッジのみ残す。 */}
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span
-                    className={`inline-flex items-center gap-1.5 rounded-pill border px-3 py-1 text-[11px] font-bold ${
-                      isFresh
-                        ? "border-neon-cyan/40 bg-neon-cyan/10 text-neon-cyan-soft"
-                        : "border-gray-200 bg-gray-50 text-gray-700"
-                    }`}
-                  >
-                    {isFresh && (
-                      <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
-                    )}
-                    {activityLabel}
-                  </span>
-                  {replyRate !== null && (
-                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold text-gray-700">
-                      <MessageCircle size={12} strokeWidth={1.8} aria-hidden />
-                      返信率 {replyRate}%
-                    </span>
-                  )}
-                  {receivedCount !== null && receivedCount !== undefined && (
-                    <span className="inline-flex items-center gap-1.5 rounded-pill border border-gray-200 bg-gray-50 px-3 py-1 text-[11px] font-bold text-gray-600">
-                      過去90日 {receivedCount}件の問い合わせ
-                    </span>
-                  )}
                   {typicalFirstDraftDays != null && (
                     <span
                       className="inline-flex items-center gap-1.5 rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-3 py-1 text-[11px] font-bold text-neon-purple-deep"
@@ -361,7 +302,7 @@ export default async function CreatorDetailPage({
                   autoPlay
                   showPlayIcon={false}
                 />
-                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-2.5 py-0.5 text-[10px] font-black text-white shadow-sm">
+                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gray-900/85 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-sm">
                   ★ 代表作
                 </span>
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-8">
@@ -388,7 +329,7 @@ export default async function CreatorDetailPage({
               id="profile"
               className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
             >
-              <h2 className="text-lg font-bold text-gray-900">プロフィール</h2>
+              <h2 className="border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">プロフィール</h2>
               <p className="mt-4 whitespace-pre-line text-sm leading-[2] text-gray-700">
                 {creator.bio}
               </p>
@@ -415,7 +356,7 @@ export default async function CreatorDetailPage({
             {/* 強み */}
             {creator.strengths.length > 0 && (
               <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-lg font-bold text-gray-900">強み</h2>
+                <h2 className="border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">強み</h2>
                 <p className="mt-1 text-xs text-gray-500">
                   AIクリエイターの中で「この人を選ぶ理由」
                 </p>
@@ -423,7 +364,7 @@ export default async function CreatorDetailPage({
                   {creator.strengths.map((s) => (
                     <span
                       key={s}
-                      className="inline-flex items-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-sm"
+                      className="inline-flex items-center gap-1.5 rounded-pill bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm"
                     >
                       <Sparkles size={14} strokeWidth={1.8} fill="currentColor" aria-hidden /> {s}
                     </span>
@@ -435,7 +376,7 @@ export default async function CreatorDetailPage({
             {/* 得意映像尺 */}
             {creator.video_lengths.length > 0 && (
               <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-lg font-bold text-gray-900">得意映像尺</h2>
+                <h2 className="border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">得意映像尺</h2>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {creator.video_lengths.map((l) => (
                     <span
@@ -452,7 +393,7 @@ export default async function CreatorDetailPage({
             {/* 使用 AI ツール — マッチング指標 (00054 で UI 復活) */}
             {creator.ai_tools.length > 0 && (
               <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-lg font-bold text-gray-900">使用 AI ツール</h2>
+                <h2 className="border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">使用 AI ツール</h2>
                 <div className="mt-4 flex flex-wrap gap-1.5">
                   {creator.ai_tools.map((t) => (
                     <span
@@ -475,7 +416,7 @@ export default async function CreatorDetailPage({
                 id="portfolio"
                 className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
               >
-                <h2 className="mb-6 text-lg font-bold text-gray-900">
+                <h2 className="mb-6 border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">
                   ポートフォリオ
                   <span className="ml-2 text-xs font-medium text-gray-500">
                     (代表作は上部に表示中)
@@ -491,7 +432,7 @@ export default async function CreatorDetailPage({
               id="reviews"
               className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
             >
-              <h2 className="mb-6 text-lg font-bold text-gray-900">
+              <h2 className="mb-6 border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">
                 レビュー({reviews?.length ?? 0}件)
               </h2>
               <ReviewList
@@ -513,13 +454,13 @@ export default async function CreatorDetailPage({
             <div className="sticky top-24 space-y-4">
               {/* Minimum price card */}
               <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                <div className="bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-center text-[10px] font-black uppercase tracking-[0.16em] text-white">
+                <div className="bg-gray-900 px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-white">
                   最低対応金額
                 </div>
                 <div className="p-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-sm text-gray-600">¥</span>
-                    <span className="text-4xl font-black tracking-tight text-neon-pink sm:text-5xl">
+                    <span className="text-4xl font-black tracking-tight text-gray-900 sm:text-5xl">
                       {minPackagePrice !== null
                         ? minPackagePrice.toLocaleString()
                         : "応相談"}
@@ -534,7 +475,7 @@ export default async function CreatorDetailPage({
 
                   <Link
                     href={orderHref}
-                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-md"
+                    className="mt-5 inline-flex w-full items-center justify-between gap-2 rounded-pill bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-lg"
                   >
                     <span className="inline-flex items-center gap-2">
                       <Briefcase size={16} strokeWidth={1.8} aria-hidden />
@@ -598,7 +539,7 @@ export default async function CreatorDetailPage({
                   <Link
                     key={c.id}
                     href={`/creators/${c.id}`}
-                    className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-md"
+                    className="group block overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-md"
                   >
                     <div
                       className="relative aspect-[4/3] w-full overflow-hidden"
@@ -646,7 +587,7 @@ export default async function CreatorDetailPage({
             <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
               最安料金
             </p>
-            <p className="text-base font-black text-neon-pink">
+            <p className="text-base font-black text-gray-900">
               {minPackagePrice !== null
                 ? `¥${minPackagePrice.toLocaleString()}〜`
                 : "応相談"}
@@ -654,7 +595,7 @@ export default async function CreatorDetailPage({
           </div>
           <Link
             href={orderHref}
-            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-pill bg-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:bg-indigo-700 hover:shadow-lg"
           >
             依頼を相談
             <span>→</span>
