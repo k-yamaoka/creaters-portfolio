@@ -33,13 +33,15 @@ export type { ResumeData, ResumeWork };
  */
 
 // === フォント登録 (一度だけ) =========================================
-// 2026-06-26: 旧 fonts.gstatic.com の hash 付き URL は 404 で取得できず、
-// PDF 生成全体が失敗していたので、安定した GitHub raw URL に差替え。
-// Google Fonts リポジトリは noto-sans-jp については variable font 1 ファイル
-// (NotoSansJP[wght].ttf) のみ提供しているため、normal / bold を同じソースから
-// fontWeight で出し分ける (react-pdf は variable font の wght 軸を解釈する)。
-const NOTO_SANS_JP_TTF =
-  "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf";
+// 2026-06-26:
+//  1) 旧 fonts.gstatic.com の hash 付き URL → 404 で全件失敗
+//  2) raw.githubusercontent.com 経由 → CSP の font-src に許可なく
+//     "Failed to fetch" (CORS / CSP)
+//  → public/fonts/ に variable Noto Sans JP を同梱して 'self' 配信に変更。
+//
+// variable font 1 ファイルで normal/bold をカバー (~9.6MB)。ブラウザキャッシュ
+// が効くため、同一クリエイターによる 2 回目以降のダウンロードはほぼ即時。
+const NOTO_SANS_JP_TTF = "/fonts/NotoSansJP.ttf";
 
 try {
   Font.register({
