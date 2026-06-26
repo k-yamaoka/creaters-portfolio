@@ -33,18 +33,20 @@ export type { ResumeData, ResumeWork };
  */
 
 // === フォント登録 (一度だけ) =========================================
-// Google Fonts CDN を直接参照。Web フォントの ttf URL を React PDF に渡す。
-// Noto Sans JP は変動長 family のため、normal / bold を別 src で登録する。
-const NOTO_REGULAR =
-  "https://fonts.gstatic.com/s/notosansjp/v53/-F6jfjtqLzI2JPCgQBnw7HFowSrXxs63ROvL.ttf";
-const NOTO_BOLD =
-  "https://fonts.gstatic.com/s/notosansjp/v53/-F6pfjtqLzI2JPCgQBnw7HFQoggM-FNVTLOnUOk.ttf";
+// 2026-06-26: 旧 fonts.gstatic.com の hash 付き URL は 404 で取得できず、
+// PDF 生成全体が失敗していたので、安定した GitHub raw URL に差替え。
+// Google Fonts リポジトリは noto-sans-jp については variable font 1 ファイル
+// (NotoSansJP[wght].ttf) のみ提供しているため、normal / bold を同じソースから
+// fontWeight で出し分ける (react-pdf は variable font の wght 軸を解釈する)。
+const NOTO_SANS_JP_TTF =
+  "https://raw.githubusercontent.com/google/fonts/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf";
+
 try {
   Font.register({
     family: "NotoSansJP",
     fonts: [
-      { src: NOTO_REGULAR, fontWeight: "normal" },
-      { src: NOTO_BOLD, fontWeight: "bold" },
+      { src: NOTO_SANS_JP_TTF, fontWeight: "normal" },
+      { src: NOTO_SANS_JP_TTF, fontWeight: "bold" },
     ],
   });
   // CJK の自動改行を許可 (react-pdf は空白で改行する既定。日本語は文字単位)

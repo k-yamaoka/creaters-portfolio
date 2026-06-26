@@ -63,7 +63,9 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       setTimeout(() => URL.revokeObjectURL(url), 0);
     } catch (e) {
       console.error("[ResumeDownloadButton] failed to generate PDF", e);
-      setError("PDF の生成に失敗しました。時間をおいて再度お試しください。");
+      const msg =
+        e instanceof Error ? e.message : "不明なエラーが発生しました";
+      setError(`PDF の生成に失敗しました: ${msg}`);
     } finally {
       setBusy(false);
     }
