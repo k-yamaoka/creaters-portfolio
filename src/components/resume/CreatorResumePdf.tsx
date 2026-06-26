@@ -122,15 +122,18 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   headerName: {
-    // bold が効かないため fontSize と letterSpacing で強調
-    fontSize: 26,
+    // bold が効かないため fontSize と letterSpacing で強調。
+    // 2026-06-26: @react-pdf 4.x は大きい fontSize での自動 line-height
+    // 計算が不安定で、subtitle と重なる現象があった。明示的に lineHeight 1.3
+    // を指定して Text の高さを確保する。
+    fontSize: 24,
     letterSpacing: 1,
-    marginTop: 6,
+    lineHeight: 1.3,
   },
   headerSubtitle: {
     fontSize: 9,
     color: PALETTE.textMuted,
-    marginTop: 2,
+    marginTop: 6,
   },
   // === Section ===
   sectionWrap: {
@@ -372,14 +375,20 @@ export function CreatorResumePdf({
     >
       {/* ========== Page 1: プロフィール ========== */}
       <Page size="A4" style={styles.page}>
-        {/* Header */}
+        {/* Header — 各 Text を View ラッパで明示的に block 分離 */}
         <View>
-          <Text style={styles.headerTitle}>CREATOR RESUME ／ 職務経歴書</Text>
-          <Text style={styles.headerName}>{safeName}</Text>
-          <Text style={styles.headerSubtitle}>
-            {data.location ? `${data.location} ／ ` : ""}
-            経験年数 {data.yearsOfExperience} 年 ／ 発行日 {generatedAt}
-          </Text>
+          <View>
+            <Text style={styles.headerTitle}>CREATOR RESUME ／ 職務経歴書</Text>
+          </View>
+          <View style={{ marginTop: 8 }}>
+            <Text style={styles.headerName}>{safeName}</Text>
+          </View>
+          <View>
+            <Text style={styles.headerSubtitle}>
+              {data.location ? `${data.location} ／ ` : ""}
+              経験年数 {data.yearsOfExperience} 年 ／ 発行日 {generatedAt}
+            </Text>
+          </View>
         </View>
 
         {/* 自己紹介 */}
@@ -490,11 +499,17 @@ export function CreatorResumePdf({
       {data.works.length > 0 && (
         <Page size="A4" style={styles.page} wrap>
           <View>
-            <Text style={styles.headerTitle}>WORKS ／ 過去の作品</Text>
-            <Text style={styles.headerName}>{safeName}</Text>
-            <Text style={styles.headerSubtitle}>
-              全 {data.works.length} 件 ／ サムネと外部リンクを併記
-            </Text>
+            <View>
+              <Text style={styles.headerTitle}>WORKS ／ 過去の作品</Text>
+            </View>
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.headerName}>{safeName}</Text>
+            </View>
+            <View>
+              <Text style={styles.headerSubtitle}>
+                全 {data.works.length} 件 ／ サムネと外部リンクを併記
+              </Text>
+            </View>
           </View>
 
           <View style={{ marginTop: 14 }}>
