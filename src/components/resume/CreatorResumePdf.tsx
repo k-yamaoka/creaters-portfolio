@@ -32,29 +32,46 @@ export type { ResumeData, ResumeWork };
  *  - thumbnail_url が NULL の作品は灰色プレースホルダで描画
  */
 
-// === フォント登録 (一度だけ) =========================================
+// === フォント登録 (Button から事前 fetch 済の ArrayBuffer を受け取る) ====
 // 2026-06-26:
 //  1) 旧 fonts.gstatic.com の hash 付き URL → 404 で全件失敗
 //  2) raw.githubusercontent.com 経由 → CSP の font-src に許可なく
 //     "Failed to fetch" (CORS / CSP)
 //  → public/fonts/ に variable Noto Sans JP を同梱して 'self' 配信に変更。
 //
-// variable font 1 ファイルで normal/bold をカバー (~9.6MB)。ブラウザキャッシュ
-// が効くため、同一クリエイターによる 2 回目以降のダウンロードはほぼ即時。
+// さらに、ResumeDownloadButton 側で fetch + ストリーミング進捗計測してから
+// ArrayBuffer を Font.register に渡すことで、@react-pdf の内部 fetch を
+// スキップし「リアルタイム %」を表示可能にしている。
 const NOTO_SANS_JP_TTF = "/fonts/NotoSansJP.ttf";
 
-try {
-  Font.register({
-    family: "NotoSansJP",
-    fonts: [
-      { src: NOTO_SANS_JP_TTF, fontWeight: "normal" },
-      { src: NOTO_SANS_JP_TTF, fontWeight: "bold" },
-    ],
-  });
-  // CJK の自動改行を許可 (react-pdf は空白で改行する既定。日本語は文字単位)
-  Font.registerHyphenationCallback((word) => Array.from(word));
-} catch {
-  /* HMR で多重登録される可能性があるので無視 */
+let _fontRegistered = false;
+
+/**
+ * フォントを (URL または事前 fetch 済 ArrayBuffer から) 登録する。
+ * - fontData が渡されれば内部 fetch を回避できるため進捗計測しやすい
+ * - 初回 register 後はキャッシュされるので fontData なしの 2 回目以降は no-op
+ */
+export function registerResumeFont(fontData?: ArrayBuffer) {
+  if (_fontRegistered) return;
+  try {
+    // @react-pdf/renderer の型定義 (4.x) では Font.register の src が
+    // string しか受けないが、ランタイムは ArrayBuffer / Uint8Array / Blob も
+    // 解釈する。事前 fetch 済の Buffer を渡すと内部 fetch を回避できるため
+    // 進捗計測しやすい。型のミスマッチは as never で受け流す。
+    const src = (fontData ?? NOTO_SANS_JP_TTF) as unknown as string;
+    Font.register({
+      family: "NotoSansJP",
+      fonts: [
+        { src, fontWeight: "normal" },
+        { src, fontWeight: "bold" },
+      ],
+    });
+    // CJK の自動改行を許可 (react-pdf は空白で改行する既定、日本語は文字単位)
+    Font.registerHyphenationCallback((word) => Array.from(word));
+    _fontRegistered = true;
+  } catch {
+    /* HMR で多重登録される可能性があるので無視 */
+  }
 }
 
 // === Styles ==========================================================
