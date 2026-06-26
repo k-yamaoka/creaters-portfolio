@@ -92,13 +92,17 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
     setProgress(0);
     setStage("loading_font");
     try {
-      // === 1) フォントを ストリーミングで取得 (0 → 80%) ====================
-      // @react-pdf 内部 fetch だと進捗が取れないため、自前で fetch して
-      // ArrayBuffer を直接 Font.register に渡す。
-      const fontBuf = await fetchWithProgress(
+      // === 1) フォントをストリーミング fetch して HTTP キャッシュに温める (0→80%) ==
+      // 役割は 2 つ:
+      //  - リアルタイムの進捗 % を表示するため byte ストリームを観察
+      //  - 受信完了 = ブラウザの HTTP キャッシュに格納される。後段の
+      //    @react-pdf 内部 fetch (同一 URL) はキャッシュから即時 hit する
+      // 自前 fetch の結果 ArrayBuffer は破棄してよい。Font.register には
+      // 通常の URL string を渡す方が 4.x の挙動と最も整合する (blob: URL も
+      // src でないコンテキストで indexOf を呼ぶ箇所があり例外になり得る)。
+      await fetchWithProgress(
         "/fonts/NotoSansJP.ttf",
         (received, total) => {
-          // total が無い場合は 0〜80% を 1MB あたり 8% で進める疑似値
           if (total) {
             setProgress(Math.min(80, Math.round((received / total) * 80)));
           } else {
@@ -109,15 +113,7 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
         }
       );
 
-      // === 2) フォント ArrayBuffer を Blob → ObjectURL 化 ================
-      // @react-pdf 4.x の Font.register は src を文字列前提で扱うため、
-      // 事前 fetch 済の Buffer は blob: URL の文字列に変換して渡す。
-      // これで @react-pdf 内部 fetch (blob: URL から即時 resolve) も
-      // 進捗計測済の本物データを使い回せる。
-      const fontBlob = new Blob([fontBuf], { type: "font/ttf" });
-      const fontBlobUrl = URL.createObjectURL(fontBlob);
-
-      // === 3) @react-pdf + Resume コンポーネントを動的 import (80% → 88%) =
+      // === 2) @react-pdf + Resume コンポーネントを動的 import (80% → 88%) =
       setStage("rendering");
       setProgress(82);
       const [{ pdf }, { CreatorResumePdf, registerResumeFont }] =
@@ -125,15 +121,17 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
           import("@react-pdf/renderer"),
           import("./CreatorResumePdf"),
         ]);
-      registerResumeFont(fontBlobUrl);
+      // 引数なし = /fonts/NotoSansJP.ttf を src に。ブラウザ HTTP キャッシュが
+      // 効いているため @react-pdf 内部 fetch は即時 resolve する。
+      registerResumeFont();
       setProgress(88);
 
-      // === 4) 仮想 DOM → PDF instance (88 → 95%) ==========================
+      // === 3) 仮想 DOM → PDF instance (88 → 95%) ==========================
       const doc = <CreatorResumePdf data={data} />;
       const inst = pdf(doc);
       setProgress(95);
 
-      // === 5) Blob 化 + ダウンロード (95 → 100%) ===========================
+      // === 4) Blob 化 + ダウンロード (95 → 100%) ===========================
       setStage("finalizing");
       const blob = await inst.toBlob();
       setProgress(98);
@@ -145,12 +143,7 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => {
-        URL.revokeObjectURL(url);
-        // フォント blob URL は登録済なので revoke しない (再生成時に再利用)
-        // - ページ再読込で破棄される自然な lifecycle に任せる
-        void fontBlobUrl;
-      }, 0);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
 
       setProgress(100);
       setStage("done");
@@ -160,9 +153,18 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
         setProgress(0);
       }, 1500);
     } catch (e) {
+      // 失敗原因の調査用に stack も含めて console + UI に出す
       console.error("[ResumeDownloadButton] failed to generate PDF", e);
       const msg = e instanceof Error ? e.message : "不明なエラー";
-      setError(`PDF の生成に失敗しました: ${msg}`);
+      const stack =
+        e instanceof Error && e.stack
+          ? e.stack.split("\n").slice(0, 3).join(" | ")
+          : "";
+      setError(
+        stack
+          ? `PDF の生成に失敗しました: ${msg}\n\n[debug] ${stack}`
+          : `PDF の生成に失敗しました: ${msg}`
+      );
       setStage("idle");
       setProgress(0);
     }
@@ -214,12 +216,12 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       )}
 
       {error && (
-        <p
+        <pre
           role="alert"
-          className="mt-2 rounded-md bg-red-50 px-3 py-1.5 text-xs text-red-700"
+          className="mt-2 whitespace-pre-wrap rounded-md bg-red-50 px-3 py-1.5 text-xs text-red-700"
         >
           {error}
-        </p>
+        </pre>
       )}
 
       {!busy && (
