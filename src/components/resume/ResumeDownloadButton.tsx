@@ -48,13 +48,51 @@ function safeFilename(name: string): string {
   return trimmed || "creator";
 }
 
-/** Blob → "data:image/...;base64,..." 形式 dataURL に変換 */
-function blobToDataUrl(blob: Blob): Promise<string> {
+/** Blob → Image → Canvas で targetMaxWidth に縮小 + JPEG dataURL 化。
+ *
+ *  なぜそのまま blobToDataUrl しないか:
+ *  - Supabase の thumb は 480px wide JPEG (~30-50KB)。これを 4 枚埋め込むと
+ *    PDF が数 MB 肥大化し、@react-pdf 4.x の画像デコードが極端に遅くなる
+ *    (99% で hang したように見える)。
+ *  - PDF 上の表示サイズは 110px wide で十分なので、Canvas で resize して
+ *    JPEG q=0.85 で再エンコードすれば 1 枚 5-10KB に削減。
+ *  - 同時に、WebP や exotic な画像形式を JPEG に正規化できるので
+ *    @react-pdf のサポート範囲 (JPEG/PNG) に確実に収まる。
+ */
+function blobToResizedJpegDataUrl(
+  blob: Blob,
+  targetMaxWidth = 320
+): Promise<string> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error ?? new Error("FileReader error"));
-    reader.readAsDataURL(blob);
+    const img = new window.Image();
+    const objectUrl = URL.createObjectURL(blob);
+    img.onload = () => {
+      try {
+        const ratio = img.height / img.width;
+        const w = Math.min(targetMaxWidth, img.width);
+        const h = Math.round(w * ratio);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("canvas 2D context unavailable");
+        // 白塗り (透過 PNG が JPEG 化で黒くなるのを防ぐ)
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+        URL.revokeObjectURL(objectUrl);
+        resolve(dataUrl);
+      } catch (e) {
+        URL.revokeObjectURL(objectUrl);
+        reject(e);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("image decode failed"));
+    };
+    img.src = objectUrl;
   });
 }
 
@@ -147,7 +185,10 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
               const res = await fetch(w.thumbnail_url!);
               if (!res.ok) throw new Error(`thumb HTTP ${res.status}`);
               const blob = await res.blob();
-              thumbDataUrls[w.id] = await blobToDataUrl(blob);
+              // 縦型は 9:16 で表示するため 200px 幅まで、横型/正方形は
+              // 320px 幅で十分 (PDF の表示サイズ + retina 2x 程度)
+              const maxW = w.aspect_ratio === "vertical" ? 200 : 320;
+              thumbDataUrls[w.id] = await blobToResizedJpegDataUrl(blob, maxW);
             } catch (e) {
               console.warn(
                 "[ResumeDownloadButton] thumbnail fetch failed",
