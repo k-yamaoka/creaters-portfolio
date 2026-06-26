@@ -336,7 +336,19 @@ function ThumbnailBox({ work }: { work: ResumeWork }) {
   return <PdfImage src={work.thumbnail_url} style={styleByAspect} />;
 }
 
-export function CreatorResumePdf({ data }: { data: ResumeData }) {
+/**
+ * 2026-06-26: サムネ画像 (PdfImage) を有効にすると pdf.toBlob() が 95% で
+ * 固まる事象を確認。Supabase Storage URL の fetch が @react-pdf 内部で
+ * resolve せず Promise が止まる。当面 withThumbnails=false で安全側に倒し、
+ * 後日「事前 fetch + dataURL 化」を実装してから true に戻す。
+ */
+export function CreatorResumePdf({
+  data,
+  withThumbnails = false,
+}: {
+  data: ResumeData;
+  withThumbnails?: boolean;
+}) {
   const generatedAt = new Date().toLocaleDateString("ja-JP", {
     year: "numeric",
     month: "short",
@@ -481,7 +493,7 @@ export function CreatorResumePdf({ data }: { data: ResumeData }) {
           <View style={{ marginTop: 14 }}>
             {data.works.map((w) => (
               <View key={w.id} style={styles.workCard} wrap={false}>
-                <ThumbnailBox work={w} />
+                {withThumbnails && <ThumbnailBox work={w} />}
                 <View style={styles.workInfo}>
                   <Text style={styles.workTitle}>{w.title}</Text>
                   <Text style={styles.workMeta}>

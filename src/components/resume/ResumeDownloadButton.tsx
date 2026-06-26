@@ -131,10 +131,21 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       const inst = pdf(doc);
       setProgress(95);
 
-      // === 4) Blob 化 + ダウンロード (95 → 100%) ===========================
+      // === 4) Blob 化 + ダウンロード (95 → 99%) ===========================
+      // pdf.toBlob() は内部で非同期に layout 計算するため、見かけ上 95% で
+      // 数秒固まる。完了を待つ間、疑似プログレスで 95→99% に滑らかに進める。
       setStage("finalizing");
-      const blob = await inst.toBlob();
-      setProgress(98);
+      let pseudoProgress = 95;
+      const pseudoTimer = window.setInterval(() => {
+        pseudoProgress = Math.min(99, pseudoProgress + 1);
+        setProgress(pseudoProgress);
+      }, 250);
+      let blob: Blob;
+      try {
+        blob = await inst.toBlob();
+      } finally {
+        window.clearInterval(pseudoTimer);
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
