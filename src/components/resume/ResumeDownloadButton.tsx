@@ -155,15 +155,17 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       // 自前 fetch の結果 ArrayBuffer は破棄してよい。Font.register には
       // 通常の URL string を渡す方が 4.x の挙動と最も整合する (blob: URL も
       // src でないコンテキストで indexOf を呼ぶ箇所があり例外になり得る)。
+      // フォント = /fonts/SawarabiGothic.ttf (~1.9MB)
       await fetchWithProgress(
-        "/fonts/NotoSansJP.ttf",
+        "/fonts/SawarabiGothic.ttf",
         (received, total) => {
           // フォント DL は 0→60%。残り 60→80% を画像取得に割当てる。
           if (total) {
             setProgress(Math.min(60, Math.round((received / total) * 60)));
           } else {
+            // Content-Length が無いケース: 2MB と想定して進捗計算
             setProgress(
-              Math.min(60, Math.round((received / (10 * 1024 * 1024)) * 60))
+              Math.min(60, Math.round((received / (2 * 1024 * 1024)) * 60))
             );
           }
         }

@@ -33,16 +33,17 @@ export type { ResumeData, ResumeWork };
  */
 
 // === フォント登録 (Button から事前 fetch 済の ArrayBuffer を受け取る) ====
-// 2026-06-26:
+// 2026-06-26 経緯:
 //  1) 旧 fonts.gstatic.com の hash 付き URL → 404 で全件失敗
 //  2) raw.githubusercontent.com 経由 → CSP の font-src に許可なく
 //     "Failed to fetch" (CORS / CSP)
-//  → public/fonts/ に variable Noto Sans JP を同梱して 'self' 配信に変更。
-//
-// さらに、ResumeDownloadButton 側で fetch + ストリーミング進捗計測してから
-// ArrayBuffer を Font.register に渡すことで、@react-pdf の内部 fetch を
-// スキップし「リアルタイム %」を表示可能にしている。
-const NOTO_SANS_JP_TTF = "/fonts/NotoSansJP.ttf";
+//  3) public/fonts/NotoSansJP.ttf (variable, 9.6MB) → 自前ホスト OK だが
+//     @react-pdf 4.x が variable font の vertical metrics を正しく取れず、
+//     h1 (見出し名) と subtitle の baseline が衝突し文字が重なる
+//  → static (non-variable) フォント Sawarabi Gothic Regular (1.9MB) に
+//     差し替え。bold は無いが見出しは fontSize と letterSpacing で強調。
+const RESUME_FONT_TTF = "/fonts/SawarabiGothic.ttf";
+const RESUME_FONT_FAMILY = "SawarabiGothic";
 
 let _fontRegistered = false;
 
@@ -64,13 +65,13 @@ let _fontRegistered = false;
 export function registerResumeFont(srcOverride?: string) {
   if (_fontRegistered) return;
   try {
-    const src = srcOverride ?? NOTO_SANS_JP_TTF;
+    const src = srcOverride ?? RESUME_FONT_TTF;
     // 2026-06-26: 同じ variable font src で normal/bold を別 fontWeight として
     // 登録すると、@react-pdf が axis を解釈できず "bold" 要求時に normal を
     // 2 重描画して文字が重なる現象を確認 (田中 映像 の名前重複)。
     // → normal のみ登録に変更。bold 強調は fontSize + letterSpacing で代用。
     Font.register({
-      family: "NotoSansJP",
+      family: RESUME_FONT_FAMILY,
       fonts: [{ src, fontWeight: "normal" }],
     });
     // CJK の自動改行を許可 (react-pdf は空白で改行する既定、日本語は文字単位)
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     paddingTop: 48,
     paddingBottom: 60,
     paddingHorizontal: 48,
-    fontFamily: "NotoSansJP",
+    fontFamily: RESUME_FONT_FAMILY,
     fontSize: 10,
     color: PALETTE.text,
     lineHeight: 1.6,
