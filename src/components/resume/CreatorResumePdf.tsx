@@ -51,14 +51,20 @@ let _fontRegistered = false;
  * - fontData が渡されれば内部 fetch を回避できるため進捗計測しやすい
  * - 初回 register 後はキャッシュされるので fontData なしの 2 回目以降は no-op
  */
-export function registerResumeFont(fontData?: ArrayBuffer) {
+/**
+ * フォントを登録する。
+ * @param srcOverride 事前 fetch 済の blob: ObjectURL を渡せば、@react-pdf
+ *   内部の fetch を実質スキップできる (即時 resolve)。
+ *   未指定なら通常の /fonts/NotoSansJP.ttf URL を使う。
+ *
+ * 2026-06-26: 当初 ArrayBuffer を直接 src に渡せると考えたが、@react-pdf
+ *   4.x のランタイムは `src.indexOf(...)` で URL を判定するため非 string が
+ *   渡ると例外。Blob → ObjectURL の string にして渡す形にした。
+ */
+export function registerResumeFont(srcOverride?: string) {
   if (_fontRegistered) return;
   try {
-    // @react-pdf/renderer の型定義 (4.x) では Font.register の src が
-    // string しか受けないが、ランタイムは ArrayBuffer / Uint8Array / Blob も
-    // 解釈する。事前 fetch 済の Buffer を渡すと内部 fetch を回避できるため
-    // 進捗計測しやすい。型のミスマッチは as never で受け流す。
-    const src = (fontData ?? NOTO_SANS_JP_TTF) as unknown as string;
+    const src = srcOverride ?? NOTO_SANS_JP_TTF;
     Font.register({
       family: "NotoSansJP",
       fonts: [

@@ -109,7 +109,15 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
         }
       );
 
-      // === 2) @react-pdf + Resume コンポーネントを動的 import (80% → 88%) =
+      // === 2) フォント ArrayBuffer を Blob → ObjectURL 化 ================
+      // @react-pdf 4.x の Font.register は src を文字列前提で扱うため、
+      // 事前 fetch 済の Buffer は blob: URL の文字列に変換して渡す。
+      // これで @react-pdf 内部 fetch (blob: URL から即時 resolve) も
+      // 進捗計測済の本物データを使い回せる。
+      const fontBlob = new Blob([fontBuf], { type: "font/ttf" });
+      const fontBlobUrl = URL.createObjectURL(fontBlob);
+
+      // === 3) @react-pdf + Resume コンポーネントを動的 import (80% → 88%) =
       setStage("rendering");
       setProgress(82);
       const [{ pdf }, { CreatorResumePdf, registerResumeFont }] =
@@ -117,15 +125,15 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
           import("@react-pdf/renderer"),
           import("./CreatorResumePdf"),
         ]);
-      registerResumeFont(fontBuf);
+      registerResumeFont(fontBlobUrl);
       setProgress(88);
 
-      // === 3) 仮想 DOM → PDF instance (88 → 95%) ==========================
+      // === 4) 仮想 DOM → PDF instance (88 → 95%) ==========================
       const doc = <CreatorResumePdf data={data} />;
       const inst = pdf(doc);
       setProgress(95);
 
-      // === 4) Blob 化 + ダウンロード (95 → 100%) ===========================
+      // === 5) Blob 化 + ダウンロード (95 → 100%) ===========================
       setStage("finalizing");
       const blob = await inst.toBlob();
       setProgress(98);
@@ -137,7 +145,12 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 0);
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+        // フォント blob URL は登録済なので revoke しない (再生成時に再利用)
+        // - ページ再読込で破棄される自然な lifecycle に任せる
+        void fontBlobUrl;
+      }, 0);
 
       setProgress(100);
       setStage("done");
