@@ -65,12 +65,13 @@ export function registerResumeFont(srcOverride?: string) {
   if (_fontRegistered) return;
   try {
     const src = srcOverride ?? NOTO_SANS_JP_TTF;
+    // 2026-06-26: 同じ variable font src で normal/bold を別 fontWeight として
+    // 登録すると、@react-pdf が axis を解釈できず "bold" 要求時に normal を
+    // 2 重描画して文字が重なる現象を確認 (田中 映像 の名前重複)。
+    // → normal のみ登録に変更。bold 強調は fontSize + letterSpacing で代用。
     Font.register({
       family: "NotoSansJP",
-      fonts: [
-        { src, fontWeight: "normal" },
-        { src, fontWeight: "bold" },
-      ],
+      fonts: [{ src, fontWeight: "normal" }],
     });
     // CJK の自動改行を許可 (react-pdf は空白で改行する既定、日本語は文字単位)
     Font.registerHyphenationCallback((word) => Array.from(word));
@@ -120,8 +121,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   headerName: {
-    fontSize: 20,
-    fontWeight: "bold",
+    // bold が効かないため fontSize と letterSpacing で強調
+    fontSize: 26,
+    letterSpacing: 1,
     marginTop: 6,
   },
   headerSubtitle: {
@@ -134,8 +136,8 @@ const styles = StyleSheet.create({
     marginTop: 18,
   },
   sectionTitle: {
-    fontSize: 11,
-    fontWeight: "bold",
+    fontSize: 12,
+    letterSpacing: 0.5,
     color: PALETTE.text,
     borderLeft: `3pt solid ${PALETTE.accent}`,
     paddingLeft: 6,
@@ -225,7 +227,6 @@ const styles = StyleSheet.create({
   },
   workTitle: {
     fontSize: 11,
-    fontWeight: "bold",
     color: PALETTE.text,
     marginBottom: 2,
   },
@@ -260,7 +261,6 @@ const styles = StyleSheet.create({
   },
   footerSiteName: {
     fontSize: 10,
-    fontWeight: "bold",
     color: PALETTE.text,
   },
   footerSiteUrl: {
@@ -317,37 +317,43 @@ function SocialLinks({ links }: { links: Record<string, string> }) {
   );
 }
 
-function ThumbnailBox({ work }: { work: ResumeWork }) {
+function ThumbnailBox({
+  work,
+  dataUrl,
+}: {
+  work: ResumeWork;
+  dataUrl?: string;
+}) {
   const styleByAspect =
     work.aspect_ratio === "vertical"
       ? styles.workThumbVertical
       : work.aspect_ratio === "square"
         ? styles.workThumbSquare
         : styles.workThumb;
-  if (!work.thumbnail_url) {
+  // 事前 fetch 済の data:image/... URL があるものだけ表示。
+  // Supabase Storage の直 URL を渡すと @react-pdf 内部 fetch が hang する。
+  if (!dataUrl) {
     return (
       <View style={[styleByAspect, styles.workPlaceholder]}>
         <Text>サムネ未登録</Text>
       </View>
     );
   }
-  // PdfImage は URL fetch + 内部 Base64 化を行う。
-  // Supabase Storage の public URL は CORS 許可済のため問題なし。
-  return <PdfImage src={work.thumbnail_url} style={styleByAspect} />;
+  return <PdfImage src={dataUrl} style={styleByAspect} />;
 }
 
 /**
- * 2026-06-26: サムネ画像 (PdfImage) を有効にすると pdf.toBlob() が 95% で
- * 固まる事象を確認。Supabase Storage URL の fetch が @react-pdf 内部で
- * resolve せず Promise が止まる。当面 withThumbnails=false で安全側に倒し、
- * 後日「事前 fetch + dataURL 化」を実装してから true に戻す。
+ * 2026-06-26: サムネ画像は事前に fetch + Blob → dataURL 化した上で
+ * thumbDataUrls (work.id -> data:...) で渡す。@react-pdf 内部 fetch を
+ * 完全に skip するため hang リスクなし。
  */
 export function CreatorResumePdf({
   data,
-  withThumbnails = false,
+  thumbDataUrls = {},
 }: {
   data: ResumeData;
-  withThumbnails?: boolean;
+  /** work.id -> "data:image/...;base64,..." */
+  thumbDataUrls?: Record<string, string>;
 }) {
   const generatedAt = new Date().toLocaleDateString("ja-JP", {
     year: "numeric",
@@ -493,7 +499,7 @@ export function CreatorResumePdf({
           <View style={{ marginTop: 14 }}>
             {data.works.map((w) => (
               <View key={w.id} style={styles.workCard} wrap={false}>
-                {withThumbnails && <ThumbnailBox work={w} />}
+                <ThumbnailBox work={w} dataUrl={thumbDataUrls[w.id]} />
                 <View style={styles.workInfo}>
                   <Text style={styles.workTitle}>{w.title}</Text>
                   <Text style={styles.workMeta}>
@@ -519,7 +525,7 @@ export function CreatorResumePdf({
                       src={w.external_url || w.video_url || "#"}
                       style={styles.workLink}
                     >
-                      ▸ {w.external_url || w.video_url}
+                      → {w.external_url || w.video_url}
                     </PdfLink>
                   )}
                 </View>

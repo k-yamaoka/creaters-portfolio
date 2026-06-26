@@ -23,11 +23,18 @@ type Props = {
   className?: string;
 };
 
-type Stage = "idle" | "loading_font" | "rendering" | "finalizing" | "done";
+type Stage =
+  | "idle"
+  | "loading_font"
+  | "loading_thumbs"
+  | "rendering"
+  | "finalizing"
+  | "done";
 
 const STAGE_LABEL: Record<Stage, string> = {
   idle: "",
   loading_font: "フォントを読み込み中…",
+  loading_thumbs: "サムネ画像を取得中…",
   rendering: "PDF を描画中…",
   finalizing: "仕上げ中…",
   done: "完了",
@@ -39,6 +46,16 @@ function safeFilename(name: string): string {
     .replace(/\s+/g, "_")
     .slice(0, 40);
   return trimmed || "creator";
+}
+
+/** Blob → "data:image/...;base64,..." 形式 dataURL に変換 */
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error ?? new Error("FileReader error"));
+    reader.readAsDataURL(blob);
+  });
 }
 
 /** Fetch しつつ Content-Length 基準で進捗を返す。
@@ -103,17 +120,50 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       await fetchWithProgress(
         "/fonts/NotoSansJP.ttf",
         (received, total) => {
+          // フォント DL は 0→60%。残り 60→80% を画像取得に割当てる。
           if (total) {
-            setProgress(Math.min(80, Math.round((received / total) * 80)));
+            setProgress(Math.min(60, Math.round((received / total) * 60)));
           } else {
             setProgress(
-              Math.min(80, Math.round((received / (10 * 1024 * 1024)) * 80))
+              Math.min(60, Math.round((received / (10 * 1024 * 1024)) * 60))
             );
           }
         }
       );
+      setProgress(60);
 
-      // === 2) @react-pdf + Resume コンポーネントを動的 import (80% → 88%) =
+      // === 2) サムネ画像を並列 fetch + dataURL 化 (60 → 80%) ==============
+      // @react-pdf 内部 fetch だと hang のリスクあるため、ここで自前で
+      // fetch + FileReader.readAsDataURL し、data:image/...;base64,... の
+      // 文字列にしてから PDF に渡す。失敗した作品は placeholder で表示。
+      setStage("loading_thumbs");
+      const worksWithThumb = data.works.filter((w) => !!w.thumbnail_url);
+      const thumbDataUrls: Record<string, string> = {};
+      if (worksWithThumb.length > 0) {
+        let done = 0;
+        await Promise.all(
+          worksWithThumb.map(async (w) => {
+            try {
+              const res = await fetch(w.thumbnail_url!);
+              if (!res.ok) throw new Error(`thumb HTTP ${res.status}`);
+              const blob = await res.blob();
+              thumbDataUrls[w.id] = await blobToDataUrl(blob);
+            } catch (e) {
+              console.warn(
+                "[ResumeDownloadButton] thumbnail fetch failed",
+                w.id,
+                e
+              );
+            } finally {
+              done += 1;
+              setProgress(60 + Math.round(20 * (done / worksWithThumb.length)));
+            }
+          })
+        );
+      }
+      setProgress(80);
+
+      // === 3) @react-pdf + Resume コンポーネントを動的 import (80% → 88%) =
       setStage("rendering");
       setProgress(82);
       const [{ pdf }, { CreatorResumePdf, registerResumeFont }] =
@@ -126,12 +176,14 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       registerResumeFont();
       setProgress(88);
 
-      // === 3) 仮想 DOM → PDF instance (88 → 95%) ==========================
-      const doc = <CreatorResumePdf data={data} />;
+      // === 4) 仮想 DOM → PDF instance (88 → 95%) ==========================
+      const doc = (
+        <CreatorResumePdf data={data} thumbDataUrls={thumbDataUrls} />
+      );
       const inst = pdf(doc);
       setProgress(95);
 
-      // === 4) Blob 化 + ダウンロード (95 → 99%) ===========================
+      // === 5) Blob 化 + ダウンロード (95 → 99%) ===========================
       // pdf.toBlob() は内部で非同期に layout 計算するため、見かけ上 95% で
       // 数秒固まる。完了を待つ間、疑似プログレスで 95→99% に滑らかに進める。
       setStage("finalizing");
