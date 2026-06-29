@@ -41,6 +41,10 @@ export default async function ProfilePage() {
           tags: p.tags ?? [],
           genre: p.genre ?? null,
           used_ai_tools: p.used_ai_tools ?? [],
+          // 00062 migration 後に挿入される動画フレーム URL 配列。
+          // 旧データ / 動画じゃない作品では未設定 (= 空配列扱い)
+          frame_urls:
+            (p as { frame_urls?: string[] | null }).frame_urls ?? [],
         })),
       };
     }
