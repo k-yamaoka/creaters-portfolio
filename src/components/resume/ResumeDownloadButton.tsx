@@ -1,25 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Download, FileText, Loader2, Sparkles } from "lucide-react";
-import type { ResumeData, ResumeTemplateId } from "./types";
-import { RESUME_TEMPLATES } from "./types";
+import { useState } from "react";
+import { Download, FileText, Loader2 } from "lucide-react";
+import type { ResumeData } from "./types";
 
 /**
- * クリエイター職務経歴書 PDF ダウンロードボタン。
+ * クリエイター職務経歴書 PDF ダウンロードボタン (単一テンプレート版)。
  *
- * 機能:
- *  - 20 種のテンプレートから dropdown で選択 (Phase 1 で 5 種 実装、
- *    残り 15 種は「準備中」表示で選択不可)
- *  - フォント / サムネ / 動画フレーム を自前 fetch して進捗 % を表示
- *  - @react-pdf/renderer + テンプレート本体は動的 import で lazy
+ * 仕様 (2026-06-30):
+ *  - テンプレート選択 dropdown は廃止、AILIER 公式の 2 ページ構成 PDF 固定
+ *  - フォント / アバター / サムネ / 動画フレームを自前 fetch + 進捗 % 表示
  *
  * 進捗マッピング:
- *   loading_font   :  0→50  (Content-Length 実バイト)
- *   loading_thumbs : 50→65  (サムネ並列 fetch 完了数)
- *   loading_frames : 65→85  (動画フレーム並列 fetch 完了数)
- *   rendering      : 85→95
- *   finalizing     : 95→100 (toBlob 待機中の疑似)
+ *   loading_font   :  0→40  (Content-Length 実バイト)
+ *   loading_avatar : 40→48  (avatar 1 件のみ)
+ *   loading_thumbs : 48→62  (サムネ並列 fetch)
+ *   loading_frames : 62→85  (動画フレーム並列 fetch)
+ *   rendering      : 85→92
+ *   finalizing     : 92→100 (toBlob 待機中の疑似)
  */
 
 type Props = {
@@ -30,6 +28,7 @@ type Props = {
 type Stage =
   | "idle"
   | "loading_font"
+  | "loading_avatar"
   | "loading_thumbs"
   | "loading_frames"
   | "rendering"
@@ -39,6 +38,7 @@ type Stage =
 const STAGE_LABEL: Record<Stage, string> = {
   idle: "",
   loading_font: "フォントを読み込み中…",
+  loading_avatar: "プロフィール画像を取得中…",
   loading_thumbs: "サムネを取得中…",
   loading_frames: "動画フレームを取得中…",
   rendering: "PDF を描画中…",
@@ -125,16 +125,11 @@ async function fetchWithProgress(
 }
 
 export function ResumeDownloadButton({ data, className = "" }: Props) {
-  const [templateId, setTemplateId] = useState<ResumeTemplateId>("cinematic-a");
   const [stage, setStage] = useState<Stage>("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const busy = stage !== "idle" && stage !== "done";
-  const selectedMeta = useMemo(
-    () => RESUME_TEMPLATES.find((t) => t.id === templateId),
-    [templateId]
-  );
 
   const handleClick = async () => {
     if (busy) return;
@@ -143,22 +138,39 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
     setStage("loading_font");
 
     try {
-      // === 1) フォント 0→50% ===========================================
+      // === 1) フォント 0→40% ===========================================
       await fetchWithProgress(
         "/fonts/SawarabiGothic.ttf",
         (received, total) => {
           if (total) {
-            setProgress(Math.min(50, Math.round((received / total) * 50)));
+            setProgress(Math.min(40, Math.round((received / total) * 40)));
           } else {
             setProgress(
-              Math.min(50, Math.round((received / (2 * 1024 * 1024)) * 50))
+              Math.min(40, Math.round((received / (2 * 1024 * 1024)) * 40))
             );
           }
         }
       );
-      setProgress(50);
+      setProgress(40);
 
-      // === 2) サムネ 50→65% ============================================
+      // === 2) アバター 40→48% ==========================================
+      setStage("loading_avatar");
+      let avatarDataUrl: string | undefined;
+      if (data.avatarUrl) {
+        try {
+          const res = await fetch(data.avatarUrl);
+          if (res.ok) {
+            const blob = await res.blob();
+            // 縦長 240px までで十分 (PDF 表示は 180×240)
+            avatarDataUrl = await blobToResizedJpegDataUrl(blob, 360);
+          }
+        } catch (e) {
+          console.warn("[Resume] avatar fetch failed", e);
+        }
+      }
+      setProgress(48);
+
+      // === 3) サムネ 48→62% ============================================
       setStage("loading_thumbs");
       const worksWithThumb = data.works.filter((w) => !!w.thumbnail_url);
       const thumbDataUrls: Record<string, string> = {};
@@ -170,23 +182,22 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
               const res = await fetch(w.thumbnail_url!);
               if (!res.ok) throw new Error(`thumb HTTP ${res.status}`);
               const blob = await res.blob();
-              const maxW = w.aspect_ratio === "vertical" ? 200 : 320;
+              const maxW = w.aspect_ratio === "vertical" ? 240 : 360;
               thumbDataUrls[w.id] = await blobToResizedJpegDataUrl(blob, maxW);
             } catch (e) {
               console.warn("[Resume] thumb fetch failed", w.id, e);
             } finally {
               done += 1;
               setProgress(
-                50 + Math.round(15 * (done / worksWithThumb.length))
+                48 + Math.round(14 * (done / worksWithThumb.length))
               );
             }
           })
         );
       }
-      setProgress(65);
+      setProgress(62);
 
-      // === 3) 動画フレーム 65→85% ======================================
-      // 各作品の frame_urls (最大 5 枚) を並列 fetch + dataURL 化
+      // === 4) 動画フレーム 62→85% ======================================
       setStage("loading_frames");
       const worksWithFrames = data.works.filter(
         (w) => Array.isArray(w.frame_urls) && w.frame_urls.length > 0
@@ -207,14 +218,18 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
                   const res = await fetch(url);
                   if (!res.ok) throw new Error(`frame HTTP ${res.status}`);
                   const blob = await res.blob();
-                  // パノラマ 1 コマは小さく描画されるので 240px wide で十分
-                  collected[idx] = await blobToResizedJpegDataUrl(blob, 240);
+                  // 第 1 作品 (Hero 用) はやや大きめ、他はサムネサイズ
+                  const isHero = w.id === data.works[0]?.id;
+                  collected[idx] = await blobToResizedJpegDataUrl(
+                    blob,
+                    isHero ? 480 : 240
+                  );
                 } catch (e) {
                   console.warn("[Resume] frame fetch failed", w.id, idx, e);
                 } finally {
                   doneFrames += 1;
                   setProgress(
-                    65 + Math.round(20 * (doneFrames / totalFrames))
+                    62 + Math.round(23 * (doneFrames / totalFrames))
                   );
                 }
               })
@@ -225,24 +240,23 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       }
       setProgress(85);
 
-      // === 4) 動的 import + テンプレート選択 (85→90%) ==================
+      // === 5) 動的 import + 描画 (85→92%) ==============================
       setStage("rendering");
       setProgress(87);
       const [{ pdf }, mod] = await Promise.all([
         import("@react-pdf/renderer"),
-        import("./templates"),
+        import("./CreatorResumePdf"),
       ]);
       mod.registerResumeFont();
-      // dispatcher は React.ReactElement を返すが pdf() は
-      // ReactElement<DocumentProps> を要求するため、Parameters でキャスト。
-      const doc = mod.renderResumeByTemplate(templateId, {
+      const doc = mod.CreatorResumePdf({
         data,
         thumbDataUrls,
         frameDataUrls,
+        avatarDataUrl,
       }) as Parameters<typeof pdf>[0];
       setProgress(92);
 
-      // === 5) Blob 化 + ダウンロード (92→100%) =========================
+      // === 6) Blob 化 + ダウンロード (92→100%) =========================
       setStage("finalizing");
       let pseudoProgress = 92;
       const pseudoTimer = window.setInterval(() => {
@@ -260,7 +274,7 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
       const a = document.createElement("a");
       a.href = url;
       const today = new Date().toISOString().slice(0, 10);
-      a.download = `${safeFilename(data.displayName)}_${templateId}_${today}.pdf`;
+      a.download = `${safeFilename(data.displayName)}_portfolio_${today}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -291,45 +305,6 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
 
   return (
     <div className={className}>
-      {/* === テンプレート選択 === */}
-      <div className="mb-3">
-        <label
-          htmlFor="resume-template"
-          className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-gray-700"
-        >
-          <Sparkles size={12} strokeWidth={2} aria-hidden />
-          テンプレートを選択
-        </label>
-        <select
-          id="resume-template"
-          value={templateId}
-          onChange={(e) => setTemplateId(e.target.value as ResumeTemplateId)}
-          disabled={busy}
-          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-        >
-          <optgroup label="✨ 利用可能 (Phase 1)">
-            {RESUME_TEMPLATES.filter((t) => !t.comingSoon).map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.label} — {t.description.slice(0, 30)}…
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="🚧 準備中 (順次追加予定)">
-            {RESUME_TEMPLATES.filter((t) => t.comingSoon).map((t) => (
-              <option key={t.id} value={t.id} disabled>
-                {t.label} (準備中)
-              </option>
-            ))}
-          </optgroup>
-        </select>
-        {selectedMeta && (
-          <p className="mt-1.5 text-[11px] leading-relaxed text-gray-500">
-            {selectedMeta.description}
-          </p>
-        )}
-      </div>
-
-      {/* === ダウンロードボタン === */}
       <button
         type="button"
         onClick={handleClick}
@@ -356,7 +331,6 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
         )}
       </button>
 
-      {/* === 進捗バー === */}
       {busy && (
         <div className="mt-3" role="status" aria-live="polite">
           <div
@@ -389,7 +363,7 @@ export function ResumeDownloadButton({ data, className = "" }: Props) {
 
       {!busy && (
         <p className="mt-2 text-xs text-gray-500">
-          選択したテンプレートで現在のプロフィール + 公開作品から PDF を生成します。動画作品の代表フレーム (5 枚) を「映像パノラマ」として PDF に埋め込みます。
+          プロフィール + 公開作品を 2 ページの PDF (PROFILE + PORTFOLIO) に出力します。各作品の動画フレームを大型ビジュアルとして埋め込みます。
         </p>
       )}
     </div>
