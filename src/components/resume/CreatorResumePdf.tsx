@@ -140,17 +140,17 @@ const styles = StyleSheet.create({
   },
 
   // === Hero title (大型英字) ===
-  heroBlock: { marginBottom: 32 },
+  heroBlock: { marginBottom: 24 },
   heroEn: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 72,
+    fontSize: 56,
     color: PALETTE.ink,
     letterSpacing: -1,
     lineHeight: 1.0,
   },
   heroEnSecond: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 72,
+    fontSize: 56,
     color: PALETTE.ink,
     letterSpacing: -1,
     lineHeight: 1.0,
@@ -159,13 +159,13 @@ const styles = StyleSheet.create({
   heroJpSub: {
     fontSize: 9,
     color: PALETTE.inkMuted,
-    marginTop: 12,
+    marginTop: 8,
     letterSpacing: 2,
   },
   heroLead: {
-    fontSize: 9.5,
+    fontSize: 9,
     color: PALETTE.inkSoft,
-    lineHeight: 1.85,
+    lineHeight: 1.7,
   },
 
   // === Section heading (中型英字) ===
@@ -262,18 +262,18 @@ const styles = StyleSheet.create({
   heroGallery: {
     flexDirection: "row",
     gap: 12,
-    height: 220,
-    marginBottom: 28,
+    height: 150,
+    marginBottom: 18,
   },
   heroImgLeft: {
-    width: 200,
-    height: 220,
+    width: 160,
+    height: 150,
     backgroundColor: PALETTE.panel,
     objectFit: "cover",
   },
   heroImgRight: {
     flex: 1,
-    height: 220,
+    height: 150,
     backgroundColor: PALETTE.panel,
     objectFit: "cover",
   },
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 
-  // === Work grid (3 cols) ===
+  // === Work grid (3 cols × 2 rows = 6 件まで) ===
   workGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -292,17 +292,26 @@ const styles = StyleSheet.create({
   workCard: {
     width: 152, // (page width 595 - 56*2 padding - 12*2 gap) / 3 = 153
   },
+  // 2 ページ完結を保証するため、aspect ratio に関わらず全 thumb を
+  // 統一サイズ 152×114 (4:3) でセンタークロップ。縦型/正方形は cover で詰める。
   workThumb: {
     width: 152,
-    height: 152,
+    height: 114,
     backgroundColor: PALETTE.panel,
     objectFit: "cover",
   },
   workThumbVertical: {
     width: 152,
-    height: 220,
+    height: 114,
     backgroundColor: PALETTE.panel,
     objectFit: "cover",
+  },
+  overflowNote: {
+    fontSize: 9,
+    color: PALETTE.inkMuted,
+    textAlign: "center",
+    marginTop: 16,
+    letterSpacing: 1,
   },
   workMetaRow: {
     flexDirection: "row",
@@ -473,7 +482,14 @@ export function CreatorResumePdf({
   const heroThumb = heroWork ? thumbDataUrls[heroWork.id] : undefined;
   const heroLeft = heroFrames[0] ?? heroThumb;
   const heroRight = heroFrames[2] ?? heroFrames[1] ?? heroThumb;
-  const restWorks = data.works.slice(heroWork ? 1 : 0);
+
+  // ===== 2 ページ完結を保証 =====
+  // Page 2 は Hero (1 件) + Grid (3 列 × 2 行 = 6 件) で計 7 件まで。
+  // それを超える作品は overflow note でサイト URL に誘導 (PDF 増ページしない)。
+  const MAX_GRID = 6;
+  const allRest = heroWork ? data.works.slice(1) : data.works;
+  const restWorks = allRest.slice(0, MAX_GRID);
+  const overflowCount = allRest.length - restWorks.length;
 
   return (
     <Document
@@ -600,7 +616,7 @@ export function CreatorResumePdf({
           </View>
         )}
 
-        {/* 3 列グリッド */}
+        {/* 3 列グリッド (最大 6 件) */}
         <View style={styles.workGrid}>
           {restWorks.map((w) => (
             <WorkGridCard
@@ -612,6 +628,12 @@ export function CreatorResumePdf({
             />
           ))}
         </View>
+
+        {overflowCount > 0 && (
+          <Text style={styles.overflowNote}>
+            他 {overflowCount} 件の作品を {SITE.url} で公開中
+          </Text>
+        )}
 
         <Footer />
       </Page>
