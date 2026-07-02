@@ -23,12 +23,15 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
 import { ParallaxImage } from "@/components/ui/parallax";
 import {
   BrowserFrame,
-  MockCreatorsList,
-  MockPortfoliosGrid,
   MockCreatorDetail,
   MockEstimateChat,
   MockOrders,
 } from "@/components/home/feature-mockups";
+import { LpCreatorPreview, type LpCreator } from "@/components/home/lp-creator-preview";
+import {
+  LpPortfolioPreview,
+  type LpPortfolioTile,
+} from "@/components/home/lp-portfolio-preview";
 import { GENRES } from "@/lib/constants";
 
 export const revalidate = 300;
@@ -111,6 +114,74 @@ function extractAccentVideos(creators: CreatorWithRelations[]): {
   return { vertical, horizontals };
 }
 
+// FEATURE 01 (AIクリエイター検索) の実クリエイター 3 名。
+// - 総いいね数の高い順 (人気ティア表示の代わりの並び)
+// - 各クリエイターの代表作 (portfolio_items[0]) からサムネを取得
+function extractLpCreators(creators: CreatorWithRelations[]): LpCreator[] {
+  return creators
+    .map((c) => {
+      const totalLikes = c.portfolio_items.reduce(
+        (sum, p) => sum + (p.like_count ?? 0),
+        0
+      );
+      const firstThumb = c.portfolio_items.find((p) => !!p.thumbnail_url);
+      return {
+        id: c.id,
+        displayName: c.profiles.display_name,
+        avatarUrl: c.profiles.avatar_url,
+        isVerified: !!c.profiles.is_verified,
+        bio: c.bio ?? "",
+        minimumOrderAmount: c.minimum_order_amount ?? null,
+        strengths: c.strengths ?? [],
+        genres: c.genres ?? [],
+        thumbnailUrl: firstThumb?.thumbnail_url ?? null,
+        totalLikes,
+      };
+    })
+    .sort((a, b) => b.totalLikes - a.totalLikes)
+    .slice(0, 3);
+}
+
+// FEATURE 02 (ポートフォリオ閲覧) の実サムネギャラリー 8 件。
+// 縦型 / 横型 / 正方形 が混ざるようにアスペクト比バランスで抽出。
+function extractLpPortfolioTiles(
+  creators: CreatorWithRelations[]
+): LpPortfolioTile[] {
+  const pool: LpPortfolioTile[] = [];
+  for (const c of creators) {
+    for (const p of c.portfolio_items) {
+      if (!p.thumbnail_url) continue;
+      pool.push({
+        id: p.id,
+        href: `/creators/${c.id}`,
+        thumbnailUrl: p.thumbnail_url,
+        title: p.title,
+        aspect:
+          p.aspect_ratio === "vertical"
+            ? "vertical"
+            : p.aspect_ratio === "square"
+              ? "square"
+              : "horizontal",
+        likeCount: p.like_count ?? 0,
+      });
+    }
+  }
+  // 縦横バランス調整: 横型 4 + 縦型 2 + 正方形 2 目安、いいね順で取得
+  pool.sort((a, b) => b.likeCount - a.likeCount);
+  const h = pool.filter((t) => t.aspect === "horizontal").slice(0, 4);
+  const v = pool.filter((t) => t.aspect === "vertical").slice(0, 2);
+  const s = pool.filter((t) => t.aspect === "square").slice(0, 2);
+  // 見た目のバランスを取るため horizontal と vertical を交互に配置
+  const mixed: LpPortfolioTile[] = [];
+  const maxLen = Math.max(h.length, v.length, s.length);
+  for (let i = 0; i < maxLen; i++) {
+    if (h[i]) mixed.push(h[i]);
+    if (v[i]) mixed.push(v[i]);
+    if (s[i]) mixed.push(s[i]);
+  }
+  return mixed.slice(0, 8);
+}
+
 // Works ダイジェスト用 — 全 mp4 作品をフラット化、アスペクト比は数値に換算
 function extractDigestWorks(creators: CreatorWithRelations[]): DigestWork[] {
   const out: DigestWork[] = [];
@@ -140,16 +211,8 @@ function extractDigestWorks(creators: CreatorWithRelations[]): DigestWork[] {
   return out;
 }
 
-// Hero 直下に並べる対応 AI ツール (静的 1 段、自動スクロールなし)。
-// NN/g: 自動マーキー禁止 / Midjourney は除外。
-const AI_TOOL_LABELS = [
-  "Sora",
-  "Veo",
-  "Runway",
-  "Seedance",
-  "Kling",
-  "Hailuo",
-] as const;
+// 2026-07-02 撤去: AI_TOOL_LABELS は Compatible models 帯で使用していたが、
+// セクションごと削除したため未使用に。
 
 // NN/g: 「22 人」「23 本」などの低い実数は negative social proof になるため、
 // 定性的な価値プロップに置換する。
@@ -184,6 +247,8 @@ export default async function HomePage() {
   const bandWorks = extractBandWorks(allCreators);
   const digestWorks = extractDigestWorks(allCreators);
   const accent = extractAccentVideos(allCreators);
+  const lpCreators = extractLpCreators(allCreators);
+  const lpTiles = extractLpPortfolioTiles(allCreators);
 
   return (
     <>
@@ -277,26 +342,10 @@ export default async function HomePage() {
         />
       </div>
 
-      {/* Hero 直下: Compatible models 静的 1 段 (NN/g: 自動スクロール禁止 / Midjourney 除外) */}
-      <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-wide px-gutter pt-16 lg:pt-24">
-          <RevealOnScroll delay={0} className="border-t border-ink/10 pt-12">
-            <p className="eyebrow-mono text-center">
-              Compatible models<span className="ml-2 text-ink/35">／ 対応AIモデル</span>
-            </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center divide-x divide-ink/10">
-              {AI_TOOL_LABELS.map((t) => (
-                <span
-                  key={t}
-                  className="px-6 font-sans text-sm font-medium tracking-tight text-ink/55 transition-colors hover:text-ink sm:px-8 sm:text-base"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
+      {/* 2026-07-02 撤去: 「Compatible models / 対応AIモデル」帯 (ユーザー判断)
+          撤去理由: サイト全体で "AI 特化" は Hero やタグで既に十分伝わり、
+          ここでモデル名の羅列を挟むと情報量に対して尺を取りすぎ、
+          Value Props への流れを重くしていたため。 */}
 
       {/* =================================================
           VALUE PROPS — 罫線で 4 等分された単一の帯 (Axis 風)
@@ -420,41 +469,51 @@ export default async function HomePage() {
 
       {/* =================================================
           03 — Service (旧 FEATURES) — 5 機能をアシンメトリーに展開
-          2026-06-19 Section 3 改修:
+          2026-07-02 改修:
+            ・各 FeatureRow を独立ストライプ化 (奇数 bg-gray-50 / 偶数 bg-white)
+              → セクション区切りを明確に、視線移動をリズミカルに
+            ・FEATURE 01: 実クリエイター上位 3 名を LpCreatorPreview で表示
+              (fade-in-up + stagger 演出)
+            ・FEATURE 02: 実ポートフォリオサムネ 8 件を LpPortfolioPreview
+              で表示 (縦横混在グリッド + fade-in-up stagger)
+          2026-06-19 起点:
             ・各 FeatureRow に特大背景タイポ (アウトライン文字) をパララックス
               で敷く (映像を重ねない原則: 動画は前面 1 層のみ、背景は文字)
             ・親 section に overflow-x: hidden で横スクロールバー防止
           ================================================= */}
       <section
         id="features"
-        className="relative overflow-x-hidden bg-paper text-ink"
+        className="relative overflow-x-hidden text-ink"
       >
-        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
-          <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
-            <RevealOnScroll delay={0}>
-              <p className="eyebrow-mono">(03 — Service)<span className="ml-2 text-ink/35">／ サービス内容</span></p>
-            </RevealOnScroll>
-            <div>
-              <RevealOnScroll delay={80}>
-                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
-                  Movie commerce,
-                  <br />
-                  <span className="italic text-sand">end-to-end.</span>
-                </h2>
+        {/* タイトル帯 (白基調) */}
+        <div className="bg-white">
+          <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
+            <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
+              <RevealOnScroll delay={0}>
+                <p className="eyebrow-mono">(03 — Service)<span className="ml-2 text-ink/35">／ サービス内容</span></p>
               </RevealOnScroll>
-              <RevealOnScroll delay={200}>
-                <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
-                  発注前の比較から、見積もり相談、納品・決済まで。
-                  案件に必要なすべてが、ひとつのプラットフォームに。
-                </p>
-              </RevealOnScroll>
+              <div>
+                <RevealOnScroll delay={80}>
+                  <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
+                    Movie commerce,
+                    <br />
+                    <span className="italic text-sand">end-to-end.</span>
+                  </h2>
+                </RevealOnScroll>
+                <RevealOnScroll delay={200}>
+                  <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
+                    発注前の比較から、見積もり相談、納品・決済まで。
+                    案件に必要なすべてが、ひとつのプラットフォームに。
+                  </p>
+                </RevealOnScroll>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Feature blocks — アシンメトリー (奇数: テキスト 36% / モック 64%
-              偶数: 反転)、上下に大きな余白 */}
-          <div className="mt-section-y-sm space-y-section-y-sm lg:mt-section-y lg:space-y-section-y">
-            {/* F1: クリエイター検索 */}
+        {/* F1: クリエイター検索 (奇数 → 薄グレー) */}
+        <div className="bg-gray-50">
+          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
             <FeatureRow
               no="FEATURE 01 ／ できること 01"
               title="AIクリエイター検索"
@@ -467,12 +526,16 @@ export default async function HomePage() {
               cta={{ href: "/creators", label: "クリエイターを探す" }}
               mock={
                 <BrowserFrame url="ailier.app/creators">
-                  <MockCreatorsList />
+                  <LpCreatorPreview creators={lpCreators} />
                 </BrowserFrame>
               }
             />
+          </div>
+        </div>
 
-            {/* F2: ポートフォリオ閲覧 */}
+        {/* F2: ポートフォリオ閲覧 (偶数 → 白) */}
+        <div className="bg-white">
+          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
             <FeatureRow
               reverse
               no="FEATURE 02 ／ できること 02"
@@ -486,12 +549,16 @@ export default async function HomePage() {
               cta={{ href: "/portfolios", label: "作品を見る" }}
               mock={
                 <BrowserFrame url="ailier.app/portfolios">
-                  <MockPortfoliosGrid />
+                  <LpPortfolioPreview tiles={lpTiles} />
                 </BrowserFrame>
               }
             />
+          </div>
+        </div>
 
-            {/* F3: 詳細 + 最低対応プラン */}
+        {/* F3: 詳細 + 最低対応プラン (奇数 → 薄グレー) */}
+        <div className="bg-gray-50">
+          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
             <FeatureRow
               no="FEATURE 03 ／ できること 03"
               title="クリエイター詳細 ＋ 最低対応プラン公開"
@@ -508,8 +575,12 @@ export default async function HomePage() {
                 </BrowserFrame>
               }
             />
+          </div>
+        </div>
 
-            {/* F4: AI 見積もりチャット */}
+        {/* F4: AI 見積もりチャット (偶数 → 白) */}
+        <div className="bg-white">
+          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
             <FeatureRow
               reverse
               no="FEATURE 04 ／ できること 04"
@@ -527,8 +598,12 @@ export default async function HomePage() {
                 </BrowserFrame>
               }
             />
+          </div>
+        </div>
 
-            {/* F5: 取引管理 (エスクロー) */}
+        {/* F5: 取引管理 (奇数 → 薄グレー) */}
+        <div className="bg-gray-50">
+          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
             <FeatureRow
               no="FEATURE 05 ／ できること 05"
               title="エスクロー決済 ＋ 取引管理"
@@ -624,13 +699,16 @@ export default async function HomePage() {
           ================================================= */}
       <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
-          <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
-            <RevealOnScroll delay={0}>
-              <p className="eyebrow-mono">(05 — Categories)<span className="ml-2 text-ink/35">／ ジャンル</span></p>
-            </RevealOnScroll>
+          {/* 2026-07-02: 左タイトル 40% / 右 2 列 5 行グリッド 60% の
+              横並びレイアウトへ変更。旧: 見出し上 → 目次風縦一列。 */}
+          <div className="grid gap-12 lg:grid-cols-[2fr,3fr] lg:items-start lg:gap-16">
+            {/* 左: タイトル & 説明 (約 40%) */}
             <div>
+              <RevealOnScroll delay={0}>
+                <p className="eyebrow-mono">(05 — Categories)<span className="ml-2 text-ink/35">／ ジャンル</span></p>
+              </RevealOnScroll>
               <RevealOnScroll delay={80}>
-                <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
+                <h2 className="headline-display mt-6 text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
                   Ten genres,
                   <br />
                   <span className="italic text-sand">one stage.</span>
@@ -643,37 +721,29 @@ export default async function HomePage() {
                 </p>
               </RevealOnScroll>
             </div>
-          </div>
 
-          {/* 「目次」風の縦リスト。各行に番号 + 大字ジャンル + 番号 */}
-          <RevealOnScroll
-            delay={120}
-            className="mt-section-y-sm border-y border-ink/10"
-          >
-            <ul className="divide-y divide-ink/10">
-              {GENRES.map((g, i) => {
-                const num = String(i + 1).padStart(2, "0");
-                const total = String(GENRES.length).padStart(2, "0");
-                return (
-                  <li
-                    key={g}
-                    className="group py-6 transition-colors hover:bg-paper/[0.02] sm:py-8"
-                  >
-                    {/* SP: 番号 + ジャンル名を縦並び (横並びだと長文ジャンル名が被る) */}
-                    <div className="flex items-baseline justify-between gap-4 sm:gap-6">
-                      <span className="eyebrow-mono shrink-0">{num}</span>
-                      <h3 className="font-display flex-1 text-right text-xl font-medium tracking-tight text-ink transition-colors group-hover:text-sand sm:text-center sm:text-3xl lg:text-4xl">
+            {/* 右: 2 列 × 5 行 グリッド (約 60%) */}
+            <RevealOnScroll delay={120}>
+              <ul className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-ink/10 py-6 sm:gap-x-8 sm:gap-y-5 sm:py-8">
+                {GENRES.map((g, i) => {
+                  const num = String(i + 1).padStart(2, "0");
+                  return (
+                    <li
+                      key={g}
+                      className="group flex items-baseline gap-3 border-b border-ink/8 pb-4 last:border-b-0 [&:nth-last-child(2)]:border-b-0"
+                    >
+                      <span className="eyebrow-mono shrink-0 text-ink/45">
+                        {num}
+                      </span>
+                      <h3 className="font-display flex-1 text-base font-medium leading-tight tracking-tight text-ink transition-colors group-hover:text-sand sm:text-lg">
                         {g}
                       </h3>
-                      <span className="eyebrow-mono hidden shrink-0 sm:inline">
-                        / {total}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </RevealOnScroll>
+                    </li>
+                  );
+                })}
+              </ul>
+            </RevealOnScroll>
+          </div>
         </div>
       </section>
 

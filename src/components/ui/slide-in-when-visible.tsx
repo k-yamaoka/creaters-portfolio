@@ -18,7 +18,8 @@ import { useEffect, useRef, useState } from "react";
  *   下端から 15% 内側に入った時点で発火 (= 完全に画面に入る前にスタート)
  */
 type Props = {
-  direction?: "left" | "right";
+  /** "up" = fade-in-up (translateY 30px → 0)、左右は 40px スライド */
+  direction?: "left" | "right" | "up";
   delay?: number;
   className?: string;
   children: React.ReactNode;
@@ -79,7 +80,11 @@ export function SlideInWhenVisible({
   }, []);
 
   const translate =
-    direction === "right" ? "translateX(40px)" : "translateX(-40px)";
+    direction === "up"
+      ? "translateY(30px)"
+      : direction === "right"
+        ? "translateX(40px)"
+        : "translateX(-40px)";
 
   return (
     <div
