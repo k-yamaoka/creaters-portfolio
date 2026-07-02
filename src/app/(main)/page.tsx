@@ -33,6 +33,7 @@ import {
   type LpPortfolioTile,
 } from "@/components/home/lp-portfolio-preview";
 import { GENRES } from "@/lib/constants";
+import { AiNewsSection } from "@/components/home/ai-news-section";
 
 export const revalidate = 300;
 
@@ -746,6 +747,13 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* =================================================
+          05.5 — News: 生成 AI 動画 最新ニュース (Vercel Cron 日次更新)
+          サーバコンポーネントで getCachedAiNews() を await、
+          og:title と og:image URL のみ表示 (本文/リード文は取得しない)
+          ================================================= */}
+      <AiNewsSection />
 
       {/* =================================================
           06 — FAQ — 罫線で区切ったアコーディオン (カード型廃止)
