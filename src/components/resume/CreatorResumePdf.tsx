@@ -140,7 +140,9 @@ const styles = StyleSheet.create({
   },
 
   // === Hero title (大型英字) ===
-  heroBlock: { marginBottom: 24 },
+  // 2026-07-02: 24 → 18 で下方向の余白を詰め、Page 2 での grid 展開に
+  // 余裕を持たせる
+  heroBlock: { marginBottom: 18 },
   heroEn: {
     fontFamily: "Helvetica-Bold",
     fontSize: 56,
@@ -169,12 +171,14 @@ const styles = StyleSheet.create({
   },
 
   // === Section heading (中型英字) ===
+  // 2026-07-02: 18 → 15 に縮小 + marginBottom 14 → 10 で縦間を詰めて
+  // 2 ページに収める余裕を確保
   sectionHead: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 18,
+    fontSize: 15,
     color: PALETTE.ink,
     letterSpacing: 1,
-    marginBottom: 14,
+    marginBottom: 10,
   },
 
   // === 2-col grid for profile ===
@@ -229,14 +233,23 @@ const styles = StyleSheet.create({
   },
 
   // === Tag (SKILLS — # prefix on bg) ===
-  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  // 2026-07-02: 高スキル数ユーザーで縦に伸びて Page 2 に溢れる問題があった
+  // ため、fontSize と padding を詰めてコンパクト化。SKILLS の総数上限も併用。
+  tagRow: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
   tag: {
-    fontSize: 8,
+    fontSize: 7.5,
     color: PALETTE.inkSoft,
     backgroundColor: PALETTE.panel,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 3,
+  },
+  tagMore: {
+    fontSize: 7.5,
+    color: PALETTE.inkMuted,
+    backgroundColor: "transparent",
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
 
   // === INFO list ===
@@ -245,18 +258,18 @@ const styles = StyleSheet.create({
     backgroundColor: PALETTE.pillBg,
     borderWidth: 0.5,
     borderColor: PALETTE.pillBorder,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 4,
     borderRadius: 4,
     alignItems: "center",
   },
-  infoLabel: { width: 70, fontSize: 8, color: PALETTE.inkMuted },
+  infoLabel: { width: 64, fontSize: 8, color: PALETTE.inkMuted },
   infoValue: { flex: 1, fontSize: 9, color: PALETTE.ink },
   infoLink: { flex: 1, fontSize: 9, color: PALETTE.ink },
 
-  // === Section gap ===
-  sectionGap: { height: 22 },
+  // === Section gap === (2026-07-02: 22 → 14 で縦間を詰めて 2 ページに収める)
+  sectionGap: { height: 14 },
 
   // === Hero gallery (page 2 large two-up) ===
   heroGallery: {
@@ -548,19 +561,33 @@ export function CreatorResumePdf({
 
             <View style={styles.sectionGap} />
 
-            {/* SKILLS (strengths + genres + video lengths) */}
+            {/* SKILLS (strengths + genres + video lengths)
+                2026-07-02: 全部展開すると 20+ 個で縦に伸び Page 2 に溢れる
+                問題があった。上限を SKILL_LIMIT に絞り、超過分は "+N more"
+                で 1 タグ相当に集約 → Page 1 に確実に収まる。 */}
             <Text style={styles.sectionHead}>SKILLS</Text>
-            <View style={styles.tagRow}>
-              {[
+            {(() => {
+              const SKILL_LIMIT = 14;
+              const all = [
                 ...data.strengths,
                 ...data.genres,
                 ...data.videoLengths,
-              ].map((s, i) => (
-                <Text key={`${s}-${i}`} style={styles.tag}>
-                  #{s}
-                </Text>
-              ))}
-            </View>
+              ];
+              const shown = all.slice(0, SKILL_LIMIT);
+              const rest = all.length - shown.length;
+              return (
+                <View style={styles.tagRow}>
+                  {shown.map((s, i) => (
+                    <Text key={`${s}-${i}`} style={styles.tag}>
+                      #{s}
+                    </Text>
+                  ))}
+                  {rest > 0 && (
+                    <Text style={styles.tagMore}>+ {rest} more</Text>
+                  )}
+                </View>
+              );
+            })()}
 
             <View style={styles.sectionGap} />
 
@@ -585,13 +612,16 @@ export function CreatorResumePdf({
       <Page size="A4" style={styles.page} wrap>
         <NavBar active="WORKS" />
 
-        <View style={[styles.heroBlock, { flexDirection: "row", alignItems: "flex-end", gap: 32 }]}>
+        {/* 2026-07-02: 旧 gap 32 + 右 200 だと左カラム幅が不足し
+            "PORTFOLIO" が "PORTFO-LIO" に改行されて 3 ページ化を招いた。
+            gap 32 → 16, 右カラム 200 → 150 に詰めて左を広げ、改行を回避。 */}
+        <View style={[styles.heroBlock, { flexDirection: "row", alignItems: "flex-end", gap: 16 }]}>
           <View style={{ flex: 1 }}>
             <Text style={styles.heroEn}>HELLO!</Text>
             <Text style={styles.heroEnSecond}>PORTFOLIO</Text>
             <Text style={styles.heroJpSub}>{safeName} ／ Works {data.works.length}</Text>
           </View>
-          <View style={{ width: 200 }}>
+          <View style={{ width: 150 }}>
             <Text style={styles.heroLead}>
               {data.bio
                 ? data.bio.slice(0, 110) + (data.bio.length > 110 ? "…" : "")
