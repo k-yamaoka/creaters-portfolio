@@ -17,6 +17,9 @@ import { refreshAiNewsCache } from "@/lib/ai-news";
 export const runtime = "nodejs";
 // Cron 実行時のレスポンスは キャッシュしない
 export const dynamic = "force-dynamic";
+// Google News URL 解決 (batch execute) + OGP パースで最大 ~50 秒。
+// Vercel Hobby プランの Function 最大 60 秒に収める。
+export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;

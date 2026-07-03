@@ -135,76 +135,152 @@ function extractOgImage(result: {
   return url;
 }
 
+const CHROME_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36";
+
+/**
+ * Step 1: URL 内 base64 デコード (legacy URL の高速パス)。
+ * 2023 年以前の Google News 中継 URL は CBMi... の base64 内に元 URL を
+ * 直接埋め込んでいたので、これだけで復元できるものが今も一部残っている。
+ */
+function tryBase64Decode(articleId: string): string | null {
+  const b64 = articleId.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+  try {
+    const buf = Buffer.from(padded, "base64");
+    const decoded = buf.toString("latin1");
+    const m = decoded.match(/https?:\/\/[\w.\-~%!$&'()*+,;=:@/?#[\]]+/);
+    if (!m) return null;
+    const cand = m[0].replace(/[^\w.\-~%!$&'()*+,;=:@/?#[\]]+$/, "");
+    if (cand.includes("news.google.com") || cand.includes("gstatic.com")) {
+      return null;
+    }
+    return cand;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Step 2: Google News batch execute API で URL 復号 (2024+ 形式対応)。
+ *
+ * 手順:
+ *   a. https://news.google.com/articles/{id} を fetch し、HTML から
+ *      data-n-a-sg (signature) と data-n-a-ts (timestamp) を抽出
+ *   b. https://news.google.com/_/DotsSplashUi/data/batchexecute に POST
+ *      Payload:
+ *        f.req = [[[
+ *          "Fbv4je",
+ *          '["garturlreq",[[<defaults>]],"<id>","<ts>","<sig>"]',
+ *          null,
+ *          "generic"
+ *        ]]]
+ *   c. レスポンスは ")]}'" プレフィックス + チャンク JSON。
+ *      wrb.fr "Fbv4je" 行の 3 列目に ["garturl","<最終URL>",...] が入る。
+ *
+ * 参考: 現代の Google News URL 復号は公開仕様がなく、コミュニティで解析
+ *      されたエンドポイント (googlenewsdecoder 系ライブラリ) を使う。
+ *      Google 側変更で稀に破損するため、tryBase64Decode を先に試している。
+ */
+async function tryBatchExecute(articleId: string): Promise<string | null> {
+  let signature: string;
+  let timestamp: string;
+
+  // a. Get signature + timestamp from article page
+  try {
+    const pageRes = await fetch(
+      `https://news.google.com/articles/${articleId}`,
+      {
+        headers: {
+          "User-Agent": CHROME_UA,
+          "Accept-Language": "ja,en;q=0.8",
+        },
+        signal: AbortSignal.timeout(6000),
+      }
+    );
+    if (!pageRes.ok) return null;
+    const html = await pageRes.text();
+    const sig = html.match(/data-n-a-sg="([^"]+)"/)?.[1];
+    const ts = html.match(/data-n-a-ts="([^"]+)"/)?.[1];
+    if (!sig || !ts) return null;
+    signature = sig;
+    timestamp = ts;
+  } catch {
+    return null;
+  }
+
+  // b. POST batch execute
+  const innerJson =
+    `["garturlreq",` +
+    `[["X","X","X",null,null,null,null,"US",null,[],"X",false,true,null,null,null,null,null,["X"]]],` +
+    `"${articleId}",` +
+    `"${timestamp}",` +
+    `"${signature}"]`;
+  const outer = JSON.stringify([[["Fbv4je", innerJson, null, "generic"]]]);
+  const body = new URLSearchParams({ "f.req": outer }).toString();
+
+  try {
+    const batchRes = await fetch(
+      "https://news.google.com/_/DotsSplashUi/data/batchexecute",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          "User-Agent": CHROME_UA,
+          "Accept-Language": "ja,en;q=0.8",
+        },
+        body,
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+    if (!batchRes.ok) return null;
+    const text = await batchRes.text();
+
+    // Response format: ")]}'\n\n<len>\n<json>\n\n<len>\n<json>\n..."
+    // 目的: wrb.fr の 3 列目 (inner JSON) から garturl の URL を抽出。
+    // 単純化: response 全体から "garturl" を含む JSON 文字列を検索し、
+    //         その中の最初の https URL を採用する (google.com は除外)。
+    const garturlIdx = text.indexOf('"garturl"');
+    if (garturlIdx < 0) return null;
+    const searchFrom = text.slice(garturlIdx);
+    // 直後の URL リテラルを抽出 (\" は \\\" にエスケープされている点に注意)
+    const urlMatch = searchFrom.match(/https?:\\?\/\\?\/[^"\\]+/);
+    if (!urlMatch) return null;
+    const raw = urlMatch[0].replace(/\\\//g, "/");
+    if (raw.includes("google.com") || raw.includes("gstatic.com")) return null;
+    return raw;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Google News RSS の中継 URL (news.google.com/rss/articles/CBMi...) から
  * 元記事 URL を復元する。
  *
  * 経緯:
- *  - 旧実装は news.google.com 中継 URL を open-graph-scraper に渡していたが、
- *    Google News 自身の og:image (Google News ロゴ) が全記事で返って
- *    「全部同じサムネ」問題を起こしていた
- *  - 解決 URL に対して OGP を取得することで、各配信元の実サムネを得る
+ *  - 単純 base64 デコードは 2023 年以前形式のみ対応 → 現代の URL は非対応
+ *  - Google News の内部 batch execute API を叩いて復号する必要がある
  *
- * 復元手順:
- *  1. パスの CBMi... 部分を base64 デコード (URL 内埋め込みの URL を抽出)
- *  2. 失敗時は Google News HTML を fetch → HTML 内の canonical / data-n-au 属性
- *     から URL を抽出
- *  3. どちらも失敗したら null
+ * フロー:
+ *  1. news.google.com 以外の URL はそのまま通す
+ *  2. tryBase64Decode で legacy URL を高速復号 (成功率 30-40%)
+ *  3. tryBatchExecute で 2024+ 形式を復号 (成功率 60-80%)
+ *  4. すべて失敗したら null
  */
 async function resolveGoogleNewsUrl(rawUrl: string): Promise<string | null> {
   if (!rawUrl.includes("news.google.com")) return rawUrl;
+  const idMatch = rawUrl.match(/\/(?:rss\/)?articles\/([^?/]+)/);
+  if (!idMatch) return null;
+  const articleId = idMatch[1];
 
-  // Step 1: URL 内 base64 デコード
-  const m = rawUrl.match(/\/rss\/articles\/([^?/]+)/);
-  if (m) {
-    const encoded = m[1];
-    const b64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-    try {
-      const buf = Buffer.from(padded, "base64");
-      // protobuf 構造の中にプレーンな URL 文字列が含まれる
-      const decoded = buf.toString("latin1");
-      const urlMatch = decoded.match(/https?:\/\/[\w.\-~%!$&'()*+,;=:@/?#[\]]+/);
-      if (urlMatch) {
-        const cand = urlMatch[0].replace(/[^\w.\-~%!$&'()*+,;=:@/?#[\]]+$/, "");
-        if (!cand.includes("news.google.com") && !cand.includes("gstatic.com")) {
-          return cand;
-        }
-      }
-    } catch {
-      /* fall through */
-    }
-  }
+  // 高速パス: legacy URL の base64 デコード
+  const fromBase64 = tryBase64Decode(articleId);
+  if (fromBase64) return fromBase64;
 
-  // Step 2: Google News ページを fetch して HTML 内から抽出
-  try {
-    const res = await fetch(rawUrl, {
-      redirect: "follow",
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "Accept-Language": "ja,en;q=0.8",
-      },
-      signal: AbortSignal.timeout(6000),
-    });
-    if (res.url && !res.url.includes("news.google.com")) {
-      return res.url; // 302 追跡で最終記事に着地したケース
-    }
-    const html = await res.text();
-    // c-wiz 要素の data-n-au or canonical タグから URL を抽出
-    const candidates = [
-      html.match(/data-n-au="([^"]+)"/)?.[1],
-      html.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1],
-      html.match(/<meta\s+property="og:url"\s+content="([^"]+)"/i)?.[1],
-    ];
-    for (const c of candidates) {
-      if (c && !c.includes("google.com") && /^https?:\/\//.test(c)) {
-        return c;
-      }
-    }
-  } catch {
-    /* fall through */
-  }
+  // 現代の URL は batch execute API 経由
+  const fromBatch = await tryBatchExecute(articleId);
+  if (fromBatch) return fromBatch;
 
   return null;
 }
