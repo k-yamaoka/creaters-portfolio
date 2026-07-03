@@ -56,33 +56,48 @@ type RssSource = {
   requireKeywordFilter: boolean;
 };
 
-const GOOGLE_NEWS_QUERY = "生成AI 動画";
+/**
+ * 2026-07-03: Google News RSS は撤去。中継 URL の解決は Google 側で
+ * 明示的にブロックされており (article page 400 / batch execute 429 →
+ * google.com/sorry 誘導)、サーバサイドから復号する手段がない。
+ * 代わりに 6 つの直接 RSS ソースで多様性を確保する。
+ */
 const RSS_SOURCES: RssSource[] = [
-  {
-    name: "Google News",
-    url:
-      `https://news.google.com/rss/search?q=${encodeURIComponent(GOOGLE_NEWS_QUERY)}` +
-      `&hl=ja&gl=JP&ceid=JP:ja`,
-    isGoogleNews: true,
-    requireKeywordFilter: false,
-  },
   {
     name: "ITmedia AI+",
     url: "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml",
     isGoogleNews: false,
-    requireKeywordFilter: false,
+    requireKeywordFilter: false, // AI 専門カテゴリなので絞込不要
   },
   {
     name: "AINOW",
     url: "https://ainow.ai/feed/",
     isGoogleNews: false,
-    requireKeywordFilter: false,
+    requireKeywordFilter: false, // AI 専門
+  },
+  {
+    name: "Zenn AI",
+    url: "https://zenn.dev/topics/ai/feed",
+    isGoogleNews: false,
+    requireKeywordFilter: false, // AI トピック絞込済
+  },
+  {
+    name: "WIRED",
+    url: "https://wired.jp/feed/rss",
+    isGoogleNews: false,
+    requireKeywordFilter: true, // 汎用テック → AI キーワードで絞る
   },
   {
     name: "ascii.jp",
     url: "https://ascii.jp/rss.xml",
     isGoogleNews: false,
-    requireKeywordFilter: true, // 幅広い tech RSS なので AI/動画 キーワードで絞る
+    requireKeywordFilter: true,
+  },
+  {
+    name: "GIGAZINE",
+    url: "https://gigazine.net/news/rss_2.0/",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
   },
 ];
 
@@ -107,12 +122,12 @@ const AI_VIDEO_KEYWORDS = [
 ] as const;
 
 const TARGET_COUNT = 8; // トップページ表示件数 (4 列 × 2 行)
-// 各ソースから取得する item 上限。合計 ~120 件 → キーワード絞込 → 上位 24 件を
-// OGP 展開してから 8 件確保する運用。
-const PER_SOURCE_LIMIT = 30;
-const ENRICH_LIMIT = 24;
+// 各ソースから top-N を取り、6 ソース × 4 = 24 件を OGP 展開して 8 件確保。
+// 特定ソースに偏らないよう round-robin で優先度を分散。
+const PER_SOURCE_LIMIT = 30; // 各ソース RSS から取り込む上限 (フィルタ前)
+const PER_SOURCE_CANDIDATE = 4; // 各ソースから enrichment に回す件数 (フィルタ後)
 const OGP_TIMEOUT_MS = 8000;
-const OGP_PARALLEL = 6;
+const OGP_PARALLEL = 8;
 
 // SHA1 は Node.js の crypto を使用 (edge runtime でも動作)
 async function sha1Hex(input: string): Promise<string> {
@@ -410,8 +425,25 @@ async function fetchOneSource(
 }
 
 /**
- * 全ソースから RSS を並列取得 → キーワード絞込 → 日付降順ソート →
- * 上位 ENRICH_LIMIT を OGP 展開 → デデュープして TARGET_COUNT 確保。
+ * 各ソースから top-N を取って round-robin で並べる。
+ * 単純な date desc だと最新記事の多いソース (ITmedia AI+ など) に偏るため、
+ * ソース多様性を確保する。
+ */
+function interleavePerSource(perSource: Candidate[][]): Candidate[] {
+  // 各ソース内では date desc、既にソート済
+  const out: Candidate[] = [];
+  const maxLen = Math.max(...perSource.map((s) => s.length), 0);
+  for (let i = 0; i < maxLen; i++) {
+    for (const source of perSource) {
+      if (source[i]) out.push(source[i]);
+    }
+  }
+  return out;
+}
+
+/**
+ * 全ソースから RSS を並列取得 → キーワード絞込 + 日付降順 → 各ソース top-N →
+ * round-robin でインターリーブ → OGP 展開 → デデュープして TARGET_COUNT 確保。
  *
  * ユーザー制約に従い og:title と og:image のみ抽出、本文 / description は破棄。
  */
@@ -425,25 +457,27 @@ async function fetchAndEnrichAiNews(): Promise<AiNewsItem[]> {
   });
 
   // 各ソースを並列に fetch
-  const perSource = await Promise.all(
+  const perSourceRaw = await Promise.all(
     RSS_SOURCES.map((src) => fetchOneSource(parser, src))
   );
-  const allCandidates: Candidate[] = perSource.flat();
 
-  if (allCandidates.length === 0) {
+  // ソース内で date desc ソート → top PER_SOURCE_CANDIDATE 抽出
+  const perSourceTop = perSourceRaw.map((items) => {
+    const sorted = [...items].sort((a, b) => {
+      const ta = a.isoDate ? new Date(a.isoDate).getTime() : 0;
+      const tb = b.isoDate ? new Date(b.isoDate).getTime() : 0;
+      return tb - ta;
+    });
+    return sorted.slice(0, PER_SOURCE_CANDIDATE);
+  });
+
+  // Round-robin で混ぜる (source1[0], source2[0], ..., source1[1], source2[1], ...)
+  const toEnrich = interleavePerSource(perSourceTop);
+
+  if (toEnrich.length === 0) {
     console.warn("[ai-news] all RSS sources returned no items");
     return [];
   }
-
-  // 日付降順ソート (新しい記事を優先)
-  allCandidates.sort((a, b) => {
-    const ta = a.isoDate ? new Date(a.isoDate).getTime() : 0;
-    const tb = b.isoDate ? new Date(b.isoDate).getTime() : 0;
-    return tb - ta;
-  });
-
-  // 上位 ENRICH_LIMIT を OGP 展開 (Google News は URL 解決失敗があるので多めに)
-  const toEnrich = allCandidates.slice(0, ENRICH_LIMIT);
 
   const enriched = await inBatches(toEnrich, OGP_PARALLEL, (c) =>
     enrichSingle(c.link, c.title, c.isoDate, c.sourceName)
