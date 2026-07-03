@@ -66,41 +66,141 @@ function extractOgImage(result: {
   return url;
 }
 
-// Google News RSS の item.link は news.google.com の中継 URL。
-// open-graph-scraper がリダイレクトを追跡するのでそのまま渡す。
-// 場合により最終 URL が response.url に入るので、それを採用する。
-async function enrichSingle(link: string, fallbackTitle: string, publishedAt: string | null, source: string | null): Promise<AiNewsItem | null> {
+/**
+ * Google News RSS の中継 URL (news.google.com/rss/articles/CBMi...) から
+ * 元記事 URL を復元する。
+ *
+ * 経緯:
+ *  - 旧実装は news.google.com 中継 URL を open-graph-scraper に渡していたが、
+ *    Google News 自身の og:image (Google News ロゴ) が全記事で返って
+ *    「全部同じサムネ」問題を起こしていた
+ *  - 解決 URL に対して OGP を取得することで、各配信元の実サムネを得る
+ *
+ * 復元手順:
+ *  1. パスの CBMi... 部分を base64 デコード (URL 内埋め込みの URL を抽出)
+ *  2. 失敗時は Google News HTML を fetch → HTML 内の canonical / data-n-au 属性
+ *     から URL を抽出
+ *  3. どちらも失敗したら null
+ */
+async function resolveGoogleNewsUrl(rawUrl: string): Promise<string | null> {
+  if (!rawUrl.includes("news.google.com")) return rawUrl;
+
+  // Step 1: URL 内 base64 デコード
+  const m = rawUrl.match(/\/rss\/articles\/([^?/]+)/);
+  if (m) {
+    const encoded = m[1];
+    const b64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    try {
+      const buf = Buffer.from(padded, "base64");
+      // protobuf 構造の中にプレーンな URL 文字列が含まれる
+      const decoded = buf.toString("latin1");
+      const urlMatch = decoded.match(/https?:\/\/[\w.\-~%!$&'()*+,;=:@/?#[\]]+/);
+      if (urlMatch) {
+        const cand = urlMatch[0].replace(/[^\w.\-~%!$&'()*+,;=:@/?#[\]]+$/, "");
+        if (!cand.includes("news.google.com") && !cand.includes("gstatic.com")) {
+          return cand;
+        }
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
+  // Step 2: Google News ページを fetch して HTML 内から抽出
   try {
-    const { result, response } = await ogs({
-      url: link,
+    const res = await fetch(rawUrl, {
+      redirect: "follow",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "Accept-Language": "ja,en;q=0.8",
+      },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (res.url && !res.url.includes("news.google.com")) {
+      return res.url; // 302 追跡で最終記事に着地したケース
+    }
+    const html = await res.text();
+    // c-wiz 要素の data-n-au or canonical タグから URL を抽出
+    const candidates = [
+      html.match(/data-n-au="([^"]+)"/)?.[1],
+      html.match(/<link\s+rel="canonical"\s+href="([^"]+)"/i)?.[1],
+      html.match(/<meta\s+property="og:url"\s+content="([^"]+)"/i)?.[1],
+    ];
+    for (const c of candidates) {
+      if (c && !c.includes("google.com") && /^https?:\/\//.test(c)) {
+        return c;
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+
+  return null;
+}
+
+/**
+ * OGP 抽出。og:title と og:image のみを使用 (本文・descriptions は破棄)。
+ * Google News の中継 URL は先に resolveGoogleNewsUrl で最終記事 URL に変換
+ * してから OGP パースする。
+ */
+async function enrichSingle(
+  link: string,
+  fallbackTitle: string,
+  publishedAt: string | null,
+  source: string | null
+): Promise<AiNewsItem | null> {
+  const resolvedUrl = await resolveGoogleNewsUrl(link);
+  if (!resolvedUrl) return null;
+
+  try {
+    const { result } = await ogs({
+      url: resolvedUrl,
       timeout: OGP_TIMEOUT_MS,
       fetchOptions: {
         headers: {
           "User-Agent":
-            "Mozilla/5.0 (compatible; AILIER-NewsBot/1.0; +https://creaters-portfolio.vercel.app)",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
           "Accept-Language": "ja,en;q=0.8",
         },
       },
     });
     if (!result.success) return null;
 
-    const finalUrl =
-      (response as { requestUrl?: string } | undefined)?.requestUrl ??
-      link;
-
     const title = (result.ogTitle ?? fallbackTitle ?? "").trim();
     const imageUrl = extractOgImage(result);
 
-    if (!title || !imageUrl) return null; // ユーザー要件: 画像なし記事は除外
+    if (!title || !imageUrl) return null;
 
-    const id = await sha1Hex(finalUrl);
+    // Google News のデフォルトロゴ画像 (news.google.com / gstatic.com/news
+    // ホスト) は各記事共通のため除外し、真の記事画像だけを残す
+    if (
+      /news\.google\.com|gstatic\.com\/news|lh3\.googleusercontent\.com\/news/i.test(
+        imageUrl
+      )
+    ) {
+      return null;
+    }
+
+    // 出典名: Google News が返した source があればそれ、無ければホスト名
+    let sourceName = source;
+    if (!sourceName) {
+      try {
+        sourceName = new URL(resolvedUrl).hostname.replace(/^www\./, "");
+      } catch {
+        /* keep null */
+      }
+    }
+
+    const id = await sha1Hex(resolvedUrl);
     return {
       id,
-      url: finalUrl,
+      url: resolvedUrl,
       title,
       imageUrl,
       publishedAt,
-      sourceName: source,
+      sourceName,
     };
   } catch {
     return null;
