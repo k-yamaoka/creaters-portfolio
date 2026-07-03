@@ -49,9 +49,9 @@ type RssSource = {
   /** true のとき item.link が Google News 中継 URL なので resolveGoogleNewsUrl を通す */
   isGoogleNews: boolean;
   /**
-   * true のとき item.title に AI / 動画 系キーワードが含まれるものだけ通す。
-   * 汎用テック RSS (ascii.jp) は絞り込みが必要。専門メディア (ITmedia AI+ /
-   * AINOW / Google News 検索) はキーワード事前絞込済のため不要。
+   * 2026-07-03: 動画特化 (option B) に切替えたため、全ソースに AI_VIDEO_KEYWORDS を
+   * 一律適用。個別に切替える運用はもう不要だが、将来ソース追加時に「絞り込まず
+   * 全件通したい」ソースを混ぜたくなる場面向けに保持。現状は全て true 相当。
    */
   requireKeywordFilter: boolean;
 };
@@ -63,29 +63,31 @@ type RssSource = {
  * 代わりに 6 つの直接 RSS ソースで多様性を確保する。
  */
 const RSS_SOURCES: RssSource[] = [
+  // 2026-07-03: 全ソース requireKeywordFilter: true に統一 (動画特化フィルタ)。
+  // AI 全般ではなく動画関連のみを通す運用に切替。
   {
     name: "ITmedia AI+",
     url: "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml",
     isGoogleNews: false,
-    requireKeywordFilter: false, // AI 専門カテゴリなので絞込不要
+    requireKeywordFilter: true,
   },
   {
     name: "AINOW",
     url: "https://ainow.ai/feed/",
     isGoogleNews: false,
-    requireKeywordFilter: false, // AI 専門
+    requireKeywordFilter: true,
   },
   {
     name: "Zenn AI",
     url: "https://zenn.dev/topics/ai/feed",
     isGoogleNews: false,
-    requireKeywordFilter: false, // AI トピック絞込済
+    requireKeywordFilter: true,
   },
   {
     name: "WIRED",
     url: "https://wired.jp/feed/rss",
     isGoogleNews: false,
-    requireKeywordFilter: true, // 汎用テック → AI キーワードで絞る
+    requireKeywordFilter: true,
   },
   {
     name: "ascii.jp",
@@ -101,24 +103,63 @@ const RSS_SOURCES: RssSource[] = [
   },
 ];
 
-// タイトルにこれらのどれかが含まれる item のみ通す (requireKeywordFilter=true の
-// ソース向け)。AI 動画 関連の一般的な語彙。
+/**
+ * 動画特化キーワード。全ソースに一律適用され、これらのいずれかにマッチする
+ * 記事のみ通す。
+ *
+ * 誤検出防止のため以下に配慮:
+ *  - "Sora" 単独はマッチさせない (ASUS Zenbook SORA 等の製品名衝突)
+ *    → "Sora 2" / "OpenAI Sora" 等の video-AI 文脈に限定
+ *  - "Veo" 単独はマッチさせない (自動車 Vueo 等との衝突可能性)
+ *    → "Veo 3" / "Veo 2" / "Google Veo" に限定
+ *  - "Runway" 単独はマッチさせない (Adobe Runway 等)
+ *    → "Runway Gen" / "Runway ML" / "Runway Aleph" に限定
+ *  - "Pika" は Pika Labs 特定
+ *
+ * 大文字小文字を無視する比較 (titleMatchesKeywords 内で toLowerCase 済)。
+ */
 const AI_VIDEO_KEYWORDS = [
-  "生成AI",
-  "生成 AI",
+  // === 汎用 動画/映像 関連語 ===
+  "動画",
+  "映像",
+  "映画",
   "AI動画",
-  "AI 動画",
+  "AI映像",
+  "AIビデオ",
   "動画生成",
   "映像生成",
-  "Sora",
-  "Veo",
-  "Runway",
-  "Kling",
-  "Suno",
-  "Midjourney",
+  "テキスト・トゥ・ビデオ",
+  "text-to-video",
+  "text to video",
+  "text2video",
+  "video generation",
+  "video-generation",
+  "VFX",
+  "モーションブラー",
+  // === 動画特化 AI プロダクト (誤検出防止のため文脈込みで指定) ===
+  "Sora 2",
+  "Sora2",
+  "OpenAI Sora",
+  "Veo 3",
+  "Veo 2",
+  "Veo3",
+  "Veo2",
+  "Google Veo",
+  "Runway Gen",
+  "Runway ML",
+  "Runway Aleph",
+  "Kling 2",
+  "Kling 1",
+  "Kling AI",
+  "Hailuo",
+  "Pika Labs",
+  "Pika 2",
+  "Luma AI",
+  "Dream Machine",
   "Stable Video",
-  "ChatGPT",
-  "Gemini",
+  "Higgsfield",
+  "MiniMax video",
+  "Lightricks",
 ] as const;
 
 const TARGET_COUNT = 8; // トップページ表示件数 (4 列 × 2 行)
