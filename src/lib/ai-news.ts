@@ -35,15 +35,84 @@ export type AiNewsItem = {
   sourceName: string | null;
 };
 
+/**
+ * ソース一覧。
+ *
+ * Google News は幅広いが URL が中継 (news.google.com/rss/articles/CBMi...) で、
+ * 元記事 URL の復元が不安定 → 失敗時はスキップ。
+ * ITmedia AI+ / AINOW / ascii.jp は直接 URL を返す RSS のため、確実に OGP を
+ * 取得できる主力ソース。
+ */
+type RssSource = {
+  name: string;
+  url: string;
+  /** true のとき item.link が Google News 中継 URL なので resolveGoogleNewsUrl を通す */
+  isGoogleNews: boolean;
+  /**
+   * true のとき item.title に AI / 動画 系キーワードが含まれるものだけ通す。
+   * 汎用テック RSS (ascii.jp) は絞り込みが必要。専門メディア (ITmedia AI+ /
+   * AINOW / Google News 検索) はキーワード事前絞込済のため不要。
+   */
+  requireKeywordFilter: boolean;
+};
+
 const GOOGLE_NEWS_QUERY = "生成AI 動画";
-const GOOGLE_NEWS_URL =
-  `https://news.google.com/rss/search?q=${encodeURIComponent(GOOGLE_NEWS_QUERY)}` +
-  `&hl=ja&gl=JP&ceid=JP:ja`;
+const RSS_SOURCES: RssSource[] = [
+  {
+    name: "Google News",
+    url:
+      `https://news.google.com/rss/search?q=${encodeURIComponent(GOOGLE_NEWS_QUERY)}` +
+      `&hl=ja&gl=JP&ceid=JP:ja`,
+    isGoogleNews: true,
+    requireKeywordFilter: false,
+  },
+  {
+    name: "ITmedia AI+",
+    url: "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: false,
+  },
+  {
+    name: "AINOW",
+    url: "https://ainow.ai/feed/",
+    isGoogleNews: false,
+    requireKeywordFilter: false,
+  },
+  {
+    name: "ascii.jp",
+    url: "https://ascii.jp/rss.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true, // 幅広い tech RSS なので AI/動画 キーワードで絞る
+  },
+];
+
+// タイトルにこれらのどれかが含まれる item のみ通す (requireKeywordFilter=true の
+// ソース向け)。AI 動画 関連の一般的な語彙。
+const AI_VIDEO_KEYWORDS = [
+  "生成AI",
+  "生成 AI",
+  "AI動画",
+  "AI 動画",
+  "動画生成",
+  "映像生成",
+  "Sora",
+  "Veo",
+  "Runway",
+  "Kling",
+  "Suno",
+  "Midjourney",
+  "Stable Video",
+  "ChatGPT",
+  "Gemini",
+] as const;
 
 const TARGET_COUNT = 8; // トップページ表示件数 (4 列 × 2 行)
-const RSS_FETCH_LIMIT = 24; // OGP パース失敗 / 画像無し に備えて多めに取得
+// 各ソースから取得する item 上限。合計 ~120 件 → キーワード絞込 → 上位 24 件を
+// OGP 展開してから 8 件確保する運用。
+const PER_SOURCE_LIMIT = 30;
+const ENRICH_LIMIT = 24;
 const OGP_TIMEOUT_MS = 8000;
-const OGP_PARALLEL = 6; // 同時に OGP 取得する並列度
+const OGP_PARALLEL = 6;
 
 // SHA1 は Node.js の crypto を使用 (edge runtime でも動作)
 async function sha1Hex(input: string): Promise<string> {
@@ -222,9 +291,53 @@ async function inBatches<T, R>(
   return out;
 }
 
+type Candidate = {
+  link: string;
+  title: string;
+  isoDate: string | null;
+  sourceName: string;
+  isGoogleNews: boolean;
+};
+
+function titleMatchesKeywords(title: string): boolean {
+  return AI_VIDEO_KEYWORDS.some((k) =>
+    title.toLowerCase().includes(k.toLowerCase())
+  );
+}
+
+async function fetchOneSource(
+  parser: Parser,
+  src: RssSource
+): Promise<Candidate[]> {
+  try {
+    const feed = await parser.parseURL(src.url);
+    const items = (feed.items ?? [])
+      .filter((it) => !!it.link && !!it.title)
+      .slice(0, PER_SOURCE_LIMIT);
+    const out: Candidate[] = [];
+    for (const it of items) {
+      const title = (it.title as string) ?? "";
+      if (src.requireKeywordFilter && !titleMatchesKeywords(title)) continue;
+      out.push({
+        link: it.link as string,
+        title,
+        isoDate: (it.isoDate as string) ?? null,
+        sourceName: src.name,
+        isGoogleNews: src.isGoogleNews,
+      });
+    }
+    return out;
+  } catch (e) {
+    console.warn(`[ai-news] RSS fetch failed for ${src.name}`, e);
+    return [];
+  }
+}
+
 /**
- * RSS 取得 + OGP 抽出。ユーザー制約に従い og:title と og:image のみ抽出、
- * 本文 / description は完全に破棄する。
+ * 全ソースから RSS を並列取得 → キーワード絞込 → 日付降順ソート →
+ * 上位 ENRICH_LIMIT を OGP 展開 → デデュープして TARGET_COUNT 確保。
+ *
+ * ユーザー制約に従い og:title と og:image のみ抽出、本文 / description は破棄。
  */
 async function fetchAndEnrichAiNews(): Promise<AiNewsItem[]> {
   const parser: Parser = new Parser({
@@ -235,37 +348,41 @@ async function fetchAndEnrichAiNews(): Promise<AiNewsItem[]> {
     },
   });
 
-  let feed: Parser.Output<{ [key: string]: unknown }>;
-  try {
-    feed = await parser.parseURL(GOOGLE_NEWS_URL);
-  } catch (e) {
-    console.error("[ai-news] RSS fetch failed", e);
+  // 各ソースを並列に fetch
+  const perSource = await Promise.all(
+    RSS_SOURCES.map((src) => fetchOneSource(parser, src))
+  );
+  const allCandidates: Candidate[] = perSource.flat();
+
+  if (allCandidates.length === 0) {
+    console.warn("[ai-news] all RSS sources returned no items");
     return [];
   }
 
-  // Google News の <source> はカスタムフィールド。rss-parser には拾わせない
-  // 場合もあるので、summary / creator から source 名を推測する。
-  const candidates = (feed.items ?? [])
-    .filter((it) => !!it.link && !!it.title)
-    .slice(0, RSS_FETCH_LIMIT);
+  // 日付降順ソート (新しい記事を優先)
+  allCandidates.sort((a, b) => {
+    const ta = a.isoDate ? new Date(a.isoDate).getTime() : 0;
+    const tb = b.isoDate ? new Date(b.isoDate).getTime() : 0;
+    return tb - ta;
+  });
 
-  const enriched = await inBatches(candidates, OGP_PARALLEL, (item) =>
-    enrichSingle(
-      item.link as string,
-      (item.title as string) ?? "",
-      (item.isoDate as string) ?? null,
-      (item.creator as string) ?? (item.source as string) ?? null
-    )
+  // 上位 ENRICH_LIMIT を OGP 展開 (Google News は URL 解決失敗があるので多めに)
+  const toEnrich = allCandidates.slice(0, ENRICH_LIMIT);
+
+  const enriched = await inBatches(toEnrich, OGP_PARALLEL, (c) =>
+    enrichSingle(c.link, c.title, c.isoDate, c.sourceName)
   );
 
   const clean = enriched.filter((x): x is AiNewsItem => x !== null);
 
-  // URL の重複を除去 (Google News は同記事を複数枠で流すことがある)
+  // URL の重複を除去 (複数ソースから同記事が来ることがある)
   const seen = new Set<string>();
   const dedup: AiNewsItem[] = [];
   for (const item of clean) {
-    if (seen.has(item.url)) continue;
-    seen.add(item.url);
+    // 正規化: querystring と trailing slash を除外して比較キーに
+    const key = item.url.replace(/[?#].*$/, "").replace(/\/$/, "");
+    if (seen.has(key)) continue;
+    seen.add(key);
     dedup.push(item);
     if (dedup.length >= TARGET_COUNT) break;
   }
