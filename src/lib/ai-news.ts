@@ -119,15 +119,20 @@ const RSS_SOURCES: RssSource[] = [
  * 大文字小文字を無視する比較 (titleMatchesKeywords 内で toLowerCase 済)。
  */
 const AI_VIDEO_KEYWORDS = [
-  // === 汎用 動画/映像 関連語 ===
+  // === 汎用 動画/映像 関連語 (中核) ===
   "動画",
   "映像",
   "映画",
+  "ムービー",
   "AI動画",
   "AI映像",
   "AIビデオ",
   "動画生成",
   "映像生成",
+  "動画編集",
+  "映像編集",
+  "動画制作",
+  "映像制作",
   "テキスト・トゥ・ビデオ",
   "text-to-video",
   "text to video",
@@ -135,7 +140,27 @@ const AI_VIDEO_KEYWORDS = [
   "video generation",
   "video-generation",
   "VFX",
-  "モーションブラー",
+  "アニメーション",
+  "モーショングラフィックス",
+  "モーショングラフィック",
+  // === 動画系プラットフォーム / 尺 (動画コンテンツを扱う記事のマーカー) ===
+  "ショート動画",
+  "縦型動画",
+  "ショートムービー",
+  "リール",
+  "YouTube",
+  "TikTok",
+  "Instagram Reels",
+  "YouTube Shorts",
+  "MV",
+  "PV",
+  // === 動画編集ツール ===
+  "Adobe Premiere",
+  "Premiere Pro",
+  "After Effects",
+  "CapCut",
+  "DaVinci Resolve",
+  "Final Cut",
   // === 動画特化 AI プロダクト (誤検出防止のため文脈込みで指定) ===
   "Sora 2",
   "Sora2",
