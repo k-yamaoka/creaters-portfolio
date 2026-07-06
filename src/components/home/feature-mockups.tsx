@@ -62,8 +62,12 @@ export function BrowserFrame({
         </div>
       </div>
       {/* SP で内部の固定幅 mock がはみ出す対策。
-          overflow-x-hidden で物理的にトリミングし、横スクロールを阻止。 */}
-      <div className="relative overflow-x-hidden">{children}</div>
+          overflow-x-hidden で横スクロールだけ阻止、
+          縦は overflow-y-visible で子コンテンツを全高表示する
+          (2026-07-03: F05 取引管理 モックの内部 y スクロール懸念に対する明示宣言) */}
+      <div className="relative overflow-x-hidden overflow-y-visible">
+        {children}
+      </div>
     </div>
   );
 }
@@ -314,8 +318,9 @@ export function MockOrders() {
       amount: "¥80,000",
     },
   ];
+  // 2026-07-03: 内部スクロールが起きないよう max-h / overflow を明示解除
   return (
-    <div className="bg-paper p-4">
+    <div className="max-h-none overflow-visible bg-paper p-4">
       <div className="mb-3 flex items-center justify-between border-y border-ink/10 py-3">
         <p className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-sand">
           <ShieldCheck size={11} strokeWidth={1.6} />

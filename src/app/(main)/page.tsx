@@ -7,7 +7,8 @@ import { HeroFullscreen } from "@/components/home/hero-fullscreen";
 import { extractHeroVideos, isStockUrl } from "@/lib/hero-videos";
 import { HeroUnderBand, type BandWork } from "@/components/home/hero-under-band";
 import { WorksDigest, type DigestWork } from "@/components/home/works-digest";
-import { MarqueeText } from "@/components/home/marquee-text";
+// 2026-07-03 撤去: MarqueeText (2 か所とも削除)。AccentVideoTile は
+// Co-creation セクションの縦型アクセント 1 枚で継続使用。
 import { AccentVideoTile } from "@/components/home/accent-video-tile";
 import {
   Sparkles,
@@ -334,42 +335,17 @@ export default async function HomePage() {
       {/* Section 5: Hero 直下動画帯 — 注目 4 本を横一列に並べ常時微再生 */}
       <HeroUnderBand works={bandWorks} />
 
-      {/* Section 5: マーキーテキスト (Hero 帯と Compatible models の間) */}
-      <div className="relative bg-paper py-6">
-        <MarqueeText
-          phrase="AI Video Creators — For Business"
-          speed="h-45"
-          tone="ink"
-        />
-      </div>
-
-      {/* 2026-07-02 撤去: 「Compatible models / 対応AIモデル」帯 (ユーザー判断)
-          撤去理由: サイト全体で "AI 特化" は Hero やタグで既に十分伝わり、
-          ここでモデル名の羅列を挟むと情報量に対して尺を取りすぎ、
-          Value Props への流れを重くしていたため。 */}
+      {/* 2026-07-03 撤去:
+          - MarqueeText "AI Video Creators — For Business" (装飾横スクロール)
+          - アクセント動画帯 3 本 (accent.horizontals)
+          - Compatible models 帯 (前 commit で撤去済)
+          いずれも視線の流れを重くし、Value Props への遷移を鈍らせていたため。 */}
 
       {/* =================================================
           VALUE PROPS — 罫線で 4 等分された単一の帯 (Axis 風)
-          2026-06-19 Section 9 補完: 上部に小動画帯 3 本を添えて
-          「視界に動く映像」を維持する
           ================================================= */}
       <section className="relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-6 lg:px-10">
-          {/* アクセント動画帯 (3 本横並び、装飾扱い) */}
-          {accent.horizontals.length > 0 && (
-            <div className="mb-px grid grid-cols-3 gap-px">
-              {accent.horizontals.map((a) => (
-                <AccentVideoTile
-                  key={a.id}
-                  videoUrl={a.videoUrl}
-                  posterUrl={a.posterUrl}
-                  aspectRatio="horizontal"
-                  href={a.href}
-                />
-              ))}
-            </div>
-          )}
-
           <div className="grid grid-cols-1 divide-y divide-ink/10 border-y border-ink/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
             {VALUE_PROPS.map((v, i) => {
               const Icon = v.icon;
@@ -459,14 +435,9 @@ export default async function HomePage() {
       {/* Section 5: Works ダイジェスト — タブ切替で 18 本フィルタリング */}
       <WorksDigest works={digestWorks} />
 
-      {/* Section 5: マーキーテキスト (Works → FEATURE 区切り) */}
-      <div className="relative bg-paper py-6">
-        <MarqueeText
-          phrase="View More Works — Made With AI"
-          speed="h-38"
-          tone="ink"
-        />
-      </div>
+      {/* 2026-07-03 撤去:
+          MarqueeText "View More Works — Made With AI" (装飾横スクロール)。
+          Works ダイジェスト → FEATURE 03 の遷移を短く。 */}
 
       {/* =================================================
           03 — Service (旧 FEATURES) — 5 機能をアシンメトリーに展開

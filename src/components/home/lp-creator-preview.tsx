@@ -2,7 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Sparkles, BadgeCheck } from "lucide-react";
+import {
+  Heart,
+  Sparkles,
+  BadgeCheck,
+  Search,
+  ChevronDown,
+  Zap,
+  LayoutGrid,
+  List,
+} from "lucide-react";
 import { SlideInWhenVisible } from "@/components/ui/slide-in-when-visible";
 
 /**
@@ -12,11 +21,81 @@ import { SlideInWhenVisible } from "@/components/ui/slide-in-when-visible";
  * データ: page.tsx (Server) が getCreators() で取得 → 上位 3 名を props で渡す。
  * 演出: SlideInWhenVisible direction="up" + stagger delay で上から順にフワッ。
  *
- * カード UI 方針:
- *  - /creators の CreatorCard を薄型に縦積みして、モックの雰囲気を保ちつつ
- *    実データを見せる (BrowserFrame の中に納まるサイズ)
- *  - サムネ、アバター、名前、認証済バッジ、強み、ジャンル、最低料金
+ * UI 構成 (2026-07-03):
+ *  - 最上部: 検索・フィルターバー モックアップ (キーワード / ジャンル /
+ *    予算 / すぐ対応可能トグル / 一覧⇔グリッド切替)
+ *  - その下: 実クリエイター 3 名のカード (fade-in-up stagger)
  */
+
+// 検索バー: 実 /creators と同じフィルタ UI を圧縮モック表示
+function SearchFilterMock() {
+  return (
+    <div className="border-b border-ink/10 bg-white p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Keyword search */}
+        <div className="flex flex-1 min-w-[140px] items-center gap-2 rounded-md border border-ink/15 bg-white px-2.5 py-1.5">
+          <Search
+            size={12}
+            strokeWidth={1.8}
+            className="text-ink/50"
+            aria-hidden
+          />
+          <span className="truncate text-[11px] text-ink/50">
+            クリエイター名 / 強みで検索
+          </span>
+        </div>
+        {/* Genre */}
+        <button
+          type="button"
+          disabled
+          className="flex items-center gap-1 rounded-md border border-ink/15 bg-white px-2.5 py-1.5 text-[11px] text-ink/70"
+        >
+          ジャンル
+          <ChevronDown size={11} strokeWidth={1.8} aria-hidden />
+        </button>
+        {/* Budget */}
+        <button
+          type="button"
+          disabled
+          className="flex items-center gap-1 rounded-md border border-ink/15 bg-white px-2.5 py-1.5 text-[11px] text-ink/70"
+        >
+          予算
+          <ChevronDown size={11} strokeWidth={1.8} aria-hidden />
+        </button>
+        {/* Immediate toggle */}
+        <button
+          type="button"
+          disabled
+          className="flex items-center gap-1.5 rounded-full border border-sand/50 bg-sand/10 px-2.5 py-1 text-[11px] font-medium text-ink"
+        >
+          <Zap
+            size={10}
+            strokeWidth={2}
+            fill="currentColor"
+            className="text-sand"
+            aria-hidden
+          />
+          すぐ対応可能
+          <span
+            aria-hidden
+            className="relative ml-0.5 inline-flex h-3 w-6 items-center rounded-full bg-sand"
+          >
+            <span className="absolute right-0.5 inline-block h-2 w-2 rounded-full bg-white" />
+          </span>
+        </button>
+        {/* Layout toggle */}
+        <div className="ml-auto flex items-center overflow-hidden rounded-md border border-ink/15">
+          <span className="bg-ink/[0.06] p-1.5 text-ink/70">
+            <List size={11} strokeWidth={1.8} aria-hidden />
+          </span>
+          <span className="border-l border-ink/15 p-1.5 text-ink/40">
+            <LayoutGrid size={11} strokeWidth={1.8} aria-hidden />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 type LpCreator = {
   id: string;
@@ -33,7 +112,9 @@ type LpCreator = {
 
 export function LpCreatorPreview({ creators }: { creators: LpCreator[] }) {
   return (
-    <div className="space-y-3 bg-paper p-4">
+    <div className="bg-paper">
+      <SearchFilterMock />
+      <div className="space-y-3 p-4">
       {creators.map((c, i) => (
         <SlideInWhenVisible key={c.id} direction="up" delay={i * 120}>
           <Link
@@ -142,6 +223,7 @@ export function LpCreatorPreview({ creators }: { creators: LpCreator[] }) {
           </Link>
         </SlideInWhenVisible>
       ))}
+      </div>
     </div>
   );
 }
