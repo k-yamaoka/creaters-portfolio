@@ -737,17 +737,17 @@ function FeatureRow({
   return (
     <div className="relative">
       {/* === 背景 特大タイポ (アウトライン) — 映像でなく文字 ===
-          2026-07-03 再調整: ストライプ (bg-gray-50/white) 上で
-          アウトラインが薄すぎて視認不能だったため:
-          - stroke 太さ 1px → 1.75px
-          - opacity 0.18 → 0.30 (bg-gray-50 でも視認可能に)
-          - 数字位置を FeatureRow 中央 (top-1/2) から少し下寄せ (top-[55%])
-            → CTA ボタンとテキスト塊の中間で見せる
-          - パララックスは維持 (intensity 0.08) */}
+          2026-07-03 3 回目調整: F01/F02 だけ数字が隠れる件を修正。
+          原因: FeatureRow の mock 列は BrowserFrame + bg-paper が
+          完全 opaque。数字は mock 側に配置していたため、mock の
+          裏に完全に埋もれて視認不能だった (F03-F05 は mock 高さが
+          低くたまたま漏れて見えていた)。
+          対策: 数字位置を TEXT 列側 (背景透過) に反転。
+          テキスト要素との重なりは stroke opacity 0.30 で控えめに。 */}
       <ParallaxImage
         intensity={0.08}
-        className={`pointer-events-none absolute top-[55%] -translate-y-1/2 z-0 ${
-          reverse ? "-left-4 lg:left-[-2vw]" : "-right-4 lg:right-[-2vw]"
+        className={`pointer-events-none absolute top-[50%] -translate-y-1/2 z-0 ${
+          reverse ? "-right-4 lg:right-[-2vw]" : "-left-4 lg:left-[-2vw]"
         }`}
       >
         <span
@@ -755,7 +755,7 @@ function FeatureRow({
           className="block font-display font-semibold leading-none tracking-[-0.04em] text-[clamp(6rem,15vw,14rem)]"
           style={{
             color: "transparent",
-            WebkitTextStroke: "1.75px rgba(10,13,18,0.30)",
+            WebkitTextStroke: "2px rgba(10,13,18,0.30)",
           }}
         >
           {bigNumber}
