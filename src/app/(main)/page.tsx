@@ -7,9 +7,8 @@ import { HeroFullscreen } from "@/components/home/hero-fullscreen";
 import { extractHeroVideos, isStockUrl } from "@/lib/hero-videos";
 import { HeroUnderBand, type BandWork } from "@/components/home/hero-under-band";
 import { WorksDigest, type DigestWork } from "@/components/home/works-digest";
-// 2026-07-03 撤去: MarqueeText (2 か所とも削除)。AccentVideoTile は
-// Co-creation セクションの縦型アクセント 1 枚で継続使用。
-import { AccentVideoTile } from "@/components/home/accent-video-tile";
+// 2026-07-03 撤去: MarqueeText / AccentVideoTile とも未使用に
+// (Co-creation セクション削除、アクセント動画 3 本削除、Marquee 2 本削除)
 import {
   Sparkles,
   Building2,
@@ -33,7 +32,7 @@ import {
   LpPortfolioPreview,
   type LpPortfolioTile,
 } from "@/components/home/lp-portfolio-preview";
-import { GENRES } from "@/lib/constants";
+// 2026-07-03 撤去: GENRES は Ten genres セクション削除に伴い未使用に
 import { AiNewsSection } from "@/components/home/ai-news-section";
 
 export const revalidate = 300;
@@ -74,47 +73,9 @@ function extractBandWorks(creators: CreatorWithRelations[]): BandWork[] {
   return out.slice(0, 4);
 }
 
-// 静的セクションの視線確保用 アクセント動画。Section 9 項目 1 (常に視界に
-// 動く映像) の補完。Co-creation には縦型 1 枚、Value Props には横 3 枚を割当。
-type AccentSource = {
-  id: string;
-  videoUrl: string;
-  posterUrl: string | null;
-  href: string;
-  orientation: "horizontal" | "vertical" | "square";
-};
-
-function extractAccentVideos(creators: CreatorWithRelations[]): {
-  vertical: AccentSource | null;
-  horizontals: AccentSource[];
-} {
-  const all: AccentSource[] = [];
-  for (const c of creators) {
-    for (const p of c.portfolio_items) {
-      if (p.media_type !== "video" || !p.video_url) continue;
-      if (!/\.mp4(\?|$)/i.test(p.video_url)) continue;
-      if (isStockUrl(p.video_url)) continue;
-      all.push({
-        id: p.id,
-        videoUrl: p.video_url,
-        posterUrl: p.thumbnail_url ?? null,
-        href: `/creators/${c.id}`,
-        orientation:
-          p.aspect_ratio === "vertical"
-            ? "vertical"
-            : p.aspect_ratio === "square"
-              ? "square"
-              : "horizontal",
-      });
-    }
-  }
-  const vertical =
-    all.find((a) => a.orientation === "vertical") ??
-    all.find((a) => a.orientation === "square") ??
-    null;
-  const horizontals = all.filter((a) => a.orientation === "horizontal").slice(0, 3);
-  return { vertical, horizontals };
-}
+// 2026-07-03 撤去: extractAccentVideos / AccentSource type
+// (Co-creation セクション + Value Props 上のアクセント動画帯 3 本の
+//  両方が削除されたため未使用)
 
 // FEATURE 01 (AIクリエイター検索) の実クリエイター 3 名。
 // - 総いいね数の高い順 (人気ティア表示の代わりの並び)
@@ -244,11 +205,10 @@ const VALUE_PROPS = [
 export default async function HomePage() {
   const allCreators = await getCreators();
 
-  const genreCount = GENRES.length;
+  // 2026-07-03: genreCount / accent は各セクション削除に伴い不要
   const heroVideos = extractHeroVideos(allCreators);
   const bandWorks = extractBandWorks(allCreators);
   const digestWorks = extractDigestWorks(allCreators);
-  const accent = extractAccentVideos(allCreators);
   const lpCreators = extractLpCreators(allCreators);
   const lpTiles = extractLpPortfolioTiles(allCreators);
 
@@ -374,63 +334,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* =================================================
-          02 — Co-creation (旧 PAIN POINTS を完全撤去 / Axis "We" オマージュ)
-            ・「お悩み 3 つ → 解決」のセールス構造を捨て、沈黙の余白で物語る
-            ・Axis 直系の "Create together. Nurture together." を主見出しに
-            ・2026-06-19 Section 9 補完: 右に縦型アクセント動画を 1 枚配置
-          ================================================= */}
-      <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
-          <div className="grid items-start gap-12 lg:grid-cols-[1fr,280px] lg:gap-20">
-            {/* === 左: テキストブロック (既存) === */}
-            <div className="max-w-narrow">
-              <RevealOnScroll delay={0}>
-                <p className="eyebrow-mono">(02 — Co-creation)<span className="ml-2 text-ink/35">／ 共創</span></p>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={80}>
-                <h2 className="headline-display mt-12 text-[clamp(2.5rem,6vw,5rem)] text-ink">
-                  Create together.
-                  <br />
-                  <span className="italic text-sand">Nurture together.</span>
-                </h2>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={200}>
-                <p className="body-jp mt-12 max-w-prose-jp">
-                  目の前のひとつが、大切にしていること。
-                  <br />
-                  いま、誰に何を届けたいのか。
-                  <br />
-                  どんな未来を描こうとしているのか。
-                </p>
-              </RevealOnScroll>
-
-              <RevealOnScroll delay={320}>
-                <p className="body-jp mt-10 max-w-prose-jp text-sm text-ink/55">
-                  私たちは、企業の物語をクリエイターと共に編む場所をつくります。
-                  映像が、誰かの一日を変えるかもしれない。その可能性に、最も近い人と、
-                  最も静かな手触りで向き合うために。
-                </p>
-              </RevealOnScroll>
-            </div>
-
-            {/* === 右: 縦型アクセント動画 (装飾、視界に動きを維持) === */}
-            {accent.vertical && (
-              <RevealOnScroll delay={160} className="hidden lg:block">
-                <AccentVideoTile
-                  videoUrl={accent.vertical.videoUrl}
-                  posterUrl={accent.vertical.posterUrl}
-                  aspectRatio={accent.vertical.orientation}
-                  href={accent.vertical.href}
-                  caption="Now playing"
-                />
-              </RevealOnScroll>
-            )}
-          </div>
-        </div>
-      </section>
+      {/* 2026-07-03 撤去: 02 — Co-creation ("Create together. Nurture together.")
+          セクション全体。AccentVideoTile 縦型 1 枚も同時撤去。
+          撤去理由: 詩的コピーが LP のスクロール量を膨らませていた。
+          共創メッセージは Value Props と FEATURE で機能ベースに置換済。 */}
 
       {/* Section 5: Works ダイジェスト — タブ切替で 18 本フィルタリング */}
       <WorksDigest works={digestWorks} />
@@ -457,35 +364,14 @@ export default async function HomePage() {
         id="features"
         className="relative overflow-x-hidden text-ink"
       >
-        {/* タイトル帯 (白基調) */}
-        <div className="bg-white">
-          <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
-            <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
-              <RevealOnScroll delay={0}>
-                <p className="eyebrow-mono">(03 — Service)<span className="ml-2 text-ink/35">／ サービス内容</span></p>
-              </RevealOnScroll>
-              <div>
-                <RevealOnScroll delay={80}>
-                  <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
-                    Movie commerce,
-                    <br />
-                    <span className="italic text-sand">end-to-end.</span>
-                  </h2>
-                </RevealOnScroll>
-                <RevealOnScroll delay={200}>
-                  <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
-                    発注前の比較から、見積もり相談、納品・決済まで。
-                    案件に必要なすべてが、ひとつのプラットフォームに。
-                  </p>
-                </RevealOnScroll>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* 2026-07-03 撤去: FEATURE セクションの見出し帯
+            ("Movie commerce, end-to-end." + 説明文)。
+            LP スクロール量削減。5 つの FeatureRow が各機能を語るため
+            冒頭見出しは冗長と判断。 */}
 
         {/* F1: クリエイター検索 (奇数 → 薄グレー) */}
         <div className="bg-gray-50">
-          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
+          <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               no="FEATURE 01 ／ できること 01"
               title="AIクリエイター検索"
@@ -507,7 +393,7 @@ export default async function HomePage() {
 
         {/* F2: ポートフォリオ閲覧 (偶数 → 白) */}
         <div className="bg-white">
-          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
+          <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               reverse
               no="FEATURE 02 ／ できること 02"
@@ -530,7 +416,7 @@ export default async function HomePage() {
 
         {/* F3: 詳細 + 最低対応プラン (奇数 → 薄グレー) */}
         <div className="bg-gray-50">
-          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
+          <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               no="FEATURE 03 ／ できること 03"
               title="クリエイター詳細 ＋ 最低対応プラン公開"
@@ -552,7 +438,7 @@ export default async function HomePage() {
 
         {/* F4: AI 見積もりチャット (偶数 → 白) */}
         <div className="bg-white">
-          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
+          <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               reverse
               no="FEATURE 04 ／ できること 04"
@@ -575,7 +461,7 @@ export default async function HomePage() {
 
         {/* F5: 取引管理 (奇数 → 薄グレー) */}
         <div className="bg-gray-50">
-          <div className="relative mx-auto max-w-wide px-gutter py-16 lg:py-24">
+          <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               no="FEATURE 05 ／ できること 05"
               title="エスクロー決済 ＋ 取引管理"
@@ -600,7 +486,7 @@ export default async function HomePage() {
           04 — Process (旧 HOW TO USE) — 3 ステップを罫線縦割りに
           ================================================= */}
       <section id="how" className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
+        <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
               <p className="eyebrow-mono">(04 — Process)<span className="ml-2 text-ink/35">／ ご利用の流れ</span></p>
@@ -620,7 +506,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-section-y-sm grid grid-cols-1 border-y border-ink/10 divide-y divide-ink/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+          <div className="mt-12 grid grid-cols-1 border-y border-ink/10 divide-y divide-ink/10 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
             {[
               {
                 step: "Step 01",
@@ -663,61 +549,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 2026-06-16 撤去: ACHIEVEMENTS 数値セクション
-          (negative social proof のため。代替は Hero 直下の 4 価値プロップ + 下記 05) */}
-
-      {/* =================================================
-          05 — Categories (旧 USE CASES) — 罫線で組まれた目次風タイポ
-          ================================================= */}
-      <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-wide px-gutter py-section-y-sm lg:py-section-y">
-          {/* 2026-07-02: 左タイトル 40% / 右 2 列 5 行グリッド 60% の
-              横並びレイアウトへ変更。旧: 見出し上 → 目次風縦一列。 */}
-          <div className="grid gap-12 lg:grid-cols-[2fr,3fr] lg:items-start lg:gap-16">
-            {/* 左: タイトル & 説明 (約 40%) */}
-            <div>
-              <RevealOnScroll delay={0}>
-                <p className="eyebrow-mono">(05 — Categories)<span className="ml-2 text-ink/35">／ ジャンル</span></p>
-              </RevealOnScroll>
-              <RevealOnScroll delay={80}>
-                <h2 className="headline-display mt-6 text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
-                  Ten genres,
-                  <br />
-                  <span className="italic text-sand">one stage.</span>
-                </h2>
-              </RevealOnScroll>
-              <RevealOnScroll delay={200}>
-                <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
-                  全 {genreCount} カテゴリに対応。業界・尺・媒体を問わず、
-                  AIで実現できる映像クリエイティブを発注できます。
-                </p>
-              </RevealOnScroll>
-            </div>
-
-            {/* 右: 2 列 × 5 行 グリッド (約 60%) */}
-            <RevealOnScroll delay={120}>
-              <ul className="grid grid-cols-2 gap-x-6 gap-y-4 border-y border-ink/10 py-6 sm:gap-x-8 sm:gap-y-5 sm:py-8">
-                {GENRES.map((g, i) => {
-                  const num = String(i + 1).padStart(2, "0");
-                  return (
-                    <li
-                      key={g}
-                      className="group flex items-baseline gap-3 border-b border-ink/8 pb-4 last:border-b-0 [&:nth-last-child(2)]:border-b-0"
-                    >
-                      <span className="eyebrow-mono shrink-0 text-ink/45">
-                        {num}
-                      </span>
-                      <h3 className="font-display flex-1 text-base font-medium leading-tight tracking-tight text-ink transition-colors group-hover:text-sand sm:text-lg">
-                        {g}
-                      </h3>
-                    </li>
-                  );
-                })}
-              </ul>
-            </RevealOnScroll>
-          </div>
-        </div>
-      </section>
+      {/* 2026-07-03 撤去: 05 — Categories (Ten genres, one stage.)
+          セクション全体。ジャンル情報は各クリエイターページの絞込フィルタや
+          カード内タグに散在しているため、TOP 独立枠は冗長。 */}
 
       {/* =================================================
           05.5 — News: 生成 AI 動画 最新ニュース (Vercel Cron 日次更新)
@@ -730,7 +564,7 @@ export default async function HomePage() {
           06 — FAQ — 罫線で区切ったアコーディオン (カード型廃止)
           ================================================= */}
       <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-narrow px-gutter py-section-y-sm lg:py-section-y">
+        <div className="relative mx-auto max-w-narrow px-gutter py-10 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
               <p className="eyebrow-mono">(06 — FAQ)<span className="ml-2 text-ink/35">／ よくある質問</span></p>
@@ -751,7 +585,7 @@ export default async function HomePage() {
 
           <RevealOnScroll
             delay={120}
-            className="mt-section-y-sm border-y border-ink/10"
+            className="mt-12 border-y border-ink/10"
           >
             <ul className="divide-y divide-ink/10">
               {[
@@ -831,7 +665,7 @@ export default async function HomePage() {
           07 — Start — 締めの一行ステートメント (Axis "Every story…" オマージュ)
           ================================================= */}
       <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-narrow px-gutter py-section-y-lg text-center">
+        <div className="relative mx-auto max-w-narrow px-gutter py-16 text-center">
           <RevealOnScroll delay={0}>
             <p className="eyebrow-mono">(07 — Start)<span className="ml-2 text-ink/35">／ はじめる</span></p>
           </RevealOnScroll>
