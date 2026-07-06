@@ -370,7 +370,7 @@ export default async function HomePage() {
             冒頭見出しは冗長と判断。 */}
 
         {/* F1: クリエイター検索 (奇数 → 薄グレー) */}
-        <div className="bg-gray-50">
+        <div className="relative overflow-hidden bg-gray-50">
           <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               no="FEATURE 01 ／ できること 01"
@@ -392,7 +392,7 @@ export default async function HomePage() {
         </div>
 
         {/* F2: ポートフォリオ閲覧 (偶数 → 白) */}
-        <div className="bg-white">
+        <div className="relative overflow-hidden bg-white">
           <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               reverse
@@ -415,7 +415,7 @@ export default async function HomePage() {
         </div>
 
         {/* F3: 詳細 + 最低対応プラン (奇数 → 薄グレー) */}
-        <div className="bg-gray-50">
+        <div className="relative overflow-hidden bg-gray-50">
           <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               no="FEATURE 03 ／ できること 03"
@@ -437,7 +437,7 @@ export default async function HomePage() {
         </div>
 
         {/* F4: AI 見積もりチャット (偶数 → 白) */}
-        <div className="bg-white">
+        <div className="relative overflow-hidden bg-white">
           <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               reverse
@@ -460,7 +460,7 @@ export default async function HomePage() {
         </div>
 
         {/* F5: 取引管理 (奇数 → 薄グレー) */}
-        <div className="bg-gray-50">
+        <div className="relative overflow-hidden bg-gray-50">
           <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
             <FeatureRow
               no="FEATURE 05 ／ できること 05"
@@ -736,19 +736,24 @@ function FeatureRow({
 
   return (
     <div className="relative">
-      {/* === 背景 特大タイポ (アウトライン) — 映像でなく文字 === */}
+      {/* === 背景 特大タイポ (アウトライン) — 映像でなく文字 ===
+          2026-07-03: py 圧縮で FeatureRow が短くなり、旧サイズ
+          clamp(10rem, 28vw, 24rem) だと数字が上下に溢れて次の
+          ストライプ (opaque bg) に隠されていた。各ストライプの
+          overflow-hidden と併用しつつ、数字自体をコンパクトに縮小。
+          レスポンシブは clamp で SP でも肥大化しないように。 */}
       <ParallaxImage
-        intensity={0.14}
+        intensity={0.10}
         className={`pointer-events-none absolute top-1/2 -translate-y-1/2 z-0 ${
-          reverse ? "left-[-8vw] lg:left-[-6vw]" : "right-[-8vw] lg:right-[-6vw]"
+          reverse ? "-left-4 lg:left-[-2vw]" : "-right-4 lg:right-[-2vw]"
         }`}
       >
         <span
           aria-hidden
-          className="block font-display font-medium leading-none tracking-[-0.04em] text-[clamp(10rem,28vw,24rem)]"
+          className="block font-display font-medium leading-none tracking-[-0.04em] text-[clamp(5rem,14vw,13rem)]"
           style={{
             color: "transparent",
-            WebkitTextStroke: "1px rgba(10,13,18,0.10)",
+            WebkitTextStroke: "1px rgba(10,13,18,0.18)",
           }}
         >
           {bigNumber}
