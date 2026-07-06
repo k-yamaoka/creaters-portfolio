@@ -737,23 +737,25 @@ function FeatureRow({
   return (
     <div className="relative">
       {/* === 背景 特大タイポ (アウトライン) — 映像でなく文字 ===
-          2026-07-03: py 圧縮で FeatureRow が短くなり、旧サイズ
-          clamp(10rem, 28vw, 24rem) だと数字が上下に溢れて次の
-          ストライプ (opaque bg) に隠されていた。各ストライプの
-          overflow-hidden と併用しつつ、数字自体をコンパクトに縮小。
-          レスポンシブは clamp で SP でも肥大化しないように。 */}
+          2026-07-03 再調整: ストライプ (bg-gray-50/white) 上で
+          アウトラインが薄すぎて視認不能だったため:
+          - stroke 太さ 1px → 1.75px
+          - opacity 0.18 → 0.30 (bg-gray-50 でも視認可能に)
+          - 数字位置を FeatureRow 中央 (top-1/2) から少し下寄せ (top-[55%])
+            → CTA ボタンとテキスト塊の中間で見せる
+          - パララックスは維持 (intensity 0.08) */}
       <ParallaxImage
-        intensity={0.10}
-        className={`pointer-events-none absolute top-1/2 -translate-y-1/2 z-0 ${
+        intensity={0.08}
+        className={`pointer-events-none absolute top-[55%] -translate-y-1/2 z-0 ${
           reverse ? "-left-4 lg:left-[-2vw]" : "-right-4 lg:right-[-2vw]"
         }`}
       >
         <span
           aria-hidden
-          className="block font-display font-medium leading-none tracking-[-0.04em] text-[clamp(5rem,14vw,13rem)]"
+          className="block font-display font-semibold leading-none tracking-[-0.04em] text-[clamp(6rem,15vw,14rem)]"
           style={{
             color: "transparent",
-            WebkitTextStroke: "1px rgba(10,13,18,0.18)",
+            WebkitTextStroke: "1.75px rgba(10,13,18,0.30)",
           }}
         >
           {bigNumber}
