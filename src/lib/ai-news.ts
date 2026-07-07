@@ -104,83 +104,25 @@ const RSS_SOURCES: RssSource[] = [
 ];
 
 /**
- * AI 特化キーワード。全ソースに一律適用され、これらのいずれかにマッチする
- * 記事のみ通す。
+ * AI × 動画 のインターセクション記事のみに絞る三層キーワード。
  *
- * 2026-07-07: 動画特化 → AI 特化にフィルタ変更。ユーザー要望により
- * 動画/映像/クリエイター系の非 AI 記事は除外し、生成 AI / LLM /
- * 各 AI プロダクトに関する記事だけを表示する。
+ * 2026-07-07 (2 回目): 「AI×動画」に特化。以下いずれかを満たす記事のみ通す:
+ *   (1) VIDEO_AI_PRODUCTS のいずれかを含む
+ *       → Sora 2 / Veo 3 / Runway Gen / Kling AI 等の動画特化 AI 製品名。
+ *         単独で "AI かつ動画" のシグナル成立。
+ *   (2) AI_CORE_KEYWORDS のいずれか AND VIDEO_KEYWORDS のいずれかを含む
+ *       → 汎用 AI 語 (ChatGPT / Claude / Gemini / 生成AI) と汎用動画語
+ *         (動画 / 映像 / 映画 / ムービー / YouTube 等) の AND 条件。
  *
- * 誤検出防止のため以下に配慮:
- *  - "Sora" 単独はマッチさせない (ASUS Zenbook SORA 等の製品名衝突)
- *    → "Sora 2" / "OpenAI Sora" 等の AI 文脈に限定
- *  - "Veo" / "Runway" / "Pika" 単独は避け、AI 文脈込みで指定
+ * これで動画関連の AI ニュースだけが確実に通り、AI エージェント業務効率化
+ * などの非動画 AI 記事は除外される。
  *
- * 大文字小文字を無視する比較 (titleMatchesKeywords 内で toLowerCase 済)。
+ * 誤検出防止:
+ *  - 短い全大文字 Latin語 (AI / LLM / MV / PV 等) は単語境界 \b 判定
+ *  - "Sora" 単独は VIDEO_AI_PRODUCTS に入れず "Sora 2" / "OpenAI Sora" に限定
+ *    → ASUS Zenbook SORA 誤検出回避
  */
-const AI_KEYWORDS = [
-  // === AI 中核 (これらがあれば AI 記事とみなす) ===
-  "AI",
-  "人工知能",
-  "生成AI",
-  "生成 AI",
-  "ジェネレーティブAI",
-  "ジェネレーティブ AI",
-  "GenAI",
-  "AGI",
-  // === LLM / 機械学習 / 概念 ===
-  "LLM",
-  "大規模言語モデル",
-  "機械学習",
-  "深層学習",
-  "ディープラーニング",
-  "ニューラルネットワーク",
-  "ニューラルネット",
-  "拡散モデル",
-  "Diffusion",
-  "Transformer",
-  "トランスフォーマー",
-  "RAG",
-  "ファインチューニング",
-  "プロンプト",
-  "推論エンジン",
-  "エージェント",
-  "AIエージェント",
-  "AI エージェント",
-  "マルチモーダル",
-  // === 主要 AI プロダクト (テキスト / 対話系) ===
-  "ChatGPT",
-  "GPT-4",
-  "GPT-5",
-  "GPT-6",
-  "OpenAI",
-  "Claude",
-  "Anthropic",
-  "Gemini",
-  "Google DeepMind",
-  "DeepMind",
-  "Copilot",
-  "GitHub Copilot",
-  "Meta AI",
-  "Llama",
-  "Mistral",
-  "Perplexity",
-  "Grok",
-  // === 画像系 AI ===
-  "Midjourney",
-  "DALL-E",
-  "DALL·E",
-  "Stable Diffusion",
-  "Adobe Firefly",
-  "Ideogram",
-  "Recraft",
-  "Krea",
-  // === 音声 / 音楽 系 AI ===
-  "Suno",
-  "Udio",
-  "ElevenLabs",
-  "NotebookLM",
-  // === 動画系 AI プロダクト (旧リストから維持) ===
+const VIDEO_AI_PRODUCTS = [
   "Sora 2",
   "Sora2",
   "OpenAI Sora",
@@ -202,15 +144,91 @@ const AI_KEYWORDS = [
   "Dream Machine",
   "Stable Video",
   "Higgsfield",
-  "MiniMax",
+  "MiniMax video",
   "Lightricks",
-  // === エコシステム (半導体 / インフラ) ===
+] as const;
+
+const AI_CORE_KEYWORDS = [
+  // AI 中核
+  "AI",
+  "人工知能",
+  "生成AI",
+  "生成 AI",
+  "ジェネレーティブAI",
+  "ジェネレーティブ AI",
+  "GenAI",
+  "AGI",
+  // LLM / 概念
+  "LLM",
+  "大規模言語モデル",
+  "機械学習",
+  "深層学習",
+  "ディープラーニング",
+  "拡散モデル",
+  "Diffusion",
+  "Transformer",
+  "マルチモーダル",
+  "text-to-video",
+  "text2video",
+  // 主要 AI 企業 / プロダクト
+  "ChatGPT",
+  "GPT-4",
+  "GPT-5",
+  "GPT-6",
+  "OpenAI",
+  "Claude",
+  "Anthropic",
+  "Gemini",
+  "Google DeepMind",
+  "DeepMind",
+  "Copilot",
+  "Meta AI",
+  "Llama",
+  "Midjourney",
+  "DALL-E",
+  "DALL·E",
+  "Stable Diffusion",
+  "Adobe Firefly",
   "NVIDIA",
   "Hugging Face",
   "HuggingFace",
-  // 2026-07-07 撤去: 旧「動画/映像/クリエイター/配信/スタジオ/編集ツール」
-  // 系の非 AI 一般キーワードは AI 特化フィルタへの切替に伴い全て削除
-  // (クリエイター / 動画 / YouTube / TikTok / CapCut など)
+] as const;
+
+const VIDEO_KEYWORDS = [
+  "動画",
+  "映像",
+  "映画",
+  "ムービー",
+  "AI動画",
+  "AI映像",
+  "AIビデオ",
+  "動画生成",
+  "映像生成",
+  "動画制作",
+  "映像制作",
+  "動画編集",
+  "映像編集",
+  "video generation",
+  "video-generation",
+  "text-to-video",
+  "text to video",
+  "text2video",
+  "VFX",
+  "アニメーション",
+  "モーショングラフィックス",
+  // 動画系プラットフォーム / 尺 (動画コンテンツを扱う記事のマーカー)
+  "ショート動画",
+  "縦型動画",
+  "ショートムービー",
+  "YouTube",
+  "TikTok",
+  "Instagram Reels",
+  "YouTube Shorts",
+  "Vlog",
+  "VTuber",
+  "MV",
+  "PV",
+  "CM",
 ] as const;
 
 const TARGET_COUNT = 8; // トップページ表示件数 (4 列 × 2 行)
@@ -483,10 +501,10 @@ type Candidate = {
 };
 
 /**
- * 2026-07-07: 短い全大文字ラテン語 (AI / LLM / AGI / RAG / MV / PV 等) を
- * 単純 substring マッチさせると誤検出多発 (CORSAIR / iPad Air / MAGIC など)。
- * 単語境界 (\b) + 大文字小文字を区別する regex に切替。
- * それ以外の日本語や固有名詞は従来通り case-insensitive の substring 判定。
+ * 短い全大文字ラテン語は単純 substring マッチだと誤検出多発
+ * (CORSAIR / iPad Air / MAGIC / MV → gAMV 等)。単語境界 (\b) +
+ * 大文字小文字を区別する regex に切替。
+ * その他 (日本語 / 固有名詞) は case-insensitive の substring 判定。
  */
 const BOUNDARY_KEYWORDS = new Set<string>([
   "AI",
@@ -495,25 +513,38 @@ const BOUNDARY_KEYWORDS = new Set<string>([
   "RAG",
   "MV",
   "PV",
+  "CM",
+  "VFX",
 ]);
 
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-const KEYWORD_MATCHERS: Array<(title: string) => boolean> = AI_KEYWORDS.map(
-  (kw) => {
-    if (BOUNDARY_KEYWORDS.has(kw)) {
-      const rx = new RegExp(`\\b${escapeRegExp(kw)}\\b`);
-      return (t: string) => rx.test(t);
-    }
-    const lower = kw.toLowerCase();
-    return (t: string) => t.toLowerCase().includes(lower);
+function buildMatcher(kw: string): (title: string) => boolean {
+  if (BOUNDARY_KEYWORDS.has(kw)) {
+    const rx = new RegExp(`\\b${escapeRegExp(kw)}\\b`);
+    return (t) => rx.test(t);
   }
-);
+  const lower = kw.toLowerCase();
+  return (t) => t.toLowerCase().includes(lower);
+}
 
+const PRODUCT_MATCHERS = VIDEO_AI_PRODUCTS.map(buildMatcher);
+const AI_MATCHERS = AI_CORE_KEYWORDS.map(buildMatcher);
+const VIDEO_MATCHERS = VIDEO_KEYWORDS.map(buildMatcher);
+
+/**
+ * AI × 動画 マッチ判定。以下いずれかを満たせば true:
+ *   (1) VIDEO_AI_PRODUCTS (Sora 2 / Veo 3 等) の 1 つ以上を含む
+ *   (2) AI_CORE_KEYWORDS の 1 つ以上 かつ VIDEO_KEYWORDS の 1 つ以上を含む
+ */
 function titleMatchesKeywords(title: string): boolean {
-  return KEYWORD_MATCHERS.some((fn) => fn(title));
+  if (PRODUCT_MATCHERS.some((fn) => fn(title))) return true;
+  const hasAi = AI_MATCHERS.some((fn) => fn(title));
+  if (!hasAi) return false;
+  const hasVideo = VIDEO_MATCHERS.some((fn) => fn(title));
+  return hasVideo;
 }
 
 async function fetchOneSource(
