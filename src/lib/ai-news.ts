@@ -49,7 +49,7 @@ type RssSource = {
   /** true のとき item.link が Google News 中継 URL なので resolveGoogleNewsUrl を通す */
   isGoogleNews: boolean;
   /**
-   * 2026-07-03: 動画特化 (option B) に切替えたため、全ソースに AI_VIDEO_KEYWORDS を
+   * 2026-07-03: 動画特化 (option B) に切替えたため、全ソースに AI_KEYWORDS を
    * 一律適用。個別に切替える運用はもう不要だが、将来ソース追加時に「絞り込まず
    * 全件通したい」ソースを混ぜたくなる場面向けに保持。現状は全て true 相当。
    */
@@ -104,84 +104,83 @@ const RSS_SOURCES: RssSource[] = [
 ];
 
 /**
- * 動画特化キーワード。全ソースに一律適用され、これらのいずれかにマッチする
+ * AI 特化キーワード。全ソースに一律適用され、これらのいずれかにマッチする
  * 記事のみ通す。
+ *
+ * 2026-07-07: 動画特化 → AI 特化にフィルタ変更。ユーザー要望により
+ * 動画/映像/クリエイター系の非 AI 記事は除外し、生成 AI / LLM /
+ * 各 AI プロダクトに関する記事だけを表示する。
  *
  * 誤検出防止のため以下に配慮:
  *  - "Sora" 単独はマッチさせない (ASUS Zenbook SORA 等の製品名衝突)
- *    → "Sora 2" / "OpenAI Sora" 等の video-AI 文脈に限定
- *  - "Veo" 単独はマッチさせない (自動車 Vueo 等との衝突可能性)
- *    → "Veo 3" / "Veo 2" / "Google Veo" に限定
- *  - "Runway" 単独はマッチさせない (Adobe Runway 等)
- *    → "Runway Gen" / "Runway ML" / "Runway Aleph" に限定
- *  - "Pika" は Pika Labs 特定
+ *    → "Sora 2" / "OpenAI Sora" 等の AI 文脈に限定
+ *  - "Veo" / "Runway" / "Pika" 単独は避け、AI 文脈込みで指定
  *
  * 大文字小文字を無視する比較 (titleMatchesKeywords 内で toLowerCase 済)。
  */
-const AI_VIDEO_KEYWORDS = [
-  // === 汎用 動画/映像 関連語 (中核) ===
-  "動画",
-  "映像",
-  "映画",
-  "ムービー",
-  "AI動画",
-  "AI映像",
-  "AIビデオ",
-  "動画生成",
-  "映像生成",
-  "動画編集",
-  "映像編集",
-  "動画制作",
-  "映像制作",
-  "テキスト・トゥ・ビデオ",
-  "text-to-video",
-  "text to video",
-  "text2video",
-  "video generation",
-  "video-generation",
-  "VFX",
-  "アニメーション",
-  "モーショングラフィックス",
-  "モーショングラフィック",
-  // === 動画系プラットフォーム / 尺 (動画コンテンツを扱う記事のマーカー) ===
-  "ショート動画",
-  "縦型動画",
-  "ショートムービー",
-  "リール",
-  "YouTube",
-  "TikTok",
-  "Instagram Reels",
-  "YouTube Shorts",
-  "MV",
-  "PV",
-  "Vlog",
-  "VTuber",
-  // === 動画クリエイター / 制作 現場 関連 (動画コンテンツ制作者の周辺記事) ===
-  // 2026-07-03: 動画特化フィルタで 0 件になる日を回避するため、
-  // 動画制作/配信/クリエイター文脈のマーカーを追加。
-  "クリエイター",
-  "クリエイティブ",
-  "コンテンツ制作",
-  "コンテンツ配信",
-  "コンテンツクリエイター",
-  "ライブ配信",
-  "ライブストリーミング",
-  "ライブ配信",
-  "ストリーミング",
-  "配信者",
-  "サムネイル",
-  "スタジオ",
-  "アニメスタジオ",
-  "映像スタジオ",
-  "MVプロダクション",
-  // === 動画編集ツール ===
-  "Adobe Premiere",
-  "Premiere Pro",
-  "After Effects",
-  "CapCut",
-  "DaVinci Resolve",
-  "Final Cut",
-  // === 動画特化 AI プロダクト (誤検出防止のため文脈込みで指定) ===
+const AI_KEYWORDS = [
+  // === AI 中核 (これらがあれば AI 記事とみなす) ===
+  "AI",
+  "人工知能",
+  "生成AI",
+  "生成 AI",
+  "ジェネレーティブAI",
+  "ジェネレーティブ AI",
+  "GenAI",
+  "AGI",
+  // === LLM / 機械学習 / 概念 ===
+  "LLM",
+  "大規模言語モデル",
+  "機械学習",
+  "深層学習",
+  "ディープラーニング",
+  "ニューラルネットワーク",
+  "ニューラルネット",
+  "拡散モデル",
+  "Diffusion",
+  "Transformer",
+  "トランスフォーマー",
+  "RAG",
+  "ファインチューニング",
+  "プロンプト",
+  "推論エンジン",
+  "エージェント",
+  "AIエージェント",
+  "AI エージェント",
+  "マルチモーダル",
+  // === 主要 AI プロダクト (テキスト / 対話系) ===
+  "ChatGPT",
+  "GPT-4",
+  "GPT-5",
+  "GPT-6",
+  "OpenAI",
+  "Claude",
+  "Anthropic",
+  "Gemini",
+  "Google DeepMind",
+  "DeepMind",
+  "Copilot",
+  "GitHub Copilot",
+  "Meta AI",
+  "Llama",
+  "Mistral",
+  "Perplexity",
+  "Grok",
+  // === 画像系 AI ===
+  "Midjourney",
+  "DALL-E",
+  "DALL·E",
+  "Stable Diffusion",
+  "Adobe Firefly",
+  "Ideogram",
+  "Recraft",
+  "Krea",
+  // === 音声 / 音楽 系 AI ===
+  "Suno",
+  "Udio",
+  "ElevenLabs",
+  "NotebookLM",
+  // === 動画系 AI プロダクト (旧リストから維持) ===
   "Sora 2",
   "Sora2",
   "OpenAI Sora",
@@ -203,8 +202,15 @@ const AI_VIDEO_KEYWORDS = [
   "Dream Machine",
   "Stable Video",
   "Higgsfield",
-  "MiniMax video",
+  "MiniMax",
   "Lightricks",
+  // === エコシステム (半導体 / インフラ) ===
+  "NVIDIA",
+  "Hugging Face",
+  "HuggingFace",
+  // 2026-07-07 撤去: 旧「動画/映像/クリエイター/配信/スタジオ/編集ツール」
+  // 系の非 AI 一般キーワードは AI 特化フィルタへの切替に伴い全て削除
+  // (クリエイター / 動画 / YouTube / TikTok / CapCut など)
 ] as const;
 
 const TARGET_COUNT = 8; // トップページ表示件数 (4 列 × 2 行)
@@ -476,10 +482,38 @@ type Candidate = {
   isGoogleNews: boolean;
 };
 
+/**
+ * 2026-07-07: 短い全大文字ラテン語 (AI / LLM / AGI / RAG / MV / PV 等) を
+ * 単純 substring マッチさせると誤検出多発 (CORSAIR / iPad Air / MAGIC など)。
+ * 単語境界 (\b) + 大文字小文字を区別する regex に切替。
+ * それ以外の日本語や固有名詞は従来通り case-insensitive の substring 判定。
+ */
+const BOUNDARY_KEYWORDS = new Set<string>([
+  "AI",
+  "LLM",
+  "AGI",
+  "RAG",
+  "MV",
+  "PV",
+]);
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+const KEYWORD_MATCHERS: Array<(title: string) => boolean> = AI_KEYWORDS.map(
+  (kw) => {
+    if (BOUNDARY_KEYWORDS.has(kw)) {
+      const rx = new RegExp(`\\b${escapeRegExp(kw)}\\b`);
+      return (t: string) => rx.test(t);
+    }
+    const lower = kw.toLowerCase();
+    return (t: string) => t.toLowerCase().includes(lower);
+  }
+);
+
 function titleMatchesKeywords(title: string): boolean {
-  return AI_VIDEO_KEYWORDS.some((k) =>
-    title.toLowerCase().includes(k.toLowerCase())
-  );
+  return KEYWORD_MATCHERS.some((fn) => fn(title));
 }
 
 async function fetchOneSource(
