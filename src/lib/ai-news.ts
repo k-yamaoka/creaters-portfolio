@@ -1,6 +1,7 @@
 import Parser from "rss-parser";
 import ogs from "open-graph-scraper";
 import { unstable_cache, revalidateTag } from "next/cache";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 /**
  * 生成 AI 動画 関連ニュース アグリゲータ。
@@ -698,35 +699,135 @@ async function fetchAndEnrichAiNews(): Promise<AiNewsItem[]> {
   const clean = enriched.filter((x): x is AiNewsItem => x !== null);
 
   // URL の重複を除去 (複数ソースから同記事が来ることがある)
+  // 2026-07-07: TARGET_COUNT の slice は撤去。Supabase に累積 upsert する
+  // ため全マッチを返却する (Supabase 側の UNIQUE(url) が最終的な dedup)。
   const seen = new Set<string>();
   const dedup: AiNewsItem[] = [];
   for (const item of clean) {
-    // 正規化: querystring と trailing slash を除外して比較キーに
     const key = item.url.replace(/[?#].*$/, "").replace(/\/$/, "");
     if (seen.has(key)) continue;
     seen.add(key);
     dedup.push(item);
-    if (dedup.length >= TARGET_COUNT) break;
   }
 
   return dedup;
 }
 
 /**
- * Next.js Data Cache (unstable_cache) で 24 時間ラップ。
- * Vercel Cron が revalidateTag("ai-news") で強制無効化する。
+ * 2026-07-07: 単一 Cron 実行で AI × 動画マッチが 0-2 件しか出ない日でも
+ * 「常に 8 件」表示できるよう、Supabase テーブル ai_news_items に累積蓄積し、
+ * 直近 7 日間のプールから最新 8 件を返す構造に変更。
+ *
+ * データフロー:
+ *   Cron 日次 → fetchAndEnrichAiNews で新規マッチを取得
+ *            → persistItems で Supabase に upsert (URL 重複はスキップ)
+ *            → revalidateTag でキャッシュ無効化
+ *   TOP LP  → getCachedAiNews → Supabase から published_at desc の 8 件
  */
+const RETENTION_DAYS = 7;
 const CACHE_TAG = "ai-news";
 
+/** 読み取り用 anon client (unstable_cache 内で cookies() が使えないため) */
+function getReadClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) throw new Error("Supabase env not configured");
+  return createSupabaseClient(url, key, { auth: { persistSession: false } });
+}
+
+/** 書き込み用 service role client (RLS bypass、Cron からのみ呼ばれる) */
+function getWriteClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) throw new Error("Supabase service role not configured");
+  return createSupabaseClient(url, key, { auth: { persistSession: false } });
+}
+
+/** Cron からの新規マッチを Supabase に upsert。URL 重複はスキップ。 */
+async function persistItems(items: AiNewsItem[]): Promise<number> {
+  if (items.length === 0) return 0;
+  try {
+    const supabase = getWriteClient();
+    const rows = items.map((i) => ({
+      url: i.url,
+      title: i.title,
+      image_url: i.imageUrl,
+      published_at: i.publishedAt,
+      source_name: i.sourceName,
+    }));
+    const { error, count } = await supabase
+      .from("ai_news_items")
+      .upsert(rows, { onConflict: "url", ignoreDuplicates: true, count: "exact" });
+    if (error) {
+      console.error("[ai-news] persist failed", error);
+      return 0;
+    }
+    return count ?? rows.length;
+  } catch (e) {
+    console.error("[ai-news] persist threw", e);
+    return 0;
+  }
+}
+
+/**
+ * Supabase から直近 RETENTION_DAYS 日以内の item を published_at desc で
+ * TARGET_COUNT 件取得。published_at が null の item は captured_at で fallback。
+ */
+async function getRecentItems(): Promise<AiNewsItem[]> {
+  try {
+    const supabase = getReadClient();
+    const cutoff = new Date(
+      Date.now() - RETENTION_DAYS * 86400_000
+    ).toISOString();
+    const { data, error } = await supabase
+      .from("ai_news_items")
+      .select("*")
+      .or(`published_at.gte.${cutoff},captured_at.gte.${cutoff}`)
+      .order("published_at", { ascending: false, nullsFirst: false })
+      .order("captured_at", { ascending: false })
+      .limit(TARGET_COUNT);
+    if (error) {
+      console.error("[ai-news] getRecentItems failed", error);
+      return [];
+    }
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      url: r.url,
+      title: r.title,
+      imageUrl: r.image_url,
+      publishedAt: r.published_at,
+      sourceName: r.source_name,
+    }));
+  } catch (e) {
+    console.error("[ai-news] getRecentItems threw", e);
+    return [];
+  }
+}
+
+/**
+ * Next.js Data Cache (unstable_cache) で 24 時間ラップ。
+ * Vercel Cron が revalidateTag("ai-news") で強制無効化する。
+ * cache key v3 は Supabase 化に伴う schema 変更で bump。
+ */
 export const getCachedAiNews = unstable_cache(
-  fetchAndEnrichAiNews,
-  ["ai-news:v1"],
+  getRecentItems,
+  ["ai-news:v3"],
   { revalidate: 86400, tags: [CACHE_TAG] }
 );
 
-/** Cron からの呼び出し用: キャッシュを強制無効化 + 即座に再構築 */
+/**
+ * Cron からの呼び出し:
+ *  1) RSS を fetch + キーワード フィルタ + OGP 展開
+ *  2) 新規 item を Supabase に upsert (URL 重複はスキップ)
+ *  3) キャッシュを無効化 → 次リクエストで getRecentItems 再実行
+ *  4) 直近 8 件を返却 (Cron のログ確認用)
+ */
 export async function refreshAiNewsCache(): Promise<AiNewsItem[]> {
+  const fresh = await fetchAndEnrichAiNews();
+  const persisted = await persistItems(fresh);
+  console.log(
+    `[ai-news] refresh: fetched=${fresh.length} persisted=${persisted}`
+  );
   revalidateTag(CACHE_TAG);
-  // タグ無効化直後に呼ぶと最新版が返る (次のリクエスト前に prewarm)
-  return getCachedAiNews();
+  return getRecentItems();
 }
