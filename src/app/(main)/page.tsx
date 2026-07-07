@@ -25,7 +25,7 @@ import {
   BrowserFrame,
   MockCreatorDetail,
   MockEstimateChat,
-  MockOrders,
+  // MockOrders は F5 エスクロー決済ブロック撤去 (2026-07-07) で未使用に
 } from "@/components/home/feature-mockups";
 import { LpCreatorPreview, type LpCreator } from "@/components/home/lp-creator-preview";
 import {
@@ -459,27 +459,8 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* F5: 取引管理 (奇数 → 薄グレー) */}
-        <div className="relative overflow-hidden bg-gray-50">
-          <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-14">
-            <FeatureRow
-              no="FEATURE 05 ／ できること 05"
-              title="エスクロー決済 ＋ 取引管理"
-              body="発注金額はプラットフォームが預かり、納品確認後にクリエイターへ送金。両者にとって安全な取引フローと、進行中の案件を一覧で管理できるダッシュボード。"
-              bullets={[
-                "Stripe 連携で仮払い → 検収後に自動送金",
-                "案件のステータス (制作中 / 納品済 / 支払完了) を一覧化",
-                "メッセージ・ファイル・契約条件を 1 取引でひとまとめ",
-              ]}
-              cta={{ href: "/dashboard/orders", label: "取引管理を見る" }}
-              mock={
-                <BrowserFrame url="ailier.app/dashboard/orders">
-                  <MockOrders />
-                </BrowserFrame>
-              }
-            />
-          </div>
-        </div>
+        {/* 2026-07-07 撤去: F5 「エスクロー決済 ＋ 取引管理」ブロックは
+            /how-it-works に移植 (TOP からは削除)。 */}
       </section>
 
       {/* =================================================

@@ -117,6 +117,55 @@ export default function HowItWorksPage() {
         </div>
       </div>
 
+      {/* 2026-07-07 移植: TOP LP FEATURE 05 から移植したエスクロー説明。
+          企業・クリエイターの 3 ステップ図の下、両者に共通するお金の
+          流れを詳述するセクション。 */}
+      <div className="mt-24">
+        <h2 className="text-center text-2xl font-bold text-[#222]">
+          エスクロー決済 ＋ 取引管理
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-relaxed text-[#828282]">
+          発注金額はプラットフォームが預かり、納品確認後にクリエイターへ送金します。
+          両者にとって安全な取引フローと、進行中の案件を一覧で管理できるダッシュボードを提供しています。
+        </p>
+
+        <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-3">
+          {[
+            {
+              title: "Stripe 連携で仮払い",
+              desc: "案件成立時にクライアントが決済 → プラットフォームが預かり、検収後に自動でクリエイターへ送金。決済トラブルを防ぎます。",
+            },
+            {
+              title: "ステータス一覧化",
+              desc: "案件のステータス (制作中 / 納品済 / 支払完了) をダッシュボードで一覧管理。進行中の複数案件も俯瞰できます。",
+            },
+            {
+              title: "1 取引にひとまとめ",
+              desc: "メッセージ・ファイル・契約条件を 1 つの取引ページに集約。過去のやりとりや納品物にすぐアクセスできます。",
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="rounded-2xl bg-white p-6 shadow-card"
+            >
+              <h3 className="text-base font-bold text-[#222]">{item.title}</h3>
+              <p className="mt-3 text-sm leading-relaxed text-[#828282]">
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            href="/dashboard/orders"
+            className="btn-secondary text-sm"
+          >
+            取引管理を見る
+          </Link>
+        </div>
+      </div>
+
       {/* FAQ */}
       <div className="mt-24">
         <h2 className="text-center text-2xl font-bold text-[#222]">
