@@ -127,6 +127,22 @@ const RSS_SOURCES: RssSource[] = [
     isGoogleNews: false,
     requireKeywordFilter: true,
   },
+  // 2026-07-07 追加:
+  // - PR TIMES: 企業プレスリリース。母数が大きく、AI×映像系の企業発表
+  //   (Sora 2 API 公開 / Runway 新機能 / AI 制作会社ローンチ 等) が拾える
+  // - Yahoo ライフ: 8 記事厳選 / 映画・エンタメ寄りの生活記事
+  {
+    name: "PR TIMES",
+    url: "https://prtimes.jp/index.rdf",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "Yahoo!ニュース ライフ",
+    url: "https://news.yahoo.co.jp/rss/categories/life.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
 ];
 
 /**
