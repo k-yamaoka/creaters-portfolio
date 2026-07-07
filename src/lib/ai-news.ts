@@ -63,8 +63,7 @@ type RssSource = {
  * 代わりに 6 つの直接 RSS ソースで多様性を確保する。
  */
 const RSS_SOURCES: RssSource[] = [
-  // 2026-07-03: 全ソース requireKeywordFilter: true に統一 (動画特化フィルタ)。
-  // AI 全般ではなく動画関連のみを通す運用に切替。
+  // 全ソース requireKeywordFilter: true (AI × 動画 フィルタ一律適用)
   {
     name: "ITmedia AI+",
     url: "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml",
@@ -98,6 +97,33 @@ const RSS_SOURCES: RssSource[] = [
   {
     name: "GIGAZINE",
     url: "https://gigazine.net/news/rss_2.0/",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  // 2026-07-07: Yahoo!ニュース Topics RSS 4 カテゴリを追加。
+  // 各カテゴリ 8 件の編集厳選。IT / 業界大手・エンタメで動画 AI 関連の
+  // トピックが拾える (例: 「AI俳優 新作長編映画で初主演へ」)。
+  {
+    name: "Yahoo!ニュース IT",
+    url: "https://news.yahoo.co.jp/rss/topics/it.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "Yahoo!ニュース 経済",
+    url: "https://news.yahoo.co.jp/rss/topics/business.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "Yahoo!ニュース 科学",
+    url: "https://news.yahoo.co.jp/rss/topics/science.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "Yahoo!ニュース エンタメ",
+    url: "https://news.yahoo.co.jp/rss/topics/entertainment.xml",
     isGoogleNews: false,
     requireKeywordFilter: true,
   },
