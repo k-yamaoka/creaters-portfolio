@@ -195,6 +195,7 @@ const AI_CORE_KEYWORDS = [
 ] as const;
 
 const VIDEO_KEYWORDS = [
+  // 中核 動画/映像 語
   "動画",
   "映像",
   "映画",
@@ -208,20 +209,26 @@ const VIDEO_KEYWORDS = [
   "映像制作",
   "動画編集",
   "映像編集",
+  "動画コンテンツ",
+  "映像コンテンツ",
   "video generation",
   "video-generation",
   "text-to-video",
   "text to video",
   "text2video",
   "VFX",
+  "アニメ",
   "アニメーション",
   "モーショングラフィックス",
-  // 動画系プラットフォーム / 尺 (動画コンテンツを扱う記事のマーカー)
+  "モーショングラフィック",
+  // 動画系プラットフォーム / 尺 / クリエイター
   "ショート動画",
   "縦型動画",
   "ショートムービー",
   "YouTube",
+  "YouTuber",
   "TikTok",
+  "TikToker",
   "Instagram Reels",
   "YouTube Shorts",
   "Vlog",
@@ -229,6 +236,18 @@ const VIDEO_KEYWORDS = [
   "MV",
   "PV",
   "CM",
+  // 配信 / ストリーミング (動画配信文脈)
+  "ライブ配信",
+  "ライブストリーミング",
+  "ストリーミング",
+  "配信者",
+  // 動画編集ツール (動画制作の文脈マーカー)
+  "Adobe Premiere",
+  "Premiere Pro",
+  "After Effects",
+  "CapCut",
+  "DaVinci Resolve",
+  "Final Cut",
 ] as const;
 
 const TARGET_COUNT = 8; // トップページ表示件数 (4 列 × 2 行)
