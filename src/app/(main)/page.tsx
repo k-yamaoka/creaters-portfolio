@@ -376,11 +376,6 @@ export default async function HomePage() {
               no="FEATURE 01 ／ できること 01"
               title="AIクリエイター検索"
               body="ジャンル・料金・強み・対応尺で絞り込み、人気度ティアでハイライトされたクリエイターを一覧で比較。ホバーで作品サムネが自動再生されます。"
-              bullets={[
-                "ジャンル × 強み × 価格レンジで絞り込み",
-                "総いいね数で人気クリエイターを可視化 (Gold/Silver)",
-                "サムネをホバーすると作品動画が即プレビュー",
-              ]}
               cta={{ href: "/creators", label: "クリエイターを探す" }}
               mock={
                 <BrowserFrame url="ailier.app/creators">
@@ -399,11 +394,6 @@ export default async function HomePage() {
               no="FEATURE 02 ／ できること 02"
               title="ポートフォリオ閲覧"
               body="クリエイター横断で作品をまとめて見られる作品ギャラリー。横型・縦型・正方形が混在した自然な並び。気に入った作品にはいいね（即時集計）も。"
-              bullets={[
-                "縦型 / 横型 / 正方形 が混在する自然なグリッド",
-                "ホバーで動画再生、クリックで詳細モーダル",
-                "いいねでお気に入りクリエイターを発見",
-              ]}
               cta={{ href: "/portfolios", label: "作品を見る" }}
               mock={
                 <BrowserFrame url="ailier.app/portfolios">
@@ -421,11 +411,6 @@ export default async function HomePage() {
               no="FEATURE 03 ／ できること 03"
               title="クリエイター詳細 ＋ 最低対応プラン公開"
               body="代表作 / 強み / 対応尺 / 使用ソフトをまとめて把握。最低対応プランは内容・納期・修正回数まで開示されているので、相談前にイメージが固まります。"
-              bullets={[
-                "代表作はヒーロー右側に大きく配置",
-                "最低対応プラン (¥30,000〜 等) を内訳まで公開",
-                "ワンクリックで「依頼を相談」フローへ",
-              ]}
               cta={{ href: "/creators", label: "詳細ページを見る" }}
               mock={
                 <BrowserFrame url="ailier.app/creators/[id]">
@@ -444,11 +429,6 @@ export default async function HomePage() {
               no="FEATURE 04 ／ できること 04"
               title="AI 見積もりチャット"
               body="クリエイターの公開料金を元に、AI が概算見積もりと推奨プランを即時返答。「気軽に相談」のハードルを最小化します。"
-              bullets={[
-                "Claude ベースの AI が概算金額を即時提案",
-                "公開パッケージから最適プランを自動レコメンド",
-                "深い相談はそのままメッセージで継続",
-              ]}
               cta={{ href: "/creators", label: "AI と相談してみる" }}
               mock={
                 <BrowserFrame url="ailier.app/creators/[id] (estimate)">
@@ -478,6 +458,9 @@ export default async function HomePage() {
                   How it{" "}
                   <span className="italic text-sand">works.</span>
                 </h2>
+                <p className="mt-3 text-sm font-medium tracking-wide text-ink/60">
+                  つかいかた
+                </p>
               </RevealOnScroll>
               <RevealOnScroll delay={200}>
                 <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
@@ -555,6 +538,9 @@ export default async function HomePage() {
                 <h2 className="headline-display text-[clamp(2.5rem,5.5vw,4.5rem)] text-ink">
                   <span className="italic text-sand">Questions.</span>
                 </h2>
+                <p className="mt-3 text-sm font-medium tracking-wide text-ink/60">
+                  よくある質問
+                </p>
               </RevealOnScroll>
               <RevealOnScroll delay={200}>
                 <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
@@ -658,6 +644,9 @@ export default async function HomePage() {
               starts with{" "}
               <span className="italic text-sand">us.</span>
             </h2>
+            <p className="mt-4 text-sm font-medium tracking-wide text-ink/60">
+              どんな映像も、ここから生まれる。
+            </p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={240}>
@@ -669,7 +658,7 @@ export default async function HomePage() {
           <RevealOnScroll delay={360}>
             <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <Link href="/creators" className="btn-axis">
-                Browse creators
+                クリエイターを見る
               </Link>
               <Link href="/register" className="btn-axis-ghost">
                 クリエイター登録
@@ -684,13 +673,13 @@ export default async function HomePage() {
 
 /* =============================================================
  *  FeatureRow — 機能セクションの 1 行
- *  左にコピー (no/title/body/bullets/cta)、右にモック (またはその逆)
+ *  2026-07-10: 3 行の箇条書き削除 / 背景数字を縮小 / テキスト列を縦センター
+ *  左にコピー (no/title/body/cta)、右にモック (またはその逆)
  * ============================================================= */
 function FeatureRow({
   no,
   title,
   body,
-  bullets,
   cta,
   mock,
   reverse = false,
@@ -698,45 +687,34 @@ function FeatureRow({
   no: string;
   title: string;
   body: string;
-  bullets: string[];
   cta: { href: string; label: string };
   mock: React.ReactNode;
   reverse?: boolean;
 }) {
-  // Step 3 (2026-06-16): Axis アシンメトリーへ。モック側 62% / テキスト 38%。
-  // 内側の SlideInWhenVisible (横方向 stagger) は 引き続き使用。
-  // 2026-06-19 Section 3 改修: 背面に特大アウトライン番号タイポを敷き、
-  // パララックスで前景テキスト/モックと異なる速度で漂わせる。
   const textDir = reverse ? "right" : "left";
   const mockDir = reverse ? "left" : "right";
 
-  // 番号タグ "FEATURE 01 / 060" を Axis "060" 風に組む。
   const axisNo = no.replace("FEATURE ", "Feature ");
-  // 特大タイポ表示用に "FEATURE 01 ／ できること 01" から "01" だけ抽出
   const bigNumber = no.match(/(\d+)/)?.[1] ?? "00";
 
   return (
     <div className="relative">
-      {/* === 背景 特大タイポ (アウトライン) — 映像でなく文字 ===
-          2026-07-03 3 回目調整: F01/F02 だけ数字が隠れる件を修正。
-          原因: FeatureRow の mock 列は BrowserFrame + bg-paper が
-          完全 opaque。数字は mock 側に配置していたため、mock の
-          裏に完全に埋もれて視認不能だった (F03-F05 は mock 高さが
-          低くたまたま漏れて見えていた)。
-          対策: 数字位置を TEXT 列側 (背景透過) に反転。
-          テキスト要素との重なりは stroke opacity 0.30 で控えめに。 */}
+      {/* === 背景 装飾ナンバリング ===
+          2026-07-10: 箇条書き削除に伴いテキスト列が短くなったため
+          背景数字も小さめ (clamp 3.5rem 〜 8rem) に縮小、
+          控えめアクセントに徹する。 */}
       <ParallaxImage
-        intensity={0.08}
+        intensity={0.06}
         className={`pointer-events-none absolute top-[50%] -translate-y-1/2 z-0 ${
-          reverse ? "-right-4 lg:right-[-2vw]" : "-left-4 lg:left-[-2vw]"
+          reverse ? "-right-4 lg:right-[-1vw]" : "-left-4 lg:left-[-1vw]"
         }`}
       >
         <span
           aria-hidden
-          className="block font-display font-semibold leading-none tracking-[-0.04em] text-[clamp(6rem,15vw,14rem)]"
+          className="block font-display font-semibold leading-none tracking-[-0.04em] text-[clamp(3.5rem,8vw,8rem)]"
           style={{
             color: "transparent",
-            WebkitTextStroke: "2px rgba(10,13,18,0.30)",
+            WebkitTextStroke: "1.5px rgba(10,13,18,0.28)",
           }}
         >
           {bigNumber}
@@ -744,47 +722,25 @@ function FeatureRow({
       </ParallaxImage>
 
       <div
-        className={`relative z-10 grid grid-cols-1 items-start gap-8 sm:gap-12 lg:gap-24 ${
+        className={`relative z-10 grid grid-cols-1 items-start gap-8 sm:gap-12 lg:items-center lg:gap-24 ${
           reverse ? "lg:grid-cols-[1.62fr,1fr]" : "lg:grid-cols-[1fr,1.62fr]"
         }`}
       >
-        {/* テキスト側 — 上揃え、明朝、罫線リスト */}
+        {/* テキスト側 — 左揃え、縦センター (lg 以降) */}
         <div className={reverse ? "lg:order-2" : ""}>
           <SlideInWhenVisible direction={textDir} delay={0}>
             <p className="eyebrow-mono">{axisNo}</p>
           </SlideInWhenVisible>
           <SlideInWhenVisible direction={textDir} delay={80}>
-            <h3 className="font-display mt-8 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-ink">
+            <h3 className="font-display mt-6 text-[clamp(1.75rem,3.5vw,2.75rem)] font-medium leading-[1.15] tracking-tight text-ink">
               {title}
             </h3>
           </SlideInWhenVisible>
           <SlideInWhenVisible direction={textDir} delay={160}>
-            <p className="body-jp mt-6 text-ink/70">{body}</p>
+            <p className="body-jp mt-5 text-ink/70">{body}</p>
           </SlideInWhenVisible>
-          <ul className="mt-10 border-t border-ink/10">
-            {bullets.map((b, i) => (
-              <SlideInWhenVisible
-                key={b}
-                direction={textDir}
-                delay={240 + i * 80}
-              >
-                <li className="flex items-start gap-4 border-b border-ink/10 py-4">
-                  <span className="eyebrow-mono shrink-0 pt-[3px]">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="body-jp flex-1 text-sm text-ink/80">
-                    {b}
-                  </span>
-                </li>
-              </SlideInWhenVisible>
-            ))}
-          </ul>
-          <SlideInWhenVisible
-            direction={textDir}
-            delay={240 + bullets.length * 80}
-          >
-            <div className="mt-10">
-              {/* 白基調なので light 版 ghost を使用 */}
+          <SlideInWhenVisible direction={textDir} delay={240}>
+            <div className="mt-8">
               <Link href={cta.href} className="btn-axis-ghost-light">
                 {cta.label}
               </Link>

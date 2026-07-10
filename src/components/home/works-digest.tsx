@@ -74,6 +74,9 @@ export function WorksDigest({ works }: Props) {
             Selected{" "}
             <span className="italic text-sand">works.</span>
           </h2>
+          <p className="mt-3 text-sm font-medium tracking-wide text-ink/60">
+            えらばれた作品
+          </p>
           <p className="body-jp mt-4 max-w-prose-jp text-sm text-ink/65">
             AILIER に所属する AI クリエイターによる作品の一部です。
           </p>

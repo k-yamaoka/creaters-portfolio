@@ -114,6 +114,9 @@ export async function AiNewsSection() {
                 Now in{" "}
                 <span className="italic text-sand">generative video.</span>
               </h2>
+              <p className="mt-3 text-sm font-medium tracking-wide text-ink/60">
+                いまは、AIで動画をつくる時代。
+              </p>
             </RevealOnScroll>
             <RevealOnScroll delay={200}>
               <p className="body-jp mt-8 max-w-prose-jp text-ink/70">
