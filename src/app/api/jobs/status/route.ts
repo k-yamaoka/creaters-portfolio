@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createNotification, sendSystemMessage } from "@/lib/notify";
 import { calculateCreatorPayout } from "@/lib/creator-fee";
+import { calculateClientBilling } from "@/lib/enterprise-fee";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -88,25 +89,27 @@ export async function POST(request: NextRequest) {
           .limit(1);
         if (existing && existing.length > 0) continue;
 
-        const totalAmount =
+        // 00065: 新モデル (企業 15% 手数料上乗せ)
+        const basePriceRaw =
           (a.proposed_price as number | null) ??
           job.budget_max ??
           job.budget_min ??
           0;
+        const { basePrice, systemFee, totalAmount } = calculateClientBilling(
+          Number(basePriceRaw)
+        );
 
-        // 00064: 手数料は creator の is_early_member / custom_fee_rate から解決
+        // 00064: クリエイター側 custom_fee_rate 適用 (現状 早期メンバー 0%)
         const { data: creatorFeeCtx } = await supabase
           .from("creator_profiles")
           .select("is_early_member, custom_fee_rate")
           .eq("id", creator.id)
           .single();
-        const { platformFee, creatorPayout } = calculateCreatorPayout(
-          Number(totalAmount),
-          {
-            isEarlyMember: creatorFeeCtx?.is_early_member ?? true,
-            customFeeRate: creatorFeeCtx?.custom_fee_rate ?? null,
-          }
-        );
+        const { creatorPayout } = calculateCreatorPayout(basePrice, {
+          isEarlyMember: creatorFeeCtx?.is_early_member ?? true,
+          customFeeRate: creatorFeeCtx?.custom_fee_rate ?? null,
+        });
+        const platformFee = systemFee;
 
         const { data: order } = await supabase
           .from("orders")
@@ -115,6 +118,7 @@ export async function POST(request: NextRequest) {
             creator_id: creator.id,
             title: job.title,
             description: job.description ?? "",
+            base_price: basePrice,
             total_amount: totalAmount,
             platform_fee: platformFee,
             creator_payout: creatorPayout,

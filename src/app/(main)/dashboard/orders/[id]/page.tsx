@@ -1,7 +1,9 @@
 import { redirect, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
-import { formatPrice, formatDateJP } from "@/lib/utils";
+import { formatDateJP } from "@/lib/utils";
+import { ClientBillingBreakdown } from "@/components/order/client-billing-breakdown";
+import { CreatorEarningsDisplay } from "@/components/order/creator-earnings-display";
 import { STATUS_FLOW, STATUS_META, getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 import { OrderActions } from "./order-actions";
@@ -274,30 +276,33 @@ export default async function OrderDetailPage({
         <div className="space-y-6">
           {/* 旧 選択プラン カードは料金プラン撤去 (00050) で削除 */}
 
-          {/* Price breakdown */}
-          <div className="rounded-2xl bg-white p-6 shadow-card">
-            <h2 className="text-sm font-bold text-[#828282]">料金内訳</h2>
-            <div className="mt-3 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[#4F4F4F]">合計金額</span>
-                <span className="font-bold text-[#222]">
-                  {formatPrice(order.total_amount)}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[#4F4F4F]">手数料(15%)</span>
-                <span className="text-[#828282]">
-                  {formatPrice(order.platform_fee)}
-                </span>
-              </div>
-              <div className="flex justify-between border-t border-[#F2F2F2] pt-2 text-sm">
-                <span className="text-[#4F4F4F]">クリエイター受取額</span>
-                <span className="font-bold text-neon-purple-deep">
-                  {formatPrice(order.creator_payout)}
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* 00065: ロール別 金額表示
+              - client: 明細を透明性高く (base + 15% = total)
+              - creator: 受取予定額だけシンプルに */}
+          {isCreator ? (
+            <CreatorEarningsDisplay
+              creatorPayout={order.creator_payout ?? 0}
+              status={
+                order.escrow_status === "released"
+                  ? "settled"
+                  : order.status === "delivered"
+                    ? "delivered"
+                    : order.escrow_status === "held"
+                      ? "escrowed"
+                      : "pending"
+              }
+            />
+          ) : (
+            <ClientBillingBreakdown
+              basePrice={
+                (order.base_price as number | null | undefined) ??
+                order.creator_payout ??
+                0
+              }
+              systemFeeOverride={order.platform_fee ?? undefined}
+              totalAmountOverride={order.total_amount ?? undefined}
+            />
+          )}
 
           {/* Participants */}
           <div className="rounded-2xl bg-white p-6 shadow-card">
