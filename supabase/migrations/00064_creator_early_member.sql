@@ -17,9 +17,22 @@ ALTER TABLE creator_profiles
   ADD COLUMN IF NOT EXISTS custom_fee_rate NUMERIC(4, 3);
 
 -- 個別料率は 0% 以上、10% 以下に制限 (将来的な有料化の上限を仕様に固定)
-ALTER TABLE creator_profiles
-  ADD CONSTRAINT creator_profiles_custom_fee_rate_range
-  CHECK (custom_fee_rate IS NULL OR (custom_fee_rate >= 0 AND custom_fee_rate <= 0.1));
+-- 2026-07-14: 部分適用済 DB での再実行 (constraint already exists) 対策として
+-- DO ブロックで冪等化。ADD CONSTRAINT IF NOT EXISTS は Postgres 15+ 依存で
+-- Supabase 環境依存を避けるため pg_constraint 参照方式に。
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'creator_profiles_custom_fee_rate_range'
+      AND conrelid = 'creator_profiles'::regclass
+  ) THEN
+    ALTER TABLE creator_profiles
+      ADD CONSTRAINT creator_profiles_custom_fee_rate_range
+      CHECK (custom_fee_rate IS NULL OR (custom_fee_rate >= 0 AND custom_fee_rate <= 0.1));
+  END IF;
+END
+$$;
 
 COMMENT ON COLUMN creator_profiles.is_early_member IS
   'アーリーメンバー (創設メンバー) フラグ。true = 手数料を恒久 0% とする特別待遇。ローンチ後の一定期間で新規登録のデフォルトを false に切替予定。';
