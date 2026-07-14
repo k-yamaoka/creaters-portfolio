@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createNotification, sendSystemMessage } from "@/lib/notify";
+import { calculateCreatorPayout } from "@/lib/creator-fee";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -110,8 +111,21 @@ export async function POST(request: NextRequest) {
   if (clientProfileId) {
     const totalAmount =
       app.proposed_price ?? job.budget_max ?? job.budget_min ?? 0;
-    const platformFee = Math.floor((totalAmount as number) * 0.15);
-    const creatorPayout = (totalAmount as number) - platformFee;
+
+    // 00064: 手数料はクリエイターの is_early_member / custom_fee_rate から解決
+    // (旧: 一律 0.15 のハードコード)
+    const { data: creatorFeeCtx } = await supabase
+      .from("creator_profiles")
+      .select("is_early_member, custom_fee_rate")
+      .eq("id", creator.id)
+      .single();
+    const { platformFee, creatorPayout } = calculateCreatorPayout(
+      Number(totalAmount),
+      {
+        isEarlyMember: creatorFeeCtx?.is_early_member ?? true,
+        customFeeRate: creatorFeeCtx?.custom_fee_rate ?? null,
+      }
+    );
 
     const { data: order, error: orderErr } = await supabase
       .from("orders")

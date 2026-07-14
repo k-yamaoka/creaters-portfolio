@@ -4,6 +4,7 @@ import { ProfileForm } from "./profile-form";
 import { ClientForm } from "./client-form";
 import { ResumeDownloadButton } from "@/components/resume/ResumeDownloadButton";
 import type { ResumeData } from "@/components/resume/types";
+import { EarlyMemberBadge } from "@/components/creator/early-member-badge";
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -52,9 +53,15 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#222]">
-        {isCreator ? "プロフィール編集" : "企業情報編集"}
-      </h1>
+      <div className="flex flex-wrap items-center gap-3">
+        <h1 className="text-2xl font-bold text-[#222]">
+          {isCreator ? "プロフィール編集" : "企業情報編集"}
+        </h1>
+        {/* 00064: アーリーメンバーはページ最上部で存在感のあるバッジを見せる */}
+        {isCreator && user.creator_profile?.is_early_member && (
+          <EarlyMemberBadge variant="compact" />
+        )}
+      </div>
       <p className="mt-2 text-sm text-[#828282]">
         {isCreator
           ? "公開プロフィールの情報を編集します"

@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
+import { EarlyMemberBadge } from "@/components/creator/early-member-badge";
+import { CreatorFeeCard } from "@/components/creator/creator-fee-card";
 import { Video, Building2, Heart, Smile, Meh, Frown } from "lucide-react";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
 import {
@@ -214,6 +216,22 @@ export default async function DashboardPage() {
         isCreator={isCreator && hasCreatorProfile}
         initialMinimumOrderAmount={user.creator_profile?.minimum_order_amount ?? null}
       />
+
+      {/* 00064: クリエイター限定 — アーリーメンバー特典 + 現在の適用手数料
+          BasicInfoEditor 直下、要対応アラート直上に配置。
+          - 立ち上げ期の登録者 (is_early_member=true) は特典バッジで
+            モチベーション向上
+          - 誰でも「現在の適用システム手数料」を把握できる (安心感) */}
+      {isCreator && hasCreatorProfile && (
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {user.creator_profile!.is_early_member && <EarlyMemberBadge />}
+          <CreatorFeeCard
+            isEarlyMember={user.creator_profile!.is_early_member}
+            customFeeRate={user.creator_profile!.custom_fee_rate}
+            className={user.creator_profile!.is_early_member ? "" : "md:col-span-2"}
+          />
+        </div>
+      )}
 
       {/* ① 要対応アラート — ダッシュボード最上部 (最優先) */}
       {!isAdmin && (

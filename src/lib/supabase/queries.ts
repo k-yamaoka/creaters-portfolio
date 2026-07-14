@@ -140,6 +140,9 @@ export type CurrentUser = {
     availability_status: string | null;
     typical_first_draft_days: number | null;
     social_links: Record<string, string>;
+    // 00064: アーリーメンバー特典 / カスタム手数料率
+    is_early_member: boolean;
+    custom_fee_rate: number | null;
   };
   client_profile?: {
     id: string;
@@ -197,7 +200,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     const { data } = await supabase
       .from("creator_profiles")
       .select(
-        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views, cover_image_url, availability_status, typical_first_draft_days, social_links"
+        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views, cover_image_url, availability_status, typical_first_draft_days, social_links, is_early_member, custom_fee_rate"
       )
       .eq("user_id", user.id)
       .single();
