@@ -42,6 +42,28 @@ export async function GET(request: Request) {
 
       // Revalidate all pages so layout picks up new auth state
       revalidatePath("/", "layout");
+
+      // 00068: creator ロールで、まだオンボーディング未完了 (portfolio 0 点 &
+      //   onboarding_completed_at IS NULL) の場合は /onboarding に流す。
+      //   `next` パラメータで明示遷移先が指定されているときはそれを尊重。
+      if (next === "/" || next === "/dashboard") {
+        try {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("role, onboarding_completed_at")
+            .eq("id", data.user.id)
+            .single();
+          if (
+            prof?.role === "creator" &&
+            !prof.onboarding_completed_at
+          ) {
+            return NextResponse.redirect(`${origin}/onboarding`);
+          }
+        } catch {
+          // プロフィール未生成などは無視して通常フローへ
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

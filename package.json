@@ -22,6 +22,7 @@
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^17.0.0",
     "react-easy-crop": "^6.0.1",
     "resend": "^6.12.3",
     "rss-parser": "^3.13.0",
