@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { computePayoutScheduleDate } from "@/lib/payout";
 
 /**
  * Stripe Webhook 受信エンドポイント
@@ -78,11 +79,16 @@ export async function POST(request: NextRequest) {
         // manual capture が完了した場合、escrow_status を released に。
         // /api/stripe/capture 側の楽観書き込みが失敗していた場合の冪等な補正。
         // 既に released な行には触らない。
+        // 00066: 冗長補正時も payout schedule を同じロジックで確定
+        const inspectedAt = new Date();
         await supabase
           .from("orders")
           .update({
             escrow_status: "released",
-            completed_at: new Date().toISOString(),
+            completed_at: inspectedAt.toISOString(),
+            inspected_at: inspectedAt.toISOString(),
+            payout_scheduled_date: computePayoutScheduleDate(inspectedAt),
+            payout_status: "scheduled",
           })
           .eq("stripe_payment_intent_id", pi.id)
           .neq("escrow_status", "released")

@@ -117,17 +117,25 @@ export default function HowItWorksPage() {
         </div>
       </div>
 
-      {/* 2026-07-07 移植: TOP LP FEATURE 05 から移植したエスクロー説明。
-          企業・クリエイターの 3 ステップ図の下、両者に共通するお金の
-          流れを詳述するセクション。 */}
+      {/* 2026-07-07 移植 → 2026-07-14 A-3 で拡張:
+          - トップに公式説明文 + 図解画像 プレースホルダー
+          - その下に既存 3 カラム (仕組み) + 出金スケジュール補足 */}
       <div className="mt-24">
         <h2 className="text-center text-2xl font-bold text-[#222]">
           エスクロー決済 ＋ 取引管理
         </h2>
-        <p className="mx-auto mt-4 max-w-2xl text-center text-base leading-relaxed text-[#828282]">
-          発注金額はプラットフォームが預かり、納品確認後にクリエイターへ送金します。
-          両者にとって安全な取引フローと、進行中の案件を一覧で管理できるダッシュボードを提供しています。
+        <p className="mx-auto mt-4 max-w-3xl text-center text-base leading-relaxed text-[#828282]">
+          安心・安全なエスクロー決済を採用しています。発注時に企業様が先に
+          代金をプラットフォームへ信託（仮払い）し、納品物の検収が完了した
+          後にクリエイターへ報酬が支払われます。
         </p>
+
+        {/* 図解画像 プレースホルダー — 差替時は Image に置き換え */}
+        <div className="mx-auto mt-8 max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex h-48 items-center justify-center bg-gray-100 text-sm font-medium text-gray-500">
+            エスクロー決済の図解画像
+          </div>
+        </div>
 
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-3">
           {[

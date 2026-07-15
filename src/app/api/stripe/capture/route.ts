@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/server";
+import { computePayoutScheduleDate } from "@/lib/payout";
 
 // Capture held payment on order completion
 export async function POST(request: NextRequest) {
@@ -63,11 +64,17 @@ export async function POST(request: NextRequest) {
 
   // 検収完了: status は delivered のまま、escrow を released に
   // WHERE 句で escrow_status を絞ることで同時実行時の二重遷移を防ぐ
+  // 00066: 検収完了と同時に inspected_at + payout_scheduled_date を確定
+  //        (3 営業日後を最短の入金予定日に)
+  const inspectedAt = new Date();
   const { error, data: updated } = await supabase
     .from("orders")
     .update({
       escrow_status: "released",
-      completed_at: new Date().toISOString(),
+      completed_at: inspectedAt.toISOString(),
+      inspected_at: inspectedAt.toISOString(),
+      payout_scheduled_date: computePayoutScheduleDate(inspectedAt),
+      payout_status: "scheduled",
     })
     .eq("id", orderId)
     .neq("escrow_status", "released")
