@@ -233,6 +233,33 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* 00067: プロフィール非公開アラート — ポートフォリオ 0 点で is_searchable=false のクリエイター向け。
+          企業側の検索・一覧に表示されない旨を明示し、最初の 1 点登録を促す。
+          is_searchable の値は portfolio_items INSERT trigger が自動更新する。 */}
+      {isCreator && hasCreatorProfile && !user.creator_profile!.is_searchable && (
+        <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 shrink-0 text-2xl leading-none" aria-hidden>
+              ⚠️
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-amber-900">
+                あなたのプロフィールはまだ企業に公開されていません
+              </h2>
+              <p className="mt-1 text-sm text-amber-800">
+                最初のポートフォリオを登録すると、企業側の検索・一覧に自動で公開されます。実績を 1 点でも登録して、AILIER 上での露出をスタートしましょう。
+              </p>
+              <Link
+                href="/dashboard/portfolio"
+                className="btn-primary mt-3 inline-block text-sm"
+              >
+                ポートフォリオを登録する
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ① 要対応アラート — ダッシュボード最上部 (最優先) */}
       {!isAdmin && (
         <DashboardAlertsBar

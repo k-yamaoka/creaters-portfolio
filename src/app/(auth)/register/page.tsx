@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Building2, Video } from "lucide-react";
+import { validateDisplayName } from "@/lib/name-validation";
 
 /**
  * Supabase Auth から返ってきた英語エラーメッセージを日本語に置き換える。
@@ -36,6 +37,10 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"client" | "creator">("client");
+  // 00067: クリエイターの事業形態 (個人 / 法人)。役割が client のときは無視。
+  const [userType, setUserType] = useState<"individual" | "corporate">(
+    "individual"
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -56,14 +61,27 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
 
+    // 00067: クライアント側で表示名を軽量バリデーション (スパム名 / 記号のみ 等)。
+    //   ここで弾けなかったパターンは Server 側の signup handler / DB 制約でも
+    //   再度チェックされる二重防御。
+    const nameCheck = validateDisplayName(displayName);
+    if (!nameCheck.ok) {
+      setError(nameCheck.reason);
+      setLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          display_name: displayName,
+          display_name: nameCheck.sanitized,
           role,
+          // creator の場合のみ user_type を渡す。DB trigger 側で
+          // role=creator のとき creator_profiles に user_type を書き込む想定。
+          ...(role === "creator" ? { user_type: userType } : {}),
         },
         emailRedirectTo: `${redirectBase}/auth/callback`,
       },
@@ -234,6 +252,54 @@ export default function RegisterPage() {
                 </button>
               </div>
             </div>
+
+            {/* 00067: クリエイターのみ 個人/法人 選択 */}
+            {role === "creator" && (
+              <div>
+                <label className="mb-2 block text-sm font-medium text-[#4F4F4F]">
+                  事業形態
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                      userType === "individual"
+                        ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="userType"
+                      value="individual"
+                      checked={userType === "individual"}
+                      onChange={() => setUserType("individual")}
+                      className="sr-only"
+                    />
+                    個人 (フリーランス)
+                  </label>
+                  <label
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                      userType === "corporate"
+                        ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                        : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="userType"
+                      value="corporate"
+                      checked={userType === "corporate"}
+                      onChange={() => setUserType("corporate")}
+                      className="sr-only"
+                    />
+                    法人 (映像制作会社等)
+                  </label>
+                </div>
+                <p className="mt-1.5 text-xs text-[#828282]">
+                  ※ 使用する AI ツール等はポートフォリオ登録時に個別に設定できます
+                </p>
+              </div>
+            )}
 
             <div>
               <label

@@ -8,6 +8,10 @@ import { Building2, Video } from "lucide-react";
 export default function SelectRolePage() {
   const router = useRouter();
   const [role, setRole] = useState<"client" | "creator" | null>(null);
+  // 00067: クリエイター選択時のみ 個人/法人 を選択
+  const [userType, setUserType] = useState<"individual" | "corporate">(
+    "individual"
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +23,10 @@ export default function SelectRolePage() {
     const res = await fetch("/api/auth/set-role", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role }),
+      body: JSON.stringify({
+        role,
+        ...(role === "creator" ? { user_type: userType } : {}),
+      }),
     });
 
     const data = await res.json();
@@ -91,6 +98,49 @@ export default function SelectRolePage() {
               </div>
             </button>
           </div>
+
+          {/* 00067: クリエイター選択時のみ 事業形態 (個人/法人) を追加選択 */}
+          {role === "creator" && (
+            <div className="mt-5">
+              <div className="mb-2 text-sm font-medium text-[#4F4F4F]">
+                事業形態
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <label
+                  className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                    userType === "individual"
+                      ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
+                      : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="userType"
+                    checked={userType === "individual"}
+                    onChange={() => setUserType("individual")}
+                    className="sr-only"
+                  />
+                  個人 (フリーランス)
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
+                    userType === "corporate"
+                      ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
+                      : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="userType"
+                    checked={userType === "corporate"}
+                    onChange={() => setUserType("corporate")}
+                    className="sr-only"
+                  />
+                  法人 (映像制作会社等)
+                </label>
+              </div>
+            </div>
+          )}
 
           <button
             type="button"

@@ -60,6 +60,9 @@ export type CreatorWithRelations = {
 export async function getCreators(): Promise<CreatorWithRelations[]> {
   const supabase = await createClient();
 
+  // 00067: 公開条件 — ポートフォリオを 1 点以上登録した creator のみ検索対象。
+  //   is_searchable は portfolio_items INSERT/DELETE trigger で自動更新される
+  //   ので、ここでは単純に true で絞り込む。
   const { data, error } = await supabase
     .from("creator_profiles")
     .select(
@@ -75,6 +78,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
       )
       `
     )
+    .eq("is_searchable", true)
     .order("rating", { ascending: false });
 
   if (error) {
@@ -143,6 +147,9 @@ export type CurrentUser = {
     // 00064: アーリーメンバー特典 / カスタム手数料率
     is_early_member: boolean;
     custom_fee_rate: number | null;
+    // 00067: アカウント種別 (個人/法人) / プロフィール公開フラグ
+    user_type: "individual" | "corporate";
+    is_searchable: boolean;
   };
   client_profile?: {
     id: string;
@@ -200,7 +207,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     const { data } = await supabase
       .from("creator_profiles")
       .select(
-        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views, cover_image_url, availability_status, typical_first_draft_days, social_links, is_early_member, custom_fee_rate"
+        "id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views, cover_image_url, availability_status, typical_first_draft_days, social_links, is_early_member, custom_fee_rate, user_type, is_searchable"
       )
       .eq("user_id", user.id)
       .single();
