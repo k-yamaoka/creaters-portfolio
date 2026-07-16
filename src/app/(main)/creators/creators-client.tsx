@@ -7,6 +7,7 @@ import { SearchTopBar } from "@/components/creators/search-filters";
 // 2026-06-19 Section 6: Material Symbols (MIcon) は lucide-react に統一。
 // OS 絵文字相当の MIcon も含めて廃止し、ライン系で一貫した質感に揃える。
 import { Star, Sparkles, Heart, BadgeCheck, Video } from "lucide-react";
+import { FoundingMemberBadge } from "@/components/creator/founding-member-badge";
 import { LikeButton } from "@/components/portfolio/like-button";
 import { FullscreenVideoModal } from "@/components/portfolio/fullscreen-video-modal";
 import {
@@ -452,6 +453,10 @@ function CreatorRow({
             <h3 className="text-lg font-black text-ink sm:text-xl">
               {profiles.display_name}
             </h3>
+            {/* E-4: 創設メンバー バッジ (先着 50 名。is_early_member=true) */}
+            {creator.is_early_member && (
+              <FoundingMemberBadge variant="chip" />
+            )}
             {/* いいね: 0 件のときだけ "♥0"、他者が押した後は数字を隠して ♥ のみ */}
             <span
               className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-ink ${

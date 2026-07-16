@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sample-sns-vertical-ads",
+    "title": "SNS 縦型広告動画 3 本セット (D2C 化粧品ブランド)",
+    "description": "自社 D2C ブランドの新商品ローンチに向けた、SNS 縦型 (9:16) 動画広告 3 本の制作をお願いします。\n\n【背景】\n- 20〜30 代女性向けスキンケアの新シリーズ (3 SKU) を訴求\n- 各 SKU につき 1 本、計 3 本 (10〜15 秒)\n- Meta Ads / TikTok Ads / YouTube Shorts に配信\n\n【要件】\n- Runway / Kling / Sora いずれかの AI 動画生成を活用\n- 商品カット (実写) はこちらで用意 (差し替え可能な構成が望ましい)\n- テロップは日本語 (フォント指定あり: Noto Sans JP)\n- 縦型 1080×1920, MP4 (H.264, 30fps)\n\n【納期・進行】\n- 初稿: 契約後 7 営業日以内\n- 修正: 各本 2 回まで\n- 最終納品: 契約後 3 週間以内",
+    "genres": ["SNS広告", "縦型ショート", "D2C・EC"],
+    "budget_min": 150000,
+    "budget_max": 250000,
+    "deadline_days": 14,
+    "delivery_days": 21
+  },
+  {
+    "id": "sample-corporate-vp-sora",
+    "title": "Sora を用いたコーポレート VP (60 秒)",
+    "description": "エンタープライズ SaaS 企業のブランド刷新に伴う、コーポレート VP 制作をお願いします。\n\n【要件】\n- 60 秒 (16:9)、YouTube チャンネル ヘッダー / 展示会 大型スクリーン 兼用\n- Sora 2 を主軸に、抽象的な近未来ビジュアル + ブランド キーカラー (深いブルー) を反映\n- ナレーション: プロ ナレーター (別途手配、こちらで音声支給)\n- BGM: 既存の企業テーマ (支給)\n- ロゴ/字幕は AE で仕上げていただければ幸いです\n\n【納期・進行】\n- 絵コンテ: 契約後 5 営業日\n- 初稿: 契約後 3 週間\n- 最終納品: 契約後 5 週間",
+    "genres": ["コーポレートVP", "ブランディング", "AI映像"],
+    "budget_min": 450000,
+    "budget_max": 800000,
+    "deadline_days": 14,
+    "delivery_days": 35
+  },
+  {
+    "id": "sample-product-intro-video",
+    "title": "商品紹介 AI 動画 (家電メーカー・30 秒)",
+    "description": "新型家電のブランドサイト掲載用 商品紹介動画をお願いします。\n\n【要件】\n- 30 秒 (16:9 と 1:1 の 2 バリエーション)\n- 商品 3D モックはこちらで提供 (glb + マテリアル)\n- Runway / Midjourney でシーン背景・世界観を生成\n- 実写と AI 生成の融合表現\n- テロップ: 日英バイリンガル\n\n【納期・進行】\n- 初稿: 契約後 10 営業日\n- 修正: 2 回\n- 最終納品: 契約後 3 週間",
+    "genres": ["商品紹介", "プロモーション", "ハイブリッド映像"],
+    "budget_min": 200000,
+    "budget_max": 350000,
+    "deadline_days": 10,
+    "delivery_days": 21
+  },
+  {
+    "id": "sample-recruit-video",
+    "title": "採用向け AI ショートムービー (45 秒)",
+    "description": "エンジニア採用ページ / 求人媒体掲載用 のショート動画制作をお願いします。\n\n【要件】\n- 45 秒 (16:9) + 短尺切り出し 15 秒 (縦型 9:16) の 2 本\n- 「開発現場の熱量」を表現する抽象的なビジュアル\n- 社員インタビュー音声 (支給、5 名分) を要所に配置\n- Runway Gen-4 / Kling 2 を想定\n\n【納期・進行】\n- 絵コンテ: 契約後 5 営業日\n- 初稿: 契約後 2 週間\n- 修正: 3 回まで\n- 最終納品: 契約後 4 週間",
+    "genres": ["採用動画", "ブランディング", "AI映像"],
+    "budget_min": 250000,
+    "budget_max": 420000,
+    "deadline_days": 14,
+    "delivery_days": 28
+  },
+  {
+    "id": "sample-sns-banner-set",
+    "title": "SNS 広告 静止画バナー 10 枚セット (Midjourney)",
+    "description": "サブスク型フィットネス サービスの Meta Ads 用 静止画バナーを 10 枚作成お願いします。\n\n【要件】\n- 1080×1080 (5 枚) + 1080×1350 (5 枚) の合計 10 枚\n- Midjourney v7 で世界観を生成 → Photoshop / Figma でロゴ / コピー入れ\n- 5 パターンのコピー案 (支給) × ビジュアル 2 バリエーション\n- ブランドカラー / ロゴ規定は Figma で共有します\n\n【納期・進行】\n- 初稿: 契約後 5 営業日\n- 修正: 各枚 1 回\n- 最終納品: 契約後 2 週間",
+    "genres": ["SNS広告", "静止画バナー", "Midjourney"],
+    "budget_min": 60000,
+    "budget_max": 120000,
+    "deadline_days": 7,
+    "delivery_days": 14
+  }
+]

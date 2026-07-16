@@ -20,6 +20,9 @@ export type CreatorWithRelations = {
   availability_status: string | null;
   typical_first_draft_days: number | null;
   social_links: Record<string, string>;
+  // 00064: アーリーメンバー (=創設メンバー) 特典フラグ / 00067: 検索公開フラグ
+  is_early_member: boolean;
+  is_searchable: boolean;
   created_at: string;
   updated_at: string;
   profiles: {

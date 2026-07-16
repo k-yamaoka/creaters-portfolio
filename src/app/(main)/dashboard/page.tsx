@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 import { BasicInfoEditor } from "@/components/dashboard/basic-info-editor";
 import { EarlyMemberBadge } from "@/components/creator/early-member-badge";
 import { CreatorFeeCard } from "@/components/creator/creator-fee-card";
-import { Video, Building2, Heart, Smile, Meh, Frown } from "lucide-react";
+import { Video, Building2, Heart } from "lucide-react";
 import { DashboardAlertsBar } from "@/components/dashboard/alerts-bar";
 import {
   DashboardLatestActivity,
@@ -333,50 +333,22 @@ export default async function DashboardPage() {
           - 空いた右側に 総いいね数 を新規表示 */}
       {isCreator && hasCreatorProfile && (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {/* 評価 + レビュー数 を 1 カードに */}
+          {/* E-4: 評価カードは フェーズ 2 (星評価導入) まで「準備中」表示。
+              過去のレーティング/レビュー数値は非表示 (フェーズ 1 中は
+              信頼シグナルを "いいね" と "作品数" に集約する方針)。 */}
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-500">評価</p>
-              {user.creator_profile!.review_count > 0 &&
-                (() => {
-                  const r = user.creator_profile!.rating;
-                  const Icon = r >= 2.5 ? Smile : r >= 1.5 ? Meh : Frown;
-                  const cls =
-                    r >= 2.5
-                      ? "text-green-500"
-                      : r >= 1.5
-                        ? "text-yellow-500"
-                        : "text-gray-400";
-                  return <Icon size={28} strokeWidth={1.6} className={cls} aria-hidden />;
-                })()}
+              <p className="text-sm font-medium text-gray-500">評価・レビュー</p>
+              <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                準備中
+              </span>
             </div>
-            {user.creator_profile!.review_count > 0 ? (
-              <div className="mt-2 grid grid-cols-2 items-end gap-4">
-                <div>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {user.creator_profile!.rating >= 2.5
-                      ? "満足"
-                      : user.creator_profile!.rating >= 1.5
-                        ? "普通"
-                        : "不満"}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">レーティング</p>
-                </div>
-                <div className="border-l border-gray-200 pl-4">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {user.creator_profile!.review_count}
-                    <span className="ml-1 text-sm font-normal text-gray-400">
-                      件
-                    </span>
-                  </p>
-                  <p className="mt-1 text-xs text-gray-400">レビュー数</p>
-                </div>
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-gray-500">
-                まだ評価がありません。
-              </p>
-            )}
+            <p className="mt-3 text-sm text-gray-500">
+              クライアントによる評価・レビュー機能は現在準備中です。
+            </p>
+            <p className="mt-1 text-xs text-gray-400">
+              正式ローンチ後に開始予定
+            </p>
           </div>
 
           {/* 総いいね数 (新規) — 全ポートフォリオの like_count 合計 */}

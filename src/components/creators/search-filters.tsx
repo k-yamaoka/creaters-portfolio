@@ -24,9 +24,10 @@ type Props = {
   onViewToggle: (grid: boolean) => void;
 };
 
+// E-4: 星評価 (rating) はフェーズ 2 導入まで UI から隠す。
+//   value:"rating" は既存 URL / state 互換のため型上は残置し、選択肢からのみ除外。
 const SORT_OPTIONS = [
   { value: "recommended" as const, label: "おすすめ" },
-  { value: "rating" as const, label: "評価が高い" },
   { value: "price_low" as const, label: "金額が安い" },
   { value: "price_high" as const, label: "金額が高い" },
 ];

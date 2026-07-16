@@ -6,10 +6,12 @@ import { createClient } from "@/lib/supabase/server";
 
 // プロフィール編集・いいね数などが即時反映されるよう動的レンダリング
 export const dynamic = "force-dynamic";
-import { ReviewList } from "@/components/reviews/review-list";
+// E-4 (2026-07-16): 星評価・レビュー は準備中扱いのため ReviewList import は解除。
+//   フェーズ 2 で復活予定。fetch も削除して DB クエリを節約。
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
 import { ShareButton } from "@/components/creators/share-button";
 import { Video, Briefcase, Sparkles, ArrowRight, BadgeCheck } from "lucide-react";
+import { FoundingMemberBadge } from "@/components/creator/founding-member-badge";
 import { EstimateChatBot } from "@/components/creators/estimate-chat-bot";
 import { VideoPreviewCard } from "@/components/portfolio/video-preview-card";
 import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
@@ -57,18 +59,7 @@ export default async function CreatorDetailPage({
   // 2026-06-25: 「アクティブ」「過去90日問い合わせ」「返信率」表示は UI から
   // 撤去したため、関連の messages 集計クエリも撤去 (DB 負荷低減)。
 
-  const { data: reviews } = await supabase
-    .from("reviews")
-    .select(
-      `
-      id, rating, comment, created_at,
-      client:client_profiles!reviews_client_id_fkey (
-        profiles!client_profiles_user_id_fkey ( display_name )
-      )
-    `
-    )
-    .eq("creator_id", creator.id)
-    .order("created_at", { ascending: false });
+  // E-4: reviews フェッチはフェーズ 2 まで一時停止 (準備中プレースホルダーを表示)
 
   const displayName = creator.profiles.display_name;
   const avatarUrl = creator.profiles.avatar_url;
@@ -235,9 +226,15 @@ export default async function CreatorDetailPage({
                     </span>
                   )}
                 </div>
-                <h1 className="mt-3 font-display text-3xl font-medium tracking-tight text-gray-900 sm:text-[2.5rem]">
-                  {displayName}
-                </h1>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <h1 className="font-display text-3xl font-medium tracking-tight text-gray-900 sm:text-[2.5rem]">
+                    {displayName}
+                  </h1>
+                  {/* E-4: 創設メンバー バッジ (先着 50 名。is_early_member=true) */}
+                  {creator.is_early_member && (
+                    <FoundingMemberBadge variant="chip" />
+                  )}
+                </div>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
                   <span className="inline-flex items-center gap-1.5">
                     <Video size={16} strokeWidth={1.8} className="text-neon-pink" aria-hidden />
@@ -427,23 +424,24 @@ export default async function CreatorDetailPage({
               </div>
             )}
 
-            {/* Reviews */}
+            {/* E-4: 星評価・レビュー システムはフェーズ 2 で導入予定。
+                現時点では「準備中」プレースホルダーを表示し、既存の
+                評価数字は本ページから隠す。ReviewList 側の render は
+                管理画面等での過去データ確認用に残置。 */}
             <div
               id="reviews"
               className="scroll-mt-32 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8"
             >
-              <h2 className="mb-6 border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">
-                レビュー({reviews?.length ?? 0}件)
+              <h2 className="mb-3 border-l-4 border-indigo-500 pl-3 text-xl font-bold text-gray-900">
+                評価・レビュー
               </h2>
-              <ReviewList
-                reviews={(reviews ?? []) as unknown as {
-                  id: string;
-                  rating: number;
-                  comment: string;
-                  created_at: string;
-                  client: { profiles: { display_name: string } };
-                }[]}
-              />
+              <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center">
+                <p className="text-sm font-bold text-gray-700">準備中</p>
+                <p className="mt-1 text-xs text-gray-500">
+                  クライアントによる評価・レビュー機能は現在準備中です。
+                  正式ローンチ後に開始予定です。
+                </p>
+              </div>
             </div>
           </div>
 
