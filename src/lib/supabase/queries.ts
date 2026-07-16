@@ -79,6 +79,9 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
       `
     )
     .eq("is_searchable", true)
+    // D-1: ファウンディング クリエイターを上位表示 (creator_profiles.is_early_member=true)。
+    //   同順位内では従来通り rating DESC。
+    .order("is_early_member", { ascending: false })
     .order("rating", { ascending: false });
 
   if (error) {

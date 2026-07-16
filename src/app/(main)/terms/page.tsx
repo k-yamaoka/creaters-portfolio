@@ -59,6 +59,61 @@ export default function TermsPage() {
           </ul>
         </section>
 
+        {/* B-2: AI 生成コンテンツのガイドライン / NG 基準 (2026-07-15 追記) */}
+        <section>
+          <h2 className="text-lg font-bold text-[#222]">
+            第4条の2（AI 生成コンテンツに関するガイドライン）
+          </h2>
+          <p className="mt-3">
+            本サービスはAIを活用したクリエイティブ制作のためのマッチングを目的としています。
+            公開されるポートフォリオおよび納品物は、以下の基準に従って掲載してください。
+          </p>
+
+          <h3 className="mt-5 text-sm font-bold text-[#222]">1. 公開可能な作品</h3>
+          <ul className="ml-6 mt-2 list-inside list-disc space-y-1">
+            <li>
+              本人が生成・制作した作品であって、第三者の権利および公開許諾を侵害しないもの。
+            </li>
+            <li>
+              クライアントワーク納品物は、クライアントから公開許諾を得た範囲でのみ掲載できます。
+            </li>
+          </ul>
+
+          <h3 className="mt-5 text-sm font-bold text-[#222]">2. 非推奨（掲載可だが品質面での注意喚起の対象）</h3>
+          <ul className="ml-6 mt-2 list-inside list-disc space-y-1">
+            <li>明らかな未完成作品、または極端に低品質と判断される作品。</li>
+            <li>
+              AI が出力した素材を実質的な修正・編集を加えず、そのまま公開している作品
+              （プロンプト提示や検証的な用途を除きます）。
+            </li>
+          </ul>
+
+          <h3 className="mt-5 text-sm font-bold text-[#222]">3. 禁止（発見時は非公開化・アカウント停止の対象）</h3>
+          <ul className="ml-6 mt-2 list-inside list-disc space-y-1">
+            <li>
+              著作権・商標権・意匠権・肖像権・パブリシティ権・プライバシー権など、
+              第三者の権利を侵害する内容。
+            </li>
+            <li>
+              実在人物（著名人・一般人問わず）を、本人の同意なく生成した画像・動画。
+              いわゆるディープフェイクを含みます。
+            </li>
+            <li>
+              公序良俗に反する表現（差別的表現、暴力・性的搾取的表現、児童を対象とした性的表現、
+              犯罪誘発・自傷助長など）。
+            </li>
+            <li>
+              法令（著作権法、不正競争防止法、景品表示法、その他の各種業法）に違反する内容。
+            </li>
+          </ul>
+
+          <p className="mt-4 text-xs text-[#828282]">
+            ※ 当社は掲載物の適法性・許諾状況を都度確認する義務を負いませんが、
+            通報を受けた場合または当社が独自に確認した場合、事前通知なく非公開化・削除
+            またはアカウントの利用停止措置を行うことがあります。
+          </p>
+        </section>
+
         <section>
           <h2 className="text-lg font-bold text-[#222]">第5条（決済および手数料）</h2>
           <ol className="mt-3 list-inside list-decimal space-y-2">
@@ -67,6 +122,70 @@ export default function TermsPage() {
             <li>クリエイターへの報酬支払いは、クライアントの検収完了後に行われます。</li>
             <li>当社は、取引金額の15%をシステム手数料として収受します。</li>
           </ol>
+        </section>
+
+        {/* A-4: キャンセルポリシー (2026-07-15 追記) */}
+        <section>
+          <h2 className="text-lg font-bold text-[#222]">
+            第5条の2（発注後のキャンセルおよび返金）
+          </h2>
+          <p className="mt-3">
+            発注成立後のキャンセルについては、キャンセル申請時点の進行段階に応じて
+            以下の基準により、クリエイターへの報酬と、クライアントへの返金額を確定します。
+          </p>
+
+          <div className="mt-4 overflow-hidden rounded-lg border border-gray-200">
+            <table className="w-full text-xs">
+              <thead className="bg-gray-50 text-left text-gray-600">
+                <tr>
+                  <th className="px-3 py-2 font-bold">進行段階</th>
+                  <th className="px-3 py-2 font-bold">クリエイター報酬</th>
+                  <th className="px-3 py-2 font-bold">クライアント返金</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100 text-gray-700">
+                <tr>
+                  <td className="px-3 py-2">
+                    <b>着手前</b>
+                    <br />
+                    <span className="text-[10px] text-gray-500">
+                      相談 / 見積 / 契約 / データ共有前
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 font-mono tabular-nums">0%</td>
+                  <td className="px-3 py-2 font-mono tabular-nums">100%</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2">
+                    <b>制作中</b>
+                    <br />
+                    <span className="text-[10px] text-gray-500">
+                      制作開始後 / 修正対応中
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 font-mono tabular-nums">50%</td>
+                  <td className="px-3 py-2 font-mono tabular-nums">50%</td>
+                </tr>
+                <tr>
+                  <td className="px-3 py-2">
+                    <b>納品後</b>
+                    <br />
+                    <span className="text-[10px] text-gray-500">
+                      納品完了 / 検収未確定
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 font-mono tabular-nums">100%</td>
+                  <td className="px-3 py-2 font-mono tabular-nums">0%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-3 text-xs text-[#828282]">
+            ※ 上記は原則であり、権利侵害・重大な瑕疵・双方合意など個別事由がある場合は、
+            当社が個別に調整することがあります。返金は原則として仮払いに使用した決済手段
+            へ返却されます。
+          </p>
         </section>
 
         <section>

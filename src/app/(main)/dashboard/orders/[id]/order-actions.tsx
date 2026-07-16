@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { updateOrderStatus } from "../actions";
 import type { OrderStatus } from "@/lib/order-status";
+import { CancelDialog } from "@/components/orders/cancel-dialog";
 
 const PaymentButton = dynamic(
   () => import("./payment-button").then((m) => m.PaymentButton),
@@ -17,6 +18,8 @@ type Props = {
   escrowStatus?: string | null;
   isCreator: boolean;
   hasStripeKey: boolean;
+  /** キャンセルポリシー内訳計算に使用 (00069 A-4) */
+  basePrice: number;
 };
 
 type Action = { label: string; nextStatus: OrderStatus; style: string };
@@ -107,9 +110,12 @@ export function OrderActions({
   escrowStatus,
   isCreator,
   hasStripeKey,
+  basePrice,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A-4: 旧 window.confirm を CancelDialog 経由に置き換え
+  const [cancelOpen, setCancelOpen] = useState(false);
   const router = useRouter();
 
   const config = ACTION_MAP[currentStatus as OrderStatus];
@@ -163,17 +169,10 @@ export function OrderActions({
     setLoading(false);
   };
 
-  const handleCancel = async () => {
-    if (!confirm("この案件をキャンセルしますか？")) return;
-    setLoading(true);
-    setError(null);
-    const result = await updateOrderStatus(orderId, "cancelled");
-    if (result?.error) {
-      setError(result.error);
-    }
-    router.refresh();
-    setLoading(false);
-  };
+  // A-4: 旧 window.confirm を廃止し CancelDialog 経由の完全フローに置き換え。
+  //   ダイアログ内で /api/orders/:id/cancel を叩き、cancel_stage / refund 内訳を
+  //   DB に snapshot したうえで router.refresh() する。
+  const handleCancel = () => setCancelOpen(true);
 
   const showStripePayment =
     config.useStripePayment && !isCreator && hasStripeKey;
@@ -217,6 +216,14 @@ export function OrderActions({
             この案件をキャンセルする
           </button>
         )}
+        <CancelDialog
+          orderId={orderId}
+          currentStatus={currentStatus as OrderStatus}
+          basePrice={basePrice}
+          isCreator={isCreator}
+          open={cancelOpen}
+          onClose={() => setCancelOpen(false)}
+        />
       </div>
     );
   }
@@ -322,6 +329,14 @@ export function OrderActions({
             </p>
           )}
       </div>
+      <CancelDialog
+        orderId={orderId}
+        currentStatus={currentStatus as OrderStatus}
+        basePrice={basePrice}
+        isCreator={isCreator}
+        open={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+      />
     </div>
   );
 }

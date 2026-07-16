@@ -247,7 +247,49 @@ export default async function OrderDetailPage({
               escrowStatus={order.escrow_status}
               isCreator={isCreator}
               hasStripeKey={!!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+              basePrice={order.base_price ?? 0}
             />
+          )}
+
+          {/* A-4: キャンセル済 order の snapshot 表示 */}
+          {order.status === "cancelled" && order.cancel_stage && (
+            <div className="rounded-2xl border border-red-100 bg-red-50/40 p-6">
+              <h2 className="text-lg font-bold text-red-800">
+                キャンセル済み
+              </h2>
+              <dl className="mt-3 space-y-1.5 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-red-700/70">段階</dt>
+                  <dd className="font-medium text-red-900">
+                    {order.cancel_stage === "pre_start"
+                      ? "着手前 (0%)"
+                      : order.cancel_stage === "in_progress"
+                        ? "制作中 (50%)"
+                        : "納品後 (100%)"}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-red-700/70">クライアント返金</dt>
+                  <dd className="font-mono tabular-nums text-red-900">
+                    ¥{(order.cancel_refund_amount ?? 0).toLocaleString("ja-JP")}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-red-700/70">クリエイター補償</dt>
+                  <dd className="font-mono tabular-nums text-red-900">
+                    ¥{(order.cancel_creator_payout ?? 0).toLocaleString("ja-JP")}
+                  </dd>
+                </div>
+                {order.cancel_reason && (
+                  <div className="mt-2 border-t border-red-200 pt-2">
+                    <dt className="text-xs text-red-700/70">理由</dt>
+                    <dd className="mt-1 whitespace-pre-wrap text-xs text-red-900">
+                      {order.cancel_reason}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
           )}
 
           {/* レビュー投稿フォーム - 検収完了かつレビュー未投稿のクライアントのみ。

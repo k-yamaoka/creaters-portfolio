@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FoundingCreatorCounter } from "@/components/founding-counter";
 
 export const metadata: Metadata = {
   title: "AIクリエイターガイドライン",
@@ -7,7 +8,8 @@ export const metadata: Metadata = {
     "AILIERで活動するAIクリエイター向けのガイドライン。プロンプト力・ツール選定・著作権・透明性を満たす運用方針をまとめています。",
 };
 
-export const revalidate = 3600;
+// D-1: 先着 50 名の残数をリアルタイムに近い形で反映するため 60s
+export const revalidate = 60;
 
 export default function CreatorGuidePage() {
   return (
@@ -18,6 +20,11 @@ export default function CreatorGuidePage() {
       <p className="mt-2 text-sm text-[#828282]">
         AILIERで活動するAIクリエイターの皆さまへ
       </p>
+
+      {/* D-1: 先着 50 名 ファウンディング クリエイター 特典 */}
+      <div className="mt-6">
+        <FoundingCreatorCounter variant="hero" />
+      </div>
 
       <div className="mt-10 space-y-10">
         {/* Getting Started */}

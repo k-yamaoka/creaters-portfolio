@@ -6,6 +6,7 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Building2, Video } from "lucide-react";
 import { validateDisplayName } from "@/lib/name-validation";
+import { FoundingCreatorCounterClient } from "@/components/founding-counter-client";
 
 /**
  * Supabase Auth から返ってきた英語エラーメッセージを日本語に置き換える。
@@ -209,9 +210,13 @@ export default function RegisterPage() {
         </div>
 
         <div className="rounded-2xl bg-white p-8 shadow-card">
-          <h1 className="mb-6 text-center text-2xl font-bold text-[#222]">
+          <h1 className="mb-3 text-center text-2xl font-bold text-[#222]">
             新規登録
           </h1>
+          {/* D-1: 先着 50 名 ファウンディング クリエイター 残数表示 */}
+          <div className="mb-4 flex justify-center">
+            <FoundingCreatorCounterClient />
+          </div>
 
           {error && (
             <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
