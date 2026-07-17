@@ -156,7 +156,8 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   const { data: order } = await supabase
     .from("orders")
     .select(
-      `id, status,
+      `id, status, escrow_status, terminated_at, active_dispute_id,
+       max_revisions, revision_count_used,
        client:client_profiles!orders_client_id_fkey ( user_id ),
        creator:creator_profiles!orders_creator_id_fkey ( user_id )`
     )
@@ -183,7 +184,36 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
     };
   }
 
+  // 00071 ガードレール:
+  //   1. 途中終了 / 運営裁定中は 進行系の遷移を禁止 (cancel は cancel API 経由)
+  //   2. 納品 (delivered) は escrow_status=held を要求 → 仮払い前の作業成果を守る
+  //   3. revision に戻すとき、修正回数上限を超過していれば拒否
+  //      (上限超過時の対応は「追加発注」経路で行う設計)
+  if (order.terminated_at || order.active_dispute_id) {
+    return {
+      error:
+        "この注文は途中終了 / 運営裁定中のためステータス遷移できません",
+    };
+  }
+  if (newStatus === "delivered" && order.escrow_status !== "held") {
+    return {
+      error:
+        "納品には仮払い (エスクロー) の完了が必要です。契約段階でクライアントによる仮払いをお待ちください。",
+    };
+  }
+
   const updateData: Record<string, unknown> = { status: newStatus };
+
+  if (newStatus === "revision") {
+    const nextUsed = (order.revision_count_used ?? 0) + 1;
+    if (nextUsed > (order.max_revisions ?? 1)) {
+      return {
+        error:
+          "合意した修正回数の上限に達しています。追加発注 (別料金) が必要です。運営に相談される場合は「運営に相談する」からご連絡ください。",
+      };
+    }
+    updateData.revision_count_used = nextUsed;
+  }
 
   if (newStatus === "delivered") {
     updateData.delivered_at = new Date().toISOString();

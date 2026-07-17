@@ -6,6 +6,7 @@ import { TrashIcon } from "@/components/ui/trash-icon";
 import { createClient } from "@/lib/supabase/client";
 import { templatesFor, type MessageTemplate } from "@/lib/message-templates";
 import { linkifyText } from "@/lib/linkify";
+import { ExternalTxWarning } from "@/components/orders/external-tx-warning";
 
 export type Message = {
   id: string;
@@ -594,6 +595,9 @@ export function MessageThread({
           className="hidden"
           onChange={handleFilePick}
         />
+
+        {/* 00071: 外部取引 (LINE 等) 禁止の啓蒙。取引補償対象外である旨を明記 */}
+        <ExternalTxWarning className="mb-2" />
 
         <div className="flex items-end gap-3">
           <button

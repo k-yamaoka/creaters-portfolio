@@ -15,6 +15,9 @@ import {
   EditingRequirements,
   type EditingRequirementsData,
 } from "@/components/shared/editing-requirements";
+import { PrePaymentAlert } from "@/components/orders/pre-payment-alert";
+import { DisputeStatusBadge } from "@/components/orders/dispute-status-badge";
+import { evaluateRevisionState } from "@/lib/order-flow";
 
 export default async function OrderDetailPage({
   params,
@@ -146,7 +149,7 @@ export default async function OrderDetailPage({
           <h1 className="mt-2 text-2xl font-bold text-[#222]">
             {order.title}
           </h1>
-          <div className="mt-2 flex items-center gap-3 text-sm text-[#828282]">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-[#828282]">
             <span
               className={`rounded-pill px-3 py-1 text-xs font-bold ${status.color}`}
             >
@@ -154,9 +157,41 @@ export default async function OrderDetailPage({
             </span>
             <span>{order.order_number}</span>
             <span>{formatDateJP(order.created_at)}</span>
+            {/* 00071: 運営裁定中バッジ (受付済/確認中/対応完了) */}
+            {order.active_dispute_id && (
+              <DisputeAdminBadge disputeId={order.active_dispute_id} />
+            )}
           </div>
         </div>
       </div>
+
+      {/* 00071: 仮払い前アラート (escrow が held/released 以外のとき常時表示) */}
+      <div className="mt-4">
+        <PrePaymentAlert
+          escrowStatus={order.escrow_status}
+          isCreator={isCreator}
+        />
+      </div>
+
+      {/* 00071: 修正回数の警告 (revision_count_used が上限直前/超過) */}
+      {(() => {
+        const rev = evaluateRevisionState(
+          order.revision_count_used ?? 0,
+          order.max_revisions ?? 1
+        );
+        if (!rev.warning) return null;
+        return (
+          <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <p className="font-bold">修正回数のお知らせ</p>
+            <p className="mt-1 text-xs leading-relaxed">
+              {rev.warning}
+            </p>
+            <p className="mt-1.5 text-[11px] text-amber-800">
+              使用済み {rev.used} / 合意上限 {rev.max}
+            </p>
+          </div>
+        );
+      })()}
 
       {/* Progress bar */}
       <div className="mt-6 rounded-2xl bg-white p-6 shadow-card">
@@ -248,6 +283,8 @@ export default async function OrderDetailPage({
               isCreator={isCreator}
               hasStripeKey={!!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
               basePrice={order.base_price ?? 0}
+              activeDisputeId={order.active_dispute_id}
+              terminatedAt={order.terminated_at}
             />
           )}
 
@@ -414,4 +451,25 @@ export default async function OrderDetailPage({
       )}
     </div>
   );
+}
+
+/**
+ * 運営裁定バッジ (00071)。dispute.admin_status のみ SELECT し UI に反映。
+ * internal_note は RLS 上 SELECT 不可 (definer view でも隠蔽) なので
+ * ここで取得しても返らない。
+ */
+async function DisputeAdminBadge({ disputeId }: { disputeId: string }) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("disputes")
+    .select("admin_status")
+    .eq("id", disputeId)
+    .maybeSingle();
+  const s = data?.admin_status as
+    | "received"
+    | "reviewing"
+    | "resolved"
+    | undefined;
+  if (!s) return null;
+  return <DisputeStatusBadge status={s} />;
 }

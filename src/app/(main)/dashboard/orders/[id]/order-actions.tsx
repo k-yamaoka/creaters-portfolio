@@ -6,6 +6,10 @@ import dynamic from "next/dynamic";
 import { updateOrderStatus } from "../actions";
 import type { OrderStatus } from "@/lib/order-status";
 import { CancelDialog } from "@/components/orders/cancel-dialog";
+import { TerminationConfirmDialog } from "@/components/orders/termination-confirm-dialog";
+import { TroubleReportWizard } from "@/components/orders/trouble-report-wizard";
+import { MessageCircleQuestion, Ban } from "lucide-react";
+import { canSubmitDelivery, isEscrowFunded } from "@/lib/order-flow";
 
 const PaymentButton = dynamic(
   () => import("./payment-button").then((m) => m.PaymentButton),
@@ -20,6 +24,10 @@ type Props = {
   hasStripeKey: boolean;
   /** キャンセルポリシー内訳計算に使用 (00069 A-4) */
   basePrice: number;
+  /** active な dispute (00071)。ある場合は運営裁定中 */
+  activeDisputeId?: string | null;
+  /** 途中終了済み (00071)。ある場合は全操作を隠す */
+  terminatedAt?: string | null;
 };
 
 type Action = { label: string; nextStatus: OrderStatus; style: string };
@@ -111,12 +119,29 @@ export function OrderActions({
   isCreator,
   hasStripeKey,
   basePrice,
+  activeDisputeId,
+  terminatedAt,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // A-4: 旧 window.confirm を CancelDialog 経由に置き換え
   const [cancelOpen, setCancelOpen] = useState(false);
+  // 00071: 途中終了モーダル + 運営相談 ウィザード
+  const [terminateOpen, setTerminateOpen] = useState(false);
+  const [troubleOpen, setTroubleOpen] = useState(false);
   const router = useRouter();
+
+  // 00071 ガードレール:
+  //   - 途中終了 / 運営裁定中は 進行系の action を全て隠す
+  //   - 納品 (production/revision → delivered) は escrow held を要求
+  const isLocked = !!terminatedAt || !!activeDisputeId;
+  const canDeliver = canSubmitDelivery({
+    status: currentStatus,
+    escrow_status: escrowStatus,
+    terminated_at: terminatedAt ?? null,
+    active_dispute_id: activeDisputeId ?? null,
+  });
+  const escrowFunded = isEscrowFunded(escrowStatus);
 
   const config = ACTION_MAP[currentStatus as OrderStatus];
   if (!config) return null;
@@ -182,12 +207,87 @@ export function OrderActions({
     hasStripeKey &&
     escrowStatus !== "released";
 
+  // 00071: 進行系ボタンを個別に安全チェック。
+  //   deliver への遷移だけは escrow held (canDeliver) を強制。他の遷移
+  //   (contract → data_sharing / production → revision 等) は既存の
+  //   whitelist に任せる。
+  const isDeliverAction = action?.nextStatus === "delivered";
+  const advanceDisabled =
+    loading || isLocked || (isDeliverAction && !canDeliver);
+  const advanceHint =
+    isLocked
+      ? "この案件は途中終了 / 運営裁定中のため操作できません"
+      : isDeliverAction && !canDeliver
+        ? escrowFunded
+          ? "現在の状態では納品できません"
+          : "納品には仮払い (エスクロー) の完了が必要です"
+        : null;
+
+  // 「運営に相談する」+「途中終了を申請する」共通トリガー
+  const safetyButtons = (
+    <div className="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
+      <button
+        type="button"
+        onClick={() => setTroubleOpen(true)}
+        className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-pill border border-indigo-300 bg-white px-3 py-2 text-xs font-bold text-indigo-700 hover:bg-indigo-50"
+      >
+        <MessageCircleQuestion size={12} strokeWidth={2} aria-hidden />
+        運営に相談する
+      </button>
+      {!isLocked && currentStatus !== "delivered" && (
+        <button
+          type="button"
+          onClick={() => setTerminateOpen(true)}
+          className="inline-flex items-center justify-center gap-1.5 rounded-pill border border-red-200 bg-white px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+        >
+          <Ban size={12} strokeWidth={2} aria-hidden />
+          {isCreator ? "途中終了を申請する" : "途中終了に合意する"}
+        </button>
+      )}
+    </div>
+  );
+
+  // 共通ダイアログ
+  const dialogs = (
+    <>
+      <CancelDialog
+        orderId={orderId}
+        currentStatus={currentStatus as OrderStatus}
+        basePrice={basePrice}
+        isCreator={isCreator}
+        open={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+      />
+      <TerminationConfirmDialog
+        orderId={orderId}
+        isCreator={isCreator}
+        open={terminateOpen}
+        onClose={() => setTerminateOpen(false)}
+        onContactAdmin={() => setTroubleOpen(true)}
+      />
+      <TroubleReportWizard
+        orderId={orderId}
+        open={troubleOpen}
+        onClose={() => setTroubleOpen(false)}
+        activeDisputeId={activeDisputeId ?? null}
+      />
+    </>
+  );
+
   // クリエイター側: 「アクション」枠組みを廃止し、ボタンを単独で配置
   if (isCreator) {
     const showRevision = false; // クリエイターには修正依頼ボタン無し
     const hasAdvance = !!action;
     const showCancel = config.cancelable;
-    if (!hasAdvance && !showCancel && !showRevision) return null;
+    if (!hasAdvance && !showCancel && !showRevision) {
+      // 進行アクション無し / cancel 無しでも運営相談ボタンは常時提供
+      return (
+        <div className="space-y-3">
+          {safetyButtons}
+          {dialogs}
+        </div>
+      );
+    }
 
     return (
       <div className="space-y-3">
@@ -196,17 +296,23 @@ export function OrderActions({
             {error}
           </div>
         )}
+        {advanceHint && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            {advanceHint}
+          </div>
+        )}
         {action && (
           <button
             type="button"
             onClick={() => handleAction(action.nextStatus)}
-            disabled={loading}
-            className={`${action.style} w-full text-sm disabled:opacity-50`}
+            disabled={advanceDisabled}
+            title={advanceHint ?? undefined}
+            className={`${action.style} w-full text-sm disabled:cursor-not-allowed disabled:opacity-50`}
           >
             {loading ? "処理中..." : action.label}
           </button>
         )}
-        {showCancel && (
+        {showCancel && !isLocked && (
           <button
             type="button"
             onClick={handleCancel}
@@ -216,14 +322,8 @@ export function OrderActions({
             この案件をキャンセルする
           </button>
         )}
-        <CancelDialog
-          orderId={orderId}
-          currentStatus={currentStatus as OrderStatus}
-          basePrice={basePrice}
-          isCreator={isCreator}
-          open={cancelOpen}
-          onClose={() => setCancelOpen(false)}
-        />
+        {safetyButtons}
+        {dialogs}
       </div>
     );
   }
@@ -329,14 +429,9 @@ export function OrderActions({
             </p>
           )}
       </div>
-      <CancelDialog
-        orderId={orderId}
-        currentStatus={currentStatus as OrderStatus}
-        basePrice={basePrice}
-        isCreator={isCreator}
-        open={cancelOpen}
-        onClose={() => setCancelOpen(false)}
-      />
+      {/* 00071: 「運営に相談する」「途中終了に合意する」共通ボタン + 共通ダイアログ */}
+      <div className="mt-4">{safetyButtons}</div>
+      {dialogs}
     </div>
   );
 }
