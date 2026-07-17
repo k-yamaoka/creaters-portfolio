@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { isVerticalVideo } from "@/lib/video-utils";
+import { ReportButton } from "@/components/reports/report-button";
 
 const VideoPreviewCard = dynamic(
   () => import("./video-preview-card").then((m) => m.VideoPreviewCard),
@@ -22,7 +23,13 @@ type PortfolioItem = {
   tags: string[];
 };
 
-export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
+export function PortfolioGrid({
+  items,
+  isAuthed = false,
+}: {
+  items: PortfolioItem[];
+  isAuthed?: boolean;
+}) {
   // Group items by genre
   const grouped = items.reduce<Record<string, PortfolioItem[]>>((acc, item) => {
     const key = item.genre || "その他";
@@ -35,7 +42,7 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
 
   // If only one genre or no genres, show flat grid
   if (genreKeys.length <= 1) {
-    return <PortfolioItemGrid items={items} />;
+    return <PortfolioItemGrid items={items} isAuthed={isAuthed} />;
   }
 
   // Show grouped by genre
@@ -49,14 +56,20 @@ export function PortfolioGrid({ items }: { items: PortfolioItem[] }) {
               {grouped[genre].length}件
             </span>
           </div>
-          <PortfolioItemGrid items={grouped[genre]} />
+          <PortfolioItemGrid items={grouped[genre]} isAuthed={isAuthed} />
         </div>
       ))}
     </div>
   );
 }
 
-function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
+function PortfolioItemGrid({
+  items,
+  isAuthed = false,
+}: {
+  items: PortfolioItem[];
+  isAuthed?: boolean;
+}) {
   const imageItems = items.filter((item) => item.media_type === "image");
   const videoItems = items.filter((item) => item.media_type !== "image");
 
@@ -84,6 +97,16 @@ function PortfolioItemGrid({ items }: { items: PortfolioItem[] }) {
                     alt={item.title}
                     sizes="(max-width: 640px) 100vw, 50vw"
                     className="h-full w-full"
+                  />
+                </div>
+                {/* 00072: 通報アイコン (hover でうっすら表示) */}
+                <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+                  <ReportButton
+                    targetType="portfolio_item"
+                    targetId={item.id}
+                    targetTitle={item.title}
+                    isAuthed={isAuthed}
+                    variant="icon"
                   />
                 </div>
               </div>

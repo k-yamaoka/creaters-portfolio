@@ -54,6 +54,10 @@ export function TerminationConfirmDialog({
 
   async function handleConfirm() {
     if (!checked) return;
+    if (reason.trim().length === 0) {
+      setError("途中終了の理由記入は必須です");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -161,14 +165,14 @@ export function TerminationConfirmDialog({
             </div>
           )}
 
-          {/* 理由入力 (任意) */}
+          {/* 理由入力 (必須, 00072 仕様 #4) */}
           <div className="mt-4">
             <label
               htmlFor="term-reason"
               className="mb-1 block text-xs font-medium text-gray-700"
             >
               途中終了の理由{" "}
-              <span className="text-gray-400">(任意 500 文字以内)</span>
+              <span className="font-bold text-red-600">(必須 500 字以内)</span>
             </label>
             <textarea
               id="term-reason"
@@ -176,6 +180,7 @@ export function TerminationConfirmDialog({
               onChange={(e) => setReason(e.target.value.slice(0, 500))}
               rows={2}
               disabled={submitting}
+              required
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink disabled:bg-gray-50"
               placeholder="例) 双方合意のうえで見送ります"
             />
@@ -216,7 +221,7 @@ export function TerminationConfirmDialog({
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={!checked || submitting}
+              disabled={!checked || reason.trim().length === 0 || submitting}
               className="rounded-pill bg-red-600 px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
               {submitting

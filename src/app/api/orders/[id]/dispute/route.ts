@@ -50,8 +50,19 @@ export async function POST(
       { status: 400 }
     );
   }
-  const reason =
-    typeof body.reason === "string" ? body.reason.slice(0, 2000) : null;
+  // 00072: 申請理由は必須化 (仕様 #4)
+  const rawReason =
+    typeof body.reason === "string" ? body.reason.trim() : "";
+  if (rawReason.length === 0) {
+    return NextResponse.json(
+      {
+        error:
+          "申請理由の記入は必須です。運営が状況を把握できるよう詳細をお書きください。",
+      },
+      { status: 400 }
+    );
+  }
+  const reason = rawReason.slice(0, 2000);
 
   // 認可 + 既存 dispute チェック
   const { data: order } = await supabase

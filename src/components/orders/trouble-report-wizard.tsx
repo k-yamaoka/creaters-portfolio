@@ -177,6 +177,10 @@ export function TroubleReportWizard({
 
   async function submitDispute() {
     if (!category) return;
+    if (reason.trim().length === 0) {
+      setError("運営に申請する場合は詳細の記入が必須です");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
@@ -332,7 +336,10 @@ export function TroubleReportWizard({
                   htmlFor="trouble-reason"
                   className="mb-1 block text-xs font-medium text-gray-700"
                 >
-                  詳細 (運営裁定を申請する場合、状況を教えてください)
+                  詳細{" "}
+                  <span className="font-bold text-red-600">
+                    (運営裁定を申請する場合は必須)
+                  </span>
                 </label>
                 <textarea
                   id="trouble-reason"
@@ -367,8 +374,8 @@ export function TroubleReportWizard({
                 <button
                   type="button"
                   onClick={submitDispute}
-                  disabled={submitting}
-                  className="inline-flex items-center gap-1 rounded-pill bg-indigo-600 px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50"
+                  disabled={submitting || reason.trim().length === 0}
+                  className="inline-flex items-center gap-1 rounded-pill bg-indigo-600 px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
                   {submitting ? "申請中..." : "運営に裁定を申請する"}
                 </button>

@@ -420,7 +420,10 @@ export default async function CreatorDetailPage({
                   </span>
                 </h2>
                 {/* 代表作はヒーローに出しているため、ここでは除外 */}
-                <PortfolioFilterable items={otherWorks} />
+                <PortfolioFilterable
+                  items={otherWorks}
+                  isAuthed={!!viewer}
+                />
               </div>
             )}
 

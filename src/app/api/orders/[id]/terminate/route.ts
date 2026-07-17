@@ -43,8 +43,16 @@ export async function POST(
     );
   }
 
-  const reason =
-    typeof body.reason === "string" ? body.reason.slice(0, 500) : null;
+  // 00072: 途中終了 理由は必須化 (仕様 #4 自爆防止)
+  const rawReason =
+    typeof body.reason === "string" ? body.reason.trim() : "";
+  if (rawReason.length === 0) {
+    return NextResponse.json(
+      { error: "途中終了の理由記入は必須です" },
+      { status: 400 }
+    );
+  }
+  const reason = rawReason.slice(0, 500);
 
   const { data: order } = await supabase
     .from("orders")

@@ -77,7 +77,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role, moderation_status
       )
       `
     )
@@ -92,7 +92,18 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
     return [];
   }
 
-  return (data ?? []) as unknown as CreatorWithRelations[];
+  // 00072: unpublished / deleted な portfolio_items は 公開一覧から除外
+  const rows = (data ?? []) as unknown as CreatorWithRelations[];
+  return rows.map((c) => ({
+    ...c,
+    portfolio_items: (c.portfolio_items ?? []).filter(
+      (p) =>
+        (p as unknown as { moderation_status?: string }).moderation_status !==
+          "unpublished" &&
+        (p as unknown as { moderation_status?: string }).moderation_status !==
+          "deleted"
+    ),
+  }));
 }
 
 export async function getCreatorById(
@@ -111,7 +122,7 @@ export async function getCreatorById(
         is_verified
       ),
       portfolio_items (
-        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role
+        id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role, moderation_status
       )
       `
     )
@@ -123,7 +134,18 @@ export async function getCreatorById(
     return null;
   }
 
-  return data as unknown as CreatorWithRelations;
+  // 00072: unpublished / deleted な作品は公開ページから除外
+  const row = data as unknown as CreatorWithRelations;
+  return {
+    ...row,
+    portfolio_items: (row.portfolio_items ?? []).filter(
+      (p) =>
+        (p as unknown as { moderation_status?: string }).moderation_status !==
+          "unpublished" &&
+        (p as unknown as { moderation_status?: string }).moderation_status !==
+          "deleted"
+    ),
+  };
 }
 
 export type CurrentUser = {

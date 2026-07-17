@@ -14,7 +14,13 @@ type Items = CreatorWithRelations["portfolio_items"];
  * クリエイター詳細ページ用、アスペクト比フィルタ付きポートフォリオ。
  * /portfolios の PortfolioThumbnailGrid と同じ「全て / 縦 / 横 / 正方形」軸で絞れる。
  */
-export function PortfolioFilterable({ items }: { items: Items }) {
+export function PortfolioFilterable({
+  items,
+  isAuthed = false,
+}: {
+  items: Items;
+  isAuthed?: boolean;
+}) {
   const [selected, setSelected] = useState<PortfolioFormat>("all");
 
   const counts = useMemo(() => {
@@ -72,7 +78,7 @@ export function PortfolioFilterable({ items }: { items: Items }) {
         })}
       </div>
 
-      <PortfolioGrid items={filtered} />
+      <PortfolioGrid items={filtered} isAuthed={isAuthed} />
     </div>
   );
 }
