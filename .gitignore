@@ -34,3 +34,7 @@ npm-debug.log*
 next-env.d.ts
 .claude/settings.local.json
 coverage/
+# Playwright
+.auth/
+playwright-report/
+test-results/
