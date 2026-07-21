@@ -57,41 +57,18 @@ export async function GET(request: Request) {
   const errors: string[] = [];
 
   for (const o of candidates ?? []) {
-    // 楽観ロックで二重発火を防ぐ (WHERE 条件で filter しつつ UPDATE)
-    const { error: updErr, data: updated } = await supabase
-      .from("orders")
-      .update({
-        status: "cancelled",
-        escrow_status: "refunded",
-        cancel_stage: "pre_start",
-        cancel_refund_rate: 1.0,
-        cancel_refund_amount: o.base_price ?? 0,
-        cancel_creator_payout: 0,
-        cancel_reason: "催促後 7 日以内に納品されなかったため、システムが自動キャンセルしました",
-        cancelled_at: nowIso,
-      })
-      .eq("id", o.id)
-      .in("status", ["data_sharing", "production", "revision"])
-      .is("terminated_at", null)
-      .is("active_dispute_id", null)
-      .select("id");
-    if (updErr) {
-      errors.push(`${o.id}: ${updErr.message}`);
+    // 00076 RPC で atomic に (orders 更新 + creator_penalties INSERT を
+    //   単一トランザクション内で実行)。冪等性は関数内で担保。
+    const { data: rpcResult, error: rpcErr } = await supabase.rpc(
+      "auto_cancel_nondelivery",
+      { p_order_id: o.id, p_weight: NONDELIVERY_WEIGHT }
+    );
+    if (rpcErr) {
+      errors.push(`${o.id}: ${rpcErr.message}`);
       continue;
     }
-    if (!updated || updated.length === 0) continue;
-
-    // 未納品ペナルティ 加算
-    if (o.creator_id) {
-      await supabase.from("creator_penalties").insert({
-        creator_profile_id: o.creator_id,
-        order_id: o.id,
-        penalty_type: "nondelivery",
-        weight: NONDELIVERY_WEIGHT,
-        reason: "催促後 7 日以内に納品されなかった",
-      });
-    }
-    processed += 1;
+    const result = rpcResult as { ok?: boolean } | null;
+    if (result?.ok) processed += 1;
   }
 
   return NextResponse.json({

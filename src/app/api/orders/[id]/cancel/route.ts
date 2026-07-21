@@ -122,37 +122,42 @@ export async function POST(
     );
   }
 
-  // WHERE 句に現在ステータスを含めて楽観ロック (二重キャンセル防止)
-  const { error: updateError, data: updated } = await supabase
-    .from("orders")
-    .update({
-      status: "cancelled",
-      escrow_status: "refunded",
-      cancel_stage: breakdown.stage,
-      cancel_refund_rate: breakdown.refundRate,
-      cancel_refund_amount: breakdown.refundAmount,
-      cancel_creator_payout: breakdown.creatorPayout,
-      cancel_reason: reason,
-      cancelled_at: new Date().toISOString(),
-    })
-    .eq("id", orderId)
-    .eq("status", order.status)
-    .select("id");
-
-  if (updateError) {
-    console.error("[orders/cancel] update error", updateError);
+  // 00076 RPC で atomic に (単一トランザクション内で status 遷移 + snapshot 記録)。
+  //   楽観ロック: p_expected_status ミスマッチで例外。
+  //   冪等: 既に cancelled なら { ok: true, noop: true }。
+  const { data: rpcResult, error: rpcErr } = await supabase.rpc(
+    "cancel_order_with_refund",
+    {
+      p_order_id: orderId,
+      p_actor_role: clientUserId === user.id ? "client" : "creator",
+      p_reason: reason,
+      p_stage: breakdown.stage,
+      p_refund_rate: breakdown.refundRate,
+      p_expected_status: order.status,
+    }
+  );
+  if (rpcErr) {
+    console.error("[orders/cancel] rpc error", rpcErr);
+    // status mismatch は 409 で返す
+    if (rpcErr.message?.includes("status mismatch")) {
+      return NextResponse.json(
+        {
+          error:
+            "他のセッションで状態が変更されました。画面を再読み込みしてください",
+        },
+        { status: 409 }
+      );
+    }
     return NextResponse.json(
       { error: "キャンセル処理に失敗しました" },
       { status: 500 }
     );
   }
-  if (!updated || updated.length === 0) {
+  const result = rpcResult as { ok?: boolean } | null;
+  if (!result?.ok) {
     return NextResponse.json(
-      {
-        error:
-          "他のセッションで状態が変更されました。画面を再読み込みしてください",
-      },
-      { status: 409 }
+      { error: "キャンセル処理に失敗しました" },
+      { status: 500 }
     );
   }
 

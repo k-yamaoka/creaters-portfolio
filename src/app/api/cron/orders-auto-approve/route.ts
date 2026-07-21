@@ -59,28 +59,29 @@ export async function GET(request: Request) {
   const errors: string[] = [];
 
   for (const o of candidates ?? []) {
-    const inspectedAt = new Date();
-    const { error: updErr } = await supabase
-      .from("orders")
-      .update({
-        escrow_status: "released",
-        inspected_at: inspectedAt.toISOString(),
-        completed_at: inspectedAt.toISOString(),
-        payout_scheduled_date: computePayoutScheduleDate(inspectedAt),
-        payout_status: "scheduled",
-        auto_approved_at: nowIso,
-      })
-      .eq("id", o.id)
-      .eq("status", "delivered")
-      .in("escrow_status", ["held", "pending"]);
-    if (updErr) {
-      errors.push(`${o.id}: ${updErr.message}`);
+    // 00076 RPC で atomic に (status / escrow / auto_approved_at / payout_status を
+    //   単一トランザクション内で更新)。RPC は payout_scheduled_date だけは
+    //   セットしないので、成功後に別 UPDATE で追記する。
+    const { data: rpcResult, error: rpcErr } = await supabase.rpc(
+      "auto_approve_delivered_order",
+      { p_order_id: o.id }
+    );
+    if (rpcErr) {
+      errors.push(`${o.id}: ${rpcErr.message}`);
       continue;
     }
+    const result = rpcResult as { ok?: boolean; reason?: string } | null;
+    if (!result?.ok) continue;
+
+    // payout_scheduled_date を業務日で追記 (RPC 外)
+    const inspectedAt = new Date();
+    await supabase
+      .from("orders")
+      .update({
+        payout_scheduled_date: computePayoutScheduleDate(inspectedAt),
+      })
+      .eq("id", o.id);
     approved += 1;
-    // 双方向 notification は別 PR で追加予定 (creator_id / client_id 経由で
-    //   相手の user_id を引く必要があるため。auto_approved_at を見て後段で
-    //   まとめてダイジェスト通知するのが望ましい)
   }
 
   return NextResponse.json({
