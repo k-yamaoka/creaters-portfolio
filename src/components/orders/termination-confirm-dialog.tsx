@@ -120,18 +120,24 @@ export function TerminationConfirmDialog({
           </button>
         </div>
 
-        <div className="px-5 py-5">
-          {/* 警告テキスト (仕様どおりの文言) */}
-          <div className="rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3">
-            <p className="text-sm font-bold leading-relaxed text-red-900">
-              ⚠️ 警告：同意すると仮払い金は全額返金され、
-              <span className="mx-1 rounded bg-red-200 px-1.5 py-0.5 font-black">
-                あなたの報酬は『ゼロ』になります
+        <div className="px-5 py-5 sm:px-6 sm:py-6">
+          {/* Phase 3 仕様準拠 (2026-07-21):
+              巨大で目立つ警告文 — フォント大きめ + 「ゼロ」を強調バッジ表現 */}
+          <div className="rounded-2xl border-2 border-red-400 bg-red-50 px-5 py-4 sm:px-6 sm:py-5">
+            <p className="text-base font-black leading-[1.7] text-red-900 sm:text-lg">
+              ⚠️ 警告：同意すると仮払い金は
+              <br className="sm:hidden" />
+              <b className="mx-0.5 underline decoration-red-500 decoration-wavy underline-offset-4">
+                全額発注者に返金
+              </b>
+              され、あなたの報酬は
+              <span className="mx-1 inline-flex items-baseline rounded bg-red-600 px-2 py-0.5 font-black text-white shadow-md">
+                『ゼロ』
               </span>
-              。本当に合意のない途中終了ですか？
+              になります。
             </p>
             {isCreator && (
-              <p className="mt-2 text-xs leading-relaxed text-red-800">
+              <p className="mt-3 text-xs leading-relaxed text-red-800">
                 クリエイターの方へ: これまで制作にかけた時間・素材のコストは
                 すべてご自身の負担になります。「連絡が来ない」「不当な修正要求」
                 などのトラブルであれば、途中終了ではなく <b>運営裁定</b> を
@@ -140,11 +146,15 @@ export function TerminationConfirmDialog({
             )}
           </div>
 
-          {/* 運営に相談する 導線 (仕様: 直前に配置) */}
+          {/* Phase 3 仕様: 「同意する前に」見出し + 運営相談ボタン */}
           {onContactAdmin && (
-            <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-3">
-              <p className="text-xs font-medium text-indigo-900">
-                途中終了する前に、まず運営にご相談ください
+            <div className="mt-5 rounded-xl border-2 border-indigo-300 bg-indigo-50 p-4">
+              <p className="text-sm font-bold text-indigo-900">
+                同意する前に
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-indigo-800">
+                トラブルの内容によっては、途中終了ではなく <b>運営裁定</b> や <b>催促通知</b> で
+                解決できる可能性があります。まず運営にご相談ください。
               </p>
               <button
                 type="button"
@@ -153,14 +163,14 @@ export function TerminationConfirmDialog({
                   onContactAdmin();
                 }}
                 disabled={submitting}
-                className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-pill bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+                className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-pill bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-lg disabled:opacity-50"
               >
                 <MessageCircleHeart
-                  size={14}
+                  size={16}
                   strokeWidth={2}
                   aria-hidden
                 />
-                運営に相談する (トラブル報告)
+                運営に相談する
               </button>
             </div>
           )}
@@ -186,19 +196,20 @@ export function TerminationConfirmDialog({
             />
           </div>
 
-          {/* 同意チェック */}
-          <label className="mt-4 flex items-start gap-2 rounded-lg border-2 border-red-200 bg-white p-3 text-xs">
+          {/* Phase 3 仕様準拠: 必須チェックボックス (ラベル文言も仕様どおり) */}
+          <label className="mt-5 flex cursor-pointer items-start gap-2.5 rounded-xl border-2 border-red-300 bg-white p-4 text-sm shadow-inner hover:bg-red-50/40">
             <input
               type="checkbox"
               checked={checked}
               onChange={(e) => setChecked(e.target.checked)}
               disabled={submitting}
-              className="mt-0.5 h-4 w-4 accent-red-600"
+              className="mt-0.5 h-5 w-5 shrink-0 accent-red-600"
+              aria-label="報酬ゼロで途中終了することに同意"
             />
             <span className="leading-relaxed text-red-900">
-              上記の内容 (仮払い金全額返金・
-              {isCreator ? "自分の報酬 0 円" : "納品物なし"}) を
-              理解し、途中終了を確定します。
+              上記を理解し、
+              <b>報酬ゼロで途中終了することに同意します</b>
+              。
             </span>
           </label>
 

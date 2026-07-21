@@ -36,17 +36,19 @@ export function PrePaymentAlert({ escrowStatus, isCreator }: Props) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-amber-900">
-          ⚠️ 仮払いが完了するまで作業を開始しないでください
+        {/* Phase 3 仕様準拠 (2026-07-21): 巨大な警告テキスト + 補償対象外 明記 */}
+        <p className="text-sm font-bold text-amber-900 sm:text-base">
+          ⚠️ 仮払いが完了するまで作業を開始しないでください。
+          仮払い前の作業は補償の対象外となります。
         </p>
         {isCreator ? (
-          <p className="mt-1 text-xs leading-relaxed text-amber-800">
+          <p className="mt-1.5 text-xs leading-relaxed text-amber-800">
             クライアントの仮払い (エスクロー) が確定していません。
-            <b>この段階で制作を開始すると、未払いのリスク</b> があります。
+            <b>この段階で制作を開始した場合、未払いが発生してもプラットフォームによる補償はありません</b>。
             仮払い完了後、ステータスが「制作中」に変わってから作業を開始してください。
           </p>
         ) : (
-          <p className="mt-1 text-xs leading-relaxed text-amber-800">
+          <p className="mt-1.5 text-xs leading-relaxed text-amber-800">
             仮払い (エスクロー) がまだ完了していません。
             <b>制作を進めていただくには、まず仮払いを完了</b> してください。
             クリエイター保護のため、仮払い前の納品は許可されません。

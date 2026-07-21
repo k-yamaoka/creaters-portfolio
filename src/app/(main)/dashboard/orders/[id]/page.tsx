@@ -286,6 +286,13 @@ export default async function OrderDetailPage({
               activeDisputeId={order.active_dispute_id}
               terminatedAt={order.terminated_at}
               hasSentReminder={!!order.first_reminder_sent_at}
+              hasRequestedRevision={(order.revision_count_used ?? 0) > 0}
+              hasDelivery={!!order.delivered_at}
+              messageThreadHref={
+                partnerUserId
+                  ? `/dashboard/messages/${partnerUserId}`
+                  : undefined
+              }
             />
           )}
 

@@ -30,6 +30,12 @@ type Props = {
   terminatedAt?: string | null;
   /** STEP1 催促を発火済みか (00073)。未実施なら wizard で dispute ボタン非活性 */
   hasSentReminder?: boolean;
+  /** STEP2 修正依頼を出したことがあるか (revision_count_used > 0) */
+  hasRequestedRevision?: boolean;
+  /** STEP2 納品を受領済みか (delivered_at != null) */
+  hasDelivery?: boolean;
+  /** STEP1 導線: メッセージ画面 URL */
+  messageThreadHref?: string;
 };
 
 type Action = { label: string; nextStatus: OrderStatus; style: string };
@@ -124,6 +130,9 @@ export function OrderActions({
   activeDisputeId,
   terminatedAt,
   hasSentReminder,
+  hasRequestedRevision,
+  hasDelivery,
+  messageThreadHref,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -274,6 +283,9 @@ export function OrderActions({
         onClose={() => setTroubleOpen(false)}
         activeDisputeId={activeDisputeId ?? null}
         hasSentReminder={!!hasSentReminder}
+        hasRequestedRevision={!!hasRequestedRevision}
+        hasDelivery={!!hasDelivery}
+        messageThreadHref={messageThreadHref}
       />
     </>
   );
