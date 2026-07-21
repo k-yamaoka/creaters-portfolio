@@ -285,6 +285,7 @@ export default async function OrderDetailPage({
               basePrice={order.base_price ?? 0}
               activeDisputeId={order.active_dispute_id}
               terminatedAt={order.terminated_at}
+              hasSentReminder={!!order.first_reminder_sent_at}
             />
           )}
 

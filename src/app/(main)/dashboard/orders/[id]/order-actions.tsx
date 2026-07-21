@@ -28,6 +28,8 @@ type Props = {
   activeDisputeId?: string | null;
   /** 途中終了済み (00071)。ある場合は全操作を隠す */
   terminatedAt?: string | null;
+  /** STEP1 催促を発火済みか (00073)。未実施なら wizard で dispute ボタン非活性 */
+  hasSentReminder?: boolean;
 };
 
 type Action = { label: string; nextStatus: OrderStatus; style: string };
@@ -121,6 +123,7 @@ export function OrderActions({
   basePrice,
   activeDisputeId,
   terminatedAt,
+  hasSentReminder,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -270,6 +273,7 @@ export function OrderActions({
         open={troubleOpen}
         onClose={() => setTroubleOpen(false)}
         activeDisputeId={activeDisputeId ?? null}
+        hasSentReminder={!!hasSentReminder}
       />
     </>
   );

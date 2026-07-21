@@ -64,11 +64,11 @@ export async function POST(
   }
   const reason = rawReason.slice(0, 2000);
 
-  // 認可 + 既存 dispute チェック
+  // 認可 + 既存 dispute チェック + STEP1 催促の証跡チェック
   const { data: order } = await supabase
     .from("orders")
     .select(
-      `id, active_dispute_id, status,
+      `id, active_dispute_id, status, first_reminder_sent_at,
        client:client_profiles!orders_client_id_fkey ( user_id ),
        creator:creator_profiles!orders_creator_id_fkey ( user_id )`
     )
@@ -76,6 +76,21 @@ export async function POST(
     .single();
   if (!order) {
     return NextResponse.json({ error: "注文が見つかりません" }, { status: 404 });
+  }
+
+  // 00073 STEP1 ガード: 催促を先に踏ませる (仕様 §2.3 順序ガード)。
+  //   ただし category='no_response' 以外 (例: unfair_revision / quality_issue) は
+  //   催促が本質的な意味を持たないので免除。
+  const needsReminderFirst = category === "no_response" || category === "payment_delay";
+  if (needsReminderFirst && !order.first_reminder_sent_at) {
+    return NextResponse.json(
+      {
+        error:
+          "運営裁定の前に、まず相手に催促通知を送ってください。トラブル解決ウィザードから STEP1 「催促」を実行できます。",
+        require_step: "reminder",
+      },
+      { status: 400 }
+    );
   }
   const clientUserId = (order.client as unknown as { user_id: string } | null)
     ?.user_id;

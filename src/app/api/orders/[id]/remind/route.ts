@@ -91,5 +91,20 @@ export async function POST(
     );
   }
 
+  // 00073 STEP1 ガード: 初回催促時刻 + 未納品期限 (+7 日) をセット。
+  //   - dispute open API は first_reminder_sent_at IS NULL を弾く
+  //   - 未納品自動キャンセル cron (00075) は nondelivery_deadline_at 経過で発火
+  const now = new Date();
+  const nondeliveryDeadline = new Date(now.getTime() + 7 * 24 * 3600 * 1000);
+  await supabase
+    .from("orders")
+    .update({
+      first_reminder_sent_at: now.toISOString(),
+      // 既にセット済みなら上書きしない (前回催促からの猶予をリセットしない設計)
+      nondelivery_deadline_at: nondeliveryDeadline.toISOString(),
+    })
+    .eq("id", orderId)
+    .is("first_reminder_sent_at", null);
+
   return NextResponse.json({ ok: true });
 }

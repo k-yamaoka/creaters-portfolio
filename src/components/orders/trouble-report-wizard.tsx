@@ -114,6 +114,8 @@ type Props = {
   onClose: () => void;
   /** 既に active な dispute があるとき ID を渡すと Step2 で「申請済み」を表示 */
   activeDisputeId?: string | null;
+  /** 00073 STEP1 催促 済みか (orders.first_reminder_sent_at IS NOT NULL) */
+  hasSentReminder?: boolean;
 };
 
 type Step = "select" | "confirm" | "done";
@@ -123,6 +125,7 @@ export function TroubleReportWizard({
   open,
   onClose,
   activeDisputeId,
+  hasSentReminder = false,
 }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("select");
@@ -361,6 +364,16 @@ export function TroubleReportWizard({
                 </div>
               )}
 
+              {/* 00073 STEP1 ガード可視化:
+                  no_response / payment_delay カテゴリは 催促未実施のとき
+                  裁定ボタンを非活性化し「まず催促してください」を促す */}
+              {(catMeta.quickAction === "remind" && !hasSentReminder) && (
+                <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  ⚠️ このカテゴリでは まず STEP1 (催促) を実行してください。
+                  催促の記録がないと 運営裁定は受付できません。
+                </div>
+              )}
+
               <div className="mt-5 flex flex-wrap justify-between gap-2">
                 <button
                   type="button"
@@ -374,7 +387,11 @@ export function TroubleReportWizard({
                 <button
                   type="button"
                   onClick={submitDispute}
-                  disabled={submitting || reason.trim().length === 0}
+                  disabled={
+                    submitting ||
+                    reason.trim().length === 0 ||
+                    (catMeta.quickAction === "remind" && !hasSentReminder)
+                  }
                   className="inline-flex items-center gap-1 rounded-pill bg-indigo-600 px-5 py-2 text-sm font-bold text-white shadow-md hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-300"
                 >
                   {submitting ? "申請中..." : "運営に裁定を申請する"}

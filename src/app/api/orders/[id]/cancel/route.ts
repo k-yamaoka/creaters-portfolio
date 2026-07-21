@@ -89,6 +89,26 @@ export async function POST(
     );
   }
 
+  // 00074 実質的受領 ガード: delivered 後にダウンロード / 使用宣言があった場合、
+  //   仕様上「100% 返金要求」は弾く。cancel_stage='delivered' はもともと 100%
+  //   クリエイター補償 (返金 0%) なので実害は少ないが、明示的にログを残す。
+  //   pre_start / in_progress でダウンロードは発生しない前提だが念のためチェック。
+  const { data: receiptSummary } = await supabase
+    .from("order_receipt_summary")
+    .select("effective_count, last_effective_at")
+    .eq("order_id", orderId)
+    .maybeSingle();
+  const hasEffectiveReceipt = (receiptSummary?.effective_count ?? 0) > 0;
+  if (hasEffectiveReceipt && stage !== "delivered") {
+    return NextResponse.json(
+      {
+        error:
+          "納品物のダウンロード / 使用が確認されているため、この段階からの全額返金は受け付けられません。運営裁定を申請してください。",
+      },
+      { status: 409 }
+    );
+  }
+
   const basePrice = order.base_price ?? 0;
   const breakdown = computeCancelBreakdown(
     order.status as OrderStatus,

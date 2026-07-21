@@ -12,6 +12,14 @@
     {
       "path": "/api/cron/orders-deadline-reminder",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/orders-nondelivery-cancel",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/cron/data-retention",
+      "schedule": "0 4 * * 0"
     }
   ]
 }
