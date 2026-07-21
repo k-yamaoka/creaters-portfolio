@@ -1,56 +1,31 @@
 import { test, expect } from "@playwright/test";
+import { loadE2EOrderIds } from "../setup/e2e-order-ids";
 
 /**
  * 途中終了 自爆防止 モーダル の UI ガード検証 (creator 視点)。
  *
- * 前提: この test は "safety-creator" project から実行され、
- *   .auth/creator.json でログイン済み状態でスタート。
+ * 前提: orders-setup により [E2E-SAFETY] termination test order が
+ *   production + escrow=held の canonical 状態でセット済み。
  *
- * ここでは 「実際に order を作らず、モーダル コンポーネントの
- *   トリガー動線 (ボタン → モーダル表示 → 必須チェック / ボタン disabled)
- *   を検証する」ため、ダッシュボードから対象 order がなくても
- *   モーダル UI を直接検証できる storybook 相当の代替として、
- *   実装ファイルの中でモーダルが常にレンダリングされる状態を
- *   dashboard で確認する。
- *
- * NOTE: order が 1 件も無い test creator では、下記の "取引一覧" 経由の
- *   検証はスキップされる (test.skip)。代わりに公開されているダイアログ
- *   コンポーネントの文言を確認する fallback を提供。
+ * テスト自体は モーダル 表示 → 必須チェック / disabled 遷移 の確認まで。
+ * "途中終了を確定" は押さない (state を汚さない)。
  */
 
 test.describe("Termination confirm dialog @safety-creator", () => {
   test("dashboard へ到達 (auth state 有効性の確認)", async ({ page }) => {
     await page.goto("/dashboard");
-    // ログインが有効なら /dashboard がそのまま開く (redirect for onboarding が
-    // 発火した場合は /onboarding に遷移する)
     await page.waitForURL(/\/(dashboard|onboarding)/);
   });
 
   test("取引詳細ページの途中終了ボタン → モーダル → 必須チェック", async ({
     page,
   }) => {
-    await page.goto("/dashboard/orders");
-    // 進行中 (途中終了 可能な) 取引が 1 件あることが前提。
-    // 無ければテストをスキップ (E2E 用の seed script で作る想定)。
-    const anyOrderLink = page
-      .locator('a[href^="/dashboard/orders/"]')
-      .first();
-    const linkCount = await anyOrderLink.count();
-    test.skip(
-      linkCount === 0,
-      "取引が 1 件も無いため skip。tests/e2e/setup/seed-orders.ts で E2E 用 order を作成してください"
-    );
-
-    await anyOrderLink.click();
-    await page.waitForURL(/\/dashboard\/orders\/[^/]+/);
-
-    // 「途中終了を申請する」ボタン。in_progress 段階以外なら表示されない
-    // ので 存在しなければ skip
+    // dependencies (orders-setup) 実行後に .auth/e2e-orders.json を lazy 読込
+    const { terminationOrderId } = loadE2EOrderIds();
+    await page.goto(`/dashboard/orders/${terminationOrderId}`);
+    // 「途中終了を申請する」ボタン
     const termButton = page.getByRole("button", { name: /途中終了/ });
-    test.skip(
-      (await termButton.count()) === 0,
-      "途中終了 ボタンが表示されない状態 (pending_payment / dispute / cancelled) のため skip"
-    );
+    await expect(termButton).toBeVisible();
     await termButton.click();
 
     // モーダル: 巨大警告 + 「同意する前に」ヘッダ + 運営相談ボタン
@@ -59,7 +34,9 @@ test.describe("Termination confirm dialog @safety-creator", () => {
     await expect(modal).toContainText(/全額発注者に返金/);
     await expect(modal).toContainText(/ゼロ/);
     await expect(modal).toContainText(/同意する前に/);
-    await expect(modal.getByRole("button", { name: /運営に相談/ })).toBeVisible();
+    await expect(
+      modal.getByRole("button", { name: /運営に相談/ })
+    ).toBeVisible();
 
     // 「途中終了を確定」ボタンは 初期状態で disabled
     const confirmBtn = modal.getByRole("button", { name: /途中終了を確定/ });
@@ -74,7 +51,10 @@ test.describe("Termination confirm dialog @safety-creator", () => {
     await expect(confirmBtn).toBeEnabled();
 
     // モーダルを閉じる (実行はしない)
-    await modal.getByRole("button", { name: /閉じる|キャンセル/ }).first().click();
+    await modal
+      .getByRole("button", { name: /閉じる|キャンセル/ })
+      .first()
+      .click();
     await expect(modal).toBeHidden();
   });
 });

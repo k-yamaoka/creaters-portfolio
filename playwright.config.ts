@@ -27,7 +27,9 @@ export default defineConfig({
   expect: { timeout: 5_000 },
   fullyParallel: true,
   forbidOnly: CI,
-  retries: CI ? 2 : 0,
+  // dev サーバー並列負荷や Next.js の Fast Refresh で稀に 500 になるので
+  // ローカルでも 1 回リトライして安定化
+  retries: CI ? 2 : 1,
   workers: CI ? 2 : undefined,
   reporter: [
     ["list"],
@@ -54,10 +56,16 @@ export default defineConfig({
   },
 
   projects: [
-    // ---------- 0. 認証セットアップ (creator / client の storageState を作る) ----------
+    // ---------- 0a. 認証セットアップ (creator / client の storageState を作る) ----------
     {
       name: "auth-setup",
       testMatch: /setup\/auth\.setup\.ts$/,
+    },
+    // ---------- 0b. Orders seed (auth-setup 後、E2E 用 order を冪等作成) ----------
+    {
+      name: "orders-setup",
+      testMatch: /setup\/orders\.setup\.ts$/,
+      dependencies: ["auth-setup"],
     },
 
     // ---------- 1. Smoke (無認証で public route を叩く) ----------
@@ -68,10 +76,11 @@ export default defineConfig({
     },
 
     // ---------- 2. Safety (認証済み / 安全性ガードレールの UI 検証) ----------
+    //   dependencies に orders-setup を指定 → 自動的に auth-setup も transitively 実行
     {
       name: "safety-creator",
       testDir: "tests/e2e/safety",
-      dependencies: ["auth-setup"],
+      dependencies: ["orders-setup"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: ".auth/creator.json",
@@ -81,7 +90,7 @@ export default defineConfig({
     {
       name: "safety-client",
       testDir: "tests/e2e/safety",
-      dependencies: ["auth-setup"],
+      dependencies: ["orders-setup"],
       use: {
         ...devices["Desktop Chrome"],
         storageState: ".auth/client.json",
