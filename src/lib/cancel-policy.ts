@@ -107,7 +107,11 @@ export function computeCancelBreakdown(
   const stage = overrideStage ?? stageFromOrderStatus(status);
   if (!stage) return null;
 
-  const safeBase = Math.max(0, Math.floor(basePrice || 0));
+  // NaN / ±Infinity / 負値を 0 にクランプ (2026-07-21 fuzz テストで発覚した Infinity バグ対策)
+  const safeBase =
+    Number.isFinite(basePrice) && basePrice > 0
+      ? Math.floor(basePrice)
+      : 0;
   const payoutRate = creatorPayoutRateForStage(stage);
   const creatorPayout = Math.floor(safeBase * payoutRate);
   const refundAmount = safeBase - creatorPayout;
