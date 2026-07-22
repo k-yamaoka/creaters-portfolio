@@ -49,9 +49,15 @@ async function lookupUserIdByEmail(
   admin: ReturnType<typeof createClient>,
   email: string
 ): Promise<string> {
-  const { data, error } = await admin.rpc("admin_lookup_auth_user_by_email", {
-    p_email: email,
-  });
+  // Supabase 生成型が custom RPC を持たないため any 経由で呼ぶ
+  const { data, error } = await (
+    admin as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => Promise<{
+        data: unknown;
+        error: { message: string } | null;
+      }>;
+    }
+  ).rpc("admin_lookup_auth_user_by_email", { p_email: email });
   if (error) throw new Error(`user lookup 失敗 (${email}): ${error.message}`);
   const row = Array.isArray(data) ? data[0] : data;
   if (!row?.id) throw new Error(`auth user が存在しません (${email})`);
