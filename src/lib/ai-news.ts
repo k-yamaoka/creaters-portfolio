@@ -55,6 +55,26 @@ type RssSource = {
    * 全件通したい」ソースを混ぜたくなる場面向けに保持。現状は全て true 相当。
    */
   requireKeywordFilter: boolean;
+  /**
+   * 2026-07-21: 各ソースの RSS 取り込み上限 override。
+   * デフォルト PER_SOURCE_LIMIT (30)。PR TIMES など雑多な RSS で
+   * サンプルを増やしたい場合に上書き。
+   */
+  perSourceLimit?: number;
+  /**
+   * 2026-07-21: enrichment に回す上位候補数 override (フィルタ通過後)。
+   * デフォルト PER_SOURCE_CANDIDATE (4)。
+   */
+  perSourceCandidate?: number;
+  /**
+   * 2026-07-21: フィルタ強度 override。
+   *   "strict" (デフォルト): AI × 動画 の intersection のみ通す (VIDEO_AI_PRODUCTS
+   *     単独 hit or AI_CORE ∩ VIDEO)
+   *   "ai_only": AI_CORE のみ hit で通す (video 縛り解除)。PR TIMES 向け:
+   *     プレスリリースは "AI" 系サービス発表・企業ニュースが本命で、動画
+   *     語彙を含まない発表も多いため。
+   */
+  filterMode?: "strict" | "ai_only";
 };
 
 /**
@@ -137,6 +157,15 @@ const RSS_SOURCES: RssSource[] = [
     url: "https://prtimes.jp/index.rdf",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    // 2026-07-21: PR TIMES はジャンル雑多で最新 100 件程度の RSS を返すため、
+    //   デフォルト 30 件のサンプルではほぼ AI 系にヒットしない。
+    //   - perSourceLimit: RSS 全件を舐めるため 200 に増強
+    //   - perSourceCandidate: マッチが多いときは 8 件まで採用
+    //   - filterMode: "ai_only" — 動画語彙が無くても AI 系のプレスリリース
+    //     (AI 制作会社ローンチ / 生成 AI サービス公開 等) は掲載価値あり
+    perSourceLimit: 200,
+    perSourceCandidate: 8,
+    filterMode: "ai_only",
   },
   {
     name: "Yahoo!ニュース ライフ",
@@ -597,14 +626,24 @@ const AI_MATCHERS = AI_CORE_KEYWORDS.map(buildMatcher);
 const VIDEO_MATCHERS = VIDEO_KEYWORDS.map(buildMatcher);
 
 /**
- * AI × 動画 マッチ判定。以下いずれかを満たせば true:
- *   (1) VIDEO_AI_PRODUCTS (Sora 2 / Veo 3 等) の 1 つ以上を含む
- *   (2) AI_CORE_KEYWORDS の 1 つ以上 かつ VIDEO_KEYWORDS の 1 つ以上を含む
+ * AI × 動画 マッチ判定。mode により厳格度を切替可能。
+ *
+ *   "strict" (default):
+ *     (1) VIDEO_AI_PRODUCTS (Sora 2 / Veo 3 等) の 1 つ以上を含む
+ *     (2) AI_CORE_KEYWORDS + VIDEO_KEYWORDS を両方含む
+ *
+ *   "ai_only" (PR TIMES 用, 2026-07-21):
+ *     (1) VIDEO_AI_PRODUCTS の 1 つ以上を含む, または
+ *     (2) AI_CORE_KEYWORDS の 1 つ以上を含む (video 縛り解除)
  */
-function titleMatchesKeywords(title: string): boolean {
+function titleMatchesKeywords(
+  title: string,
+  mode: "strict" | "ai_only" = "strict"
+): boolean {
   if (PRODUCT_MATCHERS.some((fn) => fn(title))) return true;
   const hasAi = AI_MATCHERS.some((fn) => fn(title));
   if (!hasAi) return false;
+  if (mode === "ai_only") return true;
   const hasVideo = VIDEO_MATCHERS.some((fn) => fn(title));
   return hasVideo;
 }
@@ -615,13 +654,19 @@ async function fetchOneSource(
 ): Promise<Candidate[]> {
   try {
     const feed = await parser.parseURL(src.url);
+    const limit = src.perSourceLimit ?? PER_SOURCE_LIMIT;
+    const filterMode = src.filterMode ?? "strict";
     const items = (feed.items ?? [])
       .filter((it) => !!it.link && !!it.title)
-      .slice(0, PER_SOURCE_LIMIT);
+      .slice(0, limit);
     const out: Candidate[] = [];
     for (const it of items) {
       const title = (it.title as string) ?? "";
-      if (src.requireKeywordFilter && !titleMatchesKeywords(title)) continue;
+      if (
+        src.requireKeywordFilter &&
+        !titleMatchesKeywords(title, filterMode)
+      )
+        continue;
       out.push({
         link: it.link as string,
         title,
@@ -675,13 +720,17 @@ async function fetchAndEnrichAiNews(): Promise<AiNewsItem[]> {
   );
 
   // ソース内で date desc ソート → top PER_SOURCE_CANDIDATE 抽出
-  const perSourceTop = perSourceRaw.map((items) => {
+  //   2026-07-21: per-source candidate 上限を RSS_SOURCES と対応付けて
+  //   上書き可能に。PR TIMES は 8 まで採用 (通常 4)。
+  const perSourceTop = perSourceRaw.map((items, i) => {
     const sorted = [...items].sort((a, b) => {
       const ta = a.isoDate ? new Date(a.isoDate).getTime() : 0;
       const tb = b.isoDate ? new Date(b.isoDate).getTime() : 0;
       return tb - ta;
     });
-    return sorted.slice(0, PER_SOURCE_CANDIDATE);
+    const candidateLimit =
+      RSS_SOURCES[i]?.perSourceCandidate ?? PER_SOURCE_CANDIDATE;
+    return sorted.slice(0, candidateLimit);
   });
 
   // Round-robin で混ぜる (source1[0], source2[0], ..., source1[1], source2[1], ...)
