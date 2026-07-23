@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/orders-auto-approve",
-      "schedule": "0 * * * *"
+      "schedule": "0 5 * * *"
     },
     {
       "path": "/api/cron/orders-deadline-reminder",
@@ -15,7 +15,7 @@
     },
     {
       "path": "/api/cron/orders-nondelivery-cancel",
-      "schedule": "0 */2 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/data-retention",
