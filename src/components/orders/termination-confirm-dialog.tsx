@@ -175,6 +175,41 @@ export function TerminationConfirmDialog({
             </div>
           )}
 
+          {/* §16 mode="agree" 専用: 代替案 (修正範囲合意 / 部分報酬確認) を提示。
+              クリエイターが 発注者の「途中終了申請」に安易に同意して報酬を
+              失わないよう、"同意する前にできること" を具体的に示す。 */}
+          {mode === "agree" && isCreator && (
+            <div className="mt-4 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
+              <p className="text-sm font-bold text-emerald-900">
+                同意する代わりに、以下の代替案を検討してください
+              </p>
+              <ul className="mt-2 space-y-1.5 text-xs leading-relaxed text-emerald-900">
+                <li>
+                  ✅ <b>修正範囲の合意</b>: 相手にメッセージで「◯◯までなら修正
+                  対応可能です」と範囲を明示。合意できれば通常の revision フロー
+                  で進行を継続 (途中終了せずに済む)
+                </li>
+                <li>
+                  ✅ <b>進捗に応じた部分報酬の確認</b>: 現在の進行段階に応じた
+                  補償を運営が算定します:
+                  <span className="mt-1 block rounded bg-white/60 px-2 py-1 font-mono text-[10px]">
+                    着手前 0% / 制作中 50% / 納品後 100%
+                  </span>
+                  「同意」せず <b>運営裁定を申請</b> することで、この配分が
+                  自動適用されます。
+                </li>
+                <li>
+                  ✅ <b>合意できない場合は運営裁定へ</b>: 上のオレンジ「運営に相談
+                  する」ボタンから STEP3 に進めます。裁定結果は合意仕様との
+                  照合のみを基準に判断されます。
+                </li>
+              </ul>
+              <p className="mt-3 rounded bg-emerald-100 px-2 py-1 text-[11px] font-bold text-emerald-900">
+                ⚠️ 「同意」を押した瞬間、これらの代替案は選べなくなります。
+              </p>
+            </div>
+          )}
+
           {/* 理由入力 (必須, 00072 仕様 #4) */}
           <div className="mt-4">
             <label
