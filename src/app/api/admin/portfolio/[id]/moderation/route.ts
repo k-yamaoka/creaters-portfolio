@@ -54,15 +54,47 @@ export async function POST(
 
   const body = (await request.json().catch(() => ({}))) as {
     action?: string;
-    reason?: string;
+    reason_category?: string;
+    reason_detail?: string;
+    reason?: string; // legacy 単一 reason フィールド互換
   };
   const action = body?.action;
-  const reason =
-    typeof body.reason === "string" ? body.reason.trim().slice(0, 2000) : "";
 
   if (action !== "unpublish" && action !== "delete" && action !== "restore") {
     return NextResponse.json({ error: "action が不正です" }, { status: 400 });
   }
+
+  // 理由: プルダウン カテゴリ + 自由入力 の 2 段構成 (§2b)。
+  //   restore はカテゴリ任意、unpublish/delete はカテゴリ必須。
+  const category =
+    typeof body.reason_category === "string" ? body.reason_category : "";
+  const detail =
+    typeof body.reason_detail === "string" ? body.reason_detail.trim() : "";
+
+  const VALID_REASON_CATEGORIES: Record<string, string> = {
+    copyright_suspected: "著作権侵害の疑い",
+    quality_below: "品質基準",
+    prohibited_content: "禁止コンテンツ",
+    many_reports: "通報多数",
+    other: "その他",
+  };
+  const categoryLabel = VALID_REASON_CATEGORIES[category] ?? "";
+
+  if (action !== "restore" && !categoryLabel) {
+    return NextResponse.json(
+      { error: "理由カテゴリの選択は必須です" },
+      { status: 400 }
+    );
+  }
+
+  // 実際に DB に書く reason 文字列 (legacy 互換 + カテゴリ + 補足)
+  const legacyReason =
+    typeof body.reason === "string" ? body.reason.trim() : "";
+  const reason =
+    (categoryLabel
+      ? `[${categoryLabel}]${detail ? ` ${detail}` : ""}`
+      : detail || legacyReason
+    ).slice(0, 2000);
   if (reason.length === 0) {
     return NextResponse.json(
       { error: "理由の記入は必須です" },
@@ -155,32 +187,78 @@ export async function POST(
       profiles?: { display_name?: string };
     } | null
   ) ?? null;
+  // クリエイターへの通知 (§2c サイレント BAN 禁止) を action 別に出し分け
   if (creator?.user_id) {
     const title = item.title ?? "(無題)";
-    const subject = `【AILIER】あなたの作品「${title}」が${ACTION_LABEL[action]}になりました`;
-    const bodyLines = [
-      `${creator?.profiles?.display_name ?? "クリエイター"} 様`,
-      "",
-      `運営がお預かりしている あなたの作品「${title}」を、` +
-        `以下の理由により「${ACTION_LABEL[action]}」の措置としました。`,
-      "",
-      `【理由】`,
-      reason,
-      "",
+    const displayName = creator?.profiles?.display_name ?? "クリエイター";
+
+    const notifyPayload =
       action === "restore"
-        ? `措置は解除され、通常公開に戻っています。ご心配をおかけしました。`
+        ? {
+            subject: `【AILIER】作品「${title}」の公開を再開しました`,
+            body: [
+              `${displayName} 様`,
+              "",
+              "運営が内容を確認したところ問題無しと判断し、あなたの作品",
+              `「${title}」の 一時非公開措置を解除 いたしました。`,
+              "作品は通常公開に戻っています。ご心配をおかけし申し訳ございませんでした。",
+              "",
+              "【運営からの説明】",
+              reason,
+              "",
+              "AILIER 運営",
+            ].join("\n"),
+          }
         : action === "unpublish"
-          ? `一時非公開の状態です。運営で内容を確認中で、判断次第 復元 または 削除 の措置に進みます。`
-          : `削除措置となり、公開一覧からは表示されません。データは異議申立てのため保持しています。`,
-      "",
-      `【異議申立て】`,
-      `この措置に異議がある場合は 24 時間以内に support@ailier.app までご連絡ください。運営が再確認いたします。`,
-    ];
+          ? {
+              subject: `【AILIER】作品「${title}」を一時非公開にしました (異議申立て可)`,
+              body: [
+                `${displayName} 様`,
+                "",
+                `あなたの作品「${title}」について、以下の理由により`,
+                `<b>一時非公開</b> の措置としました。データは保持しており、削除ではありません。`,
+                "",
+                "【理由】",
+                reason,
+                "",
+                "【運営の判断】",
+                "運営で内容を確認中です。判断次第 復元 または 削除 の措置に進みます。",
+                "",
+                "【異議申立て】",
+                "本措置に異議がある場合は 72 時間以内に support@ailier.app までご連絡ください。",
+                "件名に「異議申立て / 作品 ID: XXXX」と記載いただくとスムーズです。",
+                "",
+                "詳細は利用規約 第 4 条の 2 (AI 生成コンテンツ ガイドライン) をご確認ください。",
+                "",
+                "AILIER 運営",
+              ].join("\n"),
+            }
+          : {
+              subject: `【AILIER】作品「${title}」を削除しました (最終措置)`,
+              body: [
+                `${displayName} 様`,
+                "",
+                `あなたの作品「${title}」について、以下の理由により`,
+                `<b>削除</b> の最終措置としました。公開一覧からは表示されません。`,
+                "データは異議申立てのため一定期間保持しています。",
+                "",
+                "【最終的な削除理由】",
+                reason,
+                "",
+                "【異議申立て】",
+                "本措置に異議がある場合は 72 時間以内に support@ailier.app までご連絡ください。",
+                "件名に「削除異議申立て / 作品 ID: XXXX」と記載ください。",
+                "運営が再確認のうえ対応いたします。",
+                "",
+                "AILIER 運営",
+              ].join("\n"),
+            };
+
     await sendExternalNotification({
       userId: creator.user_id,
       kind: "message",
-      subject,
-      body: bodyLines.join("\n"),
+      subject: notifyPayload.subject,
+      body: notifyPayload.body,
       link: `/dashboard/portfolio`,
     });
   }

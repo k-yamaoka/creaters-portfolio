@@ -3,6 +3,20 @@ import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { getClientIp, checkRateLimit } from "@/lib/rate-limit";
 import { notifyAdmin } from "@/lib/admin-notify";
+import { sendExternalNotification } from "@/lib/notify-external";
+
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://creaters-portfolio.vercel.app";
+
+/** 通報カテゴリごとの緊急度プレフィックス (件名頭) */
+const SUBJECT_PREFIX: Record<string, string> = {
+  copyright: "【通報/著作権】",
+  impersonation: "【通報/なりすまし】",
+  unauthorized_person: "【通報/実在人物 無断生成】",
+  inappropriate: "【通報/公序良俗】",
+  spam: "【通報/スパム】",
+  other: "【通報】",
+};
 
 /**
  * POST /api/reports
@@ -83,7 +97,7 @@ export async function POST(request: NextRequest) {
   const { data: target } = await supabase
     .from("portfolio_items")
     .select(
-      "id, title, moderation_status, creator:creator_profiles!portfolio_items_creator_id_fkey ( id, profiles!creator_profiles_user_id_fkey ( display_name ) )"
+      "id, title, moderation_status, creator:creator_profiles!portfolio_items_creator_id_fkey ( id, user_id, profiles!creator_profiles_user_id_fkey ( display_name ) )"
     )
     .eq("id", body.target_id)
     .maybeSingle();
@@ -149,47 +163,129 @@ export async function POST(request: NextRequest) {
   const targetCreator = (
     target.creator as unknown as {
       id?: string;
+      user_id?: string;
       profiles?: { display_name?: string };
     } | null
   ) ?? null;
 
-  // 運営通知 (Email + Slack)
+  // クリエイターの累積通報数 (常習者判定用、view で集計)。エラー無視。
+  let creatorReportTotal: number | null = null;
+  if (targetCreator?.id) {
+    const { data: stats } = await admin
+      .from("creator_report_stats")
+      .select("report_total")
+      .eq("creator_profile_id", targetCreator.id)
+      .maybeSingle();
+    creatorReportTotal =
+      (stats as { report_total?: number } | null)?.report_total ?? null;
+  }
+
+  const wasAutoUnpublished =
+    afterTarget?.moderation_status === "unpublished";
+  const categoryLabel =
+    CATEGORY_LABEL[body.reason_category] ?? body.reason_category;
+  const workUrl = `${APP_URL}/creators/${targetCreator?.id ?? ""}#portfolio`;
+
+  // 運営通知 (Email + Slack) — 件名の緊急度プレフィックス + 2 ボタン
   await notifyAdmin({
-    kind: afterTarget?.moderation_status === "unpublished"
-      ? "auto_unpublish"
-      : "content_report",
-    subject:
-      afterTarget?.moderation_status === "unpublished"
-        ? `通報 3 件で自動非公開: ${target.title ?? "(無題)"}`
-        : `通報を受け付け: ${target.title ?? "(無題)"}`,
-    body:
-      afterTarget?.moderation_status === "unpublished"
-        ? "異なる IP から 3 件の通報が集まったため、当該作品を自動的に一時非公開にしました。運営で確認 → 復元 / 削除の判断をお願いします。"
-        : "コンテンツ通報を受け付けました。累積件数がしきい値に達すると自動非公開になります。",
+    kind: wasAutoUnpublished ? "auto_unpublish" : "content_report",
+    subjectPrefix: wasAutoUnpublished
+      ? "【自動非公開】"
+      : SUBJECT_PREFIX[body.reason_category] ?? "【通報】",
+    subject: wasAutoUnpublished
+      ? `${categoryLabel} 3 件で自動非公開: ${target.title ?? "(無題)"}`
+      : `${categoryLabel} の申告: ${target.title ?? "(無題)"}`,
+    body: wasAutoUnpublished
+      ? "異なる IP から 3 件の通報が集まったため、当該作品を自動的に一時非公開にしました。運営で確認 → 復元 / 削除の判断をお願いします。"
+      : "コンテンツ通報を受け付けました。累積件数がしきい値に達すると自動非公開になります。",
     link: `/admin/moderation`,
     fields: [
       { label: "作品タイトル", value: target.title ?? "(無題)" },
+      { label: "作品 URL", value: workUrl },
       { label: "作品 ID", value: target.id },
       {
         label: "クリエイター",
         value: targetCreator?.profiles?.display_name ?? "(不明)",
       },
       {
-        label: "通報カテゴリ",
-        value: CATEGORY_LABEL[body.reason_category] ?? body.reason_category,
+        label: "クリエイター累積通報数",
+        value:
+          creatorReportTotal === null
+            ? "-"
+            : `${creatorReportTotal} 件${
+                creatorReportTotal >= 5 ? " ⚠️常習の疑い" : ""
+              }`,
       },
-      { label: "累積通報数 (open)", value: String(totalOpen ?? "?") },
+      { label: "通報カテゴリ", value: categoryLabel },
+      { label: "累積通報数 (この作品)", value: String(totalOpen ?? "?") },
       {
         label: "現在の状態",
         value: afterTarget?.moderation_status ?? "unknown",
       },
-      { label: "通報者理由", value: reasonNote ?? "(未記入)" },
+      { label: "通報者コメント", value: reasonNote ?? "(未記入)" },
+    ],
+    // 2 ボタン: 作品を確認 / 非公開にする (管理画面へ)
+    actions: [
+      { label: "作品を確認する", path: workUrl, style: "primary" },
+      { label: "管理画面で対応", path: "/admin/moderation", style: "danger" },
     ],
   });
 
+  // 通報者への受付自動返信 (§B-2)
+  //   誤 BAN 対策として「確認後に対応します」の旨だけを伝える。
+  //   結果通知は原則行わない (仕様 §14 詳細非開示)。
+  await sendExternalNotification({
+    userId: user.id,
+    kind: "message",
+    subject: "【AILIER】ご通報を受け付けました",
+    body: [
+      "AILIER 運営です。",
+      "",
+      `通報いただいた作品「${target.title ?? "(無題)"}」について、内容を確認いたしました。`,
+      "運営が事実確認のうえ、必要に応じて処置を実施します。対応完了までしばらくお待ちください。",
+      "",
+      `【通報カテゴリ】 ${categoryLabel}`,
+      "",
+      "なお、対応結果の詳細は非開示とさせていただいております。",
+      "同一作品への追加通報は受け付けが重複しますのでご遠慮ください。",
+      "",
+      "AILIER 運営",
+    ].join("\n"),
+    link: "/help",
+  });
+
+  // 自動非公開の場合はクリエイターにも通知 (§1c 誤報保護:
+  //   通報時点ではなく "非公開になった時点" で初めて通知)
+  if (wasAutoUnpublished && targetCreator?.user_id) {
+    await sendExternalNotification({
+      userId: targetCreator.user_id,
+      kind: "message",
+      subject: `【AILIER】あなたの作品「${target.title ?? "(無題)"}」が一時非公開になりました`,
+      body: [
+        `${targetCreator.profiles?.display_name ?? "クリエイター"} 様`,
+        "",
+        `あなたの作品「${target.title ?? "(無題)"}」について複数の通報が集まったため、`,
+        "運営の確認が完了するまで <b>一時非公開</b> とさせていただきました。",
+        "現時点では削除ではなく、データは保持されています。",
+        "",
+        "【運営の対応】",
+        "・運営が内容を確認します",
+        "・問題が無ければ再公開いたします",
+        "・問題が確認された場合は削除等の措置を検討します",
+        "",
+        "【異議申立て】",
+        "本措置に異議がある場合、または心当たりがない場合は 72 時間以内に",
+        "support@ailier.app までご連絡ください。運営で再確認いたします。",
+        "",
+        "AILIER 運営",
+      ].join("\n"),
+      link: "/dashboard/portfolio",
+    });
+  }
+
   return NextResponse.json({
     ok: true,
-    auto_unpublished: afterTarget?.moderation_status === "unpublished",
+    auto_unpublished: wasAutoUnpublished,
     total_open: totalOpen ?? 0,
   });
 }

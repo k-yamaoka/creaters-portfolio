@@ -133,6 +133,44 @@ export default async function AdminModerationPage() {
     .order("created_at", { ascending: false })
     .limit(30);
 
+  // 4. 常習者 (§B-2 §1d) — creator_report_stats view (00078) から
+  //    累積通報 / 累積非公開 が多い creator を上位表示。
+  const { data: rawRepeatOffenders } = await admin
+    .from("creator_report_stats")
+    .select("creator_profile_id, report_total, report_open, unpublished_total, deleted_total, last_incident_at")
+    .order("report_total", { ascending: false })
+    .limit(20);
+  type OffenderRow = {
+    creator_profile_id: string;
+    report_total: number;
+    report_open: number;
+    unpublished_total: number;
+    deleted_total: number;
+    last_incident_at: string | null;
+    display_name?: string;
+  };
+  const repeatOffenders: OffenderRow[] = ((rawRepeatOffenders ?? []) as unknown as OffenderRow[])
+    .filter((r) => r.report_total >= 2 || r.unpublished_total >= 1);
+  // 名前をまとめて解決
+  if (repeatOffenders.length > 0) {
+    const ids = repeatOffenders.map((r) => r.creator_profile_id);
+    const { data: creators } = await admin
+      .from("creator_profiles")
+      .select("id, profiles!creator_profiles_user_id_fkey ( display_name )")
+      .in("id", ids);
+    const map = new Map<string, string>();
+    for (const c of creators ?? []) {
+      const row = c as unknown as {
+        id: string;
+        profiles?: { display_name?: string };
+      };
+      map.set(row.id, row.profiles?.display_name ?? "-");
+    }
+    for (const r of repeatOffenders) {
+      r.display_name = map.get(r.creator_profile_id) ?? "-";
+    }
+  }
+
   return (
     <div className="space-y-10">
       <div>
@@ -296,6 +334,81 @@ export default async function AdminModerationPage() {
                           portfolioId={row.id}
                           currentStatus={row.moderation_status}
                         />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* 常習者 (§B-2 §1d) */}
+      <section>
+        <h3 className="mb-3 text-sm font-bold text-gray-900">
+          常習者 (通報 2 件以上 / 非公開 1 回以上)
+        </h3>
+        {repeatOffenders.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
+            対象クリエイターはいません
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-100 bg-gray-50 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                <tr>
+                  <th className="px-3 py-3">クリエイター</th>
+                  <th className="px-3 py-3 text-right">累積通報</th>
+                  <th className="px-3 py-3 text-right">未対応</th>
+                  <th className="px-3 py-3 text-right">非公開回数</th>
+                  <th className="px-3 py-3 text-right">削除回数</th>
+                  <th className="px-3 py-3">最新インシデント</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {repeatOffenders.map((r) => {
+                  const severe = r.deleted_total > 0 || r.unpublished_total >= 3;
+                  return (
+                    <tr key={r.creator_profile_id}>
+                      <td className="px-3 py-2.5">
+                        <span
+                          className={`text-xs font-medium ${severe ? "text-red-800" : "text-gray-900"}`}
+                        >
+                          {r.display_name ?? "-"}
+                        </span>
+                        {severe && (
+                          <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800">
+                            ⚠️要監視
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono tabular-nums text-xs">
+                        {r.report_total}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono tabular-nums text-xs">
+                        {r.report_open > 0 ? (
+                          <span className="rounded bg-indigo-100 px-1.5 py-0.5 font-bold text-indigo-800">
+                            {r.report_open}
+                          </span>
+                        ) : (
+                          "0"
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono tabular-nums text-xs">
+                        {r.unpublished_total}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-mono tabular-nums text-xs">
+                        {r.deleted_total > 0 ? (
+                          <span className="rounded bg-red-100 px-1.5 py-0.5 font-bold text-red-800">
+                            {r.deleted_total}
+                          </span>
+                        ) : (
+                          "0"
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 text-[11px] text-gray-500">
+                        {r.last_incident_at?.slice(0, 10) ?? "-"}
                       </td>
                     </tr>
                   );
