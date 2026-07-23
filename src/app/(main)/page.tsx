@@ -248,18 +248,33 @@ export default async function HomePage() {
             </RevealOnScroll>
 
             <RevealOnScroll delay={120}>
-              <h1 className="headline-display mt-6 text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper">
-                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
-                  AIクリエイター
+              {/* Hero メインコピー (2026-07-21 改修):
+                    - word-break: keep-all + overflow-wrap: break-word で 単語内改行を禁止
+                    - 「AIクリエイターと、」を white-space:nowrap の span で 1 段目として保護
+                       → 縮小時も 「AIクリエ / イターと、」のような単語割れが発生しない
+                    - グラデーション span は nowrap span の内側に維持 (bg-clip 崩れ回避)
+                    - select-none で テキスト選択ハイライトを無効化 (各種ベンダープレフィックス
+                       含む Tailwind の select-none クラス) */}
+              <h1
+                className="headline-display mt-6 select-none text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper"
+                style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
+              >
+                <span style={{ whiteSpace: "nowrap" }}>
+                  <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                    AIクリエイター
+                  </span>
+                  と、
                 </span>
-                と、
                 <br />
-                企業をつなぐ。
+                <span style={{ whiteSpace: "nowrap" }}>企業をつなぐ。</span>
               </h1>
             </RevealOnScroll>
 
             <RevealOnScroll delay={240}>
-              <p className="body-jp mt-6 max-w-prose-jp text-sm text-paper/85 sm:text-base">
+              <p
+                className="body-jp mt-6 max-w-prose-jp select-none text-sm text-paper/85 sm:text-base"
+                style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
+              >
                 Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
                 SNS広告動画・商品紹介・採用動画を依頼できる専門マッチング
                 プラットフォーム。撮影不要・完全リモート・低予算で、構成から

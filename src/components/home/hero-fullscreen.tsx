@@ -141,7 +141,15 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
           preload="metadata"
           aria-hidden
           onEnded={handleEnded}
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-out"
+          // 2026-07-21 改修: 背景動画は装飾なので ユーザー操作 (右クリック / ドラッグ /
+          //   iOS long-press メディアパネル) を全遮断。テキスト選択も無効化。
+          controls={false}
+          disablePictureInPicture
+          controlsList="nodownload noremoteplayback noplaybackrate"
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+          draggable={false}
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover transition-opacity duration-700 ease-out"
           style={{ opacity }}
         />
       )}
