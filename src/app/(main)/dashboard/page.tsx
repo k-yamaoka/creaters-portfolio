@@ -68,6 +68,19 @@ export default async function DashboardPage() {
   const unreadMessages = unreadMessagesQ.count ?? 0;
   const unreadNotifications = unreadNotificationsQ.count ?? 0;
 
+  // C-3: pending スカウト件数 (creator のみ)
+  let pendingInvitationsCount = 0;
+  if (isCreator && hasCreatorProfile) {
+    const nowIso = new Date().toISOString();
+    const { count } = await supabase
+      .from("job_invitations")
+      .select("id", { count: "exact", head: true })
+      .eq("creator_id", user.creator_profile!.id)
+      .eq("status", "pending")
+      .gt("expires_at", nowIso);
+    pendingInvitationsCount = count ?? 0;
+  }
+
   // 進行中取引 (cancelled / delivered 以外)
   let activeOrders = 0;
   let awaitingMyAction = 0;
@@ -230,6 +243,31 @@ export default async function DashboardPage() {
             customFeeRate={user.creator_profile!.custom_fee_rate}
             className={user.creator_profile!.is_early_member ? "" : "md:col-span-2"}
           />
+        </div>
+      )}
+
+      {/* C-3: 未回答スカウト バナー (最優先で見せる) */}
+      {isCreator && hasCreatorProfile && pendingInvitationsCount > 0 && (
+        <div className="mt-6 rounded-2xl border-2 border-neon-pink/40 bg-gradient-to-r from-neon-pink/10 via-neon-purple/10 to-neon-cyan/10 p-5 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="text-3xl leading-none" aria-hidden>
+              💌
+            </div>
+            <div className="flex-1">
+              <h2 className="font-bold text-gray-900">
+                運営からのおすすめ案件が {pendingInvitationsCount} 件届いています
+              </h2>
+              <p className="mt-1 text-sm text-gray-700">
+                あなたのスキル・実績にマッチする案件を運営が厳選してお届けしました。
+              </p>
+            </div>
+            <Link
+              href="/dashboard/invitations"
+              className="inline-flex shrink-0 items-center rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-2.5 text-sm font-bold text-white shadow-md hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              受信トレイを開く →
+            </Link>
+          </div>
         </div>
       )}
 

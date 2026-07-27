@@ -5,6 +5,7 @@ import Link from "next/link";
 const adminLinks = [
   { href: "/admin", label: "ダッシュボード" },
   { href: "/admin/users", label: "ユーザー管理" },
+  { href: "/admin/jobs", label: "案件・スカウト" },
   { href: "/admin/orders", label: "取引・売上管理" },
   { href: "/admin/disputes", label: "運営裁定" },
   { href: "/admin/moderation", label: "モデレーション" },
