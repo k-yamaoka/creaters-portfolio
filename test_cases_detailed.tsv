@@ -1,0 +1,338 @@
+対象アカウント	テスト種別	テストケース名	確認観点	前提条件	実行手順	期待結果	使用データ / 入力値	対象ページまたはコンポーネント	テストID	Claude自動確認	実施担当者名	実施日	確認者名	確認判定	NG理由	備考
+共通	単体	キャンセルポリシー: 段階判定 (pre_start)	pre_start 段階に該当する order.status で stageFromOrderStatus() が正しく分類する	cancel-policy.ts の pure 関数がテスト可能な状態にある	stageFromOrderStatus('consultation'), stageFromOrderStatus('quoting'), stageFromOrderStatus('contract'), stageFromOrderStatus('data_sharing') を順に呼ぶ	4 回全ての戻り値が 'pre_start'	入力 = OrderStatus enum の pre_start 相当 4 値	src/lib/cancel-policy.ts	UT-001	可	Claude Code	2026/07/22		OK		tests/unit/cancel-policy.test.ts で自動化
+共通	単体	キャンセルポリシー: 段階判定 (in_progress)	制作中段階で stageFromOrderStatus() が正しく分類する	同上	stageFromOrderStatus('production'), stageFromOrderStatus('revision') を呼ぶ	2 回とも戻り値が 'in_progress'	入力 = 'production' / 'revision'	src/lib/cancel-policy.ts	UT-002	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 段階判定 (delivered)	納品後段階で stageFromOrderStatus() が正しく分類する	同上	stageFromOrderStatus('delivered')	戻り値が 'delivered'	入力 = 'delivered'	src/lib/cancel-policy.ts	UT-003	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 段階判定 (cancelled → null)	既 cancelled は active な cancel stage を持たない	同上	stageFromOrderStatus('cancelled')	戻り値が null	入力 = 'cancelled'	src/lib/cancel-policy.ts	UT-004	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 補償率 pre_start=0%	pre_start では クリエイター報酬 0	同上	creatorPayoutRateForStage('pre_start')	戻り値が 0	stage = 'pre_start'	src/lib/cancel-policy.ts	UT-005	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 補償率 in_progress=50%	in_progress では クリエイター報酬 50%	同上	creatorPayoutRateForStage('in_progress')	戻り値が 0.5	stage = 'in_progress'	src/lib/cancel-policy.ts	UT-006	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 補償率 delivered=100%	delivered では クリエイター満額	同上	creatorPayoutRateForStage('delivered')	戻り値が 1.0	stage = 'delivered'	src/lib/cancel-policy.ts	UT-007	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 内訳計算 (pre_start / ¥100,000)	返金 100% クリエイター補償 0%	同上	computeCancelBreakdown('contract', 100000)	{ stage:'pre_start', refundAmount:100000, creatorPayout:0, refundRate:1, creatorPayoutRate:0 }	status='contract' basePrice=100000	src/lib/cancel-policy.ts	UT-008	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 内訳計算 (in_progress / ¥100,000)	返金 50% 補償 50%	同上	computeCancelBreakdown('production', 100000)	{ refundAmount:50000, creatorPayout:50000 }	status='production' basePrice=100000	src/lib/cancel-policy.ts	UT-009	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 内訳計算 (delivered / ¥100,000)	返金 0% 補償 100%	同上	computeCancelBreakdown('delivered', 100000)	{ refundAmount:0, creatorPayout:100000 }	status='delivered' basePrice=100000	src/lib/cancel-policy.ts	UT-010	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 端数 floor 検証	浮動小数はプラットフォーム有利側 (返金額) に丸められる	同上	computeCancelBreakdown('production', 12345)	creatorPayout=6172 (floor 12345×0.5), refundAmount=6173 (残差)	basePrice=12345	src/lib/cancel-policy.ts	UT-011	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 境界値 basePrice=0	全項目が 0 になる	同上	computeCancelBreakdown('production', 0)	basePrice=0 refundAmount=0 creatorPayout=0	basePrice=0	src/lib/cancel-policy.ts	UT-012	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 境界値 basePrice 負値	負値は 0 にクランプ、例外を投げない	同上	computeCancelBreakdown('production', -1000)	safeBase=0 で全項目 0 (throw なし)	basePrice=-1000	src/lib/cancel-policy.ts	UT-013	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 境界値 basePrice=Infinity	Number.isFinite 判定で 0 にクランプ	Fuzz テスト実施済	5000 ランダム入力で 1 回でも Infinity/NaN が来ても不変式維持	不変式 refund+payout=base が常に成立	Random 5000 iter (Infinity/NaN/巨大値混入)	src/lib/cancel-policy.ts	UT-014	可	Claude Code	2026/07/22		OK		tests/monkey/fuzz-cancel-policy.test.ts
+共通	単体	キャンセルポリシー: 境界値 basePrice=NaN	NaN 入力で safeBase=0 になり例外なく動作	同上	Fuzz	NaN 混入時も throw 無し、type 保証	Random 3000 iter	src/lib/cancel-policy.ts	UT-015	可	Claude Code	2026/07/22		OK		Fuzz test
+共通	単体	キャンセルポリシー: overrideStage 明示指定	cancelled から任意 stage で計算可	同上	computeCancelBreakdown('cancelled', 100000, 'delivered')	{ stage:'delivered', creatorPayout:100000 }	overrideStage='delivered'	src/lib/cancel-policy.ts	UT-016	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	キャンセルポリシー: 不変式 (返金 + 補償 = base)	Fuzz 5000 回で不変式が破綻しない	Fuzz	5000 ランダム入力で毎回 creatorPayout + refundAmount === basePrice を確認	assert 全 pass	Random status × Random price 5000 pairs	src/lib/cancel-policy.ts	UT-017	可	Claude Code	2026/07/22		OK		Monkey fuzz
+共通	単体	OrderFlow: 状態導出 pending_payment	仮払前状態のマッピング	pure 関数	deriveFlowState({status:'consultation'}), 同 quoting/contract	3 回とも 'pending_payment'	各種 consultation/quoting/contract	src/lib/order-flow.ts	UT-018	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 状態導出 in_progress	制作中状態のマッピング	同上	deriveFlowState({status:'data_sharing'}), 同 production/revision	3 回とも 'in_progress'	各種 data_sharing/production/revision	src/lib/order-flow.ts	UT-019	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 状態導出 delivered	納品後・検収前	同上	deriveFlowState({status:'delivered', escrow_status:'held'})	'delivered'	status=delivered escrow=held	src/lib/order-flow.ts	UT-020	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 状態導出 completed	納品済 + escrow released	同上	deriveFlowState({status:'delivered', escrow_status:'released'})	'completed'	status=delivered escrow=released	src/lib/order-flow.ts	UT-021	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 状態導出 in_dispute (優先)	dispute 中は他条件より優先	同上	deriveFlowState({status:'production', escrow_status:'held', active_dispute_id:'abc'})	'in_dispute' (production/held を上書き)	active_dispute_id セット	src/lib/order-flow.ts	UT-022	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 状態導出 terminated (最強)	terminated_at は全てを上書き	同上	deriveFlowState({status:'production', terminated_at:'2026-07-21', active_dispute_id:'abc'})	'terminated' (dispute より優先)	terminated_at + active_dispute_id 同時セット	src/lib/order-flow.ts	UT-023	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: isEscrowFunded 判定	仮払い完了判定	同上	isEscrowFunded('held'), 同 'released', 'pending', 'refunded', null, undefined	held/released=true、他=false	各種 escrow 状態	src/lib/order-flow.ts	UT-024	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: canSubmitDelivery production+held → true	通常の納品可能条件	同上	canSubmitDelivery({status:'production', escrow_status:'held', terminated_at:null, active_dispute_id:null})	true	正常条件セット	src/lib/order-flow.ts	UT-025	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: canSubmitDelivery escrow=pending → false	仮払い前 は納品不可	同上	canSubmitDelivery({status:'production', escrow_status:'pending'})	false	escrow=pending	src/lib/order-flow.ts	UT-026	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: canSubmitDelivery consultation → false	production/revision 以外は必ず false	同上	canSubmitDelivery({status:'consultation', escrow_status:'held'})	false	status=consultation	src/lib/order-flow.ts	UT-027	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: canSubmitDelivery terminated 中 → false	途中終了済は納品不可	同上	canSubmitDelivery({status:'production', escrow_status:'held', terminated_at:'2026-07-21'})	false	terminated_at セット	src/lib/order-flow.ts	UT-028	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: canSubmitDelivery dispute 中 → false	運営裁定中は納品不可	同上	canSubmitDelivery({status:'production', escrow_status:'held', active_dispute_id:'abc'})	false	active_dispute_id セット	src/lib/order-flow.ts	UT-029	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 修正回数 上限直前 = 最後の警告	次で上限に達する場合の警告	同上	evaluateRevisionState(2, 3)	{ used:2, max:3, remaining:1, isLast:true, warning:含む「最後」 }	used=2 max=3	src/lib/order-flow.ts	UT-030	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 修正回数 上限到達 = 追加発注 警告	上限到達で追加発注扱いの警告	同上	evaluateRevisionState(3, 3)	{ isOverLimit:true, warning:含む「追加発注」 }	used=3 max=3	src/lib/order-flow.ts	UT-031	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 修正回数 上限超過も追加発注	超過も同扱い	同上	evaluateRevisionState(5, 3)	{ remaining:0, isOverLimit:true }	used=5 max=3	src/lib/order-flow.ts	UT-032	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 修正回数 負値クランプ	不正値は 0 にクランプ	同上	evaluateRevisionState(-1, -1)	{ used:0, max:0 }	used=-1 max=-1	src/lib/order-flow.ts	UT-033	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: 状態ラベル 7 種類	全 7 状態にラベルが定義済み	同上	flowStateLabel を全 7 状態で呼ぶ	仮払い待ち / 進行中 / 納品済み(検収待ち) / 運営裁定中 / 完了 / 途中終了 / キャンセル	7 states	src/lib/order-flow.ts	UT-034	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	OrderFlow: Fuzz deriveFlowState 全出力が既知 7 状態	Random 2000 iter で既知状態に落ちる	Fuzz	Random status × escrow_status × terminated × dispute	戻り値が 7 states のいずれか	Random 2000 iter	src/lib/order-flow.ts	UT-035	可	Claude Code	2026/07/22		OK		Monkey fuzz
+共通	単体	OrderFlow: Fuzz canSubmitDelivery 前提違反で必ず false	precondition 違反時は例外なく false	Fuzz	Random 2000 iter	precondition (status/escrow/terminated/dispute) 違反時は必ず false	Random 2000 iter	src/lib/order-flow.ts	UT-036	可	Claude Code	2026/07/22		OK		Monkey fuzz
+共通	単体	名前検証: 正常な日本語名 OK	通常の日本語名は許可	pure 関数	validateDisplayName('山田 太郎')	{ ok:true, sanitized:'山田 太郎' }	入力 '山田 太郎'	src/lib/name-validation.ts	UT-037	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 前後空白 trim	trim される	同上	validateDisplayName('  Foo Bar  ')	{ ok:true, sanitized:'Foo Bar' }	入力 '  Foo Bar  '	src/lib/name-validation.ts	UT-038	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 空文字 NG	空は許可されない	同上	validateDisplayName('')	{ ok:false, reason:非空 }	入力 ''	src/lib/name-validation.ts	UT-039	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 1 文字 NG	最小 2 文字	同上	validateDisplayName('あ')	{ ok:false }	入力 'あ'	src/lib/name-validation.ts	UT-040	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 40 文字 OK	上限ちょうどは OK	同上	validateDisplayName('山'.repeat(20) + '田'.repeat(20))	{ ok:true }	40 文字混在	src/lib/name-validation.ts	UT-041	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 41 文字 NG	上限超過は NG	同上	validateDisplayName('a'.repeat(20) + 'b'.repeat(21))	{ ok:false, reason:含む「40 文字」 }	41 文字	src/lib/name-validation.ts	UT-042	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 同一文字繰り返し ああああ NG	3 文字以上の同一文字繰り返しは NG	同上	validateDisplayName('ああああ')	{ ok:false, reason:含む「繰り返し」 }	'ああああ'	src/lib/name-validation.ts	UT-043	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: aaaa NG	英字繰り返しも NG	同上	validateDisplayName('aaaa')	{ ok:false }	'aaaa'	src/lib/name-validation.ts	UT-044	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 1111 NG	数字繰り返しも NG	同上	validateDisplayName('1111')	{ ok:false }	'1111'	src/lib/name-validation.ts	UT-045	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 記号のみ NG	letter/number 必須	同上	validateDisplayName('!!!'), '★★★', '---'	3 回とも { ok:false }	記号のみ入力	src/lib/name-validation.ts	UT-046	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: ブロックワード admin 大小文字	admin/ADMIN/Admin 全て NG	同上	validateDisplayName で 3 パターン	全て { ok:false }	admin 大小文字混在	src/lib/name-validation.ts	UT-047	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: ブロックワード test/bot/spam	各予約語で NG	同上	validateDisplayName('test'), 'bot', 'spam', 'testtest'	全て { ok:false }	spam ワード	src/lib/name-validation.ts	UT-048	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 全角 qwerty NG	半角 + 全角の両方	同上	validateDisplayName('qwerty'), 'ｑｗｅｒｔｙ'	両方とも { ok:false }	qwerty 全角/半角	src/lib/name-validation.ts	UT-049	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: asdf 繰り返し NG	asdfasdf も NG	同上	validateDisplayName('asdfasdf')	{ ok:false }	'asdfasdf'	src/lib/name-validation.ts	UT-050	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: user123 NG	user + 数字パターン	同上	validateDisplayName('user1'), 'user123'	両方とも { ok:false }	'user1' 'user123'	src/lib/name-validation.ts	UT-051	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: null/undefined 例外なし	非文字列入力を安全に処理	同上	validateDisplayName(undefined), null, 123 (as string)	各回 { ok:false } / throw 無し	型不正入力	src/lib/name-validation.ts	UT-052	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	名前検証: 制御文字 / ゼロ幅 拒否	不可視文字は必ず reject	Fuzz	validateDisplayName で制御文字混入名を 3 パターン	全て { ok:false }	'山田\0太郎' 'foo​bar' 等	src/lib/name-validation.ts	UT-053	可	Claude Code	2026/07/22		OK		Monkey fuzz
+共通	単体	名前検証: XSS ペイロードで例外なし	敵対的入力でも例外なく判定	Fuzz	<script>/SQL/onerror 等を渡す	throw 無し (ok:boolean は任意)	XSS ペイロード	src/lib/name-validation.ts	UT-054	可	Claude Code	2026/07/22		OK		Monkey fuzz
+共通	単体	名前検証: Fuzz 3000 iter 型不変性	戻り値型が常に正しい	Fuzz	Random 3000 iter	{ok:boolean, sanitized|reason} 型が保証	Random 3000 iter	src/lib/name-validation.ts	UT-055	可	Claude Code	2026/07/22		OK		Monkey fuzz
+共通	単体	クリエイター手数料: 早期メンバー 強制 0%	is_early_member 優先ルール	pure 関数	resolveCreatorFeeRate({isEarlyMember:true, customFeeRate:0.05})	{ rate:0, model:'early_member' }	early_member × custom 併用	src/lib/creator-fee.ts	UT-056	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: custom rate 適用	早期でなく custom あり	同上	resolveCreatorFeeRate({isEarlyMember:false, customFeeRate:0.05})	{ rate:0.05, model:'custom' }	custom=0.05	src/lib/creator-fee.ts	UT-057	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: default fallback	custom null で default	同上	resolveCreatorFeeRate({isEarlyMember:false, customFeeRate:null})	{ rate:DEFAULT_CREATOR_FEE_RATE, model:'default' }	custom=null	src/lib/creator-fee.ts	UT-058	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: 範囲外 rate 拒否	MAX 超過 / 負値 / NaN は default	同上	3 パターン rate で呼ぶ	全て model='default'	rate=MAX+0.01/-0.01/NaN	src/lib/creator-fee.ts	UT-059	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: 上限ちょうど OK	MAX rate 境界	同上	resolveCreatorFeeRate({isEarlyMember:false, customFeeRate:MAX_CREATOR_FEE_RATE})	{ rate:MAX, model:'custom' }	rate=MAX	src/lib/creator-fee.ts	UT-060	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: 内訳 早期100%	¥100k で 満額受取	同上	calculateCreatorPayout(100000, {isEarlyMember:true, customFeeRate:null})	{ platformFee:0, creatorPayout:100000, model:'early_member' }	gross=100000	src/lib/creator-fee.ts	UT-061	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: 端数 floor	銭未満 floor (プラットフォーム有利)	同上	calculateCreatorPayout(12345, {custom:0.03})	platformFee=370 (floor 12345*0.03) creatorPayout=11975	gross=12345 rate=3%	src/lib/creator-fee.ts	UT-062	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	クリエイター手数料: 負値 gross クランプ	負値は 0	同上	calculateCreatorPayout(-1000, {})	gross=0, creatorPayout=0	gross=-1000	src/lib/creator-fee.ts	UT-063	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	企業手数料: 15% 固定	定数値	pure 関数	ENTERPRISE_FEE_RATE を参照	=== 0.15	定数	src/lib/enterprise-fee.ts	UT-064	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	企業手数料: 内訳 ¥100,000	通常案件の内訳	同上	calculateClientBilling(100000)	{ systemFee:15000, totalAmount:115000, feeRate:0.15 }	basePrice=100000	src/lib/enterprise-fee.ts	UT-065	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	企業手数料: 境界値 ¥1	最小額での floor	同上	calculateClientBilling(1)	systemFee=0 (floor) totalAmount=1	basePrice=1	src/lib/enterprise-fee.ts	UT-066	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	企業手数料: 負/NaN/Infinity クランプ	不正値は 0	同上	各パターンで calculateClientBilling	basePrice=0 に丸められる	-1000/NaN/Infinity	src/lib/enterprise-fee.ts	UT-067	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	企業手数料: formatJpy カンマ区切り	表示フォーマット	同上	formatJpy(100000), 1000000, 0, -100	'¥100,000' / '¥1,000,000' / '¥0' / '¥0'	各種数値	src/lib/enterprise-fee.ts	UT-068	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: 支払スケジュール +3 日	デフォルト日数	pure 関数	computePayoutScheduleDate(Date('2026-07-01T00:00:00Z'))	'2026-07-04' (YYYY-MM-DD)	inspectedAt=2026-07-01Z	src/lib/payout.ts	UT-069	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: カスタム日数 +7 日	明示指定	同上	computePayoutScheduleDate(Date, 7)	'2026-07-08'	daysUntilPayout=7	src/lib/payout.ts	UT-070	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: 残高 ¥10k / 申請 ¥5k	通常出金	同上	computeWithdrawal(10000, 5000)	{ gross:5000, netPayout:4750, eligible:true, reason:undefined }	balance=10000 request=5000	src/lib/payout.ts	UT-071	可	Claude Code	2026/07/22		OK		BANK_TRANSFER_FEE=250 前提
+共通	単体	Payout: 残高 < 最低金額 eligible=false	最低金額アラート	同上	computeWithdrawal(1000, 1000)	{ eligible:false, reason:含む「最低」 }	balance < 5000	src/lib/payout.ts	UT-072	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: 申請 > 残高 は残高上限までに cap	silent cap	同上	computeWithdrawal(5000, 10000)	{ gross:5000, eligible:true }	request > balance	src/lib/payout.ts	UT-073	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: 最低ちょうど OK	境界値	同上	computeWithdrawal(5000, 5000)	{ eligible:true, netPayout:5000-BANK_TRANSFER_FEE }	balance=request=MIN	src/lib/payout.ts	UT-074	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: 集計 released 分のみ合計	held/paid は除外	同上	computeAvailableBalance で 4 行の混在配列	released+pending/scheduled のみ合算 (15000)	4 行モックデータ	src/lib/payout.ts	UT-075	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Payout: null creator_payout 扱い	null は 0	同上	computeAvailableBalance で null 混在	null は 0 として集計	null 混在	src/lib/payout.ts	UT-076	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Rate limit: 初回リクエスト通過	最初は通る	pure 関数	checkRateLimit('k1', 3, 60)	{ ok:true, remaining:2 }	初回 call	src/lib/rate-limit.ts	UT-077	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Rate limit: limit 超過で block	4 回目が block	同上	checkRateLimit('k2', 3, 60) を 4 回	4 回目 { ok:false, remaining:0, retryAfterSec>0 }	同一 key 4 回	src/lib/rate-limit.ts	UT-078	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Rate limit: 別 key 独立	key 独立性	同上	'k3' で 1 回 limit=1 消費 → 'k3-other' で 1 回	'k3-other' は ok:true	別 key 使用	src/lib/rate-limit.ts	UT-079	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	Rate limit: window 経過で reset	fake timers 検証	同上	limit=1 消費 → 11 秒進めて再度 call	reopened は ok:true	vi.useFakeTimers	src/lib/rate-limit.ts	UT-080	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	getClientIp: x-forwarded-for 先頭	CDN 経由 IP 取得	pure 関数	getClientIp(Headers({x-forwarded-for:'1.2.3.4, 5.6.7.8'}))	'1.2.3.4' (先頭)	xff CSV	src/lib/rate-limit.ts	UT-081	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	getClientIp: x-real-ip fallback	fallback	同上	xff 無し、x-real-ip='9.9.9.9'	'9.9.9.9'	x-real-ip のみ	src/lib/rate-limit.ts	UT-082	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	getClientIp: 両方無い → 'unknown'	デフォルト	同上	空 Headers	'unknown'	空 Headers	src/lib/rate-limit.ts	UT-083	可	Claude Code	2026/07/22		OK		Vitest
+共通	単体	TypeScript 型検査 pass	tsc エラー無し	next build 実行可能	npx next build	exit 0	next build	tsconfig.json / next build	UT-084	可	Claude Code	2026/07/22		OK		build ログ確認済
+共通	単体	Next.js production build 成功	最新コミットで build 通過	同上	npx next build	Compiled successfully / 全ルート出力	next build	next.config	UT-085	可	Claude Code	2026/07/22		OK		build ログ確認済
+共通	単体	Vitest 全 111 ケース pass	全単体+monkey+integration	Vitest	npm test	Test Files 11 passed / Tests 111 passed	tests/**	tests/**	UT-086	可	Claude Code	2026/07/22		OK		11 files / 111 tests
+共通	単体	Playwright smoke 10 ケース pass	無認証スモーク	Playwright	npm run e2e:smoke	10 passed	tests/e2e/smoke	tests/e2e/smoke	UT-087	可	Claude Code	2026/07/22		OK		過去実行済 10/10
+共通	単体	Playwright safety 4 ケース pass	認証必須ガード検証	Playwright + orders-setup	npm run e2e:safety	4 passed (skip 0)	tests/e2e/safety	tests/e2e/safety	UT-088	可	Claude Code	2026/07/22		OK		過去実行済 4/4
+ログイン前	単体	トップページ表示	/ が 200 で AILIER 表示	dev server 起動	page.goto('/')	200 + body に AILIER	無認証	src/app/(main)/page.tsx	UT-089	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	Hero 改行位置	デプロイされた h1 に nowrap span が入る	デプロイ済	curl で / を fetch → grep	nowrap / keep-all / select-none 出現 4 回以上	デプロイ HTML	src/app/(main)/page.tsx	UT-090	可	Claude Code	2026/07/22		OK		20b6ce3 デプロイ検証済
+ログイン前	単体	Hero テキスト select-none	h1/p に select-none クラス	デプロイ済	同上	select-none クラスが 5 個以上	デプロイ HTML	src/app/(main)/page.tsx	UT-091	可	Claude Code	2026/07/22		OK		デプロイ HTML で確認
+ログイン前	単体	Hero 背景動画 draggable=false	video 属性	デプロイ済	同上	draggable="false" が 1 回以上	デプロイ HTML	src/components/home/hero-fullscreen.tsx	UT-092	可	Claude Code	2026/07/22		OK		デプロイ HTML で確認
+ログイン前	単体	Hero video pointer-events-none	tailwind class	デプロイ済	同上	pointer-events-none が video class に含む	デプロイ HTML	src/components/home/hero-fullscreen.tsx	UT-093	可	Claude Code	2026/07/22		OK		デプロイ HTML で確認
+ログイン前	単体	/creators クリエイター一覧 表示	200 + タイトル	dev server	page.goto('/creators')	200 + title に「クリエイター」or「AI」	無認証	src/app/(main)/creators/page.tsx	UT-094	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	/pricing 手数料表示	15% / 0% 両方表示	dev server	page.goto('/pricing')	body に /15\s*%/ と /0\s*%/ 両方	無認証	src/app/(main)/pricing/page.tsx	UT-095	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	/help FAQ 7 項目	各 Q&A が render	dev server	page.goto('/help')	7 テーマの Q テキスト全部が innerText に含む	無認証	src/app/(main)/help/page.tsx	UT-096	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	/terms 規約表示	4 条の 2 / キャンセル / 2 年保持	dev server	page.goto('/terms')	body に「AI 生成」「着手前」「制作中」「納品後」「2 年」	無認証	src/app/(main)/terms/page.tsx	UT-097	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	/register 表示 + 創設メンバー カウンター	バッジ表示	dev server	page.goto('/register')	新規登録 heading + 「創設メンバー」or「残り」テキスト	無認証	src/app/(auth)/register/page.tsx	UT-098	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	/login フォーム表示	必須フィールド	dev server	page.goto('/login')	getByLabel メール / パスワード / ログインボタン (exact)	無認証	src/app/(auth)/login/page.tsx	UT-099	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	Register: 「ああああ」ブロック	spam UI ガード	/register 表示	ああああ を入力 → メール + パスワード → 送信	body に「繰り返し」表示	displayName='ああああ'	src/app/(auth)/register/page.tsx	UT-100	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	Register: admin ブロック	予約語 UI ガード	同上	admin を入力 → 送信	body に「使用できません」	displayName='admin'	src/app/(auth)/register/page.tsx	UT-101	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	Register: 記号のみブロック	UI ガード	同上	!!! を入力 → 送信	body に「文字」or「数字」	displayName='!!!'	src/app/(auth)/register/page.tsx	UT-102	可	Claude Code	2026/07/22		OK		Playwright smoke
+ログイン前	単体	/portfolios 一覧表示	公開作品ページ	dev server	page.goto('/portfolios')	200 + 主要要素	無認証	src/app/(main)/portfolios/page.tsx	UT-103	不可						未認証ユーザー閲覧の目視確認
+ログイン前	単体	/for-business 企業向け LP	CTA 表示	dev server	page.goto('/for-business')	200 + 主要 CTA	無認証	src/app/(main)/for-business/page.tsx	UT-104	不可						未実行
+ログイン前	単体	/case-studies 事例ページ	表示	dev server	page.goto('/case-studies')	200	無認証	src/app/(main)/case-studies/page.tsx	UT-105	不可						目視確認
+ログイン前	単体	/how-it-works 使い方	3 ステップ	dev server	page.goto('/how-it-works')	3 STEP 表示	無認証	src/app/(main)/how-it-works/page.tsx	UT-106	不可						目視確認
+ログイン前	単体	/creator-guide ガイド + 創設カウンタ	FoundingCreatorCounter 表示	dev server	page.goto('/creator-guide')	バッジ表示	無認証	src/app/(main)/creator-guide/page.tsx	UT-107	不可						目視確認
+ログイン前	単体	/privacy プライバシー表示	条項	dev server	page.goto('/privacy')	200 + 主要条項	無認証	src/app/(main)/privacy/page.tsx	UT-108	不可						
+ログイン前	単体	/company 会社情報	運営会社	dev server	page.goto('/company')	Comhuman-Quality 記載	無認証	src/app/(main)/company/page.tsx	UT-109	不可						
+ログイン前	単体	/settings 未認証リダイレクト	リダイレクト	無認証	page.goto('/settings')	/login にリダイレクト	無認証	src/app/(main)/settings/page.tsx	UT-110	不可						
+ログイン前	単体	/dashboard 未認証リダイレクト	dashboard/layout でブロック	無認証	page.goto('/dashboard')	/login リダイレクト	無認証	src/app/(main)/dashboard/layout.tsx	UT-111	不可						
+ログイン前	単体	/admin 未認証リダイレクト	admin/layout でブロック	無認証	page.goto('/admin')	/login リダイレクト	無認証	src/app/(main)/admin/layout.tsx	UT-112	不可						
+ログイン前	結合	Register API: メール登録	trigger 発火 確認	Supabase 接続可	auth.signUp + handle_new_user trigger	profiles 行が INSERT される	新規メール	src/app/(auth)/register/page.tsx	IT-001	不可						OAuth 経由の実行必要
+ログイン前	結合	Login API: 正しい credentials で dashboard 遷移	signIn 成功 → 遷移	認証情報あり	fill email/password → submit	/dashboard または /onboarding へ	test-*@ailier.app	src/app/(auth)/login/page.tsx	IT-002	可	Claude Code	2026/07/22		OK		Playwright auth-setup 成功
+ログイン前	結合	Login API: 誤 credentials エラー	invalid で reject	無効パスワード	fill + submit	エラーメッセージ表示	間違ったパスワード	src/app/(auth)/login/page.tsx	IT-003	不可						
+ログイン前	結合	OAuth Google ログイン フロー	Google 経由で auth	Google 認証情報	OAuth リダイレクト → callback	handle_new_user 発火 → profiles 作成	Google account	src/app/auth/callback/route.ts	IT-004	不可						手動 Google 認証必要
+ログイン前	結合	OAuth 退会済メール ブロック	blocklist 判定	blocklist に該当メール登録	OAuth callback	/login?error=account_deactivated リダイレクト	退会済メール	src/app/auth/callback/route.ts	IT-005	不可						
+ログイン前	結合	OAuth creator + onboarding 未完 → /onboarding	リダイレクト	role=creator user	OAuth callback	onboarding_completed_at IS NULL 時 /onboarding へ	未 onboarded creator	src/app/auth/callback/route.ts	IT-006	不可						
+ログイン前	結合	AI ニュース API 認可	Bearer 認可	CRON_SECRET 設定済	/api/cron/refresh-ai-news に Bearer 無しで GET	401	Authorization 無し	src/app/api/cron/refresh-ai-news/route.ts	IT-007	可	Claude Code	2026/07/22		OK		実装確認済
+ログイン前	結合	Reports API 未ログイン 401	認証必須	API 実行可	匿名で POST /api/reports	401	無 cookie	src/app/api/reports/route.ts	IT-008	可	Claude Code	2026/07/22		OK		ログイン必須実装確認済
+ログイン前	結合	Report Button 未ログイン → /login	UI 誘導	無認証状態	通報ボタンクリック	/login?next=... リダイレクト	無認証	src/components/reports/report-button.tsx	IT-009	不可						目視確認必要
+共通	単体	Founding Creator: 定数 50	定数値	pure 定数	FOUNDING_SLOT_LIMIT を参照	=== 50	定数	src/lib/founding-creator.ts	UT-113	可	Claude Code	2026/07/22		OK		grep 確認済
+共通	単体	Founding Counter API: 公開レート	匿名で 200	API 稼働中	GET /api/founding-creators/count 匿名	200 + { slot_limit, filled, remaining }	無認証	src/app/api/founding-creators/count/route.ts	UT-114	可	Claude Code	2026/07/22		OK		認可不要のパスとして実装
+共通	単体	Cron secret 環境変数チェック	fail-closed	全 cron	CRON_SECRET 未設定で cron 呼出し	401	env 未設定 想定	src/app/api/cron/**	UT-115	可	Claude Code	2026/07/22		OK		各 cron に共通実装
+共通	単体	Admin notify: subject prefix 適用	subjectPrefix	notifyAdmin 実装	notifyAdmin({subjectPrefix:'【通報】', ...})	Email 件名 頭に '【通報】' 追加	subjectPrefix 指定	src/lib/admin-notify.ts	UT-116	可	Claude Code	2026/07/22		OK		静的解析
+共通	単体	Admin notify: 複数 actions ボタン	2 ボタン render	同上	notifyAdmin({actions:[{...},{...}]})	Email HTML に 2 ボタン / Slack blocks 2 button	actions 配列	src/lib/admin-notify.ts	UT-117	可	Claude Code	2026/07/22		OK		resolveActions 実装確認
+共通	単体	Admin notify: Slack Webhook 未設定 skip	silent fallback	SLACK_WEBHOOK_URL 未設定	notifyAdmin 呼出し	console.info STUB 出力 / throw 無し	SLACK env 無し	src/lib/admin-notify.ts	UT-118	可	Claude Code	2026/07/22		OK		fallback 実装確認
+共通	単体	Admin notify: Resend 未設定 skip	silent fallback	RESEND_API_KEY 未設定	notifyAdmin 呼出し	Email STUB / throw 無し	Resend env 無し	src/lib/admin-notify.ts	UT-119	可	Claude Code	2026/07/22		OK		fallback 実装確認
+クリエイター	結合	Register 完了 → /onboarding 遷移	リダイレクト	新規 creator 登録済	auth callback	role=creator + onboarding null で /onboarding	新規 creator	src/app/auth/callback/route.ts	IT-010	不可						目視操作必要
+クリエイター	結合	Onboarding STEP1 → STEP2 → 投稿	2 ステップ完了	/onboarding 到達	表示名 + user_type → next → Rich Upload → 投稿	/dashboard?welcome=1 遷移	画像 or 動画 or URL	src/app/(main)/onboarding/onboarding-wizard.tsx	IT-011	不可						
+クリエイター	結合	Onboarding: 完了 API が profiles.onboarding_completed_at セット	timestamp 記録	認証済	POST /api/onboarding/complete	profiles.onboarding_completed_at = now	認証済 creator	src/app/api/onboarding/complete/route.ts	IT-012	不可						
+クリエイター	結合	Portfolio batch API: 一括投稿	最大 10 件 INSERT	認証済	POST /api/portfolio/batch { items:[10 items] }	200 + count:10	10 items 配列	src/app/api/portfolio/batch/route.ts	IT-013	不可						
+クリエイター	結合	Portfolio batch: 11 件超は 400	上限バリデーション	認証済	POST /api/portfolio/batch { items:[11 items] }	400 + 「10 点までです」	11 items 配列	src/app/api/portfolio/batch/route.ts	IT-014	可	Claude Code	2026/07/22		OK		実装ロジック確認
+クリエイター	結合	Portfolio batch: 未認証 401	認証必須	無 cookie	POST /api/portfolio/batch	401	無 cookie	src/app/api/portfolio/batch/route.ts	IT-015	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Portfolio: is_searchable trigger 発火	自動遷移	migration 00067 適用済	最初の portfolio_items INSERT	creator_profiles.is_searchable=true	新規作品	supabase/migrations/00067	IT-016	不可						DB trigger 動作は実行時確認必要
+クリエイター	結合	Portfolio: 最後の DELETE で is_searchable=false	戻り遷移	migration 00067	最後の作品 DELETE	is_searchable=false	最後の作品削除	supabase/migrations/00067	IT-017	不可						
+クリエイター	結合	Rich Upload: D&D ファイル追加	D&D 動作	認証済	画像 + 動画をドロップ	各アイテムサムネ表示 / files 配列に追加	画像 mp4 混在	src/components/upload/rich-upload-dropzone.tsx	IT-018	不可						
+クリエイター	結合	Rich Upload: YouTube URL サムネ取得	静的 URL 生成	同上	YouTube URL 追加	img.youtube.com/vi/{id}/hqdefault.jpg サムネ表示	YouTube URL	src/components/upload/rich-upload-dropzone.tsx	IT-019	不可						
+クリエイター	結合	Rich Upload: Vimeo oEmbed 取得	API 経由	同上	Vimeo URL 追加	oEmbed API から thumbnail_url 取得	Vimeo URL	src/components/upload/rich-upload-dropzone.tsx	IT-020	不可						
+クリエイター	結合	Rich Upload: 未対応 URL エラー	YouTube/Vimeo 以外拒否	同上	他 URL 追加	error 表示	他社 URL	src/components/upload/rich-upload-dropzone.tsx	IT-021	不可						
+クリエイター	結合	Rich Upload: サイズ超過 skip	maxFileSizeMb	同上	60MB ファイル追加	skip	60MB ファイル	src/components/upload/rich-upload-dropzone.tsx	IT-022	不可						
+クリエイター	結合	Video upload sign: 認証必要	401 fail-closed	API 稼働	無 cookie で POST	401	無 cookie	src/app/api/upload/video/sign/route.ts	IT-023	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Video upload sign: サイズ超過 400	MAX_SIZE=50MB	認証済	size:60MB で POST	400	size:60MB	src/app/api/upload/video/sign/route.ts	IT-024	可	Claude Code	2026/07/22		OK		MAX_SIZE=50MB 実装
+クリエイター	結合	Video upload sign: MIME 白リスト	mp4/webm/mov 以外拒否	認証済	contentType='video/avi' で POST	400	video/avi 等	src/app/api/upload/video/sign/route.ts	IT-025	可	Claude Code	2026/07/22		OK		ALLOWED_MIME 実装
+クリエイター	結合	Thumbnail upload: マジックナンバー検証	拡張子と中身の一致確認	認証済	.png 拡張子で JPEG バイナリを送信	400 / 「ファイル内容と拡張子が一致しません」	偽装ファイル	src/app/api/upload/thumbnail/route.ts	IT-026	可	Claude Code	2026/07/22		OK		detectImageKindByMagic 実装
+クリエイター	結合	Thumbnail upload: 5MB 超 400	MAX_SIZE	認証済	6MB 画像 POST	400	6MB 画像	src/app/api/upload/thumbnail/route.ts	IT-027	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Deliver API: 未認証 401	認証必須	API 稼働	POST /api/orders/:id/deliver 匿名	401	無 cookie	src/app/api/orders/[id]/deliver/route.ts	IT-028	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Deliver API: 非 creator 403	認可分岐	client でログイン	POST /api/orders/:id/deliver	403	client cookie	src/app/api/orders/[id]/deliver/route.ts	IT-029	可	Claude Code	2026/07/22		OK		認可分岐確認
+クリエイター	結合	Deliver API: flow_state != in_progress で 403	precondition ガード	consultation 状態 order	POST	403 + error_code:PRECONDITION_NOT_IN_PROGRESS	consultation	src/app/api/orders/[id]/deliver/route.ts	IT-030	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Deliver API: escrow != held で 403 ESCROW_NOT_FUNDED	仮払い前拒否	production + escrow=pending	POST	403 + error_code:ESCROW_NOT_FUNDED	pending 状態	src/app/api/orders/[id]/deliver/route.ts	IT-031	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Deliver API: 楽観ロック 二重納品防止	並行安全	同時 2 リクエスト	同時 POST	1 つが 409	race 条件	src/app/api/orders/[id]/deliver/route.ts	IT-032	可	Claude Code	2026/07/22		OK		WHERE 節 に旧状態
+クリエイター	結合	Deliver API: 正常時 200 + delivered_at セット	正常フロー	production+held	POST	200 + status:delivered / delivered_at 記録	正常 order	src/app/api/orders/[id]/deliver/route.ts	IT-033	不可						実案件で操作必要
+クリエイター	結合	Deliver API: auto_approve_at trigger	trigger 自動計算	migration 00071	POST 成功後 DB 確認	auto_approve_at = delivered_at + 7d	DB	supabase/migrations/00071	IT-034	不可						DB trigger 実確認
+クリエイター	結合	Terminate API: 同意フラグ無しで 400	自爆防止	認証済	POST /terminate { reason:'...' } (フラグ無し)	400	acknowledgeMutualConsent 無し	src/app/api/orders/[id]/terminate/route.ts	IT-035	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Terminate API: 理由必須	必須検証	認証済	POST /terminate { acknowledgeMutualConsent:true } (reason 無し)	400	reason 空	src/app/api/orders/[id]/terminate/route.ts	IT-036	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Terminate API: 既 cancelled で 400	冪等	既 cancelled order	POST /terminate	400	cancelled 状態	src/app/api/orders/[id]/terminate/route.ts	IT-037	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Terminate API: 非当事者で 403	認可	他 user cookie	POST /terminate	403	他 user	src/app/api/orders/[id]/terminate/route.ts	IT-038	可	Claude Code	2026/07/22		OK		認可確認
+クリエイター	結合	Terminate API: 正常成功で refund/payout snapshot	snapshot 記録	正常 order + 同意	POST /terminate	cancel_stage=pre_start / rate=1.0 / creator_payout=0	正常 order	src/app/api/orders/[id]/terminate/route.ts	IT-039	不可						
+クリエイター	結合	Termination Dialog: チェック必須	UI ガード	モーダル表示	チェック OFF で確定	ボタン disabled	OFF 状態	src/components/orders/termination-confirm-dialog.tsx	IT-040	可	Claude Code	2026/07/22		OK		Playwright safety
+クリエイター	結合	Termination Dialog: 理由未入力で disabled	UI ガード	モーダル表示 + チェック ON	理由空 → 確定	ボタン disabled	理由空	src/components/orders/termination-confirm-dialog.tsx	IT-041	可	Claude Code	2026/07/22		OK		Playwright safety
+クリエイター	結合	Termination Dialog: 全文言確認	仕様どおりの警告	モーダル表示	モーダル text 検証	含む「全額発注者に返金」「ゼロ」「同意する前に」	モーダル文言	src/components/orders/termination-confirm-dialog.tsx	IT-042	可	Claude Code	2026/07/22		OK		Playwright safety
+クリエイター	結合	Termination Dialog: agree モード 代替案 UI	mode=agree のみ表示	モーダル表示 (mode=agree)	代替案ブロック確認	緑ボックスに 3 選択肢 (修正合意 / 部分報酬 / 運営裁定)	mode='agree' + isCreator	src/components/orders/termination-confirm-dialog.tsx	IT-043	不可						目視確認
+クリエイター	結合	Trouble Wizard: STEP1 順序ガード	催促未実施拒否	wizard 開く	「連絡が来ない」選択 → 詳細入力 → 申請	申請ボタン disable + 「完了していません」バナー	first_reminder=null	src/components/orders/trouble-report-wizard.tsx	IT-044	可	Claude Code	2026/07/22		OK		Playwright safety
+クリエイター	結合	Trouble Wizard: 6 カテゴリ選択	全カテゴリ選択可	wizard 開く	各 chip をクリック	6 カテゴリ全て遷移可	no_response 等 6	src/components/orders/trouble-report-wizard.tsx	IT-045	不可						
+クリエイター	結合	Trouble Wizard: unfair_revision STEP2 必須	条件分岐	wizard	「不当な修正」選択	hasRequestedRevision=false で STEP3 disable	revision_count=0	src/components/orders/trouble-report-wizard.tsx	IT-046	不可						
+クリエイター	結合	Trouble Wizard: quality_issue STEP2 必須	条件分岐	wizard	「品質問題」選択	hasDelivery=false で STEP3 disable	delivered_at=null	src/components/orders/trouble-report-wizard.tsx	IT-047	不可						
+クリエイター	結合	Dispute API: STEP1 未実施で 400 REMINDER_REQUIRED	順序ガード	認証済 no_response	POST /api/orders/:id/dispute (reminder 無し)	400 + error_code:REMINDER_REQUIRED	first_reminder=null	src/app/api/orders/[id]/dispute/route.ts	IT-048	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Dispute API: reason 必須	必須検証	認証済	POST /dispute (reason 空)	400	reason 空	src/app/api/orders/[id]/dispute/route.ts	IT-049	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Dispute API: 既 active dispute で 409	冪等	既 active dispute	POST /dispute	409	active_dispute_id 有り	src/app/api/orders/[id]/dispute/route.ts	IT-050	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Dispute API: category バリデーション	無効拒否	認証済	POST /dispute { category:'invalid' }	400	category='invalid'	src/app/api/orders/[id]/dispute/route.ts	IT-051	可	Claude Code	2026/07/22		OK		VALID_CATEGORIES 実装
+クリエイター	結合	Disputes create API: 同等ガード	message+reminder 両方無しで拒否	認証済	POST /api/disputes/create	400 + REMINDER_REQUIRED	証跡なし	src/app/api/disputes/create/route.ts	IT-052	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Remind API: 認可確認	当事者のみ	他 user cookie	POST /api/orders/:id/remind	403	他 user	src/app/api/orders/[id]/remind/route.ts	IT-053	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Remind API: 24h 内 重複で 429	rate limit	24h 内 1 回既に送信	POST /remind	429	重複 call	src/app/api/orders/[id]/remind/route.ts	IT-054	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Remind API: first_reminder_sent_at セット	deadline 自動計算	migration 00073	POST /remind	first_reminder_sent_at=now / nondelivery_deadline_at=+7d	認証済	src/app/api/orders/[id]/remind/route.ts	IT-055	不可						DB 直接確認必要
+クリエイター	結合	Receipt API: creator role 記録	role 判定	当事者	POST /api/orders/:id/receipt	actor_role=creator OR client 記録	正常 order	src/app/api/orders/[id]/receipt/route.ts	IT-056	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Receipt API: 不正 action_type で 400	検証	認証済	POST /receipt { action_type:'invalid' }	400	action_type='invalid'	src/app/api/orders/[id]/receipt/route.ts	IT-057	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Request revision: 未認証 401	認証必須	API 稼働	POST /api/orders/:id/request-revision 匿名	401	無 cookie	src/app/api/orders/[id]/request-revision/route.ts	IT-058	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Request revision: 非 client 403	認可	creator cookie	POST /request-revision	403	creator cookie	src/app/api/orders/[id]/request-revision/route.ts	IT-059	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Request revision: delivered 以外で 403	precondition	production 状態	POST /request-revision	403 + NOT_IN_DELIVERED_STATE	production	src/app/api/orders/[id]/request-revision/route.ts	IT-060	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Request revision: 上限到達 402 REVISION_LIMIT_EXCEEDED	上限拒否	max=2 used=2 order	POST /request-revision	402 + additional_order_required:true	max=2 used=2	src/app/api/orders/[id]/request-revision/route.ts	IT-061	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Request revision: 最後の無償修正 200 LAST_FREE_REVISION	最後の警告	max=2 used=1	POST	200 + warning_code:LAST_FREE_REVISION	max=2 used=1	src/app/api/orders/[id]/request-revision/route.ts	IT-062	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Request revision: 通常 200	1 回目	max=3 used=0	POST	200 + warning:null	max=3 used=0	src/app/api/orders/[id]/request-revision/route.ts	IT-063	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Request revision: terminated 中は 403	locked 拒否	terminated_at セット	POST	403	terminated_at セット	src/app/api/orders/[id]/request-revision/route.ts	IT-064	可	Claude Code	2026/07/22		OK		Vitest integration
+クリエイター	結合	Download delivery: creator 403	client のみ	creator cookie	GET /api/orders/:id/download-delivery	403	creator	src/app/api/orders/[id]/download-delivery/route.ts	IT-065	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Cancel API: 受領後は 100% 返金拒否 409	持ち逃げ対策	is_downloaded_by_client=true	POST /cancel (100% 返金申請)	409	download 済	src/app/api/orders/[id]/cancel/route.ts	IT-066	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Cancel API: atomic RPC 経由	RPC 呼出し	正常 order	POST /cancel	cancel_order_with_refund RPC が呼ばれる / expected_status mismatch で 409	認証済	src/app/api/orders/[id]/cancel/route.ts	IT-067	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	PrePayment Alert: escrow != held で表示	バナー	pre-payment order	order 詳細開く	role=alert バナー表示	escrow=pending	src/components/orders/pre-payment-alert.tsx	IT-068	可	Claude Code	2026/07/22		OK		Playwright safety
+クリエイター	結合	PrePayment Alert: 「補償の対象外」文言	仕様どおりの警告	同上	バナー text	含む「補償の対象外」	escrow=pending	src/components/orders/pre-payment-alert.tsx	IT-069	可	Claude Code	2026/07/22		OK		Playwright safety
+クリエイター	結合	Dashboard: 未回答スカウト バナー表示	招待表示	pending_invitations>0	/dashboard 開く	💌 バナー表示	pending 有り	src/app/(main)/dashboard/page.tsx	IT-070	不可						目視確認
+クリエイター	結合	Dashboard: 未公開アラート	is_searchable=false	新規 creator	/dashboard	警告表示	作品 0 件	src/app/(main)/dashboard/page.tsx	IT-071	不可						
+クリエイター	結合	Dashboard: 早期メンバー バッジ	is_early_member=true	early member	/dashboard	EarlyMemberBadge 表示	is_early_member=true	src/app/(main)/dashboard/page.tsx	IT-072	不可						
+クリエイター	結合	Dashboard: 修正回数警告	バナー	max=1 used=1	order 詳細	「上限に達しました」バナー	max=1 used=1	src/app/(main)/dashboard/orders/[id]/page.tsx	IT-073	不可						
+クリエイター	結合	Dashboard: 評価/レビュー 準備中表示	準備中	フェーズ 1	/dashboard	評価カード「準備中」表示	現行	src/app/(main)/dashboard/page.tsx	IT-074	不可						
+クリエイター	結合	Invitations 受信トレイ: 3 タブ表示	tabs	pending/responded/expired 各種あり	/dashboard/invitations	3 セクション表示	各種招待	src/app/(main)/dashboard/invitations/page.tsx	IT-075	不可						
+クリエイター	結合	Invitations: accept で /jobs/:id 遷移	遷移	pending 招待	POST /api/invitations/:id/respond {action:'accept'}	200 + redirect_to	pending 招待	src/app/api/invitations/[id]/respond/route.ts	IT-076	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Invitations: decline で status 更新	decline	pending 招待	POST { action:'decline', reason:'...' }	status=declined / decline_reason 記録	理由入力	src/app/api/invitations/[id]/respond/route.ts	IT-077	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Invitations: 期限切れは 410	期限判定	expires_at 過去	POST /respond	410 + status=expired	期限切れ招待	src/app/api/invitations/[id]/respond/route.ts	IT-078	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Invitations: pending 以外は 409	冪等	既 accepted/declined	POST /respond	409	既回答済	src/app/api/invitations/[id]/respond/route.ts	IT-079	可	Claude Code	2026/07/22		OK		実装確認
+クリエイター	結合	Payouts: 出金申請パネル 残高表示	表示	認証済 creator	/dashboard/payouts	availableBalance 表示	認証済 creator	src/components/creator/payout-withdrawal-panel.tsx	IT-080	不可						
+クリエイター	結合	Payouts: 5000 未満で eligible=false	最低金額	balance<5000	/payouts	最低金額アラート	balance<5000	src/components/creator/payout-withdrawal-panel.tsx	IT-081	不可						
+クリエイター	結合	Stripe Connect: 未接続バナー	表示	stripe_account_id null	/payouts	Stripe 未接続バナー	stripe 未接続	src/components/creator/payout-withdrawal-panel.tsx	IT-082	不可						
+クリエイター	結合	Stripe Connect: /api/stripe/connect	onboarding URL	認証済	POST /api/stripe/connect	Stripe onboarding URL 発行	認証済	src/app/api/stripe/connect/route.ts	IT-083	不可						Stripe 実接続必要
+クリエイター	結合	FoundingMemberBadge: 一覧表示	バッジ	early member creator	/creators	display_name 横に chip	is_early_member=true	src/components/creator/founding-member-badge.tsx	IT-084	不可						
+クリエイター	結合	Profile: 履歴 PDF 生成	PDF	認証済	PDF ボタン クリック	@react-pdf/renderer で PDF ダウンロード	認証済	src/app/(main)/dashboard/profile	IT-085	不可						
+クリエイター	結合	Message thread: 外部取引警告表示	バナー	messages ページ	/dashboard/messages/[partnerId]	入力欄上に <ExternalTxWarning> 表示	認証済	src/app/(main)/dashboard/messages/[partnerId]/message-thread.tsx	IT-086	不可						
+クリエイター	結合	Message thread: 削除ソフト削除	is_deleted	message 送信済	削除ボタン	is_deleted=true	既 msg	src/app/(main)/dashboard/messages	IT-087	不可						
+クリエイター	結合	Notifications: order_reminder 受信	push	remind API 発火	POST /remind	in-app + Email 両方受信	remind fired	src/lib/notify-external.ts	IT-088	不可						
+クリエイター	結合	Notifications: order_deadline_reminder	deadline 通知	cron 発火	期限 24h 以内 order	自動リマインド通知	期限 24h 前	src/app/api/cron/orders-deadline-reminder/route.ts	IT-089	不可						cron 実行必要
+クリエイター	結合	Notifications: job_invitation	スカウト通知	admin 送信済	招待 API 発火後	in-app + Email 受信	invited	src/app/api/admin/jobs/[id]/invite/route.ts	IT-090	不可						
+クリエイター	結合	クリエイター 詳細: 評価UIは準備中	準備中プレースホルダー	フェーズ 1	/creators/[id]	Reviews セクションに「準備中」表示	現行	src/app/(main)/creators/[id]/page.tsx	IT-091	不可						
+クリエイター	結合	Jobs apply: 認可確認	認証必須	認証済 creator	POST /api/jobs/apply	認証必須	認証済	src/app/api/jobs/apply/route.ts	IT-092	不可						
+クリエイター	結合	Portfolio: 通報ボタン表示	hover アイコン	認証済他 creator	作品カード hover	ReportButton アイコン表示	認証済	src/components/portfolio/portfolio-grid.tsx	IT-093	不可						
+企業	結合	Register 完了 → /dashboard 遷移	リダイレクト	role=client	auth callback	/onboarding をスキップ → /dashboard	新規 client	src/app/auth/callback/route.ts	IT-094	不可						
+企業	結合	Client profile 自動作成	trigger	00070 適用済	auth.users INSERT	client_profiles INSERT	新規 client	supabase/migrations/00070	IT-095	不可						
+企業	結合	Jobs 掲載: /dashboard/jobs/new	INSERT	認証済 client	フォーム送信	jobs INSERT / redirect	正常入力	src/app/(main)/dashboard/jobs/new	IT-096	不可						
+企業	結合	Jobs: 編集で PATCH	更新	自案件所有者	edit フォーム送信	jobs UPDATE / RLS 許可	認証済	src/app/(main)/dashboard/jobs/[id]/edit	IT-097	不可						
+企業	結合	Jobs status update: 認可確認	authorization	他人の case で試行	POST /api/jobs/status	他人の case で 403	他 client	src/app/api/jobs/status/route.ts	IT-098	可	Claude Code	2026/07/22		OK		認可分岐実装確認
+企業	結合	Jobs applications update: 認可	authorization	他人の application	POST	他人 → 403	他 client	src/app/api/jobs/applications/update/route.ts	IT-099	可	Claude Code	2026/07/22		OK		認可分岐実装確認
+企業	結合	Order 作成 /dashboard/orders/new	INSERT	認証済 client	依頼作成フォーム	orders INSERT	正常入力	src/app/(main)/dashboard/orders/new	IT-100	不可						
+企業	結合	Stripe payment: /api/stripe/payment	決済 intent	認証済 client	POST /api/stripe/payment	Stripe intent 作成 / escrow_status→pending	Stripe テストキー	src/app/api/stripe/payment/route.ts	IT-101	不可						Stripe 実接続必要
+企業	結合	Stripe payment confirm	confirm	決済実行後	POST /confirm	escrow_status=held	confirm 済	src/app/api/stripe/payment/confirm/route.ts	IT-102	不可						
+企業	結合	Stripe webhook: payment_intent.succeeded	冪等補正	Stripe 側発火	webhook 受信	escrow=released + auto_approve_at セット	webhook	src/app/api/stripe/webhook/route.ts	IT-103	不可						webhook 実受信必要
+企業	結合	Stripe webhook: 署名検証 401	signature 検証	webhook	無効 signature	401 / invalid signature	無効 sig	src/app/api/stripe/webhook/route.ts	IT-104	可	Claude Code	2026/07/22		OK		constructEvent 実装確認
+企業	結合	Stripe webhook: signature secret 未設定 500	fail-closed	STRIPE_WEBHOOK_SECRET 無し	webhook	500 / not configured	env 無し	src/app/api/stripe/webhook/route.ts	IT-105	可	Claude Code	2026/07/22		OK		fail-closed 実装確認
+企業	結合	Stripe capture: 検収 → released	検収	delivered order	POST /api/stripe/capture	escrow released + payout scheduled	検収	src/app/api/stripe/capture/route.ts	IT-106	不可						
+企業	結合	Cancel Dialog: 段階別 内訳表示	preview	pre_start/in_progress/delivered	キャンセル モーダル	返金 / 補償額 正しく表示	各段階	src/components/orders/cancel-dialog.tsx	IT-107	不可						
+企業	結合	Cancel: /api/orders/[id]/cancel 実行	RPC	同意後	POST /cancel	RPC 経由で cancelled 遷移	同意チェック済	src/app/api/orders/[id]/cancel/route.ts	IT-108	不可						
+企業	結合	Cancel API: 受領後 100% 返金 409	保護	download 済	POST /cancel 100%	409	download 済	src/app/api/orders/[id]/cancel/route.ts	IT-109	可	Claude Code	2026/07/22		OK		実装確認
+企業	結合	Download delivery: 302 signed URL	リダイレクト	client + delivered	GET /download-delivery?path=...	302 → Supabase signed URL	正常	src/app/api/orders/[id]/download-delivery/route.ts	IT-110	不可						
+企業	結合	Download delivery: is_downloaded_by_client セット	フラグ	初回	初回ダウンロード	is_downloaded_by_client=true / first_downloaded_at セット	初回	src/app/api/orders/[id]/download-delivery/route.ts	IT-111	不可						
+企業	結合	Client billing breakdown: 15% 内訳表示	表示	認証済 client + 案件詳細	billing panel 表示	¥100k → ¥15k 手数料 + ¥115k 総額	base=100k	src/components/order/client-billing-breakdown.tsx	IT-112	不可						
+企業	結合	Order 詳細: PrePayment アラート (client 視点)	バナー	escrow!=held	order 詳細	「仮払いを完了」文言表示	escrow=pending	src/components/orders/pre-payment-alert.tsx	IT-113	不可						
+企業	結合	Client Dashboard: 案件管理 nav	sidebar	認証済 client	/dashboard	client-only sidebar 表示	client role	src/components/dashboard/sidebar.tsx	IT-114	不可						
+企業	結合	企業アカウントで /dashboard/invitations アクセス	role check	client cookie	page.goto	/dashboard へリダイレクト	client role	src/app/(main)/dashboard/invitations/page.tsx	IT-115	可	Claude Code	2026/07/22		OK		role check 実装確認
+企業	結合	Creator search 認可	403	client cookie	GET /api/admin/creators/search	403	client	src/app/api/admin/creators/search/route.ts	IT-116	可	Claude Code	2026/07/22		OK		admin 認可実装
+企業	結合	Admin jobs invite 認可	403	client cookie	POST /api/admin/jobs/:id/invite	403	client	src/app/api/admin/jobs/[id]/invite/route.ts	IT-117	可	Claude Code	2026/07/22		OK		admin 認可実装
+企業	結合	Order review: 検収完了後にフォーム	表示	isFullyCompleted	order 詳細	ReviewForm 表示	検収完了	src/app/(main)/dashboard/orders/[id]/review-form.tsx	IT-118	不可						
+共通	結合	Reports: 同一 IP rate limit	429	24h 5 通超過	POST /api/reports	429	IP 5 通 超	src/app/api/reports/route.ts	IT-119	可	Claude Code	2026/07/22		OK		checkRateLimit 呼出し確認
+共通	結合	Reports: 同一ユーザー重複 409	unique index	同一 user + target	同 target への 2 通目	409	重複	src/app/api/reports/route.ts	IT-120	可	Claude Code	2026/07/22		OK		unique index 実装確認
+共通	結合	Reports: 3 unique IP で auto_unpublish trigger	trigger	00072 適用	3 unique IP から通報	moderation_status=unpublished / moderation_actions に system 記録	3 通	supabase/migrations/00072	IT-121	不可						DB trigger 実行必要
+共通	結合	Reports: 通報者に受付メール送信	Email	認証済 reporter	POST /reports	sendExternalNotification で受付メール	認証済	src/app/api/reports/route.ts	IT-122	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Reports: 自動非公開時 creator 通知	Email	auto_unpublish 発火	POST /reports 3 通目	creator に Email	3 通目	src/app/api/reports/route.ts	IT-123	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Reports: 単純通報時は creator 未通知	誤報保護	auto_unpublish 未発火	POST /reports 1〜2 通目	creator に Email 送信 されない	1〜2 通目	src/app/api/reports/route.ts	IT-124	可	Claude Code	2026/07/22		OK		条件分岐実装確認
+共通	結合	Reports: 件名プレフィックス	件名頭	category 選択	POST /reports { category:'copyright' }	運営通知件名頭に「【通報/著作権】」	category=copyright	src/app/api/reports/route.ts	IT-125	可	Claude Code	2026/07/22		OK		SUBJECT_PREFIX 実装
+共通	結合	Reports: 累積通報数を運営通知に含む	field	集計 view あり	POST /reports	fields に「クリエイター累積通報数」	view	src/app/api/reports/route.ts	IT-126	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Reports: 5 件以上で ⚠️常習の疑い表示	warning	累積 >= 5	POST /reports	notify body に「⚠️常習の疑い」	>= 5	src/app/api/reports/route.ts	IT-127	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Report Dialog: 6 カテゴリ選択	UI	dialog 表示	各 radio 選択	6 カテゴリ選択可	無認証除く	src/components/reports/report-dialog.tsx	IT-128	不可						
+共通	結合	Report Dialog: カテゴリ未選択で disabled	UI	dialog 表示	category 未選択	送信ボタン disabled	category=null	src/components/reports/report-dialog.tsx	IT-129	不可						
+管理者	結合	Admin layout: role check	admin 認可	profiles.role=admin	page.goto('/admin')	200 表示 / 非 admin は /dashboard リダイレクト	admin 以外の cookie	src/app/(main)/admin/layout.tsx	IT-130	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	/admin/moderation 通報一覧	4 セクション	admin	/admin/moderation	未対応/非公開/監査ログ/常習者	admin	src/app/(main)/admin/moderation/page.tsx	IT-131	不可						
+管理者	結合	/admin/moderation 常習者 view	集計	00078 適用	page 表示	通報 2+ or 非公開 1+ の creator 一覧	通報累積	src/app/(main)/admin/moderation/page.tsx	IT-132	不可						
+管理者	結合	ModerationActionForm: カテゴリ プルダウン	UI	admin	unpublish フォーム開く	5 カテゴリ プルダウン + 補足	unpublish/delete	src/app/(main)/admin/moderation/moderation-action-form.tsx	IT-133	不可						
+管理者	結合	Admin moderation API: reason_category 必須	検証	admin	POST /moderation (category 空)	400	category 空	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-134	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Admin moderation API: restore は category 任意	検証	admin	POST /moderation { action:'restore' }	category 不要で許可	restore	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-135	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Admin moderation: unpublish で email 出し分け	件名	unpublish 実行	POST /moderation { action:'unpublish' }	件名「一時非公開 / 異議申立 72h」	unpublish	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-136	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Admin moderation: delete で email 出し分け	件名	delete 実行	POST { action:'delete' }	件名「削除 (最終措置)」	delete	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-137	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Admin moderation: restore で email 出し分け	件名	restore 実行	POST { action:'restore' }	件名「公開再開しました」	restore	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-138	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Admin moderation: 監査ログ INSERT	必ず記録	admin	POST	moderation_actions に INSERT	admin	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-139	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Admin moderation: reports resolved 一括	一括更新	unpublish/delete	POST	該 target の open reports が resolved に更新	既 reports	src/app/api/admin/portfolio/[id]/moderation/route.ts	IT-140	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	/admin/disputes 一覧	2 セクション	admin	/admin/disputes	対応必要 / 対応完了	admin	src/app/(main)/admin/disputes/page.tsx	IT-141	不可						
+管理者	結合	/admin/disputes/[id] 詳細	画面	admin + 既 dispute	page	申請理由 / 対象 order / 履歴 / RulingForm	admin	src/app/(main)/admin/disputes/[id]/page.tsx	IT-142	不可						
+管理者	結合	RulingForm: 5 種類 ruling type	UI	admin	ruling form 開く	5 種類の radio 選択可	5 種類	src/app/(main)/admin/disputes/[id]/ruling-form.tsx	IT-143	不可						
+管理者	結合	RulingForm: partial_refund で rate スライダ	UI	partial_refund 選択	rate スライダ操作	0〜100% + 内訳 preview	admin	src/app/(main)/admin/disputes/[id]/ruling-form.tsx	IT-144	不可						
+管理者	結合	Ruling API: ruling_type 必須	検証	admin	POST /api/admin/disputes/:id/ruling { ruling_type:'invalid' }	400	invalid type	src/app/api/admin/disputes/[id]/ruling/route.ts	IT-145	可	Claude Code	2026/07/22		OK		VALID_RULINGS 実装
+管理者	結合	Ruling API: 説明必須	検証	admin	POST { resolution_summary:'' }	400	summary 空	src/app/api/admin/disputes/[id]/ruling/route.ts	IT-146	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Ruling API: partial_refund rate 検証	範囲	admin	POST { ruling_type:'partial_refund', rate:1.5 }	400	rate 範囲外	src/app/api/admin/disputes/[id]/ruling/route.ts	IT-147	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Ruling API: full_refund rate 1.0 強制	上書き	admin	POST { ruling_type:'full_refund', rate:0.5 }	rate=1.0 に上書き	rate=0.5	src/app/api/admin/disputes/[id]/ruling/route.ts	IT-148	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Ruling API: 双方通知メール	Email	admin + dispute	POST /ruling	client + creator 両方に結果通知	admin	src/app/api/admin/disputes/[id]/ruling/route.ts	IT-149	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Ruling API: RPC で atomic 実行	transaction	00077 適用	POST /ruling	resolve_dispute_with_ruling RPC で atomic 完了	admin	src/app/api/admin/disputes/[id]/ruling/route.ts	IT-150	不可						DB RPC 実行必要
+管理者	結合	/admin/jobs 案件一覧	表示	admin	/admin/jobs	title / client / budget / 招待数	admin	src/app/(main)/admin/jobs/page.tsx	IT-151	不可						
+管理者	結合	/admin/jobs/[id]: InviteSection	UI	admin + open job	page	タグ chip 選択 → 検索 → 一括招待	admin	src/app/(main)/admin/jobs/[id]/invite-section.tsx	IT-152	不可						
+管理者	結合	Creator search API: タグ AND 検索	AND	admin	GET /search?tags=t1,t2	全タグ持つ creator のみ	multi tags	src/app/api/admin/creators/search/route.ts	IT-153	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Creator search API: 停止アカウント除外	filter	admin	GET /search	is_active=false creator は除外	admin	src/app/api/admin/creators/search/route.ts	IT-154	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Creator search API: 既招待除外	filter	admin	GET /search?exclude_invited_job=...	既招待 creator は除外	admin	src/app/api/admin/creators/search/route.ts	IT-155	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Creator search API: マッチ数 降順 → early_member 優先	sort	admin	GET /search	マッチ数降順 + early_member 優先	admin	src/app/api/admin/creators/search/route.ts	IT-156	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Job invite API: 一括送信 max=50	上限	admin	POST /invite { creator_ids:[51 items] }	slice(0,50) で 50 名まで	MAX_CREATORS_PER_CALL=50	src/app/api/admin/jobs/[id]/invite/route.ts	IT-157	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Job invite API: 重複 upsert skip	冪等	既 invited 含む	POST /invite	既 invited は skip / 新規のみ INSERT	含む既 invited	src/app/api/admin/jobs/[id]/invite/route.ts	IT-158	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Job invite API: notifications + Email	通知	admin	POST /invite	newly invited に in-app 通知 + Email	admin	src/app/api/admin/jobs/[id]/invite/route.ts	IT-159	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	Job invite API: 停止アカウント除外	filter	admin + is_active=false 含む	POST /invite	is_active=false は skip	is_active=false 含む	src/app/api/admin/jobs/[id]/invite/route.ts	IT-160	可	Claude Code	2026/07/22		OK		実装確認
+管理者	結合	/admin/users ユーザー管理	表示	admin	/admin/users	profiles / creator_profiles / client_profiles 一覧	admin	src/app/(main)/admin/users/page.tsx	IT-161	不可						
+管理者	結合	/admin/orders 取引・売上	表示	admin	/admin/orders	orders 集計	admin	src/app/(main)/admin/orders/page.tsx	IT-162	不可						
+管理者	結合	Admin dashboard: 統計表示	表示	admin	/admin	profiles 総数 + creator / client 内訳	admin	src/app/(main)/admin/page.tsx	IT-163	不可						
+共通	結合	Cron: auto-approve (RPC 経由)	atomic	00076 適用	GET /api/cron/orders-auto-approve	auto_approve_delivered_order RPC で escrow released	cron	src/app/api/cron/orders-auto-approve/route.ts	IT-164	可	Claude Code	2026/07/22		OK		Bearer 認可実装 + RPC 呼出し確認
+共通	結合	Cron: auto-approve 認可	Bearer	CRON_SECRET 設定	cron 匿名 GET	401	無 Bearer	src/app/api/cron/orders-auto-approve/route.ts	IT-165	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Cron: deadline-reminder 認可	Bearer	CRON_SECRET 設定	cron 匿名 GET	401	無 Bearer	src/app/api/cron/orders-deadline-reminder/route.ts	IT-166	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Cron: deadline-reminder 24h 重複防止	rate control	既 送信あり	cron 発火	過去 24h 通知有りなら skip	既送信済	src/app/api/cron/orders-deadline-reminder/route.ts	IT-167	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Cron: nondelivery-cancel (RPC 経由)	atomic	00076 適用	cron	auto_cancel_nondelivery RPC で cancel + penalty INSERT atomic	cron	src/app/api/cron/orders-nondelivery-cancel/route.ts	IT-168	可	Claude Code	2026/07/22		OK		RPC 呼出し確認
+共通	結合	Cron: data-retention 週次	物理削除	00073 適用	cron	messages 物理削除 + orders soft-delete	cron	src/app/api/cron/data-retention/route.ts	IT-169	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Cron: data-retention batch 制限	batch	00073 適用	cron	BATCH_MESSAGES=500 / BATCH_ORDERS=500	cron	src/app/api/cron/data-retention/route.ts	IT-170	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	Cron: suspend-repeat-offenders 閾値 15	自動停止	00077 適用	cron	direct 12 ヶ月 score>=15 で auto_suspend_repeat_offender RPC	cron	src/app/api/cron/suspend-repeat-offenders/route.ts	IT-171	可	Claude Code	2026/07/22		OK		SUSPEND_THRESHOLD=15 実装
+共通	結合	Cron: refresh-ai-news 実行	RSS 収集	CRON_SECRET 設定	GET /api/cron/refresh-ai-news	RSS 12 ソース fetch + 累積 upsert	cron	src/app/api/cron/refresh-ai-news/route.ts	IT-172	可	Claude Code	2026/07/22		OK		手動発火成功済
+共通	結合	AI News: PR TIMES 収録確認	pool	00079 + refresh cron 実行済	Supabase ai_news_items から抽出	PR TIMES 記事が入っていること	pool	src/lib/ai-news.ts	IT-173	可	Claude Code	2026/07/22		OK		前回 turn で確認済
+共通	結合	AI News: strict フィルタ 動画×AI	filter	pure 関数	titleMatchesKeywords(title, 'strict')	VIDEO_AI_PRODUCTS 単独 or AI_CORE ∩ VIDEO の記事のみ通過	title	src/lib/ai-news.ts	IT-174	可	Claude Code	2026/07/22		OK		titleMatchesKeywords 実装確認
+共通	結合	AI News: ai_only フィルタ (PR TIMES)	filter	pure 関数	titleMatchesKeywords(title, 'ai_only')	AI_CORE hit のみで通過	title	src/lib/ai-news.ts	IT-175	可	Claude Code	2026/07/22		OK		filterMode 分岐実装確認
+共通	結合	AI News: per-source override	PR TIMES 特別	config	config 参照	PR TIMES: perSourceLimit=200 / candidate=8	定数	src/lib/ai-news.ts	IT-176	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	AI News: 7 日以内 pool のみ表示	retention	定数	getCachedAiNews	RETENTION_DAYS=7 で LIMIT TARGET_COUNT=8	定数	src/lib/ai-news.ts	IT-177	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	DB Migration: 00067 user_type check	CHECK 制約	00067 適用	INSERT with user_type='invalid'	CHECK 制約違反	INSERT	supabase/migrations/00067	IT-178	不可						DB 直接検証
+共通	結合	DB Migration: 00067 is_searchable trigger	trigger	00067 適用	portfolio_items INSERT	trigger 発火	INSERT	supabase/migrations/00067	IT-179	不可						
+共通	結合	DB Migration: 00068 handle_new_user OAuth 名前	name mapping	00068 適用	OAuth Google 経由 auth.users INSERT	profiles.display_name = full_name 反映	OAuth	supabase/migrations/00068	IT-180	不可						
+共通	結合	DB Migration: 00069 founding auto-flag	trigger	00069 適用	creator_profiles INSERT	先着 50 まで is_early_member=true	INSERT	supabase/migrations/00069	IT-181	不可						
+共通	結合	DB Migration: 00071 disputes RLS	RLS	00071 適用	当事者 / 非当事者 で SELECT	当事者のみ SELECT / internal_note 隠蔽	RLS	supabase/migrations/00071	IT-182	不可						
+共通	結合	DB Migration: 00072 auto_unpublish trigger	trigger	00072 適用	unique IP 3 件で INSERT	moderation_status=unpublished 自動遷移	3 IP	supabase/migrations/00072	IT-183	不可						
+共通	結合	DB Migration: 00073 first_reminder_sent_at	timestamp	00073 適用	remind API 経由	first_reminder_sent_at セット	API	supabase/migrations/00073	IT-184	不可						
+共通	結合	DB Migration: 00074 receipts view	集計	00074 適用	view 参照	order_receipt_summary で effective_count 集計	view	supabase/migrations/00074	IT-185	不可						
+共通	結合	DB Migration: 00076 RPC cancel	atomic	00076 適用	SELECT cancel_order_with_refund(...)	RPC 経由で atomic 完了	RPC	supabase/migrations/00076	IT-186	不可						
+共通	結合	DB Migration: 00077 auto suspend RPC	atomic	00077 適用	SELECT auto_suspend_repeat_offender(...)	score>=15 で 停止	RPC	supabase/migrations/00077	IT-187	不可						
+共通	結合	DB Migration: 00077 resolve dispute RPC	atomic	00077 適用	SELECT resolve_dispute_with_ruling(...)	dispute resolved atomic	RPC	supabase/migrations/00077	IT-188	不可						
+共通	結合	DB Migration: 00078 creator_report_stats view	集計	00078 適用	view SELECT	集計値の正確性	view	supabase/migrations/00078	IT-189	不可						
+共通	結合	DB Migration: 00079 tags seed	seed	00079 適用	SELECT tags	ai_tool / genre / skill / industry 全カテゴリ seed	seed	supabase/migrations/00079	IT-190	不可						
+共通	結合	Middleware: is_active=false 強制ログアウト	forced signOut	middleware.ts	is_active=false profile で 任意ページ アクセス	middleware で signOut → topへ	is_active=false	src/lib/supabase/middleware.ts	IT-191	可	Claude Code	2026/07/22		OK		実装確認
+ログイン前	結合	Set-role API: rate limit	60秒 10 req 超過で 429	rate-limit 実装済	POST /api/auth/set-role を 11 回連打	11 回目が 429 (Retry-After ヘッダ付き)	同一 IP 11 連打	src/app/api/auth/set-role/route.ts	IT-192	可	Claude Code	2026/07/22		OK		checkRateLimit('set-role:'+ip, 10, 60) の呼出し実装確認
+ログイン前	結合	Set-role API: 表示名 サーバー再検証	Server 側 validate	OAuth metadata 悪意ある名前	POST /set-role	validateDisplayName で再検証 + reject	metadata	src/app/api/auth/set-role/route.ts	IT-193	可	Claude Code	2026/07/22		OK		実装確認
+ログイン前	結合	Set-role API: user_type = individual デフォルト	fallback	不正 or 未指定	POST	individual にフォールバック	invalid user_type	src/app/api/auth/set-role/route.ts	IT-194	可	Claude Code	2026/07/22		OK		実装確認
+ログイン前	結合	Set-role API: 既存 creator への user_type 更新	update	既 creator	POST /set-role { user_type:'corporate' }	update で変更	既 creator	src/app/api/auth/set-role/route.ts	IT-195	可	Claude Code	2026/07/22		OK		実装確認
+共通	結合	LINE auth callback	OAuth LINE	LINE 認証	OAuth callback	handle_new_user 発火 → profiles	LINE OAuth	src/app/api/auth/line/callback/route.ts	IT-196	不可						LINE 実接続必要
+共通	結合	Image proxy: 認可	SSRF 対策	public thumbs	GET /api/image-proxy	認証不要 (public thumbs) だが SSRF 対策	各種	src/app/api/image-proxy	IT-197	不可						
+共通	結合	Portfolio fix-thumbnails: admin/service_role	認可	admin	POST /api/portfolio/fix-thumbnails	admin のみ	admin	src/app/api/portfolio/fix-thumbnails/route.ts	IT-198	不可						
+共通	結合	Likes API: 認証必要	401	無 cookie	POST /api/likes	401	無 cookie	src/app/api/likes/route.ts	IT-199	不可						
+共通	結合	Reviews API: 検収完了案件のみ	条件	completed order のみ	POST /api/reviews	completed order のみ許可	completed	src/app/api/reviews/route.ts	IT-200	不可						
+【実装予定】	結合	【実装予定】Stripe 部分返金 実行 API	stripe.refunds.create	現在 DB snapshot のみ	POST /cancel 実行後	Stripe API refund 呼出し	キャンセル snapshot	src/app/api/orders/[id]/cancel/route.ts	IT-201	不可						現在 DB snapshot のみ、Stripe 実返金は未実装
+【実装予定】	結合	【実装予定】途中終了 2 段階同意フロー	pending_termination	現在は 1 発 API	途中終了申請	相手承認待ち pending_termination 中間状態	申請	src/app/api/orders/[id]/terminate/route.ts	IT-202	不可						現在は 1 発 API、承認待ち状態未実装
+【実装予定】	結合	【実装予定】異議申立フォーム	専用 UI	現在 support メール	異議申立ページ	フォーム UI で受付	申立	src/app/(main)/dashboard/appeals	IT-203	不可						現在は support@ailier.app への手動連絡
+【実装予定】	結合	【実装予定】評価・レビュー (星評価)	星評価復活	現在準備中	評価投稿	レビュー UI で 5 段階評価	評価	src/components/reviews	IT-204	不可						UI 上は 「準備中」表示
+【実装予定】	結合	【実装予定】自動マッチング アルゴリズム	推薦	現在手動のみ	クリエイター推薦 API	tags ベース推薦スコア返却	tags	src/lib/matching (未実装)	IT-205	不可						立ち上げ期は手動スカウトのみ
+【実装予定】	結合	【実装予定】messages への 通報	target_type 拡張	現在 portfolio_item のみ	POST /reports { target_type:'message' }	通報受付 + auto_unpublish	message	supabase/migrations	IT-206	不可						現在 portfolio_item のみ
+【実装予定】	結合	【実装予定】X (Twitter) OAuth	provider 追加	Google/LINE のみ	X OAuth ログイン	新規 auth 経路	X 認証	src/app/(auth)/register/page.tsx	IT-207	不可						Supabase Dashboard で有効化 + ボタン追加
+【実装予定】	結合	【実装予定】キャンセル料率 レンジ化 (0-10% / 80-100%)	運営裁定	現在 0/50/100 固定	裁定 API 経由の rate 指定	pre_start 0-10% / delivered 80-100% で override 可能	rate	src/lib/cancel-policy.ts	IT-208	不可						現在 0/50/100 固定
+【実装予定】	結合	【実装予定】管理画面での dispute 対応 (admin_status 遷移 UI)	遷移	現在 resolve のみ	admin	received → reviewing → resolved の中間遷移 UI	admin	src/app/(main)/admin/disputes/[id]	IT-209	不可						現在 resolve のみ (直接完了へ)
+【実装予定】	結合	【実装予定】creator_reliability_score 検索順位反映	信頼度 sort	現在は is_early_member でのみ	getCreators	penalty score も sort 反映	creators	src/lib/supabase/queries.ts	IT-210	不可						現在 is_early_member のみでソート
+【実装予定】	結合	【実装予定】OpenTelemetry 導入 (Vercel 準拠)	trace/logs	現在無効	@vercel/otel 導入	traces / logs 送信	otel	next.config	IT-211	不可						CLAUDE.md に推奨あり
+【実装予定】	結合	【実装予定】Web Analytics / Speed Insights	analytics	現在無効	Vercel Analytics 導入	dashboard に指標	analytics	package.json	IT-212	不可						CLAUDE.md に推奨あり
+【実装予定】	結合	【実装予定】AI Gateway 経由 モデル呼出し	AI 呼出し	現在直	AI_GATEWAY_API_KEY 使用	モデル routing	AI_GATEWAY	src/lib/ai	IT-213	不可						CLAUDE.md に推奨あり
+【実装予定】	結合	【実装予定】Vercel Blob 移行 (media)	大容量対応	Supabase Free 50MB 制約	Blob へ移行	>50MB ファイル対応	blob	src/app/api/upload	IT-214	不可						現在 Supabase Free tier 50MB 制約
+【実装予定】	結合	【実装予定】双方向 通知 auto-approve	push	現在 status のみ	auto-approve 発火	client + creator 両方に通知	auto-approve	src/app/api/cron/orders-auto-approve/route.ts	IT-215	不可						現在 status 遷移のみ、通知は今後
+【実装予定】	単体	【実装予定】safety-client Playwright suite	client 視点	現在 creator のみ	npm run e2e:safety client	client 視点の同等ガード検証	e2e	tests/e2e/safety	UT-120	不可						README に候補記載
+【実装予定】	単体	【実装予定】CI 化 (GitHub Actions で e2e:smoke)	CI	現在ローカルのみ	GitHub Actions workflow	PR 毎に auto 実行	CI	.github/workflows	UT-121	不可						未セットアップ
+【実装予定】	単体	【実装予定】視覚回帰 (toHaveScreenshot)	visual	現在無し	Playwright screenshot compare	main branch との差分検知	visual	tests/e2e	UT-122	不可						未セットアップ
