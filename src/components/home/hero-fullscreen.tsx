@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * 流し続ける Hero 用コンポーネント。
  *
  * 仕様 (axis-ov-films.co.jp 風):
- *  - 1 本の動画を最後まで再生 → onEnded で次のランダムな動画に切替
+ *  - 1 本 10 秒経過 or 再生終了 (どちらか早い方) で次のランダムな動画に切替
  *    (同じものが連続しないよう sample without replacement)
  *  - <video> は 1 要素のみ (重ね無し / "動画の上に動画を重ねない" 原則)
  *  - 切替時は黒からのフェードで継ぎ目を緩和 (opacity 0 → 1)
@@ -32,6 +32,9 @@ type Props = {
   /** 追加 className (高さ調整等) */
   className?: string;
 };
+
+// 1 本あたりの最大表示秒数。動画が長くてもこの秒数で強制切替。
+const MAX_SEGMENT_MS = 10_000;
 
 // Fisher–Yates シャッフル (in-place、返り値は新しい配列)
 function shuffle<T>(arr: T[]): T[] {
@@ -92,7 +95,7 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
     }
   }, [cursor, reducedMotion]);
 
-  const handleEnded = useCallback(() => {
+  const advance = useCallback(() => {
     if (reducedMotion) return;
     if (order.length <= 1) {
       // 1 本しか無いときはループ再生 (currentTime=0 で頭出し)
@@ -122,6 +125,16 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
     });
   }, [order, reducedMotion]);
 
+  // 10 秒経過で強制切替 (動画の長さに関わらず一定リズムで回す)。
+  // 動画終了 (onEnded → advance) が先に走った場合は cursor が変わり
+  // effect が再セットアップされるので、二重切替はしない。
+  useEffect(() => {
+    if (reducedMotion) return;
+    if (order.length <= 1) return;
+    const t = window.setTimeout(advance, MAX_SEGMENT_MS);
+    return () => window.clearTimeout(t);
+  }, [cursor, order, reducedMotion, advance]);
+
   const current = useMemo(() => order[cursor] ?? videos[0], [order, cursor, videos]);
 
   return (
@@ -140,7 +153,7 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
           playsInline
           preload="metadata"
           aria-hidden
-          onEnded={handleEnded}
+          onEnded={advance}
           // 2026-07-21 改修: 背景動画は装飾なので ユーザー操作 (右クリック / ドラッグ /
           //   iOS long-press メディアパネル) を全遮断。テキスト選択も無効化。
           controls={false}
