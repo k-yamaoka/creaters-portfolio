@@ -158,7 +158,7 @@ export function BasicInfoEditor({
           const { error: upErr } = await supabase.storage
             .from("avatars")
             .upload(path, pendingFile, {
-              cacheControl: "3600",
+              cacheControl: "2592000",
               upsert: true,
               contentType: pendingFile.type,
             });

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getCreators, getCurrentUser } from "@/lib/supabase/queries";
-import { fixMissingThumbnails } from "@/lib/video-thumbnail";
 import { extractHeroVideos } from "@/lib/hero-videos";
 import { createClient } from "@/lib/supabase/server";
 import { CreatorsPageClient } from "./creators-client";
@@ -15,9 +14,9 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function CreatorsPage() {
-  // Auto-fix missing thumbnails on page load
-  await fixMissingThumbnails();
-
+  // 旧: fixMissingThumbnails() を毎リクエスト実行していたが、外部 API
+  //     (Vimeo / TikTok / Instagram) を N 回叩き + DB を N 回 UPDATE する
+  //     ため egress の主犯だった。/api/cron/fix-thumbnails 日次 cron に移管。
   const [creators, user] = await Promise.all([
     getCreators(),
     getCurrentUser(),

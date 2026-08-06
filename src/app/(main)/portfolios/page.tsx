@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getCreators } from "@/lib/supabase/queries";
-import { fixMissingThumbnails } from "@/lib/video-thumbnail";
 import { extractHeroVideos } from "@/lib/hero-videos";
 import { createClient } from "@/lib/supabase/server";
 import { PortfoliosPageClient } from "./portfolios-client";
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function PortfoliosPage() {
-  await fixMissingThumbnails();
+  // fixMissingThumbnails は /api/cron/fix-thumbnails 日次 cron に移管
   const creators = await getCreators();
 
   // 現在のユーザーが「いいね」した portfolio_item_id 一覧

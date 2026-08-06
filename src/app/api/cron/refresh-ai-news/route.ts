@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { refreshAiNewsCache } from "@/lib/ai-news";
+import { fixMissingThumbnails } from "@/lib/video-thumbnail";
 
 /**
  * Vercel Cron から日次で叩かれるエンドポイント。
@@ -35,9 +36,13 @@ export async function GET(request: Request) {
   const startedAt = Date.now();
   try {
     const items = await refreshAiNewsCache();
+    // 旧: /creators と /portfolios の毎リクエストで叩いていた
+    //     fixMissingThumbnails を日次 cron に合流。egress 主犯対策。
+    const fixedThumbs = await fixMissingThumbnails();
     return NextResponse.json({
       ok: true,
       count: items.length,
+      fixedThumbnails: fixedThumbs,
       durationMs: Date.now() - startedAt,
     });
   } catch (e) {
