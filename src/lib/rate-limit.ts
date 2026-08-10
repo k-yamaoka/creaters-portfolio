@@ -1,24 +1,25 @@
 /**
- * 簡易 rate-limit ユーティリティ (プレースホルダー実装)。
+ * Rate-limit ユーティリティ。
  *
- * Vercel Functions は stateless + ephemeral (CLAUDE.md 参照) なので
- * メモリ上のカウンタは 1 リクエスト間しか保持されない。ここは
- * 開発中の "枠だけ用意" 実装で、本番運用時には Marketplace Redis
- * (Upstash 等) をバックに差し替える想定。
+ * ## 挙動
+ * - env に `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` があれば
+ *   Upstash Redis を使った sliding window rate limit を実行 (Vercel Serverless で
+ *   分散状態が保てる — 本番運用向け)。
+ * - 無ければメモリバケット (best-effort、リクエスト内でしか保たない)
+ *   にフォールバック — 開発中 / 本番未設定時の暫定挙動。
  *
- * 現状の挙動:
- *   - 同じキーに対する連続要求を軽く抑制するのみ
- *   - IP 単位で 60 秒に N 回まで、を宣言的に受け付ける
- *   - inMemory は best-effort。分散環境では機能しない
+ * ## 本番セットアップ
+ *   1. `vercel integration add upstash` (Vercel Marketplace 経由が最速)
+ *   2. 自動的に UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN が env に注入される
+ *   3. 再デプロイで有効化 — このファイルの コードは変更不要
  *
- * 差し替え時の TODO:
- *   1. Upstash Redis を Marketplace で provision
- *   2. `@upstash/ratelimit` の Ratelimit.slidingWindow を使う
- *   3. checkRateLimit() の実装を Upstash 版に差し替える (interface はそのまま)
+ * ## Import 遅延
+ * `@upstash/*` は Node の外部モジュール。env 無しだと使わないので、
+ * ファイル top level では import しない (dynamic import で 環境ある時だけ読む)。
  */
 
-type Bucket = { count: number; resetAt: number };
-const buckets = new Map<string, Bucket>();
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 export type RateLimitResult = {
   ok: boolean;
@@ -26,27 +27,56 @@ export type RateLimitResult = {
   retryAfterSec: number;
 };
 
-/**
- * key に対して windowSec 秒あたり limit 回まで許可する。
- *
- * @param key 識別キー (例: `register:ip:1.2.3.4`)
- * @param limit ウィンドウ内で許可する最大リクエスト数
- * @param windowSec ウィンドウ秒数
- */
-export function checkRateLimit(
+// --------------------- Upstash 実装 (本番) ---------------------
+
+let _upstashClient: Redis | null | undefined;
+function getUpstash(): Redis | null {
+  if (_upstashClient !== undefined) return _upstashClient;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    _upstashClient = null;
+    return null;
+  }
+  _upstashClient = new Redis({ url, token });
+  return _upstashClient;
+}
+
+// 同一パラメータの Ratelimit インスタンスを再利用 (毎回 new するのを避ける)。
+const rlCache = new Map<string, Ratelimit>();
+function getRatelimit(limit: number, windowSec: number): Ratelimit | null {
+  const redis = getUpstash();
+  if (!redis) return null;
+  const key = `${limit}:${windowSec}`;
+  const existing = rlCache.get(key);
+  if (existing) return existing;
+  const rl = new Ratelimit({
+    redis,
+    // sliding window は fixed window より公平で spike に強い
+    limiter: Ratelimit.slidingWindow(limit, `${windowSec} s`),
+    analytics: false,
+    prefix: "rl",
+  });
+  rlCache.set(key, rl);
+  return rl;
+}
+
+// --------------------- メモリ実装 (フォールバック) ---------------------
+
+type Bucket = { count: number; resetAt: number };
+const buckets = new Map<string, Bucket>();
+
+function checkRateLimitMemory(
   key: string,
   limit: number,
   windowSec: number
 ): RateLimitResult {
   const now = Date.now();
   const bucket = buckets.get(key);
-
   if (!bucket || bucket.resetAt <= now) {
-    const resetAt = now + windowSec * 1000;
-    buckets.set(key, { count: 1, resetAt });
+    buckets.set(key, { count: 1, resetAt: now + windowSec * 1000 });
     return { ok: true, remaining: limit - 1, retryAfterSec: 0 };
   }
-
   if (bucket.count >= limit) {
     return {
       ok: false,
@@ -54,13 +84,43 @@ export function checkRateLimit(
       retryAfterSec: Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)),
     };
   }
-
   bucket.count += 1;
-  return {
-    ok: true,
-    remaining: limit - bucket.count,
-    retryAfterSec: 0,
-  };
+  return { ok: true, remaining: limit - bucket.count, retryAfterSec: 0 };
+}
+
+// --------------------- 公開 API ---------------------
+
+/**
+ * key に対して windowSec 秒あたり limit 回まで許可する。
+ * Upstash 未設定なら メモリ版 (best-effort) にフォールバック。
+ *
+ * @param key 識別キー (例: `register:ip:1.2.3.4`)
+ * @param limit ウィンドウ内で許可する最大リクエスト数
+ * @param windowSec ウィンドウ秒数
+ */
+export async function checkRateLimit(
+  key: string,
+  limit: number,
+  windowSec: number
+): Promise<RateLimitResult> {
+  const rl = getRatelimit(limit, windowSec);
+  if (rl) {
+    try {
+      const res = await rl.limit(key);
+      const retryAfterSec = res.success
+        ? 0
+        : Math.max(1, Math.ceil((res.reset - Date.now()) / 1000));
+      return {
+        ok: res.success,
+        remaining: res.remaining,
+        retryAfterSec,
+      };
+    } catch (e) {
+      // Upstash 側の障害時はメモリ版に落ちる (best-effort でリクエストは通す)
+      console.error("[rate-limit] upstash failed, fallback to memory", e);
+    }
+  }
+  return checkRateLimitMemory(key, limit, windowSec);
 }
 
 /**

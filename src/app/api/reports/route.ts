@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
   }
 
   const ip = getClientIp(request.headers);
-  const rl = checkRateLimit(`report:${ip}`, 5, 24 * 3600);
+  const rl = await checkRateLimit(`report:${ip}`, 5, 24 * 3600);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "通報の送信回数が上限に達しています。しばらくお待ちください。" },

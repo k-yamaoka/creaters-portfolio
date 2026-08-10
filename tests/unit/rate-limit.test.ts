@@ -3,36 +3,37 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 // rate-limit はプロセス内 Map を使うので、テスト間で key を分けて衝突回避
 
-describe("checkRateLimit", () => {
-  it("最初のリクエストは通る", () => {
-    const r = checkRateLimit("k1", 3, 60);
+describe("checkRateLimit (memory fallback)", () => {
+  // Upstash env 未設定時のメモリ実装 fallback を検証。
+  it("最初のリクエストは通る", async () => {
+    const r = await checkRateLimit("k1", 3, 60);
     expect(r.ok).toBe(true);
     expect(r.remaining).toBe(2);
   });
-  it("limit 到達で 4 回目が block", () => {
-    checkRateLimit("k2", 3, 60);
-    checkRateLimit("k2", 3, 60);
-    checkRateLimit("k2", 3, 60);
-    const r = checkRateLimit("k2", 3, 60);
+  it("limit 到達で 4 回目が block", async () => {
+    await checkRateLimit("k2", 3, 60);
+    await checkRateLimit("k2", 3, 60);
+    await checkRateLimit("k2", 3, 60);
+    const r = await checkRateLimit("k2", 3, 60);
     expect(r.ok).toBe(false);
     expect(r.remaining).toBe(0);
     expect(r.retryAfterSec).toBeGreaterThan(0);
   });
-  it("別 key は独立", () => {
-    checkRateLimit("k3", 1, 60);
-    const r = checkRateLimit("k3-other", 1, 60);
+  it("別 key は独立", async () => {
+    await checkRateLimit("k3", 1, 60);
+    const r = await checkRateLimit("k3-other", 1, 60);
     expect(r.ok).toBe(true);
   });
-  it("windowSec 経過で reset (fake timers)", () => {
+  it("windowSec 経過で reset (fake timers)", async () => {
     vi.useFakeTimers();
     try {
       vi.setSystemTime(new Date("2026-07-21T00:00:00Z"));
-      checkRateLimit("k4", 1, 10);
-      const blocked = checkRateLimit("k4", 1, 10);
+      await checkRateLimit("k4", 1, 10);
+      const blocked = await checkRateLimit("k4", 1, 10);
       expect(blocked.ok).toBe(false);
       // 11 秒進めて reset
       vi.setSystemTime(new Date("2026-07-21T00:00:11Z"));
-      const reopened = checkRateLimit("k4", 1, 10);
+      const reopened = await checkRateLimit("k4", 1, 10);
       expect(reopened.ok).toBe(true);
     } finally {
       vi.useRealTimers();

@@ -30,7 +30,16 @@ export async function createNotification(opts: {
 }) {
   // migration 00081 で notifications INSERT は auth.uid()=user_id or admin に
   // 絞られたため、取引相手宛の通知を作成するには service_role が必要。
-  const supabase = getSupabaseAdmin();
+  // service key 未設定環境 (ローカルテスト等) では通知配信を skip し、呼出元は止めない。
+  let supabase: ReturnType<typeof getSupabaseAdmin>;
+  try {
+    supabase = getSupabaseAdmin();
+  } catch {
+    console.info(
+      "[createNotification/STUB] SUPABASE_SERVICE_ROLE_KEY 未設定のため in-app 通知 skip"
+    );
+    return;
+  }
   const { error } = await supabase.from("notifications").insert({
     user_id: opts.userId,
     type: opts.type,
@@ -60,7 +69,15 @@ export async function sendSystemMessage(opts: {
   content: string;
   orderId?: string;
 }) {
-  const supabase = getSupabaseAdmin();
+  let supabase: ReturnType<typeof getSupabaseAdmin>;
+  try {
+    supabase = getSupabaseAdmin();
+  } catch {
+    console.info(
+      "[sendSystemMessage/STUB] SUPABASE_SERVICE_ROLE_KEY 未設定のためシステムメッセージ skip"
+    );
+    return;
+  }
   const { error } = await supabase.from("messages").insert({
     sender_id: opts.senderUserId,
     receiver_id: opts.receiverUserId,

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   //   Vercel Functions は stateless なので best-effort だが、
   //   単一 lambda 内での連続 bot 登録は抑止できる。
   const ip = getClientIp(request.headers);
-  const rl = checkRateLimit(`set-role:${ip}`, 10, 60);
+  const rl = await checkRateLimit(`set-role:${ip}`, 10, 60);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "リクエストが多すぎます。しばらく待って再度お試しください。" },
