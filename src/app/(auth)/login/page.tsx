@@ -106,12 +106,20 @@ function LoginForm() {
             </div>
 
             <div>
-              <label
-                htmlFor="password"
-                className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
-              >
-                パスワード
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-[#4F4F4F]"
+                >
+                  パスワード
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-neon-pink hover:underline"
+                >
+                  パスワードをお忘れの方
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
