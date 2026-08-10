@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 /**
  * 外部チャネル（メール / LINE）への通知配信。
@@ -43,8 +43,10 @@ const resend = process.env.RESEND_API_KEY
  */
 export async function sendExternalNotification(p: Payload): Promise<void> {
   try {
-    const supabase = await createClient();
-    const { data: profile } = await supabase
+    // migration 00082 で email/phone は anon/authenticated から REVOKE 済み。
+    // 通知宛先 (自分以外の profile) を lookup するため service_role を使う。
+    const admin = getSupabaseAdmin();
+    const { data: profile } = await admin
       .from("profiles")
       .select(
         "id, email, display_name, line_user_id, notify_email, notify_line"

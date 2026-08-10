@@ -253,7 +253,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   return {
     id: user.id,
-    email: profile.email,
+    // migration 00082 で profiles.email は anon/authenticated からは REVOKE 済み。
+    // 自分自身の email は auth.users から取れるのでこちら経由で復元する。
+    email: profile.email ?? user.email ?? "",
     role: profile.role,
     display_name: profile.display_name,
     avatar_url: profile.avatar_url,
