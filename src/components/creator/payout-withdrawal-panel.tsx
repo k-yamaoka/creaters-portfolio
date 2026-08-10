@@ -56,13 +56,26 @@ export function PayoutWithdrawalPanel({
     setStatus("submitting");
     setMessage(null);
     try {
-      // 現時点は placeholder: Stripe Connect payout API 連携は次 PR
-      // 実装では POST /api/payouts/request { amount } → Stripe transfers.create
-      await new Promise((r) => setTimeout(r, 800));
+      const res = await fetch("/api/payouts/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: requestAmount }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        netAmount?: number;
+      };
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(data.error ?? "出金申請に失敗しました");
+        return;
+      }
       setStatus("done");
       setMessage(
-        `出金申請を受け付けました (¥${breakdown.netPayout.toLocaleString()} を Stripe Connect 経由でお振込)`
+        `出金申請を受け付けました (¥${(data.netAmount ?? breakdown.netPayout).toLocaleString()} を銀行口座に振込中)`
       );
+      // 数秒後にリロードして残高を再計算
+      setTimeout(() => window.location.reload(), 2500);
     } catch {
       setStatus("error");
       setMessage("出金申請に失敗しました。時間をおいて再度お試しください。");
