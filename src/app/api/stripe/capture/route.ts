@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe/server";
 import { computePayoutScheduleDate } from "@/lib/payout";
+import { createNotification } from "@/lib/notify";
 
 // Capture held payment on order completion
 export async function POST(request: NextRequest) {
@@ -110,6 +111,28 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+
+  // クリエイターに「検収完了 / 報酬確定」通知
+  const creatorUserId = (
+    order.creator as unknown as { stripe_account_id: string | null; user_id?: string } | null
+  ) as unknown as { user_id: string } | null;
+  // creator は select で user_id を fetch していない — 補完で取得
+  const { data: creatorRow } = await supabase
+    .from("creator_profiles")
+    .select("user_id")
+    .eq("id", order.creator_id)
+    .maybeSingle();
+  if (creatorRow?.user_id) {
+    await createNotification({
+      userId: creatorRow.user_id,
+      type: "order_status",
+      title: "検収完了 / 報酬が確定しました",
+      body: "発注者から検収完了の連絡がありました。報酬は入金予定日 (3 営業日後) に反映されます。",
+      link: `/dashboard/orders/${orderId}`,
+    });
+  }
+  // 未使用変数警告回避
+  void creatorUserId;
 
   return NextResponse.json({ success: true });
 }

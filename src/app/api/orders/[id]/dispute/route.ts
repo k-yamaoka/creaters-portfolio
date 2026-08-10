@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/notify";
+import { notifyAdmin } from "@/lib/admin-notify";
 
 /**
  * POST /api/orders/:id/dispute
@@ -152,6 +154,44 @@ export async function POST(
     .from("orders")
     .update({ active_dispute_id: created.id })
     .eq("id", orderId);
+
+  // 相手側に「運営裁定を申請されました」通知
+  const partnerUserId = isCreator ? clientUserId : creatorUserId;
+  if (partnerUserId) {
+    await createNotification({
+      userId: partnerUserId,
+      type: "order_status",
+      title: "運営裁定が申請されました",
+      body: `${isCreator ? "クリエイター" : "発注者"}側からトラブル解決の申請が運営に届きました。運営が確認中の間、取引の進行アクションは一時停止されます。`,
+      link: `/dashboard/orders/${orderId}`,
+    });
+  }
+
+  // 運営に通知
+  try {
+    await notifyAdmin({
+      kind: "escalation",
+      subjectPrefix: "【裁定申請】",
+      subject: `運営裁定 申請: ${category}`,
+      body:
+        `カテゴリ: ${category}\n` +
+        `申請者: ${isCreator ? "creator" : "client"}\n` +
+        `理由:\n${reason}\n`,
+      fields: [
+        { label: "カテゴリ", value: category },
+        { label: "申請者", value: isCreator ? "creator" : "client" },
+      ],
+      actions: [
+        {
+          label: "裁定画面へ",
+          path: `/admin/disputes/${created.id}`,
+          style: "primary",
+        },
+      ],
+    });
+  } catch (e) {
+    console.error("[orders/dispute] notifyAdmin failed", e);
+  }
 
   revalidatePath(`/dashboard/orders/${orderId}`);
   return NextResponse.json({ ok: true, dispute_id: created.id });

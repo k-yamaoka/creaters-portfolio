@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   sendExternalNotification,
   type ExternalNotificationKind,
@@ -28,7 +28,9 @@ export async function createNotification(opts: {
   body?: string;
   link?: string;
 }) {
-  const supabase = await createClient();
+  // migration 00081 で notifications INSERT は auth.uid()=user_id or admin に
+  // 絞られたため、取引相手宛の通知を作成するには service_role が必要。
+  const supabase = getSupabaseAdmin();
   const { error } = await supabase.from("notifications").insert({
     user_id: opts.userId,
     type: opts.type,
@@ -58,7 +60,7 @@ export async function sendSystemMessage(opts: {
   content: string;
   orderId?: string;
 }) {
-  const supabase = await createClient();
+  const supabase = getSupabaseAdmin();
   const { error } = await supabase.from("messages").insert({
     sender_id: opts.senderUserId,
     receiver_id: opts.receiverUserId,

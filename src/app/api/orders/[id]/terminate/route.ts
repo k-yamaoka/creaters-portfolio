@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/notify";
 
 /**
  * POST /api/orders/:id/terminate
@@ -128,6 +129,18 @@ export async function POST(
       { error: "他のセッションで状態が変更されました" },
       { status: 409 }
     );
+  }
+
+  // 相手側に途中終了通知
+  const partnerUserId = isCreator ? clientUserId : creatorUserId;
+  if (partnerUserId) {
+    await createNotification({
+      userId: partnerUserId,
+      type: "order_status",
+      title: "取引が途中終了されました",
+      body: `${isCreator ? "クリエイター" : "発注者"}側の申請により、この取引は途中終了となりました。仮払いは全額返金されます。詳細は取引画面をご確認ください。`,
+      link: `/dashboard/orders/${orderId}`,
+    });
   }
 
   revalidatePath(`/dashboard/orders/${orderId}`);

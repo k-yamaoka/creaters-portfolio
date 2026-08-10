@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { canSubmitDelivery, deriveFlowState } from "@/lib/order-flow";
+import { createNotification } from "@/lib/notify";
 
 /**
  * POST /api/orders/:id/deliver
@@ -121,6 +122,19 @@ export async function POST(
       },
       { status: 409 }
     );
+  }
+
+  // 発注者 (client) に「納品が届きました」通知 — in-app + Email/LINE
+  const clientUserId = (order.client as unknown as { user_id: string } | null)
+    ?.user_id;
+  if (clientUserId) {
+    await createNotification({
+      userId: clientUserId,
+      type: "order_status",
+      title: "納品が届きました",
+      body: "クリエイターから納品されました。7 日以内に検収を完了してください (未対応の場合は自動検収されます)。",
+      link: `/dashboard/orders/${orderId}`,
+    });
   }
 
   revalidatePath(`/dashboard/orders/${orderId}`);

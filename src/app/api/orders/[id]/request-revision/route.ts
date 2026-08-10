@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { evaluateRevisionState } from "@/lib/order-flow";
+import { createNotification } from "@/lib/notify";
 
 /**
  * POST /api/orders/:id/request-revision
@@ -149,6 +150,19 @@ export async function POST(
   const warning = willBeLast
     ? "これが最後の無償修正です。次回以降は追加発注 (別料金) の対象です。"
     : currentState.warning;
+
+  // クリエイターに 修正依頼通知
+  if (creatorUserId) {
+    await createNotification({
+      userId: creatorUserId,
+      type: "order_status",
+      title: `修正依頼が届きました (${nextUsed}/${maxRev} 回目)`,
+      body: willBeLast
+        ? "⚠️ これが最後の無償修正です。次回以降は追加発注 (別料金) の対象になります。"
+        : `残り無償修正回数: ${maxRev - nextUsed} 回。`,
+      link: `/dashboard/orders/${orderId}`,
+    });
+  }
 
   return NextResponse.json({
     ok: true,

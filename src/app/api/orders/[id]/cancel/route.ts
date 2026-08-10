@@ -6,6 +6,7 @@ import {
   stageFromOrderStatus,
 } from "@/lib/cancel-policy";
 import type { OrderStatus } from "@/lib/order-status";
+import { createNotification } from "@/lib/notify";
 
 /**
  * POST /api/orders/:id/cancel
@@ -159,6 +160,19 @@ export async function POST(
       { error: "キャンセル処理に失敗しました" },
       { status: 500 }
     );
+  }
+
+  // 相手側 (キャンセル実行者ではない方) に通知
+  const actorIsClient = clientUserId === user.id;
+  const partnerUserId = actorIsClient ? creatorUserId : clientUserId;
+  if (partnerUserId) {
+    await createNotification({
+      userId: partnerUserId,
+      type: "order_status",
+      title: "取引がキャンセルされました",
+      body: `${actorIsClient ? "発注者" : "クリエイター"}側からキャンセル申請が実行されました。返金額 ¥${breakdown.refundAmount.toLocaleString()} / クリエイター補償 ¥${breakdown.creatorPayout.toLocaleString()} (段階: ${breakdown.stage})。詳細は取引画面をご確認ください。`,
+      link: `/dashboard/orders/${orderId}`,
+    });
   }
 
   revalidatePath(`/dashboard/orders/${orderId}`);
