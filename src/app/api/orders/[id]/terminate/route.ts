@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "@/lib/notify";
+import { refundOrRelease } from "@/lib/stripe/refund";
 
 /**
  * POST /api/orders/:id/terminate
@@ -58,7 +59,7 @@ export async function POST(
   const { data: order } = await supabase
     .from("orders")
     .select(
-      `id, status, escrow_status, terminated_at, base_price,
+      `id, status, escrow_status, terminated_at, base_price, stripe_payment_intent_id,
        client:client_profiles!orders_client_id_fkey ( user_id ),
        creator:creator_profiles!orders_creator_id_fkey ( user_id )`
     )
@@ -129,6 +130,35 @@ export async function POST(
       { error: "他のセッションで状態が変更されました" },
       { status: 409 }
     );
+  }
+
+  // Stripe 側にも 100% 返金 (途中終了 = 全額 client 返金)
+  if (order.stripe_payment_intent_id && (order.base_price ?? 0) > 0) {
+    try {
+      const result = await refundOrRelease({
+        paymentIntentId: order.stripe_payment_intent_id,
+        refundAmount: order.base_price ?? 0,
+        reason: "terminate",
+      });
+      console.info(
+        `[orders/terminate] stripe ${result.action} pi=${order.stripe_payment_intent_id}`
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "unknown";
+      console.error(
+        `[orders/terminate] stripe refund FAILED pi=${order.stripe_payment_intent_id} error=${msg}`
+      );
+      try {
+        const { notifyAdmin } = await import("@/lib/admin-notify");
+        await notifyAdmin({
+          kind: "escalation",
+          subjectPrefix: "【緊急/返金失敗】",
+          subject: "terminate: Stripe 100% 返金失敗",
+          body: `Order: ${orderId}\nPI: ${order.stripe_payment_intent_id}\nError: ${msg}`,
+          actions: [{ label: "取引を確認", path: `/admin/orders/${orderId}`, style: "danger" }],
+        });
+      } catch {}
+    }
   }
 
   // 相手側に途中終了通知

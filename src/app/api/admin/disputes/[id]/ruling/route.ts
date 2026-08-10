@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { sendExternalNotification } from "@/lib/notify-external";
+import { refundOrRelease } from "@/lib/stripe/refund";
 import { revalidatePath } from "next/cache";
 
 /**
@@ -150,12 +151,62 @@ export async function POST(
     .from("disputes")
     .select(
       `id, order_id, orders:order_id (
-        title, client:client_profiles!orders_client_id_fkey ( user_id ),
+        title, base_price, stripe_payment_intent_id,
+        client:client_profiles!orders_client_id_fkey ( user_id ),
         creator:creator_profiles!orders_creator_id_fkey ( user_id )
       )`
     )
     .eq("id", disputeId)
     .maybeSingle();
+
+  // partial_refund / full_refund は Stripe 実返金も実行
+  if (rulingType === "partial_refund" || rulingType === "full_refund") {
+    const orderInfo = (
+      dispute as unknown as {
+        orders?: {
+          base_price?: number;
+          stripe_payment_intent_id?: string | null;
+        };
+      } | null
+    )?.orders;
+    const piId = orderInfo?.stripe_payment_intent_id;
+    const basePrice = orderInfo?.base_price ?? 0;
+    const refundAmount = Math.round(basePrice * (rate ?? 0));
+    if (piId && refundAmount > 0) {
+      try {
+        const result = await refundOrRelease({
+          paymentIntentId: piId,
+          refundAmount,
+          reason: "dispute_ruling",
+        });
+        console.info(
+          `[admin/dispute/ruling] stripe ${result.action} pi=${piId} amount=${refundAmount}`
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "unknown";
+        console.error(
+          `[admin/dispute/ruling] stripe refund FAILED pi=${piId} amount=${refundAmount} error=${msg}`
+        );
+        try {
+          const { notifyAdmin } = await import("@/lib/admin-notify");
+          await notifyAdmin({
+            kind: "escalation",
+            subjectPrefix: "【緊急/返金失敗】",
+            subject: "裁定確定後の Stripe 返金が失敗",
+            body:
+              `Dispute: ${disputeId}\n` +
+              `PI: ${piId}\n` +
+              `Rate: ${rate} (¥${refundAmount.toLocaleString()})\n` +
+              `Error: ${msg}\n\n` +
+              `DB 側は裁定確定済み。Stripe Dashboard で手動 refund が必要。`,
+            actions: [
+              { label: "裁定画面へ", path: `/admin/disputes/${disputeId}`, style: "danger" },
+            ],
+          });
+        } catch {}
+      }
+    }
+  }
   const order = (
     dispute as unknown as {
       orders?: {

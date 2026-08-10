@@ -7,6 +7,7 @@ import {
 } from "@/lib/cancel-policy";
 import type { OrderStatus } from "@/lib/order-status";
 import { createNotification } from "@/lib/notify";
+import { refundOrRelease } from "@/lib/stripe/refund";
 
 /**
  * POST /api/orders/:id/cancel
@@ -48,7 +49,7 @@ export async function POST(
   const { data: order } = await supabase
     .from("orders")
     .select(
-      `id, status, base_price,
+      `id, status, base_price, stripe_payment_intent_id,
        client:client_profiles!orders_client_id_fkey ( user_id ),
        creator:creator_profiles!orders_creator_id_fkey ( user_id )`
     )
@@ -160,6 +161,47 @@ export async function POST(
       { error: "キャンセル処理に失敗しました" },
       { status: 500 }
     );
+  }
+
+  // Stripe 側にも実返金を投げる (DB との整合を最優先)。
+  // 失敗しても DB は cancelled 状態のまま。運営に手動対応を要請するため
+  // console.error で残す (Sentry/Slack 連携は Phase2 で追加)。
+  if (order.stripe_payment_intent_id && breakdown.refundAmount > 0) {
+    try {
+      const result = await refundOrRelease({
+        paymentIntentId: order.stripe_payment_intent_id,
+        refundAmount: breakdown.refundAmount,
+        reason: "cancel",
+      });
+      console.info(
+        `[orders/cancel] stripe ${result.action} ok pi=${order.stripe_payment_intent_id} amount=${breakdown.refundAmount}`
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "unknown";
+      console.error(
+        `[orders/cancel] stripe refund FAILED pi=${order.stripe_payment_intent_id} amount=${breakdown.refundAmount} error=${msg}`
+      );
+      // 運営に緊急通知 (dispute と同じ枠組み)
+      try {
+        const { notifyAdmin } = await import("@/lib/admin-notify");
+        await notifyAdmin({
+          kind: "escalation",
+          subjectPrefix: "【緊急/返金失敗】",
+          subject: "cancel: Stripe 返金失敗 — 手動対応要",
+          body:
+            `Order: ${orderId}\n` +
+            `PaymentIntent: ${order.stripe_payment_intent_id}\n` +
+            `Refund Amount: ¥${breakdown.refundAmount.toLocaleString()}\n` +
+            `Error: ${msg}\n\n` +
+            `DB 側は cancelled に確定済み。Stripe Dashboard で手動 refund が必要。`,
+          actions: [
+            { label: "取引を確認", path: `/admin/orders/${orderId}`, style: "danger" },
+          ],
+        });
+      } catch (nErr) {
+        console.error("[orders/cancel] notifyAdmin failed", nErr);
+      }
+    }
   }
 
   // 相手側 (キャンセル実行者ではない方) に通知
