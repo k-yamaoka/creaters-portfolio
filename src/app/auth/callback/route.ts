@@ -4,10 +4,23 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { isEmailBlocked } from "@/lib/account-blocklist";
 import { revalidatePath } from "next/cache";
 
+/**
+ * next パラメータの Open Redirect 対策。
+ * "/" で始まり "//" or "/\" で始まらない (プロトコル相対 URL 除外)、
+ * かつ改行制御文字を含まないパスのみ許可する。それ以外は "/" にフォールバック。
+ */
+function safeNextPath(raw: string | null): string {
+  if (!raw) return "/";
+  if (!raw.startsWith("/")) return "/";
+  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/";
+  if (/[\r\n]/.test(raw)) return "/";
+  return raw;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const next = safeNextPath(searchParams.get("next"));
 
   if (code) {
     const supabase = await createClient();

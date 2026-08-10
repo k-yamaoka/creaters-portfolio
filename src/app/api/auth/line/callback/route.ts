@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
     // 2. Extract user info from id_token
     let email: string | undefined;
     let displayName = "LINE User";
+    let lineUserId: string | undefined;
 
     if (tokens.id_token) {
       const payload = JSON.parse(
@@ -54,6 +55,9 @@ export async function GET(request: NextRequest) {
       );
       email = payload.email;
       displayName = payload.name || email?.split("@")[0] || "LINE User";
+      // sub は LINE 側の user ID (U で始まる 33 文字)。LINE Push API で
+      // 通知を送るのに必要なので profiles.line_user_id に保存する。
+      lineUserId = typeof payload.sub === "string" ? payload.sub : undefined;
     }
 
     // 3. Fallback: get profile from LINE API
@@ -128,6 +132,21 @@ export async function GET(request: NextRequest) {
 
     if (verifyError) {
       return NextResponse.redirect(`${origin}/login?error=verify_failed`);
+    }
+
+    // LINE Push 通知の宛先として line_user_id を保存する。
+    // 既存プロフィールなら email で引き当てて UPDATE、新規なら handle_new_user
+    // trigger で行が作成された直後なので UPDATE できる。
+    if (lineUserId) {
+      try {
+        await supabaseAdmin
+          .from("profiles")
+          .update({ line_user_id: lineUserId })
+          .eq("email", email);
+      } catch (e) {
+        // 通知先保存の失敗はログインを止める理由にならないので握りつぶす
+        console.error("[line-callback] line_user_id save failed", e);
+      }
     }
 
     revalidatePath("/", "layout");

@@ -52,13 +52,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Capture the held payment if PaymentIntent exists
+  // Capture the held payment if PaymentIntent exists.
+  // 「二重 capture」を安全に受け流すため、Stripe が返す "already captured" 系の
+  // エラーコードだけは continue し、それ以外 (カード拒否 / 通信障害 等) は
+  // 500 で 中断して DB を released に遷移させない (money-vs-DB 不整合を避ける)。
   if (order.stripe_payment_intent_id) {
     try {
       await getStripe().paymentIntents.capture(order.stripe_payment_intent_id);
-    } catch {
-      // Continue even if capture fails (may already be captured)
-      // 詳細は Stripe ダッシュボード側で確認すること
+    } catch (err) {
+      const stripeErr = err as { code?: string; type?: string; message?: string };
+      const alreadyCaptured =
+        stripeErr?.code === "payment_intent_unexpected_state" ||
+        /already been captured/i.test(stripeErr?.message ?? "");
+      if (!alreadyCaptured) {
+        console.error("[stripe/capture] capture failed", {
+          orderId,
+          code: stripeErr?.code,
+          type: stripeErr?.type,
+          message: stripeErr?.message,
+        });
+        return NextResponse.json(
+          { error: "決済の確定に失敗しました。時間をおいて再試行してください。" },
+          { status: 502 }
+        );
+      }
     }
   }
 

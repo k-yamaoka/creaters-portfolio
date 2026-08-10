@@ -126,12 +126,61 @@ export async function POST(request: NextRequest) {
       }
 
       case "charge.dispute.created": {
-        // 担当者通知用のフックポイント (現状はログのみ)
         const dispute = event.data.object as Stripe.Dispute;
+        const chargeId =
+          typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id;
         console.error(
-          `[stripe-webhook] DISPUTE on charge ${dispute.charge}: ${dispute.reason}`
+          `[stripe-webhook] DISPUTE on charge ${chargeId}: ${dispute.reason}`
         );
-        // TODO: notifications テーブル経由で管理者に通知
+        // 該当 order を逆引き (dispute は PaymentIntent 経由で紐付く)
+        const piId =
+          typeof dispute.payment_intent === "string"
+            ? dispute.payment_intent
+            : dispute.payment_intent?.id;
+        let orderId: string | undefined;
+        if (piId) {
+          const { data: ord } = await supabase
+            .from("orders")
+            .select("id, title")
+            .eq("stripe_payment_intent_id", piId)
+            .single();
+          orderId = ord?.id;
+        }
+        try {
+          const { notifyAdmin } = await import("@/lib/admin-notify");
+          await notifyAdmin({
+            kind: "escalation",
+            subjectPrefix: "【緊急/チャージバック】",
+            subject: `Stripe dispute 発生 (reason: ${dispute.reason})`,
+            body:
+              `カード会社経由のチャージバックが発生しました。\n\n` +
+              `理由: ${dispute.reason}\n` +
+              `金額: ${dispute.amount} ${dispute.currency}\n` +
+              `Charge: ${chargeId ?? "不明"}\n` +
+              `PaymentIntent: ${piId ?? "不明"}\n` +
+              (orderId ? `Order: ${orderId}\n` : "") +
+              `\n証拠提出期限: ${
+                dispute.evidence_details?.due_by
+                  ? new Date(dispute.evidence_details.due_by * 1000).toLocaleString("ja-JP")
+                  : "Stripe ダッシュボードを確認"
+              }`,
+            fields: [
+              { label: "理由", value: dispute.reason },
+              { label: "ステータス", value: dispute.status },
+            ],
+            actions: orderId
+              ? [
+                  {
+                    label: "取引を確認",
+                    path: `/admin/orders/${orderId}`,
+                    style: "danger",
+                  },
+                ]
+              : [],
+          });
+        } catch (e) {
+          console.error("[stripe-webhook] notifyAdmin failed", e);
+        }
         break;
       }
     }
