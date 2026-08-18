@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 // 2026-06-22 Section 8 パフォ: Google Fonts CSS (<link>) は render-blocking で
 // mobile Lighthouse の Speed Index を ~1.5s 悪化させていた。next/font/google で
 // セルフホスト化し、preconnect も不要に。CSS 変数で tailwind に注入する。
@@ -100,6 +102,9 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-paper font-sans text-ink antialiased">
         {children}
+        {/* Vercel の pageview / Core Web Vitals 計測。Dashboard で有効化必要 */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

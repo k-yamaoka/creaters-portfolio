@@ -35,13 +35,13 @@ const SECURITY_HEADERS = [
       "base-uri 'self'",
       "form-action 'self'",
       // Next.js SSR 用に 'unsafe-inline'/'unsafe-eval' を許容 (本番では nonce 化が望ましい)
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       // 動画サムネ / アバター: Supabase Storage, YouTube, Vimeo, Unsplash
       "img-src 'self' data: blob: https:",
       // Supabase Realtime (wss) / Supabase REST (https) / Stripe API
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://ai-gateway.vercel.sh",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://ai-gateway.vercel.sh https://vitals.vercel-insights.com",
       // 埋め込みプレイヤー
       "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://js.stripe.com https://hooks.stripe.com",
       "media-src 'self' https: blob:",
