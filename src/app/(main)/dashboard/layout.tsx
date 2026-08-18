@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
@@ -7,6 +8,11 @@ import { Sidebar } from "@/components/dashboard/sidebar";
 // Vercel がページプリレンダリングしないよう force-dynamic。
 // (これがないと "PRERENDER" キャッシュにより最新コードが反映されない問題が起きる)
 export const dynamic = "force-dynamic";
+
+// 検索エンジンにインデックスさせない (private area)
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function DashboardLayout({
   children,

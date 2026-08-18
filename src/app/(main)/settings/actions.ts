@@ -5,6 +5,25 @@ import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { createHash } from "node:crypto";
 
+/**
+ * 現パスワードを検証する。セッションハイジャック時の資格情報乗っ取りを防ぐため、
+ * password / email 変更前に呼び出す。
+ * Supabase Auth に「reauthenticate」相当の API は無いため、
+ * `signInWithPassword` で現在のメール + 入力パスワードを検証。
+ */
+async function verifyCurrentPassword(
+  email: string,
+  currentPassword: string
+): Promise<boolean> {
+  if (!email || !currentPassword) return false;
+  const admin = getSupabaseAdmin();
+  const { error } = await admin.auth.signInWithPassword({
+    email,
+    password: currentPassword,
+  });
+  return !error;
+}
+
 export async function updatePassword(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -12,8 +31,13 @@ export async function updatePassword(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const currentPassword = formData.get("current_password") as string;
   const newPassword = formData.get("new_password") as string;
   const confirmPassword = formData.get("confirm_password") as string;
+
+  if (!currentPassword) {
+    return { error: "現在のパスワードを入力してください" };
+  }
 
   if (newPassword.length < 6) {
     return { error: "パスワードは6文字以上で設定してください" };
@@ -21,6 +45,18 @@ export async function updatePassword(formData: FormData) {
 
   if (newPassword !== confirmPassword) {
     return { error: "パスワードが一致しません" };
+  }
+
+  // 現パスワード検証 (OAuth 経由ユーザーは email が無いので skip 不可 → エラー)
+  if (!user.email) {
+    return {
+      error:
+        "SNS 経由のログインのため、パスワード変更は行えません (プロバイダ側で変更してください)",
+    };
+  }
+  const ok = await verifyCurrentPassword(user.email, currentPassword);
+  if (!ok) {
+    return { error: "現在のパスワードが正しくありません" };
   }
 
   const { error } = await supabase.auth.updateUser({
@@ -41,10 +77,26 @@ export async function updateEmail(formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const currentPassword = formData.get("current_password") as string;
   const newEmail = formData.get("new_email") as string;
 
   if (!newEmail || !newEmail.includes("@")) {
     return { error: "有効なメールアドレスを入力してください" };
+  }
+
+  // 現パスワード検証 (OAuth のみユーザーは email + パスワード無し想定 → skip 不可)
+  if (!user.email) {
+    return {
+      error:
+        "SNS 経由のログインのため、メールアドレス変更は行えません (プロバイダ側で変更してください)",
+    };
+  }
+  if (!currentPassword) {
+    return { error: "現在のパスワードを入力してください" };
+  }
+  const ok = await verifyCurrentPassword(user.email, currentPassword);
+  if (!ok) {
+    return { error: "現在のパスワードが正しくありません" };
   }
 
   const { error } = await supabase.auth.updateUser({

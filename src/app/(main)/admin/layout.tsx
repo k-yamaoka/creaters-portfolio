@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+
+// 管理画面は絶対に検索エンジンに載せない
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, googleBot: { index: false } },
+};
 
 const adminLinks = [
   { href: "/admin", label: "ダッシュボード" },

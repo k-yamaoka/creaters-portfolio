@@ -84,6 +84,22 @@ export function SettingsForm({ email }: { email: string }) {
               placeholder="new@example.com"
             />
           </div>
+          <div>
+            <label
+              htmlFor="email_current_password"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              現在のパスワード <span className="text-xs text-[#828282]">(本人確認のため)</span>
+            </label>
+            <input
+              id="email_current_password"
+              name="current_password"
+              type="password"
+              required
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              autoComplete="current-password"
+            />
+          </div>
           <button
             type="submit"
             disabled={saving}
@@ -113,6 +129,22 @@ export function SettingsForm({ email }: { email: string }) {
         <form action={handlePasswordSubmit} className="mt-4 space-y-4">
           <div>
             <label
+              htmlFor="password_current"
+              className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
+            >
+              現在のパスワード <span className="text-xs text-[#828282]">(本人確認のため)</span>
+            </label>
+            <input
+              id="password_current"
+              name="current_password"
+              type="password"
+              required
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              autoComplete="current-password"
+            />
+          </div>
+          <div>
+            <label
               htmlFor="new_password"
               className="mb-1.5 block text-sm font-medium text-[#4F4F4F]"
             >
@@ -126,6 +158,7 @@ export function SettingsForm({ email }: { email: string }) {
               minLength={6}
               className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               placeholder="6文字以上"
+              autoComplete="new-password"
             />
           </div>
           <div>
