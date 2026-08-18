@@ -15,6 +15,7 @@ const adminLinks = [
   { href: "/admin/orders", label: "取引・売上管理" },
   { href: "/admin/disputes", label: "運営裁定" },
   { href: "/admin/moderation", label: "モデレーション" },
+  { href: "/admin/masters", label: "マスター管理" },
 ];
 
 export default async function AdminLayout({
