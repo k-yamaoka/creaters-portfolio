@@ -24,6 +24,10 @@
     {
       "path": "/api/cron/suspend-repeat-offenders",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/pending-reports-reminder",
+      "schedule": "0 1 * * *"
     }
   ]
 }
