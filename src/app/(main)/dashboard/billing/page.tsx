@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice, formatDateJP } from "@/lib/utils";
 import { getStatusMeta } from "@/lib/order-status";
+import { CustomerPortalButton } from "@/components/billing/customer-portal-button";
 
 export const dynamic = "force-dynamic";
 
@@ -52,10 +53,15 @@ export default async function BillingPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#222]">支払い・請求管理</h1>
-      <p className="mt-2 text-sm text-[#828282]">
-        発注した取引の支払い状況・請求情報を確認できます
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-[#222]">支払い・請求管理</h1>
+          <p className="mt-2 text-sm text-[#828282]">
+            発注した取引の支払い状況・請求情報を確認できます
+          </p>
+        </div>
+        <CustomerPortalButton />
+      </div>
 
       {/* サマリーカード 3 つ */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">

@@ -63,29 +63,38 @@ export default async function AdminOrdersPage({
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h2 className="text-2xl font-bold text-[#222]">取引・売上管理</h2>
-        <form method="GET" className="flex items-center gap-2 text-sm">
-          <select
-            name="status"
-            defaultValue={statusFilter}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        <div className="flex flex-wrap items-center gap-2">
+          <form method="GET" className="flex items-center gap-2 text-sm">
+            <select
+              name="status"
+              defaultValue={statusFilter}
+              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            >
+              <option value="">全 status</option>
+              <option value="consultation">相談中</option>
+              <option value="quoting">見積提示</option>
+              <option value="contract">契約 (仮払い前)</option>
+              <option value="data_sharing">データ共有中</option>
+              <option value="production">制作中</option>
+              <option value="revision">修正中</option>
+              <option value="delivered">納品済</option>
+              <option value="cancelled">キャンセル</option>
+            </select>
+            <button
+              type="submit"
+              className="rounded-lg bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
+            >
+              絞込
+            </button>
+          </form>
+          <a
+            href={`/api/admin/orders/export${statusFilter ? `?status=${statusFilter}` : ""}`}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium hover:bg-gray-50"
+            download
           >
-            <option value="">全 status</option>
-            <option value="consultation">相談中</option>
-            <option value="quoting">見積提示</option>
-            <option value="contract">契約 (仮払い前)</option>
-            <option value="data_sharing">データ共有中</option>
-            <option value="production">制作中</option>
-            <option value="revision">修正中</option>
-            <option value="delivered">納品済</option>
-            <option value="cancelled">キャンセル</option>
-          </select>
-          <button
-            type="submit"
-            className="rounded-lg bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
-          >
-            絞込
-          </button>
-        </form>
+            📥 CSV ダウンロード
+          </a>
+        </div>
       </div>
 
       {/* Summary cards */}
