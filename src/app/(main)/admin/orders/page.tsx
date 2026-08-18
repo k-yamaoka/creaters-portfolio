@@ -3,10 +3,32 @@ import { formatPrice, formatDateJP } from "@/lib/utils";
 import { getStatusMeta } from "@/lib/order-status";
 import Link from "next/link";
 
-export default async function AdminOrdersPage() {
-  const supabase = await createClient();
+const PAGE_SIZE = 50;
 
-  const { data: orders } = await supabase
+type SearchParams = Promise<{
+  page?: string;
+  status?: string;
+}>;
+
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const supabase = await createClient();
+  const params = await searchParams;
+  const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+  const statusFilter = params.status?.trim() ?? "";
+
+  // ─── サマリー (全件集計、ページとは独立に総額を出す) ───
+  const { data: allForSum } = await supabase
+    .from("orders")
+    .select("total_amount, platform_fee");
+  const totalAmount = allForSum?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
+  const totalFees = allForSum?.reduce((s, o) => s + o.platform_fee, 0) ?? 0;
+
+  // ─── 一覧クエリ ───
+  let query = supabase
     .from("orders")
     .select(
       `
@@ -17,24 +39,61 @@ export default async function AdminOrdersPage() {
       client:client_profiles!orders_client_id_fkey (
         profiles!client_profiles_user_id_fkey ( display_name )
       )
-    `
+    `,
+      { count: "exact" }
     )
     .order("created_at", { ascending: false });
+  if (statusFilter) query = query.eq("status", statusFilter);
 
-  // Summary
-  const totalAmount = orders?.reduce((s, o) => s + o.total_amount, 0) ?? 0;
-  const totalFees = orders?.reduce((s, o) => s + o.platform_fee, 0) ?? 0;
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
+  const { data: orders, count } = await query.range(from, to);
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const linkFor = (p: number) => {
+    const sp = new URLSearchParams();
+    if (p > 1) sp.set("page", String(p));
+    if (statusFilter) sp.set("status", statusFilter);
+    const s = sp.toString();
+    return s ? `/admin/orders?${s}` : "/admin/orders";
+  };
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-[#222]">取引・売上管理</h2>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h2 className="text-2xl font-bold text-[#222]">取引・売上管理</h2>
+        <form method="GET" className="flex items-center gap-2 text-sm">
+          <select
+            name="status"
+            defaultValue={statusFilter}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          >
+            <option value="">全 status</option>
+            <option value="consultation">相談中</option>
+            <option value="quoting">見積提示</option>
+            <option value="contract">契約 (仮払い前)</option>
+            <option value="data_sharing">データ共有中</option>
+            <option value="production">制作中</option>
+            <option value="revision">修正中</option>
+            <option value="delivered">納品済</option>
+            <option value="cancelled">キャンセル</option>
+          </select>
+          <button
+            type="submit"
+            className="rounded-lg bg-gray-900 px-4 py-2 text-white hover:bg-gray-800"
+          >
+            絞込
+          </button>
+        </form>
+      </div>
 
       {/* Summary cards */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl bg-white p-5 shadow-card">
           <p className="text-sm text-[#828282]">総取引件数</p>
           <p className="mt-1 text-2xl font-bold text-[#222]">
-            {orders?.length ?? 0}件
+            {total.toLocaleString()}件
           </p>
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-card">
@@ -152,6 +211,31 @@ export default async function AdminOrdersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ページネーション */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm">
+          {page > 1 && (
+            <Link
+              href={linkFor(page - 1)}
+              className="rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50"
+            >
+              ← 前へ
+            </Link>
+          )}
+          <span className="px-3 py-2 text-gray-500">
+            {page} / {totalPages} ページ ({total.toLocaleString()} 件)
+          </span>
+          {page < totalPages && (
+            <Link
+              href={linkFor(page + 1)}
+              className="rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50"
+            >
+              次へ →
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 }

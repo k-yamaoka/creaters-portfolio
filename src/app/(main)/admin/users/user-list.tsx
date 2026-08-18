@@ -89,9 +89,12 @@ export function UserList({ users }: { users: User[] }) {
                 className="border-b border-[#F2F2F2] last:border-0"
               >
                 <td className="px-5 py-4">
-                  <p className="text-sm font-bold text-[#222]">
+                  <a
+                    href={`/admin/users/${user.id}`}
+                    className="text-sm font-bold text-[#222] hover:text-neon-purple-deep hover:underline"
+                  >
                     {user.display_name}
-                  </p>
+                  </a>
                   <p className="text-xs text-[#828282]">{user.email}</p>
                 </td>
                 <td className="px-5 py-4">
