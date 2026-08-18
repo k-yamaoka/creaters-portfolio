@@ -32,18 +32,30 @@ export type PayoutStatus = "pending" | "scheduled" | "paid" | "failed";
 
 /**
  * 検収完了日時 (inspected_at) から入金予定日を算出。
- * デフォルト 3 日後 (最短)。JS Date で日付加算 → YYYY-MM-DD を返す。
- * 土日祝日調整は行わない (Stripe 側で送金実行タイミングを吸収するため)。
+ * デフォルト 3 営業日後 (最短)。土日は skip する。
+ * 祝日は最小コストで正確に扱えないため対応しない (Stripe 側実行タイミングで吸収)。
+ * JST 基準で算出 (Stripe payout 実行は JP タイムゾーン)。
  */
 export function computePayoutScheduleDate(
   inspectedAt: Date | string,
-  daysUntilPayout: number = PAYOUT_SCHEDULE_MIN_DAYS
+  businessDays: number = PAYOUT_SCHEDULE_MIN_DAYS
 ): string {
   const src =
     typeof inspectedAt === "string" ? new Date(inspectedAt) : inspectedAt;
-  const dst = new Date(src.getTime() + daysUntilPayout * 86_400_000);
-  // YYYY-MM-DD (UTC 基準、日本の date 型と一致)
-  return dst.toISOString().slice(0, 10);
+  // JST に変換 (UTC+9) してから日付操作
+  const jstMs = src.getTime() + 9 * 3600_000;
+  let d = new Date(jstMs);
+  let added = 0;
+  while (added < businessDays) {
+    d = new Date(d.getTime() + 86_400_000);
+    // UTC の getUTCDay() は 0=日曜, 6=土曜
+    const dow = d.getUTCDay();
+    if (dow !== 0 && dow !== 6) {
+      added += 1;
+    }
+  }
+  // YYYY-MM-DD (JST の日付として)
+  return d.toISOString().slice(0, 10);
 }
 
 /**

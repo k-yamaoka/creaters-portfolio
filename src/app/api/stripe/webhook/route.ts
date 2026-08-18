@@ -183,6 +183,73 @@ export async function POST(request: NextRequest) {
         }
         break;
       }
+
+      // ---- Payout / Connect Account 系 (creator 出金の追跡) ----
+      case "payout.paid": {
+        const payout = event.data.object as Stripe.Payout;
+        // stripe_transfer_id が一致する payouts 行を paid にマーク済のはずだが、
+        // Stripe 側完了通知として payouts テーブルを補正 (webhook のみで到達するケース)
+        await supabase
+          .from("payouts")
+          .update({ status: "paid", processed_at: new Date().toISOString() })
+          .eq("stripe_transfer_id", payout.id);
+        break;
+      }
+
+      case "payout.failed": {
+        const payout = event.data.object as Stripe.Payout;
+        // 出金失敗 → payouts を failed に + orders.payout_status を戻す
+        const { data: payoutRows } = await supabase
+          .from("payouts")
+          .select("id, order_id")
+          .eq("stripe_transfer_id", payout.id);
+        await supabase
+          .from("payouts")
+          .update({ status: "failed" })
+          .eq("stripe_transfer_id", payout.id);
+        for (const row of payoutRows ?? []) {
+          await supabase
+            .from("orders")
+            .update({ payout_status: "scheduled" })
+            .eq("id", row.order_id);
+        }
+        // 運営 escalation
+        try {
+          const { notifyAdmin } = await import("@/lib/admin-notify");
+          await notifyAdmin({
+            kind: "escalation",
+            subjectPrefix: "【緊急/出金失敗】",
+            subject: `Stripe payout failed: ${payout.failure_message ?? "unknown"}`,
+            body:
+              `Payout ID: ${payout.id}\n` +
+              `Amount: ¥${payout.amount.toLocaleString()}\n` +
+              `Failure: ${payout.failure_code ?? "-"} / ${payout.failure_message ?? "-"}\n` +
+              `該当 orders は payout_status=scheduled に差し戻し済 (再申請可能)`,
+          });
+        } catch {}
+        break;
+      }
+
+      case "account.updated": {
+        // Connect account の状態変化 (KYC 完了 / 差戻し 等) を検知
+        const account = event.data.object as Stripe.Account;
+        // 支払い停止相当なら運営に通知 (payouts_enabled=false / requirements 未提出)
+        if (account.requirements?.disabled_reason || !account.payouts_enabled) {
+          try {
+            const { notifyAdmin } = await import("@/lib/admin-notify");
+            await notifyAdmin({
+              kind: "info",
+              subjectPrefix: "【Connect】",
+              subject: `Stripe Connect account の支払いが無効化: ${account.id}`,
+              body:
+                `Disabled reason: ${account.requirements?.disabled_reason ?? "unknown"}\n` +
+                `payouts_enabled: ${account.payouts_enabled}\n` +
+                `charges_enabled: ${account.charges_enabled}`,
+            });
+          } catch {}
+        }
+        break;
+      }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : "unknown";

@@ -163,11 +163,23 @@ async function sendSlackToAdmins(
       })),
     });
   }
+  // kind による色分け (Slack attachments.color)。緊急度が視覚的に伝わるように。
+  const colorForKind: Record<AdminIncident["kind"], string> = {
+    escalation: "#dc2626", // 赤 (裁定申請 / 返金失敗 / チャージバック)
+    auto_unpublish: "#f59e0b", // 橙 (自動非公開)
+    content_report: "#eab308", // 黄 (通報)
+    info: "#6b7280", // 灰 (通常)
+  };
+  const attachment = {
+    color: colorForKind[i.kind] ?? colorForKind.info,
+    blocks,
+  };
   try {
     const r = await fetch(webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: i.subject, blocks }),
+      // top-level text は通知プレビュー用、attachments で色を付ける
+      body: JSON.stringify({ text: i.subject, attachments: [attachment] }),
     });
     if (!r.ok) {
       console.error(`[admin-notify/slack] failed: ${r.status}`);

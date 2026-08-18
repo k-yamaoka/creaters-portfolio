@@ -8,23 +8,37 @@ import {
   computeAvailableBalance,
 } from "@/lib/payout";
 
-describe("computePayoutScheduleDate", () => {
-  it("デフォルト = 3 営業日後", () => {
+describe("computePayoutScheduleDate (土日スキップ)", () => {
+  // 2026-07-01 (水) 00:00 UTC = 07-01 09:00 JST (水)
+  // +1 営業日 = 07-02 (木)
+  // +2 営業日 = 07-03 (金)
+  // +3 営業日 = 07-06 (月) [土日 skip]
+  it("デフォルト = 3 営業日後 (水→月へジャンプ)", () => {
     const src = new Date("2026-07-01T00:00:00Z");
     const scheduled = computePayoutScheduleDate(src);
-    expect(scheduled).toBe("2026-07-04");
+    expect(scheduled).toBe("2026-07-06");
   });
   it("PAYOUT_SCHEDULE_MIN_DAYS 定数を使用", () => {
     expect(PAYOUT_SCHEDULE_MIN_DAYS).toBe(3);
   });
   it("string 入力も受ける", () => {
     const scheduled = computePayoutScheduleDate("2026-07-01T00:00:00Z");
-    expect(scheduled).toBe("2026-07-04");
+    expect(scheduled).toBe("2026-07-06");
   });
-  it("カスタム日数 (7 日)", () => {
+  it("カスタム 7 営業日後 (水→翌週金 まで実 9 日)", () => {
+    // +1 木 → +2 金 → +3 月 → +4 火 → +5 水 → +6 木 → +7 金
     const scheduled = computePayoutScheduleDate(
       new Date("2026-07-01T00:00:00Z"),
       7
+    );
+    expect(scheduled).toBe("2026-07-10");
+  });
+  it("金曜起点 + 3 営業日 = 翌週水 (土日 2 日を skip)", () => {
+    // 2026-07-03 (金) 00:00 UTC = 07-03 09:00 JST (金)
+    // +1 = 07-06 (月)、+2 = 07-07 (火)、+3 = 07-08 (水)
+    const scheduled = computePayoutScheduleDate(
+      new Date("2026-07-03T00:00:00Z"),
+      3
     );
     expect(scheduled).toBe("2026-07-08");
   });

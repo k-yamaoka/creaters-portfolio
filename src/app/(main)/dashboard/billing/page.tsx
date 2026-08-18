@@ -160,7 +160,7 @@ export default async function BillingPage() {
       )}
 
       <p className="mt-4 text-[11px] text-gray-400">
-        ※ 適格請求書 (インボイス) は取引完了後に各取引詳細ページからダウンロードできます (準備中)。
+        ※ 適格請求書 (インボイス) の発行が必要な場合は運営 (support@ailier.jp) までご連絡ください。
       </p>
     </div>
   );
