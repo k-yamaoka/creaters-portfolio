@@ -9,7 +9,17 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const storedState = request.cookies.get("line_oauth_state")?.value;
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://creaters-portfolio.vercel.app").trim();
+  const origin = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    ""
+  ).trim();
+  if (!origin) {
+    return NextResponse.json(
+      { error: "NEXT_PUBLIC_SITE_URL not configured" },
+      { status: 500 }
+    );
+  }
 
   // CSRF check
   if (!state || !storedState || state !== storedState) {

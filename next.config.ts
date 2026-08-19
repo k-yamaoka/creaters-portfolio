@@ -21,8 +21,10 @@ const SECURITY_HEADERS = [
   },
   {
     key: "Strict-Transport-Security",
-    // includeSubDomains + preload は Vercel デプロイ全体で問題ないことを確認済
-    value: "max-age=31536000; includeSubDomains",
+    // 1 年 max-age + includeSubDomains + preload。
+    // https://hstspreload.org/ に本番ドメインを登録すると、初回アクセス前から
+    // 全ブラウザで HTTPS 強制になる (要ドメイン確定後 申請)。
+    value: "max-age=31536000; includeSubDomains; preload",
   },
   {
     key: "Permissions-Policy",

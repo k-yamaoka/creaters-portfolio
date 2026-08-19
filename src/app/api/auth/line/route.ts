@@ -15,7 +15,17 @@ export async function GET() {
 
   const state = crypto.randomBytes(16).toString("hex");
   const nonce = crypto.randomBytes(16).toString("hex");
-  const origin = (process.env.NEXT_PUBLIC_SITE_URL || "https://creaters-portfolio.vercel.app").trim();
+  const origin = (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    ""
+  ).trim();
+  if (!origin) {
+    return NextResponse.json(
+      { error: "NEXT_PUBLIC_SITE_URL not configured" },
+      { status: 500 }
+    );
+  }
   const redirectUri = `${origin}/api/auth/line/callback`;
 
   const params = new URLSearchParams({

@@ -59,6 +59,9 @@ export default function CaseStudiesPage() {
         <p className="mt-4 text-base text-[#828282]">
           AILIERを活用した企業のAI動画制作成功事例をご紹介します
         </p>
+        <p className="mt-3 inline-block rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+          ⚠️ 現在掲載している事例はサンプルです。実案件が蓄積次第、順次入れ替えていきます。
+        </p>
       </div>
 
       <div className="mt-16 space-y-16">
