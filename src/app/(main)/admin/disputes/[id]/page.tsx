@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatDateJP } from "@/lib/utils";
 import { RulingForm } from "./ruling-form";
+import { MoveToReviewingButton } from "./move-to-reviewing";
 
 export const dynamic = "force-dynamic";
 
@@ -152,6 +153,9 @@ export default async function AdminDisputeDetailPage({
           >
             {d.admin_status}
           </span>
+          {d.admin_status === "received" && (
+            <MoveToReviewingButton disputeId={d.id} />
+          )}
         </div>
         <p className="mt-1 text-xs text-gray-500">
           カテゴリ: {CATEGORY_LABEL[d.category] ?? d.category} / 申請者:{" "}

@@ -37,9 +37,25 @@ const STATUS_BADGE: Record<string, string> = {
   deleted: "bg-red-50 text-red-700 border-red-200",
 };
 
-export default async function AdminModerationPage() {
+const AUDIT_PAGE_SIZE = 30;
+
+type SearchParams = Promise<{
+  audit_action?: string;
+  audit_q?: string;
+  audit_page?: string;
+}>;
+
+export default async function AdminModerationPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   // service_role で RLS を bypass して集計 (auth は layout で保証済)
   const admin = getSupabaseAdmin();
+  const sp = await searchParams;
+  const auditAction = sp.audit_action?.trim() ?? "";
+  const auditQ = sp.audit_q?.trim() ?? "";
+  const auditPage = Math.max(1, Number.parseInt(sp.audit_page ?? "1", 10) || 1);
 
   // 1. 未対応 (open) 通報を件数と最新通報でグループ化
   //   Supabase JS の group by は制約が多いので、生 SELECT + JS 側で集約
@@ -123,15 +139,37 @@ export default async function AdminModerationPage() {
     .order("moderated_at", { ascending: false })
     .limit(100);
 
-  // 3. 直近の監査ログ
-  const { data: auditLog } = await admin
+  // 3. 監査ログ (検索 + ページネーション対応)
+  let auditQuery = admin
     .from("moderation_actions")
     .select(
-      "id, action_type, actor_role, reason, created_at, target_id, actor_user_id, actor:profiles!moderation_actions_actor_user_id_fkey ( display_name )"
+      "id, action_type, actor_role, reason, created_at, target_id, actor_user_id, actor:profiles!moderation_actions_actor_user_id_fkey ( display_name )",
+      { count: "exact" }
     )
     .eq("target_type", "portfolio_item")
-    .order("created_at", { ascending: false })
-    .limit(30);
+    .order("created_at", { ascending: false });
+  if (auditAction) auditQuery = auditQuery.eq("action_type", auditAction);
+  if (auditQ) auditQuery = auditQuery.ilike("reason", `%${auditQ}%`);
+  const auditFrom = (auditPage - 1) * AUDIT_PAGE_SIZE;
+  const auditTo = auditFrom + AUDIT_PAGE_SIZE - 1;
+  const { data: auditLog, count: auditTotal } = await auditQuery.range(
+    auditFrom,
+    auditTo
+  );
+  const auditPages = Math.max(
+    1,
+    Math.ceil((auditTotal ?? 0) / AUDIT_PAGE_SIZE)
+  );
+  const auditLink = (p: number, extra?: Record<string, string>) => {
+    const q = new URLSearchParams();
+    if (p > 1) q.set("audit_page", String(p));
+    if (auditAction) q.set("audit_action", auditAction);
+    if (auditQ) q.set("audit_q", auditQ);
+    if (extra) Object.entries(extra).forEach(([k, v]) => v && q.set(k, v));
+    const s = q.toString();
+    return s ? `/admin/moderation?${s}` : "/admin/moderation";
+  };
+  void auditLink;
 
   // 4. 常習者 (§B-2 §1d) — creator_report_stats view (00078) から
   //    累積通報 / 累積非公開 が多い creator を上位表示。
@@ -421,12 +459,39 @@ export default async function AdminModerationPage() {
 
       {/* 監査ログ */}
       <section>
-        <h3 className="mb-3 text-sm font-bold text-gray-900">
-          監査ログ (直近 30 件)
-        </h3>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-bold text-gray-900">
+            監査ログ ({(auditTotal ?? 0).toLocaleString()} 件 / {auditPage} / {auditPages})
+          </h3>
+          <form method="GET" className="flex flex-wrap items-center gap-2 text-xs">
+            <input
+              name="audit_q"
+              type="search"
+              defaultValue={auditQ}
+              placeholder="理由で検索"
+              className="w-48 rounded-lg border border-gray-200 px-2 py-1"
+            />
+            <select
+              name="audit_action"
+              defaultValue={auditAction}
+              className="rounded-lg border border-gray-200 px-2 py-1"
+            >
+              <option value="">全 action</option>
+              <option value="unpublish">unpublish</option>
+              <option value="delete">delete</option>
+              <option value="restore">restore</option>
+            </select>
+            <button
+              type="submit"
+              className="rounded-lg bg-gray-900 px-3 py-1 font-medium text-white hover:bg-gray-800"
+            >
+              絞込
+            </button>
+          </form>
+        </div>
         {(auditLog ?? []).length === 0 ? (
           <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-center text-sm text-gray-500">
-            ログはありません
+            該当するログはありません
           </div>
         ) : (
           <ul className="space-y-2">
@@ -467,6 +532,29 @@ export default async function AdminModerationPage() {
               );
             })}
           </ul>
+        )}
+        {auditPages > 1 && (
+          <div className="mt-4 flex items-center justify-center gap-2 text-xs">
+            {auditPage > 1 && (
+              <Link
+                href={auditLink(auditPage - 1)}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 hover:bg-gray-50"
+              >
+                ← 前
+              </Link>
+            )}
+            <span className="px-2 text-gray-500">
+              {auditPage} / {auditPages}
+            </span>
+            {auditPage < auditPages && (
+              <Link
+                href={auditLink(auditPage + 1)}
+                className="rounded-lg border border-gray-200 px-3 py-1.5 hover:bg-gray-50"
+              >
+                次 →
+              </Link>
+            )}
+          </div>
         )}
       </section>
     </div>
