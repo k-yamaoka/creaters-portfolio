@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatDateJP, formatPrice } from "@/lib/utils";
+import { UserActionsPanel } from "./user-actions-panel";
 
 /**
  * 個別ユーザー詳細画面 (admin only)。
@@ -105,6 +106,13 @@ export default async function AdminUserDetailPage({
           </div>
         </div>
       </div>
+
+      {/* 運営アクション (停止/認証) */}
+      <UserActionsPanel
+        userId={profile.id}
+        isActive={profile.is_active !== false}
+        isVerified={!!profile.is_verified}
+      />
 
       {/* Profile 基本情報 */}
       <section className="rounded-2xl bg-white p-6 shadow-card">

@@ -13,7 +13,7 @@ export const revalidate = 3600;
 const CASES = [
   {
     title: "AI動画のAB案10倍検証で売上130%達成",
-    company: "株式会社サンプルテック",
+    company: "架空事例A社 (IT・通信)",
     industry: "IT・通信",
     genre: "商品・製品紹介",
     budget: "¥300,000",
@@ -25,7 +25,7 @@ const CASES = [
   },
   {
     title: "AI採用動画で応募者数が2倍に増加",
-    company: "株式会社グローバルHR",
+    company: "架空事例B社 (人材)",
     industry: "人材",
     genre: "会社・学校紹介",
     budget: "¥500,000",
@@ -37,7 +37,7 @@ const CASES = [
   },
   {
     title: "YouTube AI動画を月8本体制で運用開始",
-    company: "合同会社フードクリエイト",
+    company: "架空事例C社 (飲食)",
     industry: "飲食・サービス",
     genre: "Youtubeショート【縦型】",
     budget: "¥100,000/月",

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatDateJP } from "@/lib/utils";
 import {
   computeAvailableBalance,
@@ -70,9 +71,15 @@ export default async function PayoutsPage() {
     }
   }
 
-  // Stripe Connect 接続確認 (簡易: creator_profile.stripe_account_id が入る想定だが
-  // 現状は API 経由なのでここでは true 扱い。実装時は creator_profiles にカラム追加)
-  const hasBankConnected = true;
+  // Stripe Connect 接続確認: creator_profiles.stripe_account_id (migration 00082 で
+  // anon/authenticated からは REVOKE 済みなので service_role で lookup)。
+  const admin = getSupabaseAdmin();
+  const { data: creatorPriv } = await admin
+    .from("creator_profiles")
+    .select("stripe_account_id")
+    .eq("id", user.creator_profile.id)
+    .maybeSingle();
+  const hasBankConnected = !!creatorPriv?.stripe_account_id;
 
   return (
     <div>

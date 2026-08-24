@@ -114,6 +114,7 @@ export default async function AdminModerationPage({
     image_url: string | null;
     moderation_status: string;
     creator?: {
+      id?: string;
       profiles?: { display_name?: string };
     };
   };
@@ -186,26 +187,31 @@ export default async function AdminModerationPage({
     deleted_total: number;
     last_incident_at: string | null;
     display_name?: string;
+    user_id?: string;
   };
   const repeatOffenders: OffenderRow[] = ((rawRepeatOffenders ?? []) as unknown as OffenderRow[])
     .filter((r) => r.report_total >= 2 || r.unpublished_total >= 1);
-  // 名前をまとめて解決
+  // 名前 + user_id をまとめて解決 (user_id は /admin/users/[id] リンクに使う)
   if (repeatOffenders.length > 0) {
     const ids = repeatOffenders.map((r) => r.creator_profile_id);
     const { data: creators } = await admin
       .from("creator_profiles")
-      .select("id, profiles!creator_profiles_user_id_fkey ( display_name )")
+      .select("id, user_id, profiles!creator_profiles_user_id_fkey ( display_name )")
       .in("id", ids);
-    const map = new Map<string, string>();
+    const nameMap = new Map<string, string>();
+    const userMap = new Map<string, string>();
     for (const c of creators ?? []) {
       const row = c as unknown as {
         id: string;
+        user_id?: string;
         profiles?: { display_name?: string };
       };
-      map.set(row.id, row.profiles?.display_name ?? "-");
+      nameMap.set(row.id, row.profiles?.display_name ?? "-");
+      if (row.user_id) userMap.set(row.id, row.user_id);
     }
     for (const r of repeatOffenders) {
-      r.display_name = map.get(r.creator_profile_id) ?? "-";
+      r.display_name = nameMap.get(r.creator_profile_id) ?? "-";
+      r.user_id = userMap.get(r.creator_profile_id);
     }
   }
 
@@ -250,14 +256,18 @@ export default async function AdminModerationPage({
                   return (
                     <tr key={g.targetId}>
                       <td className="px-3 py-2.5">
-                        <Link
-                          href={`/creators/${
-                            it?.creator ? "" : ""
-                          }#portfolio`}
-                          className="font-medium text-gray-900 hover:text-red-600"
-                        >
-                          {it?.title ?? "(削除済み)"}
-                        </Link>
+                        {it?.creator?.id ? (
+                          <Link
+                            href={`/creators/${it.creator.id}#portfolio`}
+                            className="font-medium text-gray-900 hover:text-red-600"
+                          >
+                            {it?.title ?? "(削除済み)"}
+                          </Link>
+                        ) : (
+                          <span className="font-medium text-gray-900">
+                            {it?.title ?? "(削除済み)"}
+                          </span>
+                        )}
                         {g.latestNote && (
                           <p className="mt-0.5 line-clamp-1 text-[11px] text-gray-500">
                             {g.latestNote}
@@ -410,11 +420,20 @@ export default async function AdminModerationPage({
                   return (
                     <tr key={r.creator_profile_id}>
                       <td className="px-3 py-2.5">
-                        <span
-                          className={`text-xs font-medium ${severe ? "text-red-800" : "text-gray-900"}`}
-                        >
-                          {r.display_name ?? "-"}
-                        </span>
+                        {r.user_id ? (
+                          <Link
+                            href={`/admin/users/${r.user_id}`}
+                            className={`text-xs font-medium hover:underline ${severe ? "text-red-800" : "text-gray-900"}`}
+                          >
+                            {r.display_name ?? "-"}
+                          </Link>
+                        ) : (
+                          <span
+                            className={`text-xs font-medium ${severe ? "text-red-800" : "text-gray-900"}`}
+                          >
+                            {r.display_name ?? "-"}
+                          </span>
+                        )}
                         {severe && (
                           <span className="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-800">
                             ⚠️要監視

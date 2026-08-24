@@ -32,6 +32,7 @@ export async function toggleUserActive(userId: string, isActive: boolean) {
   if (error) return { error: "更新に失敗しました" };
 
   revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
   return { success: true };
 }
 
@@ -46,5 +47,6 @@ export async function toggleUserVerified(userId: string, isVerified: boolean) {
   if (error) return { error: "更新に失敗しました" };
 
   revalidatePath("/admin/users");
+  revalidatePath(`/admin/users/${userId}`);
   return { success: true };
 }

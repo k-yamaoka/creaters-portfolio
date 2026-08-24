@@ -65,6 +65,36 @@ export async function toggleTagActive(formData: FormData) {
   return { ok: true };
 }
 
+export async function deleteTag(formData: FormData) {
+  const check = await assertAdmin();
+  if (!check.ok) return { error: check.error };
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "id 不足" };
+
+  // 使用中 (creator_tags / job_tags に紐付け あり) の tag は削除不可。
+  // 誤削除で 一覧やフィルタが壊れないよう二重防御。
+  const admin = getSupabaseAdmin();
+  const { count: creatorCount } = await admin
+    .from("creator_tags")
+    .select("tag_id", { count: "exact", head: true })
+    .eq("tag_id", id);
+  const { count: jobCount } = await admin
+    .from("job_tags")
+    .select("tag_id", { count: "exact", head: true })
+    .eq("tag_id", id);
+  const inUse = (creatorCount ?? 0) + (jobCount ?? 0);
+  if (inUse > 0) {
+    return {
+      error: `このタグは ${inUse} 件で使用中です。まず「無効化」してください (削除は使用ゼロのタグのみ)`,
+    };
+  }
+
+  const { error } = await admin.from("tags").delete().eq("id", id);
+  if (error) return { error: `削除に失敗: ${error.message}` };
+  revalidatePath("/admin/masters");
+  return { ok: true };
+}
+
 export async function updateTag(formData: FormData) {
   const check = await assertAdmin();
   if (!check.ok) return { error: check.error };

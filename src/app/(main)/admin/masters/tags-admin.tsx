@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createTag, toggleTagActive, updateTag } from "./actions";
+import { createTag, deleteTag, toggleTagActive, updateTag } from "./actions";
 
 type Tag = {
   id: string;
@@ -205,9 +205,27 @@ export function TagsAdmin({ category, tags }: Props) {
                         >
                           <button
                             type="submit"
-                            className="text-xs text-gray-600 hover:underline"
+                            className="mr-2 text-xs text-gray-600 hover:underline"
                           >
                             {tag.is_active ? "無効化" : "有効化"}
+                          </button>
+                        </form>
+                        <form
+                          className="inline"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            if (!confirm(`「${tag.name}」を削除しますか?\n使用中のタグは削除できません (無効化してください)`))
+                              return;
+                            const fd = new FormData();
+                            fd.set("id", tag.id);
+                            run(deleteTag, fd);
+                          }}
+                        >
+                          <button
+                            type="submit"
+                            className="text-xs text-red-600 hover:underline"
+                          >
+                            削除
                           </button>
                         </form>
                       </td>
