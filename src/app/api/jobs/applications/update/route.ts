@@ -150,6 +150,13 @@ export async function POST(request: NextRequest) {
       .single();
     if (!orderErr && order) {
       createdOrderId = order.id;
+      // application ↔ order の専用リンクを保存 (migration 00083)。
+      // これで dashboard/applications で client_id ベースの近似検索を
+      // 使わずに済むようになる。
+      await supabase
+        .from("job_applications")
+        .update({ order_id: order.id })
+        .eq("id", applicationId);
     } else if (orderErr) {
       // orderErr 全体を出さない (内部 ID や detail が混じる可能性)
       console.error(`order auto-creation failed: ${orderErr.message ?? "unknown"}`);

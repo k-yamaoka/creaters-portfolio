@@ -43,16 +43,24 @@ export default async function ApplicationsPage() {
   );
 
   // ===== 既存 order の有無 (accepted カードの「取引管理へ」用) =====
-  // 自分のクリエイターが該当 client と既に取引している orders があれば、
-  // その order_id を applicationId → orderId のマップに入れる。
-  // 厳密な application↔order の紐付けカラムが無いため、まずは
-  // creator_id + client_id (job 側) で見つかった最新 1 件を割り当てる近似。
+  // migration 00083 で job_applications.order_id を専用カラムとして持たせた。
+  // 新規採用分はこの値を直接使う。旧レコード (order_id NULL) だけは
+  // 従来通り client_id ベースの 近似 fallback を残す (下方互換)。
+  const orderByApplicationId = new Map<string, string>();
   const orderByClientId = new Map<string, string>();
   if (applications && applications.length > 0) {
+    for (const a of applications) {
+      const oid = (a as unknown as { order_id?: string | null }).order_id;
+      if (oid) orderByApplicationId.set(a.id as string, oid);
+    }
     const acceptedClientIds = Array.from(
       new Set(
         applications
-          .filter((a) => a.status === "accepted")
+          .filter(
+            (a) =>
+              a.status === "accepted" &&
+              !(a as unknown as { order_id?: string | null }).order_id
+          )
           .map((a) =>
             (a.job as unknown as { client: { id: string } } | null)?.client?.id
           )
@@ -109,7 +117,9 @@ export default async function ApplicationsPage() {
         clientUserId,
       },
       hasUnread: clientUserId ? unreadSenders.has(clientUserId) : false,
-      orderId: clientId ? (orderByClientId.get(clientId) ?? null) : null,
+      orderId:
+        orderByApplicationId.get(app.id as string) ??
+        (clientId ? (orderByClientId.get(clientId) ?? null) : null),
     };
   });
 
