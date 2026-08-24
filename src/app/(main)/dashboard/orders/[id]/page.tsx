@@ -479,5 +479,18 @@ async function DisputeAdminBadge({ disputeId }: { disputeId: string }) {
     | "resolved"
     | undefined;
   if (!s) return null;
-  return <DisputeStatusBadge status={s} />;
+  const helpText: Record<typeof s & string, string> = {
+    received:
+      "運営が申請を受け付けました。まもなく担当者が確認を開始します (通常 1-2 営業日)。",
+    reviewing:
+      "運営が両者の状況を確認しています。裁定確定までしばらくお待ちください。",
+    resolved:
+      "運営裁定は完了しました。取引画面の最新内容 (返金・修正等) をご確認ください。",
+  };
+  return (
+    <div className="flex items-start gap-2">
+      <DisputeStatusBadge status={s} />
+      <p className="mt-0.5 text-xs text-gray-500">{helpText[s]}</p>
+    </div>
+  );
 }

@@ -130,11 +130,70 @@ export default function HowItWorksPage() {
           後にクリエイターへ報酬が支払われます。
         </p>
 
-        {/* 図解画像 プレースホルダー — 差替時は Image に置き換え */}
-        <div className="mx-auto mt-8 max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="flex h-48 items-center justify-center bg-gray-100 text-sm font-medium text-gray-500">
-            エスクロー決済の図解画像
-          </div>
+        {/* エスクロー フロー 図解 (inline SVG) — 発注 → 仮払い → 制作 → 検収 → 送金 */}
+        <div className="mx-auto mt-8 max-w-4xl overflow-x-auto rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+          <svg
+            viewBox="0 0 720 260"
+            role="img"
+            aria-label="エスクロー決済フロー: 企業が仮払い → AILIER が預かり → 検収完了後にクリエイターへ送金"
+            className="mx-auto block h-auto w-full max-w-3xl"
+          >
+            {/* 3 ノード: 企業 / AILIER / クリエイター */}
+            <g fontFamily="Inter, system-ui, sans-serif">
+              {/* 企業 */}
+              <rect x="20" y="80" width="160" height="100" rx="16" fill="#EEF2FF" stroke="#6366F1" strokeWidth="1.5"/>
+              <text x="100" y="120" textAnchor="middle" fontSize="14" fontWeight="700" fill="#312E81">企業</text>
+              <text x="100" y="142" textAnchor="middle" fontSize="11" fill="#4338CA">発注 + 仮払い</text>
+              <text x="100" y="158" textAnchor="middle" fontSize="10" fill="#6366F1">Stripe 決済</text>
+
+              {/* AILIER (中央、太枠) */}
+              <rect x="280" y="60" width="160" height="140" rx="16" fill="#FDF4FF" stroke="#A21CAF" strokeWidth="2"/>
+              <text x="360" y="100" textAnchor="middle" fontSize="14" fontWeight="700" fill="#701A75">AILIER</text>
+              <text x="360" y="122" textAnchor="middle" fontSize="11" fill="#86198F">代金を預かる</text>
+              <text x="360" y="140" textAnchor="middle" fontSize="10" fill="#A21CAF">(エスクロー)</text>
+              <text x="360" y="168" textAnchor="middle" fontSize="10" fill="#701A75" fontStyle="italic">検収後に送金</text>
+
+              {/* クリエイター */}
+              <rect x="540" y="80" width="160" height="100" rx="16" fill="#ECFDF5" stroke="#059669" strokeWidth="1.5"/>
+              <text x="620" y="120" textAnchor="middle" fontSize="14" fontWeight="700" fill="#064E3B">クリエイター</text>
+              <text x="620" y="142" textAnchor="middle" fontSize="11" fill="#047857">制作 + 納品</text>
+              <text x="620" y="158" textAnchor="middle" fontSize="10" fill="#059669">3 営業日で入金</text>
+
+              {/* 矢印: 企業 → AILIER (仮払い) */}
+              <defs>
+                <marker id="arrHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#6366F1"/>
+                </marker>
+                <marker id="arrHead2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+                </marker>
+              </defs>
+              <path d="M 180 110 L 280 110" stroke="#6366F1" strokeWidth="2" fill="none" markerEnd="url(#arrHead)"/>
+              <text x="230" y="100" textAnchor="middle" fontSize="10" fill="#4338CA">仮払い</text>
+
+              {/* 矢印: AILIER → クリエイター (検収後 送金) */}
+              <path d="M 440 150 L 540 150" stroke="#059669" strokeWidth="2" fill="none" markerEnd="url(#arrHead2)"/>
+              <text x="490" y="140" textAnchor="middle" fontSize="10" fill="#047857">検収後 送金</text>
+
+              {/* 矢印: クリエイター → 企業 (納品、下側 破線) */}
+              <path
+                d="M 540 165 Q 360 240 180 165"
+                stroke="#94A3B8"
+                strokeWidth="1.5"
+                strokeDasharray="4 3"
+                fill="none"
+                markerEnd="url(#arrHead)"
+              />
+              <text x="360" y="238" textAnchor="middle" fontSize="10" fill="#64748B">納品</text>
+
+              {/* 下段: 4 ステップ タイムライン */}
+              <g transform="translate(0, 15)">
+                <text x="360" y="30" textAnchor="middle" fontSize="10" fontWeight="700" fill="#334155">
+                  発注 → 仮払い → 制作 → 検収 → 送金 (3 営業日)
+                </text>
+              </g>
+            </g>
+          </svg>
         </div>
 
         <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-3">
