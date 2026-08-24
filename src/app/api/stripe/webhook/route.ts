@@ -33,12 +33,12 @@ const RELEVANT_EVENTS = new Set<Stripe.Event.Type>([
   "payment_intent.succeeded",
   "payment_intent.payment_failed",
   "payment_intent.canceled",
+  "payment_intent.requires_action",
   "charge.refunded",
   "charge.dispute.created",
+  "charge.dispute.closed",
   // creator 出金 (Connect payout) 追跡:
   //   POST /api/payouts/request が stripe.payouts.create → ここで最終補正
-  //   これらを RELEVANT に入れていないと switch ケース到達前に早期 return され、
-  //   出金失敗を運営が検知できないまま payout_status が paid のまま残る バグに。
   "payout.paid",
   "payout.failed",
   "account.updated",
@@ -188,6 +188,53 @@ export async function POST(request: NextRequest) {
         } catch (e) {
           console.error("[stripe-webhook] notifyAdmin failed", e);
         }
+        break;
+      }
+
+      case "charge.dispute.closed": {
+        // dispute の 決着 (won / lost / warning_closed) を運営に共有
+        const dispute = event.data.object as Stripe.Dispute;
+        const piId =
+          typeof dispute.payment_intent === "string"
+            ? dispute.payment_intent
+            : dispute.payment_intent?.id;
+        let orderId: string | undefined;
+        if (piId) {
+          const { data: ord } = await supabase
+            .from("orders")
+            .select("id")
+            .eq("stripe_payment_intent_id", piId)
+            .single();
+          orderId = ord?.id;
+        }
+        try {
+          const { notifyAdmin } = await import("@/lib/admin-notify");
+          await notifyAdmin({
+            kind: "info",
+            subjectPrefix: "【チャージバック 決着】",
+            subject: `Stripe dispute 決着: ${dispute.status}`,
+            body:
+              `Status: ${dispute.status}\n` +
+              (orderId ? `Order: ${orderId}\n` : "") +
+              `Dispute: ${dispute.id}\n` +
+              `Amount: ${dispute.amount} ${dispute.currency}`,
+            actions: orderId
+              ? [{ label: "取引を確認", path: `/admin/orders/${orderId}` }]
+              : [],
+          });
+        } catch (e) {
+          console.error("[stripe-webhook] dispute.closed notify failed", e);
+        }
+        break;
+      }
+
+      case "payment_intent.requires_action": {
+        // 3D セキュア等の追加認証待ち。ユーザーには Stripe Payment Sheet 側で
+        // 処理されるはずだが、放置されるとエスクロー が入らないので運営に情報通知。
+        const pi = event.data.object as Stripe.PaymentIntent;
+        console.info(
+          `[stripe-webhook] payment_intent.requires_action pi=${pi.id} client=${pi.client_secret ? "yes" : "no"}`
+        );
         break;
       }
 
