@@ -3,31 +3,31 @@
   "crons": [
     {
       "path": "/api/cron/refresh-ai-news",
-      "schedule": "0 22 * * *"
+      "schedule": "17 22 * * *"
     },
     {
       "path": "/api/cron/orders-auto-approve",
-      "schedule": "0 5 * * *"
+      "schedule": "5 5 * * *"
     },
     {
       "path": "/api/cron/orders-deadline-reminder",
-      "schedule": "0 0 * * *"
+      "schedule": "22 0 * * *"
     },
     {
       "path": "/api/cron/orders-nondelivery-cancel",
-      "schedule": "0 6 * * *"
+      "schedule": "48 6 * * *"
     },
     {
       "path": "/api/cron/data-retention",
-      "schedule": "0 4 * * 0"
+      "schedule": "37 4 * * 0"
     },
     {
       "path": "/api/cron/suspend-repeat-offenders",
-      "schedule": "0 3 * * *"
+      "schedule": "13 3 * * *"
     },
     {
       "path": "/api/cron/pending-reports-reminder",
-      "schedule": "0 1 * * *"
+      "schedule": "44 1 * * *"
     }
   ]
 }
