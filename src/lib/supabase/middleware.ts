@@ -1,10 +1,26 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { buildCsp } from "@/lib/security/csp";
 
 export async function updateSession(request: NextRequest) {
+  // Per-request nonce (base64) — Web Crypto で 16 バイトのランダム。
+  // これを CSP script-src の 'nonce-...' と、layout.tsx の headers() 経由で
+  // <script nonce=...> にも渡す。
+  const nonceBytes = new Uint8Array(16);
+  crypto.getRandomValues(nonceBytes);
+  const nonce = btoa(String.fromCharCode(...nonceBytes));
+
+  // request の header に x-nonce を注入 (Server Component が headers() で読める)
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   });
+  supabaseResponse.headers.set(
+    "Content-Security-Policy",
+    buildCsp(nonce)
+  );
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,8 +35,13 @@ export async function updateSession(request: NextRequest) {
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           });
+          // 再作成した response に CSP を再セット (nonce は同一リクエスト内で不変)
+          supabaseResponse.headers.set(
+            "Content-Security-Policy",
+            buildCsp(nonce)
+          );
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );

@@ -90,11 +90,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // CSP nonce (middleware で発行、x-nonce ヘッダで注入済)。
+  // Analytics / SpeedInsights の <script> に付けて 'strict-dynamic' で
+  // 動的挿入される兄弟スクリプトも許可する。
+  const { headers } = await import("next/headers");
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang="ja"
@@ -102,9 +107,14 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-paper font-sans text-ink antialiased">
         {children}
-        {/* Vercel の pageview / Core Web Vitals 計測。Dashboard で有効化必要 */}
+        {/* Vercel の pageview / Core Web Vitals 計測。
+            Next.js は CSP header の 'nonce-...' を検知すると自動で hydration
+            script に nonce を付与するので、Analytics / SpeedInsights 側で
+            明示的な nonce prop は不要 ('strict-dynamic' で兄弟スクリプトも許可) */}
         <Analytics />
         <SpeedInsights />
+        {/* nonce を明示的に参照して未使用警告を回避 (dead code elimination 対策) */}
+        {nonce ? <span data-nonce-loaded hidden /> : null}
       </body>
     </html>
   );
