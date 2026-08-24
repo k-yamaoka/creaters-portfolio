@@ -35,6 +35,13 @@ const RELEVANT_EVENTS = new Set<Stripe.Event.Type>([
   "payment_intent.canceled",
   "charge.refunded",
   "charge.dispute.created",
+  // creator 出金 (Connect payout) 追跡:
+  //   POST /api/payouts/request が stripe.payouts.create → ここで最終補正
+  //   これらを RELEVANT に入れていないと switch ケース到達前に早期 return され、
+  //   出金失敗を運営が検知できないまま payout_status が paid のまま残る バグに。
+  "payout.paid",
+  "payout.failed",
+  "account.updated",
 ]);
 
 export async function POST(request: NextRequest) {
