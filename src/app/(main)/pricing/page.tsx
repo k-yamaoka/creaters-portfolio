@@ -81,7 +81,7 @@ export default function PricingPage() {
 
         {/* Creator */}
         <div className="relative overflow-hidden rounded-[20px] border-2 border-neon-pink/50 bg-white p-8 sm:p-10">
-          <div className="absolute right-4 top-4 rounded-full bg-gradient-to-r from-neon-pink to-neon-purple px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+          <div className="absolute right-4 top-4 rounded-full bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
             0% Forever
           </div>
           <p className="text-sm font-bold text-[#222]">AI クリエイター</p>
@@ -298,7 +298,7 @@ function ComparisonInfographic() {
                     <div
                       className={`h-full rounded-full ${
                         row.highlight
-                          ? "bg-gradient-to-r from-neon-pink to-neon-purple"
+                          ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                           : "bg-gray-400"
                       }`}
                       style={{
@@ -350,7 +350,7 @@ function SavingsTile({
   desc: string;
 }) {
   return (
-    <div className="rounded-xl border border-neon-pink/30 bg-gradient-to-br from-neon-pink/5 via-white to-neon-purple/5 p-4 text-center shadow-sm">
+    <div className="rounded-xl border border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/5 via-white to-aimovie-navy-700/5 p-4 text-center shadow-sm">
       <p className="text-[10px] font-bold uppercase tracking-widest text-neon-pink">
         {label}
       </p>
@@ -423,7 +423,7 @@ function FlowStep({
 }) {
   const toneClass =
     tone === "creator"
-      ? "border-neon-pink/40 bg-gradient-to-br from-neon-pink/10 to-white text-neon-pink"
+      ? "border-neon-pink/40 bg-gradient-to-br from-aimovie-ember-500/10 to-white text-neon-pink"
       : tone === "platform"
         ? "border-gray-300 bg-gray-50 text-gray-700"
         : "border-neon-purple/30 bg-neon-purple/5 text-neon-purple-deep";

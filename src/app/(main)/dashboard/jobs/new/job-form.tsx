@@ -183,7 +183,7 @@ export function JobForm() {
                 <div
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
                     isSelected
-                      ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
+                      ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                       : "border-[#BDBDBD]"
                   }`}
                 >
@@ -220,7 +220,7 @@ export function JobForm() {
             <div
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 ${
                 genresOtherShow
-                  ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
+                  ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                   : "border-[#BDBDBD]"
               }`}
             >

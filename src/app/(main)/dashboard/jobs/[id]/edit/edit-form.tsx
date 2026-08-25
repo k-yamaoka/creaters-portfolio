@@ -134,7 +134,7 @@ export function JobEditForm({ job }: { job: Job }) {
                 <div
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
                     isSelected
-                      ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple"
+                      ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                       : "border-[#BDBDBD]"
                   }`}
                 >

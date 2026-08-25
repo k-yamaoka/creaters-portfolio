@@ -225,7 +225,7 @@ export default async function OrderDetailPage({
                     title={stepInfo.description}
                     className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
                       isCurrent
-                        ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                        ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
                         : isCompleted
                           ? "bg-neon-purple/15 text-neon-purple-deep"
                           : "bg-[#F2F2F2] text-[#BDBDBD]"

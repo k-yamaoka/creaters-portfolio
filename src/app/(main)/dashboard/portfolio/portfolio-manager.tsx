@@ -407,7 +407,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 onClick={() => setMediaType("video")}
                 className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
                   mediaType === "video"
-                    ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.4)]"
+                    ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white shadow-[0_0_12px_rgba(255,77,157,0.4)]"
                     : "text-[#828282] hover:text-[#222]"
                 }`}
               >
@@ -418,7 +418,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 onClick={() => setMediaType("image")}
                 className={`rounded-pill px-5 py-2 text-xs font-bold transition-colors ${
                   mediaType === "image"
-                    ? "bg-gradient-to-r from-neon-cyan to-neon-purple text-white shadow-[0_0_12px_rgba(77,213,247,0.4)]"
+                    ? "bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700 text-white shadow-[0_0_12px_rgba(77,213,247,0.4)]"
                     : "text-[#828282] hover:text-[#222]"
                 }`}
               >
@@ -639,7 +639,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                             {uploadProgress > 0 && (
                               <div className="h-1.5 w-48 overflow-hidden rounded-full bg-neon-pink/20">
                                 <div
-                                  className="h-full bg-gradient-to-r from-neon-pink to-neon-purple transition-all"
+                                  className="h-full bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 transition-all"
                                   style={{ width: `${uploadProgress}%` }}
                                 />
                               </div>
@@ -766,7 +766,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                               onClick={() => toggleFormAiTool(t.name)}
                               className={`rounded-pill border px-2.5 py-1 text-[11px] font-medium transition-colors ${
                                 active
-                                  ? "border-neon-purple bg-gradient-to-r from-neon-purple to-neon-pink text-white"
+                                  ? "border-neon-purple bg-gradient-to-r from-aimovie-navy-700 to-aimovie-ember-500 text-white"
                                   : "border-[#BDBDBD] bg-white text-[#4F4F4F] hover:border-neon-purple"
                               }`}
                             >
@@ -1025,7 +1025,7 @@ function PortfolioCard({
         {platformLabel && (
           <div
             className={`absolute left-2 top-2 rounded px-2 py-0.5 text-[10px] font-bold text-white ${
-              isImage ? "bg-gradient-to-r from-neon-cyan to-neon-purple" : "bg-black/60"
+              isImage ? "bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700" : "bg-black/60"
             }`}
           >
             {platformLabel}
@@ -1150,7 +1150,7 @@ function PortfolioCard({
             {item.used_ai_tools.slice(0, 6).map((t) => (
               <span
                 key={t}
-                className="rounded-pill bg-gradient-to-r from-neon-pink/10 to-neon-purple/10 px-2 py-0.5 text-[10px] font-bold text-neon-purple-deep"
+                className="rounded-pill bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-navy-700/10 px-2 py-0.5 text-[10px] font-bold text-neon-purple-deep"
               >
                 {t}
               </span>

@@ -195,7 +195,7 @@ export default async function CreatorDetailPage({
                     sizes="112px"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-3xl font-black text-white">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-3xl font-black text-white">
                     {displayName[0]}
                   </div>
                 )}
@@ -395,7 +395,7 @@ export default async function CreatorDetailPage({
                   {creator.ai_tools.map((t) => (
                     <span
                       key={t}
-                      className="rounded-pill border border-neon-pink/40 bg-gradient-to-r from-neon-pink/10 to-neon-purple/10 px-3 py-1 text-xs font-bold text-gray-900"
+                      className="rounded-pill border border-neon-pink/40 bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-navy-700/10 px-3 py-1 text-xs font-bold text-gray-900"
                     >
                       {t}
                     </span>
@@ -512,7 +512,7 @@ export default async function CreatorDetailPage({
                 </p>
                 <h2 className="mt-4 text-2xl font-bold text-gray-900 sm:text-3xl">
                   似た領域の{" "}
-                  <span className="bg-gradient-to-r from-neon-cyan to-neon-pink bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-aimovie-navy-500 to-aimovie-ember-500 bg-clip-text text-transparent">
                     AIクリエイター
                   </span>
                 </h2>

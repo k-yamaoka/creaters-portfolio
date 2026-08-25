@@ -32,19 +32,19 @@ export default function HowItWorksPage() {
               step: "01",
               title: "AIクリエイターを探す",
               desc: "得意ツール（Sora / Veo / Runway / Midjourney）・ジャンル・予算で検索。ポートフォリオを見て最適な人材を見つけます。",
-              color: "bg-gradient-to-r from-neon-pink to-neon-purple",
+              color: "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500",
             },
             {
               step: "02",
               title: "相談・見積もり",
               desc: "メッセージで要件と参考動画を共有。AB案や絵コンテの相談を経て見積もりを受け取り、そのまま直接依頼できます。",
-              color: "bg-gradient-to-r from-neon-pink to-neon-purple",
+              color: "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500",
             },
             {
               step: "03",
               title: "AIで動画・静止画を生成 × 納品",
               desc: "エスクロー仮払い後、AIで動画(MP4)と静止画バナー(JPG・PNG)を生成・編集し、最短2日納品。納品物を確認して検収完了で報酬が確定します。",
-              color: "bg-gradient-to-r from-neon-pink to-neon-purple",
+              color: "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500",
             },
           ].map((item) => (
             <div key={item.step} className="text-center">
@@ -141,54 +141,54 @@ export default function HowItWorksPage() {
             {/* 3 ノード: 企業 / アイムビ / クリエイター */}
             <g fontFamily="Inter, system-ui, sans-serif">
               {/* 企業 */}
-              <rect x="20" y="80" width="160" height="100" rx="16" fill="#EEF2FF" stroke="#6366F1" strokeWidth="1.5"/>
-              <text x="100" y="120" textAnchor="middle" fontSize="14" fontWeight="700" fill="#312E81">企業</text>
-              <text x="100" y="142" textAnchor="middle" fontSize="11" fill="#4338CA">発注 + 仮払い</text>
-              <text x="100" y="158" textAnchor="middle" fontSize="10" fill="#6366F1">Stripe 決済</text>
+              <rect x="20" y="80" width="160" height="100" rx="16" fill="#F7F5F0" stroke="#0F1E3D" strokeWidth="1.5"/>
+              <text x="100" y="120" textAnchor="middle" fontSize="14" fontWeight="700" fill="#0F1E3D">企業</text>
+              <text x="100" y="142" textAnchor="middle" fontSize="11" fill="#3A3A44">発注 + 仮払い</text>
+              <text x="100" y="158" textAnchor="middle" fontSize="10" fill="#5C5D67">Stripe 決済</text>
 
-              {/* アイムビ (中央、太枠) */}
-              <rect x="280" y="60" width="160" height="140" rx="16" fill="#FDF4FF" stroke="#A21CAF" strokeWidth="2"/>
-              <text x="360" y="100" textAnchor="middle" fontSize="14" fontWeight="700" fill="#701A75">アイムビ</text>
-              <text x="360" y="122" textAnchor="middle" fontSize="11" fill="#86198F">代金を預かる</text>
-              <text x="360" y="140" textAnchor="middle" fontSize="10" fill="#A21CAF">(エスクロー)</text>
-              <text x="360" y="168" textAnchor="middle" fontSize="10" fill="#701A75" fontStyle="italic">検収後に送金</text>
+              {/* アイムビ (中央、深紺塗り + オレンジ アクセント。主役として強調) */}
+              <rect x="280" y="60" width="160" height="140" rx="16" fill="#0F1E3D" stroke="#FF6B35" strokeWidth="2"/>
+              <text x="360" y="100" textAnchor="middle" fontSize="14" fontWeight="700" fill="#FF6B35">アイムビ</text>
+              <text x="360" y="122" textAnchor="middle" fontSize="11" fill="#F7F5F0">代金を預かる</text>
+              <text x="360" y="140" textAnchor="middle" fontSize="10" fill="#FFE4D6">(エスクロー)</text>
+              <text x="360" y="168" textAnchor="middle" fontSize="10" fill="#F7F5F0" fontStyle="italic">検収後に送金</text>
 
-              {/* クリエイター */}
-              <rect x="540" y="80" width="160" height="100" rx="16" fill="#ECFDF5" stroke="#059669" strokeWidth="1.5"/>
-              <text x="620" y="120" textAnchor="middle" fontSize="14" fontWeight="700" fill="#064E3B">クリエイター</text>
-              <text x="620" y="142" textAnchor="middle" fontSize="11" fill="#047857">制作 + 納品</text>
-              <text x="620" y="158" textAnchor="middle" fontSize="10" fill="#059669">3 営業日で入金</text>
+              {/* クリエイター (再定義) */}
+              <rect x="540" y="80" width="160" height="100" rx="16" fill="#F7F5F0" stroke="#0F1E3D" strokeWidth="1.5"/>
+              <text x="620" y="120" textAnchor="middle" fontSize="14" fontWeight="700" fill="#0F1E3D">クリエイター</text>
+              <text x="620" y="142" textAnchor="middle" fontSize="11" fill="#3A3A44">制作 + 納品</text>
+              <text x="620" y="158" textAnchor="middle" fontSize="10" fill="#5C5D67">3 営業日で入金</text>
 
-              {/* 矢印: 企業 → アイムビ (仮払い) */}
+              {/* 矢印: 企業 → アイムビ (仮払い、深紺) */}
               <defs>
-                <marker id="arrHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                  <path d="M0,0 L10,5 L0,10 z" fill="#6366F1"/>
+                <marker id="arrNavy" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#0F1E3D"/>
                 </marker>
-                <marker id="arrHead2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-                  <path d="M0,0 L10,5 L0,10 z" fill="#059669"/>
+                <marker id="arrEmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+                  <path d="M0,0 L10,5 L0,10 z" fill="#FF6B35"/>
                 </marker>
               </defs>
-              <path d="M 180 110 L 280 110" stroke="#6366F1" strokeWidth="2" fill="none" markerEnd="url(#arrHead)"/>
-              <text x="230" y="100" textAnchor="middle" fontSize="10" fill="#4338CA">仮払い</text>
+              <path d="M 180 110 L 280 110" stroke="#0F1E3D" strokeWidth="2" fill="none" markerEnd="url(#arrNavy)"/>
+              <text x="230" y="100" textAnchor="middle" fontSize="10" fill="#0F1E3D">仮払い</text>
 
-              {/* 矢印: アイムビ → クリエイター (検収後 送金) */}
-              <path d="M 440 150 L 540 150" stroke="#059669" strokeWidth="2" fill="none" markerEnd="url(#arrHead2)"/>
-              <text x="490" y="140" textAnchor="middle" fontSize="10" fill="#047857">検収後 送金</text>
+              {/* 矢印: アイムビ → クリエイター (送金、オレンジ = お金の動きを主役に) */}
+              <path d="M 440 150 L 540 150" stroke="#FF6B35" strokeWidth="2.5" fill="none" markerEnd="url(#arrEmber)"/>
+              <text x="490" y="140" textAnchor="middle" fontSize="10" fill="#E5541B" fontWeight="700">送金</text>
 
-              {/* 矢印: クリエイター → 企業 (納品、下側 破線) */}
+              {/* 矢印: クリエイター → 企業 (納品、破線 グレー) */}
               <path
                 d="M 540 165 Q 360 240 180 165"
-                stroke="#94A3B8"
+                stroke="#8A8A93"
                 strokeWidth="1.5"
                 strokeDasharray="4 3"
                 fill="none"
-                markerEnd="url(#arrHead)"
+                markerEnd="url(#arrNavy)"
               />
-              <text x="360" y="238" textAnchor="middle" fontSize="10" fill="#64748B">納品</text>
+              <text x="360" y="238" textAnchor="middle" fontSize="10" fill="#5C5D67">納品</text>
 
               {/* 下段: 4 ステップ タイムライン */}
               <g transform="translate(0, 15)">
-                <text x="360" y="30" textAnchor="middle" fontSize="10" fontWeight="700" fill="#334155">
+                <text x="360" y="30" textAnchor="middle" fontSize="10" fontWeight="700" fill="#0F1E3D">
                   発注 → 仮払い → 制作 → 検収 → 送金 (3 営業日)
                 </text>
               </g>

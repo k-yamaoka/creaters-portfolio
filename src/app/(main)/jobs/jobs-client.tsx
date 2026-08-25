@@ -401,7 +401,7 @@ export function JobsPageClient({
                         onClick={() => toggleGenre(genre)}
                         className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                           isActive
-                            ? "border-neon-purple-deep bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                            ? "border-neon-purple-deep bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
                             : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
                         }`}
                       >
@@ -483,7 +483,7 @@ export function JobsPageClient({
                   type="button"
                   onClick={applyBudget}
                   disabled={!budgetDirty}
-                  className="flex-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-xs font-bold text-white shadow-card transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex-1 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-4 py-2 text-xs font-bold text-white shadow-card transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   この金額で絞り込む
                 </button>
@@ -552,7 +552,7 @@ export function JobsPageClient({
                           onClick={() => toggleGenre(genre)}
                           className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                             isActive
-                              ? "border-neon-purple-deep bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                              ? "border-neon-purple-deep bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
                               : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
                           }`}
                         >

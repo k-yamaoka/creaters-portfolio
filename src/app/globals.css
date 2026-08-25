@@ -87,27 +87,30 @@
 }
 
 @layer components {
-  /* === Buttons — soft pill / rounded === */
+  /* === Buttons — Aimovie Cinema Ink 系 (2026-08-25 リブランド) === */
+  /* primary = 深紺 solid + 白文字 + ホバーでオレンジ強調 (ステートフルに 2 色使う) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-base font-bold text-white transition-all duration-200 ease-out hover:-translate-y-0.5;
-    box-shadow: 0 0 24px rgba(255, 77, 157, 0.35);
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-aimovie-navy-900 px-7 py-3.5 text-base font-bold text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-aimovie-navy-700;
+    box-shadow: 0 6px 20px -8px rgba(15, 30, 61, 0.55);
   }
   .btn-primary:hover {
-    box-shadow: 0 0 32px rgba(255, 77, 157, 0.55);
+    box-shadow: 0 8px 26px -6px rgba(15, 30, 61, 0.65);
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-pill border-2 border-ink bg-paper px-7 py-3.5 text-base font-bold text-ink transition-all duration-200 ease-out hover:bg-ink hover:text-paper hover:-translate-y-0.5;
+    @apply inline-flex items-center justify-center gap-2 rounded-pill border-2 border-aimovie-navy-900 bg-white px-7 py-3.5 text-base font-bold text-aimovie-navy-900 transition-all duration-200 ease-out hover:bg-aimovie-navy-900 hover:text-white hover:-translate-y-0.5;
   }
+  /* accent = ember (オレンジ)。CTA の最主役ボタン (「無料ではじめる」等) */
   .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-neon-cyan px-7 py-3.5 text-base font-bold text-neon-midnight-deep transition-all duration-200 ease-out hover:-translate-y-0.5;
-    box-shadow: 0 0 20px rgba(77, 213, 247, 0.3);
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-aimovie-ember-500 px-7 py-3.5 text-base font-bold text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-aimovie-ember-600;
+    box-shadow: 0 6px 20px -8px rgba(255, 107, 53, 0.55);
   }
+  /* .btn-neon は旧 gradient CTA の名残 — accent と同挙動に統一 */
   .btn-neon {
-    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3.5 text-base font-bold text-white transition-all duration-200 ease-out hover:-translate-y-0.5;
-    box-shadow: 0 0 30px rgba(255, 77, 157, 0.4);
+    @apply inline-flex items-center justify-center gap-2 rounded-pill bg-aimovie-ember-500 px-7 py-3.5 text-base font-bold text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-aimovie-ember-600;
+    box-shadow: 0 6px 20px -8px rgba(255, 107, 53, 0.55);
   }
   .btn-neon:hover {
-    box-shadow: 0 0 40px rgba(255, 77, 157, 0.6);
+    box-shadow: 0 8px 26px -6px rgba(255, 107, 53, 0.7);
   }
   .btn-neon-outline {
     @apply inline-flex items-center justify-center gap-2 rounded-pill border-2 border-white/30 bg-white/5 px-7 py-3.5 text-base font-bold text-white transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-white/60 hover:bg-white/10;

@@ -214,7 +214,7 @@ function PortfolioCardTile({
                 sizes="28px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-[10px] font-black text-white">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-[10px] font-black text-white">
                 {creator.profiles.display_name[0]}
               </div>
             )}

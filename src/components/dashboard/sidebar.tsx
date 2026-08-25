@@ -189,7 +189,7 @@ export function Sidebar({ role }: SidebarProps) {
                 isSub ? "ml-6 py-2 text-xs" : "py-3 text-sm font-medium"
               } ${
                 isActive
-                  ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                  ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
                   : "text-[#4F4F4F] hover:bg-[#F2F2F2]"
               }`}
             >

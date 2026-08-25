@@ -187,7 +187,7 @@ function SummaryCard({
     <div
       className={`rounded-2xl border p-4 shadow-card ${
         tone === "accent"
-          ? "border-neon-pink/30 bg-gradient-to-br from-neon-pink/[0.06] to-neon-purple/[0.04]"
+          ? "border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/[0.06] to-aimovie-navy-700/[0.04]"
           : "border-gray-200 bg-white"
       }`}
     >

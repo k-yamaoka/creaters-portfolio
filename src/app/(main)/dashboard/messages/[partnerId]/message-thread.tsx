@@ -407,7 +407,7 @@ export function MessageThread({
                   <div
                     className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                       isMine
-                        ? `bg-gradient-to-r from-neon-pink to-neon-purple text-white ${isTemp ? "opacity-70" : ""}`
+                        ? `bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white ${isTemp ? "opacity-70" : ""}`
                         : "bg-white text-ink shadow-card"
                     }`}
                   >
@@ -667,7 +667,7 @@ export function MessageThread({
             type="button"
             onClick={handleSend}
             disabled={sending || uploading || (!input.trim() && !attachmentUrl)}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-white transition-colors hover:bg-neon-purple disabled:opacity-50"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white transition-colors hover:bg-neon-purple disabled:opacity-50"
             aria-label="送信"
           >
             <svg

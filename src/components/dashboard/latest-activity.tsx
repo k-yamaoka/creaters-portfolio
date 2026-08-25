@@ -26,7 +26,7 @@ export function DashboardLatestActivity({
         <div className="flex items-center gap-2">
           <span
             aria-hidden
-            className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-neon-cyan/15 to-neon-purple/15 text-neon-cyan"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-aimovie-navy-500/15 to-aimovie-navy-700/15 text-neon-cyan"
           >
             <svg
               className="h-4 w-4"

@@ -241,7 +241,7 @@ export default async function HomePage() {
               <p className="inline-flex items-center gap-2 rounded-pill border border-paper/20 bg-paper/[0.04] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/75 backdrop-blur-sm">
                 <span
                   aria-hidden
-                  className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-neon-pink to-neon-cyan"
+                  className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-aimovie-ember-500 to-aimovie-ivory-300"
                 />
                 AI Creators Platform
               </p>
@@ -260,7 +260,7 @@ export default async function HomePage() {
                 style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
               >
                 <span style={{ whiteSpace: "nowrap" }}>
-                  <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
                     AIクリエイター
                   </span>
                   と、
@@ -286,7 +286,7 @@ export default async function HomePage() {
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,77,157,0.55)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(255,77,157,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep"
+                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,77,157,0.55)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(255,77,157,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep"
                 >
                   無料ではじめる
                 </Link>

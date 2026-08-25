@@ -163,7 +163,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               onClick={() => toggleGenre(genre)}
               className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
                 selectedGenres.includes(genre)
-                  ? "border-neon-pink bg-gradient-to-r from-neon-pink to-neon-purple text-white"
+                  ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
                   : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-pink"
               }`}
             >
@@ -187,7 +187,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               onClick={() => toggleLength(length)}
               className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
                 selectedLengths.includes(length)
-                  ? "border-neon-cyan bg-gradient-to-r from-neon-cyan to-neon-purple text-white"
+                  ? "border-neon-cyan bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700 text-white"
                   : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-cyan"
               }`}
             >
@@ -271,7 +271,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                         onClick={() => toggleAiTool(t.name)}
                         className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-colors ${
                           active
-                            ? "border-neon-purple bg-gradient-to-r from-neon-purple to-neon-pink text-white"
+                            ? "border-neon-purple bg-gradient-to-r from-aimovie-navy-700 to-aimovie-ember-500 text-white"
                             : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-purple"
                         }`}
                       >

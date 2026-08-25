@@ -180,7 +180,7 @@ export function CreatorsPageClient({
               </p>
               <h1 className="headline-display mt-6 text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper">
                 Choose your{" "}
-                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text italic text-transparent">
+                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text italic text-transparent">
                   specialist.
                 </span>
               </h1>
@@ -394,8 +394,8 @@ function CreatorRow({
         <span
           className={`absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill px-2.5 py-1 text-[10px] font-black text-white shadow-sm ${
             tier === "gold"
-              ? "bg-gradient-to-r from-neon-sunset to-neon-pink"
-              : "bg-gradient-to-r from-neon-cyan to-neon-purple"
+              ? "bg-gradient-to-r from-aimovie-ember-400 to-aimovie-ember-500"
+              : "bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700"
           }`}
         >
           {tier === "gold" ? (
@@ -415,7 +415,7 @@ function CreatorRow({
           className="pointer-events-none absolute -right-1 -top-1 z-10 h-[110px] w-[110px] overflow-hidden"
         >
           {/* ナナメ折り込みリボン本体 */}
-          <div className="absolute right-[-44px] top-[18px] w-[170px] rotate-45 bg-gradient-to-r from-neon-sunset via-neon-pink to-neon-sunset py-1 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_4px_12px_rgba(255,174,59,0.55)]">
+          <div className="absolute right-[-44px] top-[18px] w-[170px] rotate-45 bg-gradient-to-r from-aimovie-ember-400 via-aimovie-ember-500 to-aimovie-ember-400 py-1 text-center text-[10px] font-black uppercase tracking-[0.18em] text-white shadow-[0_4px_12px_rgba(255,174,59,0.55)]">
             <BadgeCheck size={12} strokeWidth={1.8} fill="currentColor" className="-mt-0.5 inline-block" aria-hidden /> 認証済
           </div>
           {/* リボン下部の折り影 */}
@@ -440,7 +440,7 @@ function CreatorRow({
                 sizes="(max-width: 640px) 96px, 128px"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-4xl font-black text-white sm:text-5xl">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-4xl font-black text-white sm:text-5xl">
                 {profiles.display_name[0]}
               </div>
             )}
@@ -495,7 +495,7 @@ function CreatorRow({
               {creator.strengths.slice(0, 2).map((s) => (
                 <span
                   key={`st-${s}`}
-                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink/15 to-neon-purple/15 px-3 py-1 text-[11px] font-bold text-ink"
+                  className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-aimovie-ember-500/15 to-aimovie-navy-700/15 px-3 py-1 text-[11px] font-bold text-ink"
                 >
                   <Sparkles size={12} strokeWidth={1.8} fill="currentColor" aria-hidden /> {s}
                 </span>
@@ -825,7 +825,7 @@ function CreatorGridCard({
               sizes="40px"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-xs font-bold text-white">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-xs font-bold text-white">
               {profiles.display_name[0]}
             </div>
           )}

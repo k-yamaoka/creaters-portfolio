@@ -26,7 +26,7 @@ export async function FoundingCreatorCounter({
 
   if (variant === "hero") {
     return (
-      <div className="rounded-2xl border border-neon-pink/30 bg-gradient-to-br from-neon-pink/10 via-white to-neon-purple/10 p-5 shadow-sm">
+      <div className="rounded-2xl border border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/10 via-white to-aimovie-navy-700/10 p-5 shadow-sm">
         <div className="flex items-center gap-2">
           <Sparkles
             size={16}

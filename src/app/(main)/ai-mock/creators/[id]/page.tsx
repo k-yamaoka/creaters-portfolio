@@ -109,7 +109,7 @@ export default async function CreatorDetailPage({
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  className="group inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-3 text-sm font-black text-white shadow-[0_0_24px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(255,77,157,0.6)]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-7 py-3 text-sm font-black text-white shadow-[0_0_24px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_36px_rgba(255,77,157,0.6)]"
                 >
                   <span>このクリエイターに依頼</span>
                   <span className="transition-transform group-hover:translate-x-1">
@@ -151,7 +151,7 @@ export default async function CreatorDetailPage({
                       key={i}
                       className="flex items-start gap-3 rounded-xl border border-ink/10 bg-white p-4"
                     >
-                      <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-gradient-to-br from-neon-pink to-neon-purple text-xs font-black text-white">
+                      <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-pill bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-xs font-black text-white">
                         {i + 1}
                       </span>
                       <span className="text-sm leading-[1.85] text-ink">
@@ -278,7 +278,7 @@ export default async function CreatorDetailPage({
                         type="button"
                         className={`mt-4 inline-flex w-full items-center justify-center gap-2 rounded-pill px-4 py-2 text-xs font-bold transition-all hover:-translate-y-0.5 ${
                           i === 1
-                            ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_15px_rgba(255,77,157,0.3)]"
+                            ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white shadow-[0_0_15px_rgba(255,77,157,0.3)]"
                             : "border-2 border-ink bg-paper text-ink hover:bg-ink/5 hover:text-ink"
                         }`}
                       >

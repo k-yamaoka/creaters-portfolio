@@ -16,33 +16,33 @@ export const metadata: Metadata = {
 };
 
 const AI_TOOLS = [
-  { name: "Sora 2", category: "Video", color: "from-neon-pink to-neon-purple" },
-  { name: "Veo 3", category: "Video", color: "from-neon-cyan to-neon-purple" },
+  { name: "Sora 2", category: "Video", color: "from-aimovie-navy-900 to-aimovie-ember-500" },
+  { name: "Veo 3", category: "Video", color: "from-aimovie-navy-500 to-aimovie-navy-700" },
   {
     name: "Runway Gen-4",
     category: "Video",
-    color: "from-neon-purple to-neon-magenta",
+    color: "from-aimovie-navy-700 to-aimovie-ember-600",
   },
   {
     name: "Kling 2.x",
     category: "Video",
-    color: "from-neon-cyan to-neon-pink",
+    color: "from-aimovie-navy-500 to-aimovie-ember-500",
   },
   {
     name: "Midjourney",
     category: "Image",
-    color: "from-neon-sunset to-neon-pink",
+    color: "from-aimovie-ember-400 to-aimovie-ember-500",
   },
   {
     name: "ElevenLabs",
     category: "Audio",
-    color: "from-neon-purple to-neon-cyan",
+    color: "from-aimovie-navy-700 to-aimovie-ivory-300",
   },
-  { name: "Suno", category: "Music", color: "from-neon-magenta to-neon-sunset" },
+  { name: "Suno", category: "Music", color: "from-aimovie-ember-600 to-aimovie-ember-400" },
   {
     name: "Topaz",
     category: "Upscale",
-    color: "from-neon-cyan to-neon-purple",
+    color: "from-aimovie-navy-500 to-aimovie-navy-700",
   },
 ];
 
@@ -108,7 +108,7 @@ export default function AiMockHome() {
               </p>
 
               <h1 className="mt-8 text-[2.4rem] font-black leading-[1.1] tracking-tight sm:text-[3.6rem] lg:text-[4.8rem]">
-                <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
                   SNS広告動画
                 </span>
                 を、
@@ -130,7 +130,7 @@ export default function AiMockHome() {
               <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                 <Link
                   href="/ai-mock/creators"
-                  className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-7 py-4 text-base font-bold text-white shadow-[0_0_30px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(255,77,157,0.6)]"
+                  className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-7 py-4 text-base font-bold text-white shadow-[0_0_30px_rgba(255,77,157,0.4)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(255,77,157,0.6)]"
                 >
                   <span>AIクリエイターを探す</span>
                   <span className="transition-transform group-hover:translate-x-1">
@@ -174,10 +174,10 @@ export default function AiMockHome() {
             <div className="relative col-span-12 lg:col-span-5">
               <div className="relative grid grid-cols-2 gap-3">
                 {[
-                  "from-neon-pink to-neon-purple",
-                  "from-neon-cyan to-neon-purple",
-                  "from-neon-sunset to-neon-pink",
-                  "from-neon-purple to-neon-cyan",
+                  "from-aimovie-navy-900 to-aimovie-ember-500",
+                  "from-aimovie-navy-500 to-aimovie-navy-700",
+                  "from-aimovie-ember-400 to-aimovie-ember-500",
+                  "from-aimovie-navy-700 to-aimovie-ivory-300",
                 ].map((g, i) => (
                   <div
                     key={i}
@@ -189,7 +189,7 @@ export default function AiMockHome() {
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${g}`}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-neon-midnight-deep/80 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-aimovie-navy-950/80 to-transparent" />
                     <div className="absolute bottom-2 left-2 text-[10px] font-bold text-white">
                       <p className="opacity-70">Gen by</p>
                       <p>
@@ -413,7 +413,7 @@ export default function AiMockHome() {
             <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
               主要AIツール、
               <br />
-              <span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-aimovie-ember-500 to-aimovie-ivory-300 bg-clip-text text-transparent">
                 すべて対応。
               </span>
             </h2>
@@ -630,7 +630,7 @@ export default function AiMockHome() {
                 key={s.step}
                 className="relative rounded-xl border-2 border-ink bg-white p-6 shadow-pop"
               >
-                <span className="absolute -left-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-pill bg-gradient-to-br from-neon-pink to-neon-purple text-sm font-black text-white shadow-[0_0_15px_rgba(255,77,157,0.5)]">
+                <span className="absolute -left-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-pill bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-sm font-black text-white shadow-[0_0_15px_rgba(255,77,157,0.5)]">
                   {i + 1}
                 </span>
                 <p className="text-[10px] font-bold tracking-[0.16em] text-neon-purple-deep">
@@ -665,7 +665,7 @@ export default function AiMockHome() {
             START NOW
           </p>
           <h2 className="mt-8 text-balance text-[2.5rem] font-black leading-[1.1] sm:text-[3.5rem] lg:text-[5rem]">
-            <span className="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
               AIで、広告動画を
             </span>
             <br />
@@ -679,7 +679,7 @@ export default function AiMockHome() {
           <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/ai-mock/creators"
-              className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-8 py-4 text-base font-black text-white shadow-[0_0_30px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_50px_rgba(255,77,157,0.7)]"
+              className="group inline-flex items-center justify-between gap-3 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-8 py-4 text-base font-black text-white shadow-[0_0_30px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_50px_rgba(255,77,157,0.7)]"
             >
               <span>AIクリエイターを探す</span>
               <span className="transition-transform group-hover:translate-x-1">

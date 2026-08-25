@@ -151,7 +151,7 @@ export function VideoModal({
                     sizes="40px"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-pink to-neon-purple text-sm font-black text-white">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-sm font-black text-white">
                     {creator.display_name[0]}
                   </div>
                 )}
@@ -174,7 +174,7 @@ export function VideoModal({
 
           <Link
             href={`/creators/${creator.id}`}
-            className="mt-auto inline-flex items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
+            className="mt-auto inline-flex items-center justify-between gap-2 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-5 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5 hover:shadow-[0_0_28px_rgba(255,77,157,0.7)]"
             onClick={onClose}
           >
             <span className="inline-flex items-center gap-1.5">

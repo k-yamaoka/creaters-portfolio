@@ -273,7 +273,7 @@ export function OrdersList({
                   {showCreatorDeliver && (
                     <Link
                       href={`/dashboard/orders/${row.id}#deliver`}
-                      className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover"
+                      className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-4 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover"
                     >
                       納品する
                       <span aria-hidden>→</span>

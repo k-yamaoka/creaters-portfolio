@@ -192,7 +192,7 @@ export function ApplicationsList({ rows }: { rows: Row[] }) {
                     {row.orderId ? (
                       <Link
                         href={`/dashboard/orders/${row.orderId}`}
-                        className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover"
+                        className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-4 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover"
                       >
                         取引管理へ
                         <span aria-hidden>→</span>
@@ -200,7 +200,7 @@ export function ApplicationsList({ rows }: { rows: Row[] }) {
                     ) : (
                       <Link
                         href="/dashboard/orders"
-                        className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover"
+                        className="inline-flex items-center gap-1 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-4 py-1.5 text-xs font-bold text-white shadow-card transition-shadow hover:shadow-card-hover"
                       >
                         取引一覧へ
                         <span aria-hidden>→</span>

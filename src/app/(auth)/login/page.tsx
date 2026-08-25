@@ -66,11 +66,11 @@ function LoginForm() {
       <div className="relative w-full max-w-md">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-neon-pink to-neon-purple text-sm font-black text-white shadow-[0_0_16px_rgba(255,77,157,0.5)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-sm font-black text-white shadow-[0_0_16px_rgba(255,77,157,0.5)]">
               A
             </div>
             <span className="text-xl font-black text-white">
-              AI<span className="bg-gradient-to-r from-neon-pink to-neon-cyan bg-clip-text text-transparent">LIER</span>
+              AI<span className="bg-gradient-to-r from-aimovie-ember-500 to-aimovie-ivory-300 bg-clip-text text-transparent">LIER</span>
             </span>
           </Link>
         </div>

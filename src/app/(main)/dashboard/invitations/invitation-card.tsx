@@ -80,7 +80,7 @@ export function InvitationCard({ invitation }: Props) {
       : "予算応相談";
 
   return (
-    <li className="overflow-hidden rounded-2xl border-2 border-neon-pink/30 bg-gradient-to-br from-neon-pink/5 via-white to-neon-purple/5 shadow-md">
+    <li className="overflow-hidden rounded-2xl border-2 border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/5 via-white to-aimovie-navy-700/5 shadow-md">
       <div className="border-b border-neon-pink/20 bg-neon-pink/10 px-4 py-2">
         <p className="inline-flex items-center gap-1.5 text-[11px] font-bold text-neon-pink">
           <Sparkles size={12} strokeWidth={2} aria-hidden />
@@ -180,7 +180,7 @@ export function InvitationCard({ invitation }: Props) {
                 type="button"
                 onClick={() => respond("accept")}
                 disabled={submitting}
-                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-4 py-2 text-sm font-bold text-white shadow-md hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
+                className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-4 py-2 text-sm font-bold text-white shadow-md hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-50"
               >
                 <ExternalLink size={14} strokeWidth={2} aria-hidden />
                 {submitting ? "処理中..." : "詳細を見て応募する"}

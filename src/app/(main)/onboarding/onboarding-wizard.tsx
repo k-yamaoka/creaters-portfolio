@@ -191,7 +191,7 @@ export function OnboardingWizard({
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       {/* Header */}
       <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-neon-pink to-neon-purple text-white shadow-md">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-white shadow-md">
           <Sparkles size={22} strokeWidth={1.8} aria-hidden />
         </div>
         <div>

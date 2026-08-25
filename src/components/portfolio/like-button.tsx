@@ -103,7 +103,7 @@ export function LikeButton({
       aria-label={liked ? "いいねを取り消す" : "いいねする"}
       className={`relative z-20 inline-flex items-center rounded-pill border font-bold transition-all backdrop-blur-sm ${sizeClass} ${
         liked
-          ? "border-neon-pink/60 bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_14px_rgba(255,77,157,0.6)]"
+          ? "border-neon-pink/60 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white shadow-[0_0_14px_rgba(255,77,157,0.6)]"
           : "border-white/30 bg-black/40 text-white/90 hover:border-neon-pink/40 hover:bg-black/60"
       } ${pending ? "opacity-70" : ""}`}
     >

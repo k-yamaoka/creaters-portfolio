@@ -136,7 +136,7 @@ export default async function DashboardJobsPage() {
                       href={`/dashboard/jobs/${job.id}#applications`}
                       className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-bold transition-all hover:-translate-y-0.5 ${
                         hasApplicants
-                          ? "bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-card hover:shadow-card-hover"
+                          ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white shadow-card hover:shadow-card-hover"
                           : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                       }`}
                     >

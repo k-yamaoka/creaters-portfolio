@@ -87,7 +87,7 @@ export default async function LikesPage() {
           </p>
           <Link
             href="/portfolios"
-            className="mt-6 inline-flex items-center gap-2 rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-6 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5"
+            className="mt-6 inline-flex items-center gap-2 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-6 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(255,77,157,0.5)] transition-all hover:-translate-y-0.5"
           >
             ポートフォリオを見る →
           </Link>

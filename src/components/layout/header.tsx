@@ -483,7 +483,7 @@ export function Header({
                   }}
                   className={T.userMenuBtn}
                 >
-                  <div className="flex h-6 w-6 items-center justify-center rounded-pill bg-gradient-to-br from-neon-pink to-neon-purple font-bold text-xs text-white">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-pill bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 font-bold text-xs text-white">
                     {displayName.charAt(0).toUpperCase()}
                   </div>
                   <span className="max-w-[120px] truncate">{displayName}</span>

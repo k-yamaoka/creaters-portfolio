@@ -136,7 +136,7 @@ export function AvatarCropModal({
             type="button"
             onClick={handleConfirm}
             disabled={busy || !croppedAreaPixels}
-            className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-2 text-sm font-bold text-white shadow-card transition-shadow hover:shadow-card-hover disabled:opacity-50"
+            className="rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-5 py-2 text-sm font-bold text-white shadow-card transition-shadow hover:shadow-card-hover disabled:opacity-50"
           >
             {busy ? "処理中..." : "この範囲で確定"}
           </button>

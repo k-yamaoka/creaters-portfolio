@@ -235,7 +235,7 @@ export function BasicInfoEditor({
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
         {/* Avatar */}
         <div className="relative">
-          <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-gray-200 bg-gradient-to-br from-neon-pink/15 to-neon-purple/15 sm:h-24 sm:w-24">
+          <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-gray-200 bg-gradient-to-br from-aimovie-ember-500/15 to-aimovie-navy-700/15 sm:h-24 sm:w-24">
             {visibleAvatar ? (
               // 表示するアバターが http(s) なら next/image を使うが、
               // blob: プレビュー時は素の <img> でないと描けない
@@ -390,7 +390,7 @@ export function BasicInfoEditor({
                 type="button"
                 onClick={handleSave}
                 disabled={pending}
-                className="rounded-pill bg-gradient-to-r from-neon-pink to-neon-purple px-5 py-2 text-sm font-bold text-white shadow-card transition-shadow hover:shadow-card-hover disabled:opacity-50"
+                className="rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-5 py-2 text-sm font-bold text-white shadow-card transition-shadow hover:shadow-card-hover disabled:opacity-50"
               >
                 {pending ? "保存中..." : "保存"}
               </button>

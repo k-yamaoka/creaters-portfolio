@@ -74,7 +74,7 @@ export function VisualStyleSelector() {
               </div>
               {/* 選択時のチェック */}
               {isActive && (
-                <span className="absolute left-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-neon-pink to-neon-purple text-white shadow-[0_0_12px_rgba(255,77,157,0.7)]">
+                <span className="absolute left-2 top-2 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white shadow-[0_0_12px_rgba(255,77,157,0.7)]">
                   <svg
                     className="h-3.5 w-3.5"
                     fill="none"
