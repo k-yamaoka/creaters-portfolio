@@ -380,15 +380,27 @@ export default async function OrderDetailPage({
               }
             />
           ) : (
-            <ClientBillingBreakdown
-              basePrice={
-                (order.base_price as number | null | undefined) ??
-                order.creator_payout ??
-                0
-              }
-              systemFeeOverride={order.platform_fee ?? undefined}
-              totalAmountOverride={order.total_amount ?? undefined}
-            />
+            <>
+              <ClientBillingBreakdown
+                basePrice={
+                  (order.base_price as number | null | undefined) ??
+                  order.creator_payout ??
+                  0
+                }
+                systemFeeOverride={order.platform_fee ?? undefined}
+                totalAmountOverride={order.total_amount ?? undefined}
+              />
+              {/* 検収済 の取引には 適格請求書 (インボイス) DL リンク */}
+              {order.escrow_status === "released" && (
+                <a
+                  href={`/api/orders/${order.id}/invoice`}
+                  download
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  📄 適格請求書 (PDF) をダウンロード
+                </a>
+              )}
+            </>
           )}
 
           {/* Participants */}
