@@ -9,8 +9,9 @@ test.describe("Public pages @smoke", () => {
   test("トップページ / が開く", async ({ page }) => {
     const res = await page.goto("/");
     expect(res?.status()).toBeLessThan(400);
-    // "AILIER" は必ずどこかに表示 (Header / Footer / Hero のいずれか)
-    await expect(page.locator("body")).toContainText(/AILIER/i);
+    // 2026-08-25 リブランド: AILIER → Aimovie / アイムビ
+    // Header/Footer のいずれかに ブランド表記があるか (英字 or カタカナ)
+    await expect(page.locator("body")).toContainText(/Aimovie|アイムビ/);
   });
 
   test("/creators クリエイター一覧", async ({ page }) => {
@@ -24,8 +25,8 @@ test.describe("Public pages @smoke", () => {
     await page.goto("/pricing");
     await expect(page.locator("body")).toContainText(/15\s*%/);
     await expect(page.locator("body")).toContainText(/0\s*%/);
-    // 他社比較セクションが表示される
-    await expect(page.locator("body")).toContainText(/AILIER/);
+    // 他社比較セクション (アイムビ vs 他プラットフォーム)
+    await expect(page.locator("body")).toContainText(/Aimovie|アイムビ/);
   });
 
   test("/help FAQ 7 項目が全て存在", async ({ page }) => {
