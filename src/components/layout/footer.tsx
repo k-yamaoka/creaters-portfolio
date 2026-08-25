@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AimovieLogo } from "@/components/brand/aimovie-logo";
 
 /**
  * 2026-06-17: サイト全体を白基調に統一したのに合わせ、Footer を Axis Ov Films
@@ -12,8 +13,6 @@ export function Footer() {
   // - 左ロゴ + 4 リンクカラム = 計 5 列の grid-cols-5 で全体高さを抑制。
   const T = {
     footer: "relative mt-12 bg-paper text-ink border-t border-ink/10",
-    logoText:
-      "font-display text-4xl font-medium leading-none tracking-tight text-ink",
     sectionLabel:
       "font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-ink/45",
     link:
@@ -30,19 +29,9 @@ export function Footer() {
       <div className="mx-auto max-w-wide px-gutter py-10 lg:py-12">
         {/* ロゴ + 4 リンクカラム を 1 行 5 列 (lg) に統合 */}
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-10">
-          {/* 左: ブランドロゴ (テキスト 4xl) */}
+          {/* 左: ブランドロゴ */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-            <Link href="/" className="inline-flex items-center gap-3">
-              <span
-                aria-hidden
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-aimovie-navy-900"
-              >
-                <span className="block h-2 w-2 rounded-full bg-aimovie-ember-500" />
-              </span>
-              <span className={T.logoText}>
-                Aimovie<span className="text-aimovie-ember-500">.</span>
-              </span>
-            </Link>
+            <AimovieLogo variant="light" size="lg" />
             <div className={`${T.muted} mt-4 space-y-0.5`}>
               <p>アイムビ · AIクリエイター × 企業のマッチング</p>
               <p>Comhuman-Quality Co., Ltd.</p>

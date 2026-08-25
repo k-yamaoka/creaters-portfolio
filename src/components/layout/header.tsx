@@ -8,8 +8,8 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
 } from "@/lib/actions/notifications";
-import { NeonStar } from "@/components/ui/illustrations-retrowave";
 import { Heart } from "lucide-react";
+import { AimovieLogo } from "@/components/brand/aimovie-logo";
 
 type User = {
   id: string;
@@ -182,9 +182,6 @@ export function Header({
     ? {
         header:
           "fixed left-0 right-0 top-0 z-50 border-b border-gray-200 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.04)]",
-        logoText: "font-display text-xl font-black tracking-tight text-gray-900",
-        logoSubtitle:
-          "mt-1 text-[9px] font-medium uppercase tracking-[0.22em] text-gray-400",
         navLink:
           "rounded-pill px-4 py-2 text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-neon-pink",
         iconBtn:
@@ -223,10 +220,7 @@ export function Header({
         // 2026-06-16 Step 4: ダーク (LP) テーマを Axis Ov Films 系へ刷新。
         // 旧 neon-midnight-deep/neon-pink hover を ink-deep/sand に統一。
         header:
-          "fixed left-0 right-0 top-0 z-50 border-b border-paper/10 bg-ink-deep/85 backdrop-blur-xl",
-        logoText: "font-display text-xl font-medium tracking-tight text-paper",
-        logoSubtitle:
-          "mt-1 font-mono text-[9px] font-medium uppercase tracking-[0.22em] text-paper/40",
+          "fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-aimovie-navy-950/85 backdrop-blur-xl",
         navLink:
           "rounded-pill px-4 py-2 text-[11px] font-medium uppercase tracking-[0.14em] text-paper/70 transition-colors hover:text-paper",
         iconBtn:
@@ -273,29 +267,12 @@ export function Header({
       <div className="mx-auto flex h-20 max-w-container items-center justify-between px-6 lg:px-10">
         {/* Left: Logo + Nav */}
         <div className="flex items-center gap-10">
-          <Link
-            href="/"
-            className="group/logo flex items-center gap-2.5"
-            aria-label="アイムビ ホーム"
-          >
-            {/* Aimovie ロゴ: 深紺の film-strip モチーフ (■) + オレンジ dot */}
-            <span
-              aria-hidden
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-aimovie-navy-900 text-aimovie-ember-500 transition-transform group-hover/logo:rotate-3"
-            >
-              <span className="block h-2 w-2 rounded-full bg-aimovie-ember-500" />
-            </span>
-            <span className="flex flex-col leading-none">
-              <span className={T.logoText}>
-                Aimovie<span className="text-aimovie-ember-500">.</span>
-              </span>
-              {!isTransparent && (
-                <span className={T.logoSubtitle}>
-                  アイムビ · AIクリエイター × 企業のマッチング
-                </span>
-              )}
-            </span>
-          </Link>
+          <AimovieLogo
+            variant={isTransparent ? "dark" : "light"}
+            size="md"
+            showTagline={!isTransparent}
+            ariaLabel="アイムビ ホーム"
+          />
 
           <nav className="hidden items-center gap-1 md:flex">
             {showCreatorsLink && (
