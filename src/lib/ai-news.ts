@@ -710,7 +710,7 @@ async function fetchAndEnrichAiNews(): Promise<AiNewsItem[]> {
     timeout: 8000,
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (compatible; AILIER-NewsBot/1.0; +https://creaters-portfolio.vercel.app)",
+        "Mozilla/5.0 (compatible; Aimovie-NewsBot/1.0; +https://aimovie-works.com)",
     },
   });
 

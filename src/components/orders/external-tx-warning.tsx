@@ -15,7 +15,7 @@ export function ExternalTxWarning({ className = "" }: { className?: string }) {
         className="shrink-0 text-amber-600"
         aria-hidden
       />
-      ※ 外部ツール (LINE / Slack / メール等) でのやり取り・納品はトラブル時の補償対象外となります。取引はすべて AILIER 上で完結してください。
+      ※ 外部ツール (LINE / Slack / メール等) でのやり取り・納品はトラブル時の補償対象外となります。取引はすべて アイムビ 上で完結してください。
     </p>
   );
 }

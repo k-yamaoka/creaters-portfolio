@@ -5,7 +5,7 @@ import { FoundingCreatorCounter } from "@/components/founding-counter";
 export const metadata: Metadata = {
   title: "AIクリエイターガイドライン",
   description:
-    "AILIERで活動するAIクリエイター向けのガイドライン。プロンプト力・ツール選定・著作権・透明性を満たす運用方針をまとめています。",
+    "アイムビで活動するAIクリエイター向けのガイドライン。プロンプト力・ツール選定・著作権・透明性を満たす運用方針をまとめています。",
 };
 
 // D-1: 先着 50 名の残数をリアルタイムに近い形で反映するため 60s
@@ -18,7 +18,7 @@ export default function CreatorGuidePage() {
         AIクリエイターガイドライン
       </h1>
       <p className="mt-2 text-sm text-[#828282]">
-        AILIERで活動するAIクリエイターの皆さまへ
+        アイムビで活動するAIクリエイターの皆さまへ
       </p>
 
       {/* D-1: 先着 50 名 ファウンディング クリエイター 特典 */}
@@ -31,7 +31,7 @@ export default function CreatorGuidePage() {
         <section className="rounded-2xl bg-white p-6 shadow-card sm:p-8">
           <h2 className="text-xl font-bold text-[#222]">はじめに</h2>
           <p className="mt-3 text-sm leading-relaxed text-[#4F4F4F]">
-            AILIERは、AIクリエイターと企業を直接つなぐプラットフォームです。
+            アイムビは、AIクリエイターと企業を直接つなぐプラットフォームです。
             本ガイドラインは、プロンプト力 / ツール選定 / 著作権 / クライアントへの透明性を備えたAIクリエイターが、安心して活動できる環境を維持するために定めたものです。
           </p>
         </section>

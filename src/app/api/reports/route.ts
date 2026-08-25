@@ -6,7 +6,7 @@ import { notifyAdmin } from "@/lib/admin-notify";
 import { sendExternalNotification } from "@/lib/notify-external";
 
 const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://creaters-portfolio.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://aimovie-works.com";
 
 /** 通報カテゴリごとの緊急度プレフィックス (件名頭) */
 const SUBJECT_PREFIX: Record<string, string> = {
@@ -237,9 +237,9 @@ export async function POST(request: NextRequest) {
   await sendExternalNotification({
     userId: user.id,
     kind: "message",
-    subject: "【AILIER】ご通報を受け付けました",
+    subject: "【アイムビ】ご通報を受け付けました",
     body: [
-      "AILIER 運営です。",
+      "アイムビ 運営です。",
       "",
       `通報いただいた作品「${target.title ?? "(無題)"}」について、内容を確認いたしました。`,
       "運営が事実確認のうえ、必要に応じて処置を実施します。対応完了までしばらくお待ちください。",
@@ -249,7 +249,7 @@ export async function POST(request: NextRequest) {
       "なお、対応結果の詳細は非開示とさせていただいております。",
       "同一作品への追加通報は受け付けが重複しますのでご遠慮ください。",
       "",
-      "AILIER 運営",
+      "アイムビ 運営",
     ].join("\n"),
     link: "/help",
   });
@@ -260,7 +260,7 @@ export async function POST(request: NextRequest) {
     await sendExternalNotification({
       userId: targetCreator.user_id,
       kind: "message",
-      subject: `【AILIER】あなたの作品「${target.title ?? "(無題)"}」が一時非公開になりました`,
+      subject: `【アイムビ】あなたの作品「${target.title ?? "(無題)"}」が一時非公開になりました`,
       body: [
         `${targetCreator.profiles?.display_name ?? "クリエイター"} 様`,
         "",
@@ -275,9 +275,9 @@ export async function POST(request: NextRequest) {
         "",
         "【異議申立て】",
         "本措置に異議がある場合、または心当たりがない場合は 72 時間以内に",
-        "support@ailier.app までご連絡ください。運営で再確認いたします。",
+        "support@aimovie-works.com までご連絡ください。運営で再確認いたします。",
         "",
-        "AILIER 運営",
+        "アイムビ 運営",
       ].join("\n"),
       link: "/dashboard/portfolio",
     });

@@ -30,7 +30,7 @@ export function ShareButton({
   const tweetUrl =
     typeof window !== "undefined"
       ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-          `${creatorName} | AILIER (AIクリエイター特化マッチング)`
+          `${creatorName} | アイムビ (AIクリエイター特化マッチング)`
         )}&url=${encodeURIComponent(window.location.href)}`
       : "#";
 

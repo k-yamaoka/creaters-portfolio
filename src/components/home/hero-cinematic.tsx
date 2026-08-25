@@ -10,7 +10,7 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
  * 構造 (PC):
  *   ┌──────────────────────────────────────────────┐
  *   │ (背景 = 100svh ambient video / header の裏まで) │
- *   │ ┃ AILIER         (vertical mono)              │
+ *   │ ┃ アイムビ         (vertical mono)              │
  *   │ ┃ REEL 2026                                   │ ← (Sound)
  *   │ ┃                                             │
  *   │                                                │
@@ -18,7 +18,7 @@ import { RevealOnScroll } from "@/components/ui/reveal-on-scroll";
  *   │                                ┌──────┐       │
  *   │                                │ (02) │       │
  *   │                                └──────┘       │
- *   │  (01 — AILIER)              ┌──────────┐      │
+ *   │  (01 — アイムビ)              ┌──────────┐      │
  *   │  Frames of                  │  (01)    │      │
  *   │  tomorrow.                  └──────────┘      │
  *   │  AIクリエイターと、企業をつなぐ。              │
@@ -116,7 +116,7 @@ export function HeroCinematic({
   return (
     <section
       className="relative h-[100svh] min-h-[600px] w-full overflow-hidden bg-ink-deep text-paper"
-      aria-label="AILIER — AI クリエイターと企業をつなぐ"
+      aria-label="アイムビ — AI クリエイターと企業をつなぐ"
     >
       {/* === 背景フルスクリーン動画 === */}
       <video
@@ -157,7 +157,7 @@ export function HeroCinematic({
         style={{ backgroundImage: NOISE_DATA_URL, backgroundSize: "200px 200px" }}
       />
 
-      {/* === 左サイド: 縦書き mono タイポ (Axis 風 "(AILIER — REEL 2026)") === */}
+      {/* === 左サイド: 縦書き mono タイポ (Axis 風 "(アイムビ — REEL 2026)") === */}
       <div
         aria-hidden
         className="pointer-events-none absolute left-6 top-1/2 z-10 hidden -translate-y-1/2 md:block"
@@ -166,7 +166,7 @@ export function HeroCinematic({
           className="font-mono text-[10px] uppercase tracking-[0.32em] text-paper/45"
           style={{ writingMode: "vertical-rl" }}
         >
-          (AILIER — REEL 2026)
+          (アイムビ — REEL 2026)
         </p>
       </div>
 
@@ -212,7 +212,7 @@ export function HeroCinematic({
       <div className="relative z-10 mx-auto flex h-full max-w-wide flex-col justify-end px-gutter pb-20 pt-32 sm:pb-28 lg:pb-32">
         <div className="max-w-xl lg:max-w-2xl">
           <RevealOnScroll delay={0}>
-            <p className="eyebrow-mono">(01 — AILIER)</p>
+            <p className="eyebrow-mono">(01 — アイムビ)</p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={80}>

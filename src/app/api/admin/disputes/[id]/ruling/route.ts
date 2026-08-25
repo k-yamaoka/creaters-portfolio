@@ -225,11 +225,11 @@ export async function POST(
       await sendExternalNotification({
         userId: uid,
         kind: "message",
-        subject: `【AILIER】運営裁定の結果通知 (${
+        subject: `【アイムビ】運営裁定の結果通知 (${
           order?.title ?? "取引"
         })`,
         body: [
-          "AILIER 運営です。",
+          "アイムビ 運営です。",
           "",
           `お申し込みいただいていた運営裁定について、以下のとおり判断いたしました。`,
           "",
@@ -240,7 +240,7 @@ export async function POST(
           summary,
           "",
           "本判断は合意仕様との照合を基準に行われました。異議申立ては 72 時間",
-          "以内に support@ailier.app までご連絡ください。",
+          "以内に support@aimovie-works.com までご連絡ください。",
         ]
           .filter((s) => s !== undefined && s !== null)
           .join("\n"),

@@ -5,7 +5,7 @@ import Image from "next/image";
 export const metadata: Metadata = {
   title: "導入事例",
   description:
-    "AILIERを活用した企業のAI動画制作成功事例をご紹介します。",
+    "アイムビを活用した企業のAI動画制作成功事例をご紹介します。",
 };
 
 export const revalidate = 3600;
@@ -20,7 +20,7 @@ const CASES = [
     period: "2週間",
     image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&h=400&fit=crop",
     challenge: "新製品ローンチに合わせSNS向けのプロモーションAI動画を量産したいが、制作会社では予算と納期が合わない。",
-    solution: "AILIERで Runway / Midjourney を使いこなすAIクリエイターを見つけ、AB案を10パターン同時制作。制作会社の半額以下で完成。",
+    solution: "アイムビで Runway / Midjourney を使いこなすAIクリエイターを見つけ、AB案を10パターン同時制作。制作会社の半額以下で完成。",
     result: "SNS広告のCTRが2.5倍に向上。プロモーション期間の売上が前年比130%を達成しました。",
   },
   {
@@ -57,7 +57,7 @@ export default function CaseStudiesPage() {
           導入事例
         </h1>
         <p className="mt-4 text-base text-[#828282]">
-          AILIERを活用した企業のAI動画制作成功事例をご紹介します
+          アイムビを活用した企業のAI動画制作成功事例をご紹介します
         </p>
         <p className="mt-3 inline-block rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
           ⚠️ 現在掲載している事例はサンプルです。実案件が蓄積次第、順次入れ替えていきます。

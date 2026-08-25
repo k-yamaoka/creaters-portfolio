@@ -45,7 +45,7 @@ export const revalidate = 300;
 
 // ===== Hero フルスクリーン用 動画ソース抽出 =====
 // 2026-06-19: 仮素材 (MDN flower.mp4 / Big Buck Bunny / Jellyfish) は完全撤去。
-// Supabase 投入済 AILIER Showcase の portfolio_items から mp4 のみを集めて
+// Supabase 投入済 アイムビ Showcase の portfolio_items から mp4 のみを集めて
 // HeroFullscreen に渡す。クライアント側でシャッフル→順次再生する。
 
 // extractHeroVideos / isStockUrl / STOCK_URL_BLACKLIST は 2026-06-24 から
@@ -230,7 +230,7 @@ export default async function HomePage() {
             className="font-mono text-[10px] uppercase tracking-[0.32em] text-paper/45"
             style={{ writingMode: "vertical-rl" }}
           >
-            (AILIER — REEL 2026)
+            (アイムビ — REEL 2026)
           </p>
         </div>
 
@@ -393,7 +393,7 @@ export default async function HomePage() {
               body="ジャンル・料金・強み・対応尺で絞り込み、人気度ティアでハイライトされたクリエイターを一覧で比較。ホバーで作品サムネが自動再生されます。"
               cta={{ href: "/creators", label: "クリエイターを探す" }}
               mock={
-                <BrowserFrame url="ailier.app/creators">
+                <BrowserFrame url="aimovie-works.com/creators">
                   <LpCreatorPreview creators={lpCreators} />
                 </BrowserFrame>
               }
@@ -411,7 +411,7 @@ export default async function HomePage() {
               body="クリエイター横断で作品をまとめて見られる作品ギャラリー。横型・縦型・正方形が混在した自然な並び。気に入った作品にはいいね（即時集計）も。"
               cta={{ href: "/portfolios", label: "作品を見る" }}
               mock={
-                <BrowserFrame url="ailier.app/portfolios">
+                <BrowserFrame url="aimovie-works.com/portfolios">
                   <LpPortfolioPreview tiles={lpTiles} />
                 </BrowserFrame>
               }
@@ -428,7 +428,7 @@ export default async function HomePage() {
               body="代表作 / 強み / 対応尺 / 使用ソフトをまとめて把握。最低対応プランは内容・納期・修正回数まで開示されているので、相談前にイメージが固まります。"
               cta={{ href: "/creators", label: "詳細ページを見る" }}
               mock={
-                <BrowserFrame url="ailier.app/creators/[id]">
+                <BrowserFrame url="aimovie-works.com/creators/[id]">
                   <MockCreatorDetail />
                 </BrowserFrame>
               }
@@ -446,7 +446,7 @@ export default async function HomePage() {
               body="クリエイターの公開料金を元に、AI が概算見積もりと推奨プランを即時返答。「気軽に相談」のハードルを最小化します。"
               cta={{ href: "/creators", label: "AI と相談してみる" }}
               mock={
-                <BrowserFrame url="ailier.app/creators/[id] (estimate)">
+                <BrowserFrame url="aimovie-works.com/creators/[id] (estimate)">
                   <MockEstimateChat />
                 </BrowserFrame>
               }
@@ -592,7 +592,7 @@ export default async function HomePage() {
                   a: "案件成立時にエスクロー (仮払い) します。納品確認後にプラットフォームからクリエイターへ送金され、検収完了までは万一のトラブルでも全額返金可能です。",
                 },
                 {
-                  q: "AILIER の手数料はどれくらいですか？",
+                  q: "アイムビ の手数料はどれくらいですか？",
                   a: "取引金額に対するシステム手数料が発生します。手数料はクリエイター側の報酬から差し引かれる形のため、発注者側の追加負担はありません。",
                 },
               ].map((f, i) => {

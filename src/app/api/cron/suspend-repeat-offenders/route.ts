@@ -81,9 +81,9 @@ export async function GET(request: Request) {
       await sendExternalNotification({
         userId,
         kind: "message",
-        subject: "【AILIER】あなたのアカウントは一時停止されました",
+        subject: "【アイムビ】あなたのアカウントは一時停止されました",
         body: [
-          "AILIER 運営です。",
+          "アイムビ 運営です。",
           "",
           "あなたのアカウントは、未納品を含むペナルティ蓄積が閾値を超えたため、",
           "システムにより一時停止されました。",
@@ -94,11 +94,11 @@ export async function GET(request: Request) {
           "",
           "【異議申立て】",
           "本停止に異議がある場合、または再開を希望される場合は、",
-          "72 時間以内に support@ailier.app までご連絡ください。",
+          "72 時間以内に support@aimovie-works.com までご連絡ください。",
           "運営で再確認のうえ対応いたします。",
           "",
           "【専門機関の相談窓口】",
-          "本件に関する外部相談は /help ページ 「AILIER で解決しない場合の",
+          "本件に関する外部相談は /help ページ 「アイムビ で解決しない場合の",
           "相談窓口」 セクションをご参照ください。",
         ].join("\n"),
       });

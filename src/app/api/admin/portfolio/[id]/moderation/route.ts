@@ -195,7 +195,7 @@ export async function POST(
     const notifyPayload =
       action === "restore"
         ? {
-            subject: `【AILIER】作品「${title}」の公開を再開しました`,
+            subject: `【アイムビ】作品「${title}」の公開を再開しました`,
             body: [
               `${displayName} 様`,
               "",
@@ -206,12 +206,12 @@ export async function POST(
               "【運営からの説明】",
               reason,
               "",
-              "AILIER 運営",
+              "アイムビ 運営",
             ].join("\n"),
           }
         : action === "unpublish"
           ? {
-              subject: `【AILIER】作品「${title}」を一時非公開にしました (異議申立て可)`,
+              subject: `【アイムビ】作品「${title}」を一時非公開にしました (異議申立て可)`,
               body: [
                 `${displayName} 様`,
                 "",
@@ -225,16 +225,16 @@ export async function POST(
                 "運営で内容を確認中です。判断次第 復元 または 削除 の措置に進みます。",
                 "",
                 "【異議申立て】",
-                "本措置に異議がある場合は 72 時間以内に support@ailier.app までご連絡ください。",
+                "本措置に異議がある場合は 72 時間以内に support@aimovie-works.com までご連絡ください。",
                 "件名に「異議申立て / 作品 ID: XXXX」と記載いただくとスムーズです。",
                 "",
                 "詳細は利用規約 第 4 条の 2 (AI 生成コンテンツ ガイドライン) をご確認ください。",
                 "",
-                "AILIER 運営",
+                "アイムビ 運営",
               ].join("\n"),
             }
           : {
-              subject: `【AILIER】作品「${title}」を削除しました (最終措置)`,
+              subject: `【アイムビ】作品「${title}」を削除しました (最終措置)`,
               body: [
                 `${displayName} 様`,
                 "",
@@ -246,11 +246,11 @@ export async function POST(
                 reason,
                 "",
                 "【異議申立て】",
-                "本措置に異議がある場合は 72 時間以内に support@ailier.app までご連絡ください。",
+                "本措置に異議がある場合は 72 時間以内に support@aimovie-works.com までご連絡ください。",
                 "件名に「削除異議申立て / 作品 ID: XXXX」と記載ください。",
                 "運営が再確認のうえ対応いたします。",
                 "",
-                "AILIER 運営",
+                "アイムビ 運営",
               ].join("\n"),
             };
 

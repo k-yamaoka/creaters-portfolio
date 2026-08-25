@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "運営会社",
-  description: "AIクリエイター特化型マッチングプラットフォーム AILIER の運営会社（Comhuman-Quality株式会社）情報。",
+  description: "AIクリエイター特化型マッチングプラットフォーム アイムビ の運営会社（Comhuman-Quality株式会社）情報。",
 };
 
 export const revalidate = 3600;
@@ -23,7 +23,7 @@ export default function CompanyPage() {
               {
                 label: "事業内容",
                 value:
-                  "システム開発・Web制作、AI活用・開発コンサルティング、AI動画制作・SNS運用、AIクリエイター特化型マッチングプラットフォーム『AILIER』の運営",
+                  "システム開発・Web制作、AI活用・開発コンサルティング、AI動画制作・SNS運用、AIクリエイター特化型マッチングプラットフォーム『アイムビ』の運営",
               },
               { label: "メール", value: "info@comhuman-quality.com" },
               { label: "電話", value: "03-6403-3319" },
@@ -51,7 +51,7 @@ export default function CompanyPage() {
         <p className="mt-4 text-sm leading-relaxed text-[#4F4F4F]">
           AIクリエイターが営業に時間を費やすことなく、プロンプト設計と編集に集中できる環境。
           企業が信頼できるAIクリエイターに、最短2日で高品質なAI動画を依頼できる仕組み。
-          AILIERは、そのどちらも実現します。
+          アイムビは、そのどちらも実現します。
         </p>
       </div>
 

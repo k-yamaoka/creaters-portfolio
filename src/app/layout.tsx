@@ -39,13 +39,13 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://creaters-portfolio.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://aimovie-works.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "AILIER (アイリエ) — AIクリエイター特化型の企業マッチングプラットフォーム",
-    template: "%s | AILIER",
+    default: "アイムビ (アイムビ) — AIクリエイター特化型の企業マッチングプラットフォーム",
+    template: "%s | アイムビ",
   },
   description:
     "Sora・Veo・Runway・Seedance を使いこなすAIクリエイターと、企業をつなぐ専門マッチングプラットフォーム。SNS広告動画・プロダクト紹介・コーポレートVP・採用動画まで、撮影不要・完全リモートで構成から納品まで一貫。",
@@ -66,21 +66,21 @@ export const metadata: Metadata = {
     "AI動画編集",
     "AI静止画",
     "マッチングプラットフォーム",
-    "AILIER",
-    "アイリエ",
+    "アイムビ",
+    "アイムビ",
   ],
   openGraph: {
     type: "website",
     locale: "ja_JP",
     url: siteUrl,
-    siteName: "AILIER",
-    title: "AILIER (アイリエ) — AIクリエイター特化型の企業マッチングプラットフォーム",
+    siteName: "アイムビ",
+    title: "アイムビ (アイムビ) — AIクリエイター特化型の企業マッチングプラットフォーム",
     description:
       "Sora・Veo・Runway・Seedance を使いこなすAIクリエイターに、SNS広告動画・プロダクト紹介・コーポレートVP・採用動画を依頼できる専門プラットフォーム。撮影不要・完全リモート。",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AILIER (アイリエ) — AIクリエイター特化型マッチング",
+    title: "アイムビ (アイムビ) — AIクリエイター特化型マッチング",
     description:
       "AIクリエイターと企業をつなぐ専門マッチングプラットフォーム",
   },

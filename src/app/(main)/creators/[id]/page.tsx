@@ -66,7 +66,7 @@ export default async function CreatorDetailPage({
   // QR コード用の絶対 URL。NEXT_PUBLIC_SITE_URL を本番ホストに合わせて設定する想定。
   // 未設定時は Vercel デフォルトをフォールバック。
   const siteOrigin = (
-    process.env.NEXT_PUBLIC_SITE_URL || "https://creaters-portfolio.vercel.app"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://aimovie-works.com"
   )
     .trim()
     .replace(/\/$/, "");

@@ -53,7 +53,7 @@ export async function GET(request: Request) {
         // ホットリンク防止対策として、対象記事オリジンを Referer に
         Referer: parsed.origin + "/",
         "User-Agent":
-          "Mozilla/5.0 (compatible; AILIER-NewsImgProxy/1.0; +https://creaters-portfolio.vercel.app)",
+          "Mozilla/5.0 (compatible; Aimovie-NewsImgProxy/1.0; +https://aimovie-works.com)",
         Accept: "image/*",
       },
     });

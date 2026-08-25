@@ -5,7 +5,7 @@ import { Check, Sparkles } from "lucide-react";
 export const metadata: Metadata = {
   title: "料金体系",
   description:
-    "AILIER の料金体系。クリエイター手数料 0%、企業側手数料 15%。他プラットフォームより最大 12 ポイント有利なトータル コストで、AI クリエイティブ制作をスタートできます。",
+    "アイムビ の料金体系。クリエイター手数料 0%、企業側手数料 15%。他プラットフォームより最大 12 ポイント有利なトータル コストで、AI クリエイティブ制作をスタートできます。",
 };
 
 // F-4: 2026-07-16 全面リニューアル。
@@ -176,13 +176,13 @@ export default function PricingPage() {
 // (2026-07 時点の各社公開情報 / 変動可)
 //
 // 本セクションは "AI クリエイター視点の可処分収入" を主軸にして
-// AILIER 優位性を可視化する。
+// アイムビ 優位性を可視化する。
 // =========================================================
 
 const COMPARISON = [
   {
     key: "ailier",
-    name: "AILIER",
+    name: "アイムビ",
     creatorFee: 0,
     clientFee: 15,
     total: 15,
@@ -233,7 +233,7 @@ function ComparisonInfographic() {
         </h2>
         <p className="mt-2 text-sm text-[#828282]">
           大手クラウドソーシングは 発注者 + 受注者 で 22〜27% 前後。
-          AILIER は合計 <b className="text-neon-pink">15%</b> のみで、
+          アイムビ は合計 <b className="text-neon-pink">15%</b> のみで、
           クリエイターは満額受取が可能です。
         </p>
       </div>
@@ -318,17 +318,17 @@ function ComparisonInfographic() {
         <SavingsTile
           label="クリエイター 実質収入 差"
           value="+22%"
-          desc="他社 22% 控除 vs AILIER 0%"
+          desc="他社 22% 控除 vs アイムビ 0%"
         />
         <SavingsTile
           label="10 万円案件 の手取り差額"
           value="+¥22,000"
-          desc="他社 ¥78,000 → AILIER ¥100,000"
+          desc="他社 ¥78,000 → アイムビ ¥100,000"
         />
         <SavingsTile
           label="合計手数料 差"
           value="-7〜12pt"
-          desc="他社 22〜27% → AILIER 15%"
+          desc="他社 22〜27% → アイムビ 15%"
         />
       </div>
 
@@ -387,7 +387,7 @@ function FeeFlowDiagram() {
         />
         <FlowStep
           n="02"
-          title="AILIER が受け取る"
+          title="アイムビ が受け取る"
           amount="¥15,000"
           subline="15% のシステム手数料 (企業側負担)"
           tone="platform"

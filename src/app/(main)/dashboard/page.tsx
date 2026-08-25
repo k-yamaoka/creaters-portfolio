@@ -285,7 +285,7 @@ export default async function DashboardPage() {
                 あなたのプロフィールはまだ企業に公開されていません
               </h2>
               <p className="mt-1 text-sm text-amber-800">
-                最初のポートフォリオを登録すると、企業側の検索・一覧に自動で公開されます。実績を 1 点でも登録して、AILIER 上での露出をスタートしましょう。
+                最初のポートフォリオを登録すると、企業側の検索・一覧に自動で公開されます。実績を 1 点でも登録して、アイムビ 上での露出をスタートしましょう。
               </p>
               <Link
                 href="/dashboard/portfolio"

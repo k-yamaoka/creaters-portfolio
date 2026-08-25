@@ -49,7 +49,7 @@ export default function SelectRolePage() {
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-sm font-black text-white">
                 A
               </div>
-              <span className="text-xl font-bold text-[#222]">AILIER</span>
+              <span className="text-xl font-bold text-[#222]">アイムビ</span>
             </Link>
           </div>
 
@@ -57,7 +57,7 @@ export default function SelectRolePage() {
             アカウントの種類を選択
           </h1>
           <p className="mt-2 text-center text-sm text-[#828282]">
-            AILIERの利用方法に合わせて選択してください
+            アイムビの利用方法に合わせて選択してください
           </p>
 
           {error && (

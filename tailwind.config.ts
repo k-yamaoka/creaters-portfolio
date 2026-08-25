@@ -87,18 +87,40 @@ const config: Config = {
           900: "#4a1416",
         },
         navy: "#1d2939",
-        // Retrowave / city pop / lofi palette
+        // ---- Aimovie ブランド パレット (Cinema Ink) ----
+        // 2026-08-25 リブランド: アイムビ (neon-pink/purple) → Aimovie (深紺/オレンジ)
+        // deep-navy: フィルム的な信頼感 / ember: AI 未来感の橙 / ivory: 紙の落ち着き
+        aimovie: {
+          "navy-950": "#0A1428",
+          "navy-900": "#0F1E3D",
+          "navy-700": "#1E3B6E",
+          "navy-500": "#2E5AA5",
+          "ember-600": "#E5541B",
+          "ember-500": "#FF6B35",
+          "ember-400": "#FF8A5C",
+          "ember-100": "#FFE4D6",
+          "ivory-100": "#FFFFFF",
+          "ivory-200": "#F7F5F0",
+          "ivory-300": "#EDE9DE",
+          "ink-900": "#131217",
+          "ink-700": "#3A3A44",
+          "ink-500": "#5C5D67",
+          "ink-400": "#8A8A93",
+        },
+        // ---- 旧 neon-* を Aimovie 色にリマップ (段階的移行) ----
+        // 既存 77 ファイルの neon-pink/purple 参照が自動的に新色に切替わる。
+        // 完全撤去は 後続 PR で。
         neon: {
-          pink: "#ff4d9d",
-          "pink-soft": "#ff8ec0",
-          purple: "#9d5cff",
-          "purple-deep": "#5b2dd1",
-          cyan: "#4dd5f7",
-          "cyan-soft": "#a6e8f7",
-          sunset: "#ffae3b",
-          magenta: "#e83fae",
-          midnight: "#1a1340",
-          "midnight-deep": "#0f0826",
+          pink: "#FF6B35",            // → ember (CTA)
+          "pink-soft": "#FF8A5C",     // → ember 明るめ
+          purple: "#1E3B6E",          // → navy-700
+          "purple-deep": "#0F1E3D",   // → navy-900 (見出し / 主要 accent)
+          cyan: "#2E5AA5",            // → navy-500 (補助 accent)
+          "cyan-soft": "#EDE9DE",     // → ivory 系
+          sunset: "#FF8A5C",          // → ember 明るめ
+          magenta: "#E5541B",         // → ember 濃いめ
+          midnight: "#0F1E3D",        // → navy
+          "midnight-deep": "#0A1428", // → navy 最深
         },
       },
       borderRadius: {

@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "使い方",
   description:
-    "AILIERの使い方。企業もAIクリエイターも3ステップでAI動画制作を始められます。",
+    "アイムビの使い方。企業もAIクリエイターも3ステップでAI動画制作を始められます。",
 };
 
 export const revalidate = 3600;
@@ -14,7 +14,7 @@ export default function HowItWorksPage() {
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-[#222] sm:text-[2.75rem]">
-          AILIERの使い方
+          アイムビの使い方
         </h1>
         <p className="mt-4 text-base text-[#828282]">
           はじめての方でも簡単。3ステップでAI動画制作を依頼できます
@@ -85,7 +85,7 @@ export default function HowItWorksPage() {
             {
               step: "02",
               title: "スカウト or 応募",
-              desc: "企業からの直接スカウトを受けるか、AI動画案件に自ら応募して仕事を獲得します。営業活動はAILIERにお任せ。",
+              desc: "企業からの直接スカウトを受けるか、AI動画案件に自ら応募して仕事を獲得します。営業活動はアイムビにお任せ。",
               color: "bg-neon-midnight-deep",
             },
             {
@@ -135,10 +135,10 @@ export default function HowItWorksPage() {
           <svg
             viewBox="0 0 720 260"
             role="img"
-            aria-label="エスクロー決済フロー: 企業が仮払い → AILIER が預かり → 検収完了後にクリエイターへ送金"
+            aria-label="エスクロー決済フロー: 企業が仮払い → アイムビ が預かり → 検収完了後にクリエイターへ送金"
             className="mx-auto block h-auto w-full max-w-3xl"
           >
-            {/* 3 ノード: 企業 / AILIER / クリエイター */}
+            {/* 3 ノード: 企業 / アイムビ / クリエイター */}
             <g fontFamily="Inter, system-ui, sans-serif">
               {/* 企業 */}
               <rect x="20" y="80" width="160" height="100" rx="16" fill="#EEF2FF" stroke="#6366F1" strokeWidth="1.5"/>
@@ -146,9 +146,9 @@ export default function HowItWorksPage() {
               <text x="100" y="142" textAnchor="middle" fontSize="11" fill="#4338CA">発注 + 仮払い</text>
               <text x="100" y="158" textAnchor="middle" fontSize="10" fill="#6366F1">Stripe 決済</text>
 
-              {/* AILIER (中央、太枠) */}
+              {/* アイムビ (中央、太枠) */}
               <rect x="280" y="60" width="160" height="140" rx="16" fill="#FDF4FF" stroke="#A21CAF" strokeWidth="2"/>
-              <text x="360" y="100" textAnchor="middle" fontSize="14" fontWeight="700" fill="#701A75">AILIER</text>
+              <text x="360" y="100" textAnchor="middle" fontSize="14" fontWeight="700" fill="#701A75">アイムビ</text>
               <text x="360" y="122" textAnchor="middle" fontSize="11" fill="#86198F">代金を預かる</text>
               <text x="360" y="140" textAnchor="middle" fontSize="10" fill="#A21CAF">(エスクロー)</text>
               <text x="360" y="168" textAnchor="middle" fontSize="10" fill="#701A75" fontStyle="italic">検収後に送金</text>
@@ -159,7 +159,7 @@ export default function HowItWorksPage() {
               <text x="620" y="142" textAnchor="middle" fontSize="11" fill="#047857">制作 + 納品</text>
               <text x="620" y="158" textAnchor="middle" fontSize="10" fill="#059669">3 営業日で入金</text>
 
-              {/* 矢印: 企業 → AILIER (仮払い) */}
+              {/* 矢印: 企業 → アイムビ (仮払い) */}
               <defs>
                 <marker id="arrHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
                   <path d="M0,0 L10,5 L0,10 z" fill="#6366F1"/>
@@ -171,7 +171,7 @@ export default function HowItWorksPage() {
               <path d="M 180 110 L 280 110" stroke="#6366F1" strokeWidth="2" fill="none" markerEnd="url(#arrHead)"/>
               <text x="230" y="100" textAnchor="middle" fontSize="10" fill="#4338CA">仮払い</text>
 
-              {/* 矢印: AILIER → クリエイター (検収後 送金) */}
+              {/* 矢印: アイムビ → クリエイター (検収後 送金) */}
               <path d="M 440 150 L 540 150" stroke="#059669" strokeWidth="2" fill="none" markerEnd="url(#arrHead2)"/>
               <text x="490" y="140" textAnchor="middle" fontSize="10" fill="#047857">検収後 送金</text>
 

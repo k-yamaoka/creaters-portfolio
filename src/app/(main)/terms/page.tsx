@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "利用規約",
-  description: "AILIERの利用規約。",
+  description: "アイムビの利用規約。",
 };
 
 export const revalidate = 3600;
@@ -17,7 +17,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-lg font-bold text-[#222]">第1条（適用）</h2>
           <p className="mt-3">
-            本利用規約（以下「本規約」といいます。）は、AILIER（以下「当社」といいます。）が提供する映像クリエイターマッチングサービス「AILIER」（以下「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下「ユーザー」といいます。）には、本規約に従って本サービスをご利用いただきます。
+            本利用規約（以下「本規約」といいます。）は、アイムビ（以下「当社」といいます。）が提供する映像クリエイターマッチングサービス「アイムビ」（以下「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下「ユーザー」といいます。）には、本規約に従って本サービスをご利用いただきます。
           </p>
         </section>
 
@@ -231,12 +231,12 @@ export default function TermsPage() {
         {/* §2 外部取引の補償対象外 (2026-07-21 追記) */}
         <section>
           <h2 className="text-lg font-bold text-[#222]">
-            第6条の4（AILIER 外での取引・納品の禁止と補償対象外）
+            第6条の4（アイムビ 外での取引・納品の禁止と補償対象外）
           </h2>
           <ol className="mt-3 list-inside list-decimal space-y-2">
             <li>
               本サービスに関する仕様合意・依頼のやり取り・素材の授受・納品物の受け渡し・
-              報酬支払は、<b>すべて AILIER 上の機能を通じて</b>行うものとします。
+              報酬支払は、<b>すべて アイムビ 上の機能を通じて</b>行うものとします。
             </li>
             <li>
               チャットツール (LINE / Slack / Discord / Chatwork 等)、メール、
@@ -244,7 +244,7 @@ export default function TermsPage() {
               残らない手段による やり取り・納品・直接取引を <b>禁止</b> します。
             </li>
             <li>
-              当社は、AILIER 外の手段で発生したトラブル (未払い・持ち逃げ・
+              当社は、アイムビ 外の手段で発生したトラブル (未払い・持ち逃げ・
               成果物の不正使用・仕様相違など) について、
               <b>一切の補償・仲裁・裁定を行いません</b>。
               エスクロー預り金による報酬保全もこの範囲において機能しません。
@@ -273,11 +273,11 @@ export default function TermsPage() {
               削除または非公開とすることがあります。
             </li>
             <li>
-              AILIER 外で直接連絡・交渉しない。証跡が残らないやり取りは、
+              アイムビ 外で直接連絡・交渉しない。証跡が残らないやり取りは、
               運営裁定において <b>参照する事はできません</b>。
             </li>
             <li>
-              必ず AILIER 上の機能を、<b>次の順序どおりに</b>使用する:
+              必ず アイムビ 上の機能を、<b>次の順序どおりに</b>使用する:
               <span className="mx-1 inline-flex flex-wrap gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs">
                 催促メッセージ → 検収依頼 / 修正要求 → 運営裁定 → 途中終了
               </span>

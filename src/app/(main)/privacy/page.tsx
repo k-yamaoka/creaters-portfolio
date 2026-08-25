@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "プライバシーポリシー",
   description:
-    "AILIERのプライバシーポリシー。個人情報の取扱いについて。",
+    "アイムビのプライバシーポリシー。個人情報の取扱いについて。",
 };
 
 export const revalidate = 3600;
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
         <section>
           <h2 className="text-lg font-bold text-[#222]">1. はじめに</h2>
           <p className="mt-3">
-            AILIER（以下「当社」といいます。）は、本サービスにおけるユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます。）を定めます。
+            アイムビ（以下「当社」といいます。）は、本サービスにおけるユーザーの個人情報の取扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」といいます。）を定めます。
           </p>
         </section>
 

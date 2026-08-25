@@ -78,7 +78,7 @@ export function WorksDigest({ works }: Props) {
             えらばれた作品
           </p>
           <p className="body-jp mt-4 max-w-prose-jp text-sm text-ink/65">
-            AILIER に所属する AI クリエイターによる作品の一部です。
+            アイムビ に所属する AI クリエイターによる作品の一部です。
           </p>
         </div>
 

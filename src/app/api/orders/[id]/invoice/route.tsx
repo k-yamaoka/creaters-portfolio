@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  * 適格請求書 (インボイス) PDF を生成して返す。
  * - client のみ (発注者本人)
  * - 検収済 (escrow_status='released') のみ
- * - 発行者情報は AILIER 運営会社
+ * - 発行者情報は アイムビ 運営会社
  */
 
 const ISSUER = {
@@ -28,7 +28,7 @@ const ISSUER = {
   registrationNumber:
     process.env.INVOICE_ISSUER_REGISTRATION_NUMBER ?? "T0000000000000",
   address: process.env.INVOICE_ISSUER_ADDRESS ?? undefined,
-  contactEmail: "support@ailier.jp",
+  contactEmail: "support@aimovie-works.com",
 };
 
 const TAX_RATE = 0.1;
@@ -78,7 +78,7 @@ export async function GET(
   }
 
   // 金額計算: total_amount が税込 総額。base_price × 1.15 の 15% は
-  // AILIER のシステム手数料 (企業から徴収)、その全体が課税対象。
+  // アイムビ のシステム手数料 (企業から徴収)、その全体が課税対象。
   // 消費税は 10% 内税として計算表示。
   const totalIncTax = order.total_amount ?? 0;
   const subtotal = Math.floor(totalIncTax / (1 + TAX_RATE));

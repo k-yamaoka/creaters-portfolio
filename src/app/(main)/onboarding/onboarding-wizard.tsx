@@ -196,7 +196,7 @@ export function OnboardingWizard({
         </div>
         <div>
           <h1 className="text-xl font-bold text-gray-900 sm:text-2xl">
-            AILIER へようこそ
+            アイムビ へようこそ
           </h1>
           <p className="text-sm text-gray-500">
             2 ステップでプロフィールを公開しましょう

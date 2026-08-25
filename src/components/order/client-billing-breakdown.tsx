@@ -106,7 +106,7 @@ export function ClientBillingBreakdown({
             aria-hidden
           />
           クリエイターは検収完了後に「クリエイター報酬」全額を受け取ります。
-          システム利用料は AILIER の運営費用として充当されます。
+          システム利用料は アイムビ の運営費用として充当されます。
         </p>
       </div>
     </div>

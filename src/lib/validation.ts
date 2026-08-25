@@ -74,7 +74,7 @@ export function parseDate(
  * 動画 URL ホワイトリスト。
  * クライアント側で打ち込まれた任意 URL を拒否し、許容ホスト + パスパターンのみ通す。
  */
-// SNS 埋め込みは AILIER で廃止。動画は Supabase Storage の portfolio-videos
+// SNS 埋め込みは アイムビ で廃止。動画は Supabase Storage の portfolio-videos
 // バケットへの直接アップロード (mp4) のみ許可する。
 const VIDEO_URL_PATTERNS: { platform: string; re: RegExp }[] = [
   { platform: "mp4", re: /^https?:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\/object\/public\/portfolio-videos\// },

@@ -16,14 +16,14 @@ import {
  * client 側 (企業) が /dashboard/orders/[id] から DL する用途。
  *
  * 記載事項 (国税庁「適格請求書等保存方式」の要件):
- *   1. 発行者の氏名/名称 と 登録番号 (AILIER 運営会社)
+ *   1. 発行者の氏名/名称 と 登録番号 (アイムビ 運営会社)
  *   2. 取引年月日 (検収完了日)
  *   3. 取引内容
  *   4. 税抜金額 or 税込金額 + 適用税率
  *   5. 税率毎の消費税額
  *   6. 交付先 (受領事業者) の名称
  *
- * ※ 内税表記。AILIER の platform_fee 15% を含む total_amount を税込表記。
+ * ※ 内税表記。アイムビ の platform_fee 15% を含む total_amount を税込表記。
  * ※ 消費税は現状 10% 一律で計算表示 (本番は運営会社の課税事業者ステータスで決定)。
  */
 
@@ -48,7 +48,7 @@ export type InvoiceData = {
   invoiceNumber: string;
   issuedAt: string; // ISO
   transactionDate: string; // 検収完了日 ISO
-  // 発行者 (AILIER 運営会社)
+  // 発行者 (アイムビ 運営会社)
   issuer: {
     name: string;
     registrationNumber: string; // T + 13 桁
@@ -266,7 +266,7 @@ export function InvoicePdfDocument({ data }: { data: InvoiceData }) {
 
         <Text style={s.footer}>
           この請求書は 適格請求書等保存方式 (インボイス制度) に対応しています。
-          金額に誤りがある場合は support@ailier.jp までご連絡ください。
+          金額に誤りがある場合は support@aimovie-works.com までご連絡ください。
         </Text>
       </Page>
     </Document>

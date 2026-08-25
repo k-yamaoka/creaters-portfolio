@@ -30,9 +30,9 @@ type Payload = {
 };
 
 const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://creaters-portfolio.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://aimovie-works.com";
 const FROM_EMAIL =
-  process.env.NOTIFY_FROM_EMAIL ?? "AILIER <onboarding@resend.dev>";
+  process.env.NOTIFY_FROM_EMAIL ?? "Aimovie <onboarding@resend.dev>";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -167,7 +167,7 @@ function renderEmailHtml(opts: {
     <tr><td align="center">
       <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #1a1a1a;">
         <tr><td style="padding:24px 28px;border-bottom:1px solid #e6e1d3;">
-          <span style="font-size:13px;letter-spacing:0.25em;color:#6b6657;text-transform:uppercase;">AILIER</span>
+          <span style="font-size:13px;letter-spacing:0.25em;color:#FF6B35;text-transform:uppercase;font-weight:600;">Aimovie</span>
         </td></tr>
         <tr><td style="padding:32px 28px;">
           <p style="margin:0 0 16px;font-size:14px;color:#6b6657;">${escapeHtml(opts.displayName)} さん</p>
@@ -180,7 +180,7 @@ function renderEmailHtml(opts: {
           </div>
         </td></tr>
         <tr><td style="padding:20px 28px;border-top:1px solid #e6e1d3;font-size:11px;color:#9a9384;">
-          このメールは AILIER からの通知です。配信停止は アプリ内 設定 から変更できます。<br>
+          このメールは アイムビ からの通知です。配信停止は アプリ内 設定 から変更できます。<br>
           <a href="${escapeAttr(APP_URL)}" style="color:#9a9384;">${escapeAttr(APP_URL)}</a>
         </td></tr>
       </table>

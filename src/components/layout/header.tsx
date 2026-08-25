@@ -276,19 +276,22 @@ export function Header({
           <Link
             href="/"
             className="group/logo flex items-center gap-2.5"
-            aria-label="AILIER ホーム"
+            aria-label="アイムビ ホーム"
           >
-            <span className="block text-neon-pink transition-transform group-hover/logo:rotate-12">
-              <NeonStar size={32} />
+            {/* Aimovie ロゴ: 深紺の film-strip モチーフ (■) + オレンジ dot */}
+            <span
+              aria-hidden
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-aimovie-navy-900 text-aimovie-ember-500 transition-transform group-hover/logo:rotate-3"
+            >
+              <span className="block h-2 w-2 rounded-full bg-aimovie-ember-500" />
             </span>
             <span className="flex flex-col leading-none">
               <span className={T.logoText}>
-                AILIER<span className="text-sand">.</span>
+                Aimovie<span className="text-aimovie-ember-500">.</span>
               </span>
-              {/* 透過モード (home 最上部) では subtitle を隠してミニマルに */}
               {!isTransparent && (
                 <span className={T.logoSubtitle}>
-                  AIクリエイター × 企業のマッチング
+                  アイムビ · AIクリエイター × 企業のマッチング
                 </span>
               )}
             </span>

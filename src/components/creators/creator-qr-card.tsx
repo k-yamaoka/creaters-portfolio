@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { Check, Link2, Download } from "lucide-react";
 
 type Props = {
-  /** 完全な URL (例: https://ailier.app/creators/abc) */
+  /** 完全な URL (例: https://aimovie-works.com/creators/abc) */
   url: string;
   /** ファイル名に使うクリエイター表示名 */
   creatorName: string;

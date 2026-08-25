@@ -29,7 +29,7 @@ export async function POST(
   // 料金プラン機能は撤去 (00050)。価格は minimum_order_amount 1 値のみ参照。
   const minPrice = creator.minimum_order_amount ?? null;
 
-  const systemPrompt = `あなたは AI クリエイター特化マッチングプラットフォーム「AILIER (アイリエ)」の見積もり相談 AI です。
+  const systemPrompt = `あなたは AI クリエイター特化マッチングプラットフォーム「アイムビ (アイムビ)」の見積もり相談 AI です。
 ユーザーは「${creator.profiles.display_name}」さん(以下「このクリエイター」)に依頼を検討中です。
 ユーザーの希望(動画の用途・尺・本数・納期など)に対して、概算金額の目安を提案してください。
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 /**
  * 2026-06-17: サイト全体を白基調に統一したのに合わせ、Footer を Axis Ov Films
  * 系の単一 light テーマに統合 (旧 dark / 旧 dashboard light の二系統を撤去)。
- * - bg-paper (白) + 巨大 AILIER. ロゴ + "(Menu) / (Creator) / (Support) /
+ * - bg-paper (白) + 巨大 アイムビ. ロゴ + "(Menu) / (Creator) / (Support) /
  *   (Our social)" の 4 カラム mono ラベル構造はそのまま継承。
  */
 export function Footer() {
@@ -32,13 +32,19 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5 lg:gap-10">
           {/* 左: ブランドロゴ (テキスト 4xl) */}
           <div className="col-span-2 sm:col-span-3 lg:col-span-1">
-            <Link href="/" className="inline-block">
+            <Link href="/" className="inline-flex items-center gap-3">
+              <span
+                aria-hidden
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-aimovie-navy-900"
+              >
+                <span className="block h-2 w-2 rounded-full bg-aimovie-ember-500" />
+              </span>
               <span className={T.logoText}>
-                AILIER<span className="text-sand">.</span>
+                Aimovie<span className="text-aimovie-ember-500">.</span>
               </span>
             </Link>
             <div className={`${T.muted} mt-4 space-y-0.5`}>
-              <p>AIクリエイター × 企業のマッチング</p>
+              <p>アイムビ · AIクリエイター × 企業のマッチング</p>
               <p>Comhuman-Quality Co., Ltd.</p>
             </div>
           </div>
@@ -82,7 +88,7 @@ export function Footer() {
           className={`mt-10 flex flex-col items-start justify-between gap-2 ${T.divider} pt-5 sm:flex-row sm:items-center`}
         >
           <p className={T.muted}>
-            &copy; 2026 AILIER by{" "}
+            &copy; 2026 アイムビ by{" "}
             <a
               href="https://comhuman-quality.com/"
               target="_blank"

@@ -9,16 +9,16 @@ import { Resend } from "resend";
  * 環境変数:
  *   ADMIN_NOTIFY_EMAIL  : 通知先メール (複数はカンマ区切り)
  *   RESEND_API_KEY      : Resend API キー (未設定なら console にフォールバック)
- *   NOTIFY_FROM_EMAIL   : 送信元 (デフォルト "AILIER <onboarding@resend.dev>")
+ *   NOTIFY_FROM_EMAIL   : 送信元 (デフォルト "Aimovie <onboarding@resend.dev>")
  *   SLACK_WEBHOOK_URL   : Slack Incoming Webhook (任意)
  *
  * 例外は握りつぶす (呼び出し元の主処理を止めない)。
  */
 
 const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL ?? "https://creaters-portfolio.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://aimovie-works.com";
 const FROM_EMAIL =
-  process.env.NOTIFY_FROM_EMAIL ?? "AILIER <onboarding@resend.dev>";
+  process.env.NOTIFY_FROM_EMAIL ?? "Aimovie <onboarding@resend.dev>";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -96,8 +96,8 @@ async function sendEmailToAdmins(
     );
     return;
   }
-  // 件名: subjectPrefix が指定されていればそれを頭に、既定は [AILIER/区分]
-  const prefix = i.subjectPrefix ?? `[AILIER/${labelForKind(i.kind)}]`;
+  // 件名: subjectPrefix が指定されていればそれを頭に、既定は [Aimovie/区分]
+  const prefix = i.subjectPrefix ?? `[Aimovie/${labelForKind(i.kind)}]`;
   const subject = `${prefix} ${i.subject}`;
   const html = renderHtml(i, fullLink, actions);
   if (!resend) {

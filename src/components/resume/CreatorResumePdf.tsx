@@ -60,8 +60,8 @@ export function registerResumeFont(srcOverride?: string) {
 
 // === Constants =======================================================
 const SITE = {
-  name: "AILIER",
-  url: "https://creaters-portfolio.vercel.app",
+  name: "アイムビ",
+  url: "https://aimovie-works.com",
 };
 
 const PALETTE = {

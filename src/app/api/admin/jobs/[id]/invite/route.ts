@@ -150,11 +150,11 @@ export async function POST(
       await sendExternalNotification({
         userId: c.user_id,
         kind: "message",
-        subject: `【AILIER】💌 運営からのおすすめ案件: ${job.title ?? "案件"}`,
+        subject: `【アイムビ】💌 運営からのおすすめ案件: ${job.title ?? "案件"}`,
         body: [
           `${c.profiles?.display_name ?? "クリエイター"} 様`,
           "",
-          "AILIER 運営です。",
+          "アイムビ 運営です。",
           "あなたのスキル・実績にマッチする案件が入りましたので、ご案内いたします。",
           "",
           `【案件タイトル】 ${job.title ?? "-"}`,
@@ -162,12 +162,12 @@ export async function POST(
           job.deadline ? `【募集締切】 ${job.deadline}` : "",
           "",
           message ? `【運営からの一言】\n${message}\n` : "",
-          "詳細は AILIER ダッシュボードの「💌 運営からのおすすめ案件」からご確認ください。",
+          "詳細は アイムビ ダッシュボードの「💌 運営からのおすすめ案件」からご確認ください。",
           "「詳細を見て応募する」または「今回は見送る」を選択いただけます。",
           "",
           "有効期限: 14 日以内 (それ以降は自動的に見送り扱いになります)",
           "",
-          "AILIER 運営",
+          "アイムビ 運営",
         ]
           .filter((s) => s !== "")
           .join("\n"),
