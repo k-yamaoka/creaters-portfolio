@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createJob } from "./actions";
 import { GENRES } from "@/lib/constants";
 import { formatPrice } from "@/lib/utils";
@@ -76,21 +76,36 @@ export function JobForm() {
 
   // どちらのボタンを押されたかを記録 (下書き or 公開)
   const [saveMode, setSaveMode] = useState<"publish" | "draft">("publish");
+  // 二重送信ガード用の ref。setState は非同期で反映されるので、
+  // <form action={fn}> の連打では saving state だけでは race する。
+  // ref なら synchronous に読み書きできて 2 回目以降の呼び出しを即弾ける。
+  const submittingRef = useRef(false);
 
   const handleSubmit = async (formData: FormData) => {
+    if (submittingRef.current) return; // ← 連打時 の 2 回目以降を確実に無視
+    submittingRef.current = true;
     setSaving(true);
     setError(null);
 
-    selectedGenres.forEach((g) => formData.append("genres", g));
-    if (genresOtherShow && genresOther.trim()) {
-      formData.append("genres", genresOther.trim());
-    }
-    formData.set("save_mode", saveMode);
+    try {
+      selectedGenres.forEach((g) => formData.append("genres", g));
+      if (genresOtherShow && genresOther.trim()) {
+        formData.append("genres", genresOther.trim());
+      }
+      formData.set("save_mode", saveMode);
 
-    const result = await createJob(formData);
-    if (result?.error) {
-      setError(result.error);
+      const result = await createJob(formData);
+      if (result?.error) {
+        setError(result.error);
+        setSaving(false);
+        submittingRef.current = false; // エラー時は再送信を許可
+      }
+      // 成功時: createJob が redirect するのでこの後はアンマウントされる。
+      // ref / saving を戻さず 「送信中」表示のままにする (フラッシュ防止)。
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "送信に失敗しました");
       setSaving(false);
+      submittingRef.current = false;
     }
   };
 
@@ -354,10 +369,36 @@ export function JobForm() {
         <button
           type="submit"
           onClick={() => setSaveMode("publish")}
-          disabled={!canSubmit}
-          className="btn-primary px-10 text-sm disabled:opacity-50"
+          disabled={!canSubmit || saving}
+          className="btn-primary inline-flex items-center justify-center gap-2 px-10 text-sm disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {saving && saveMode === "publish" ? "作成中..." : "案件を掲載する"}
+          {saving && saveMode === "publish" ? (
+            <>
+              <svg
+                className="h-4 w-4 animate-spin"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-hidden
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                />
+              </svg>
+              作成中...
+            </>
+          ) : (
+            "案件を掲載する"
+          )}
         </button>
       </div>
     </form>

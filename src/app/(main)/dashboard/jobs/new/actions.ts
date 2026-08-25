@@ -130,6 +130,24 @@ export async function createJob(formData: FormData) {
     return { error: "本数の下限が上限を超えています" };
   }
 
+  // ── 二重送信ガード (サーバー側べき等性) ─────────────────────
+  // 60 秒以内に同じ client が同じ title で作成した jobs があれば、
+  // ボタン連打による重複投稿とみなし、その既存 job にリダイレクトする。
+  // フロント側 ref/disabled で塞いでいるが、ネットワーク往復中の複数リクエスト
+  // (retry 系ライブラリ / ブラウザ再送) には ここで最終防御。
+  const dupCutoff = new Date(Date.now() - 60_000).toISOString();
+  const { data: dup } = await supabase
+    .from("jobs")
+    .select("id")
+    .eq("client_id", clientProfile.id)
+    .eq("title", title)
+    .gte("created_at", dupCutoff)
+    .limit(1)
+    .maybeSingle();
+  if (dup) {
+    redirect("/dashboard/jobs");
+  }
+
   const { error } = await supabase.from("jobs").insert({
     client_id: clientProfile.id,
     title,
