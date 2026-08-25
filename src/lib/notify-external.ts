@@ -160,28 +160,48 @@ function renderEmailHtml(opts: {
   link: string;
 }): string {
   const safeBody = escapeHtml(opts.body).replace(/\n/g, "<br>");
+  // Cinema Ink 化: 深紺ヘッダ + ロゴマーク SVG (inline) + ember CTA + アイボリー背景。
+  // Fraunces は Web Fonts CDN 経由で読み込むと Gmail 等で無視されるため、
+  // 見出しは Georgia (serif fallback) で 統一感を出す。
   return `<!doctype html>
 <html lang="ja">
-<body style="margin:0;padding:0;background:#f0ede5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;color:#1a1a1a;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0ede5;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#F7F5F0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue','Hiragino Sans','Yu Gothic UI',sans-serif;color:#131217;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F7F5F0;padding:32px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border:1px solid #1a1a1a;">
-        <tr><td style="padding:24px 28px;border-bottom:1px solid #e6e1d3;">
-          <span style="font-size:13px;letter-spacing:0.25em;color:#FF6B35;text-transform:uppercase;font-weight:600;">Aimovie</span>
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 24px rgba(15,30,61,0.08);">
+        <!-- ヘッダ: 深紺 solid + ロゴマーク + Aimovie 英字 -->
+        <tr><td style="padding:20px 28px;background:#0F1E3D;">
+          <table role="presentation" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="vertical-align:middle;padding-right:10px;">
+                <span style="display:inline-block;width:28px;height:28px;background:#0A1428;border-radius:5px;position:relative;">
+                  <span style="position:absolute;top:5px;left:4px;width:3px;height:3px;background:#F7F5F0;border-radius:1px;"></span>
+                  <span style="position:absolute;top:12px;left:4px;width:3px;height:3px;background:#F7F5F0;border-radius:1px;"></span>
+                  <span style="position:absolute;top:19px;left:4px;width:3px;height:3px;background:#F7F5F0;border-radius:1px;"></span>
+                  <span style="position:absolute;top:9px;left:15px;width:9px;height:9px;background:#FF6B35;border-radius:50%;"></span>
+                </span>
+              </td>
+              <td style="vertical-align:middle;">
+                <span style="font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:700;color:#ffffff;letter-spacing:0.02em;">Aimovie<span style="color:#FF6B35;">.</span></span>
+              </td>
+            </tr>
+          </table>
         </td></tr>
-        <tr><td style="padding:32px 28px;">
-          <p style="margin:0 0 16px;font-size:14px;color:#6b6657;">${escapeHtml(opts.displayName)} さん</p>
-          <h1 style="margin:0 0 20px;font-size:22px;line-height:1.4;font-weight:700;color:#1a1a1a;">${escapeHtml(opts.subject)}</h1>
-          <div style="font-size:14px;line-height:1.85;color:#1a1a1a;white-space:pre-wrap;">${safeBody}</div>
+        <!-- 本文 -->
+        <tr><td style="padding:36px 32px 28px;">
+          <p style="margin:0 0 12px;font-size:13px;color:#5C5D67;">${escapeHtml(opts.displayName)} さん</p>
+          <h1 style="margin:0 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.45;font-weight:700;color:#0F1E3D;">${escapeHtml(opts.subject)}</h1>
+          <div style="font-size:14px;line-height:1.85;color:#131217;white-space:pre-wrap;">${safeBody}</div>
           <div style="margin-top:32px;">
-            <a href="${escapeAttr(opts.link)}" style="display:inline-block;background:#1a1a1a;color:#f0ede5;text-decoration:none;font-weight:700;font-size:14px;padding:12px 24px;border-radius:2px;">
+            <a href="${escapeAttr(opts.link)}" style="display:inline-block;background:#FF6B35;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;padding:12px 28px;border-radius:9999px;">
               アプリで開く →
             </a>
           </div>
         </td></tr>
-        <tr><td style="padding:20px 28px;border-top:1px solid #e6e1d3;font-size:11px;color:#9a9384;">
+        <!-- フッタ -->
+        <tr><td style="padding:20px 32px;border-top:1px solid #EDE9DE;font-size:11px;color:#8A8A93;background:#FBFAF6;">
           このメールは アイムビ からの通知です。配信停止は アプリ内 設定 から変更できます。<br>
-          <a href="${escapeAttr(APP_URL)}" style="color:#9a9384;">${escapeAttr(APP_URL)}</a>
+          <a href="${escapeAttr(APP_URL)}" style="color:#8A8A93;text-decoration:underline;">${escapeAttr(APP_URL)}</a>
         </td></tr>
       </table>
     </td></tr>

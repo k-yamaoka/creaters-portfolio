@@ -180,7 +180,7 @@ export function CreatorsPageClient({
               </p>
               <h1 className="headline-display mt-6 text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper">
                 Choose your{" "}
-                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text italic text-transparent">
+                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text italic text-transparent">
                   specialist.
                 </span>
               </h1>

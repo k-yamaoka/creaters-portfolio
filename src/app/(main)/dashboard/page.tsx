@@ -248,7 +248,7 @@ export default async function DashboardPage() {
 
       {/* C-3: 未回答スカウト バナー (最優先で見せる) */}
       {isCreator && hasCreatorProfile && pendingInvitationsCount > 0 && (
-        <div className="mt-6 rounded-2xl border-2 border-aimovie-ember-500/40 bg-gradient-to-r from-aimovie-ember-500/10 via-aimovie-navy-700/10 to-aimovie-ivory-300/10 p-5 shadow-md">
+        <div className="mt-6 rounded-2xl border-2 border-aimovie-ember-500/40 bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-ivory-300/20 p-5 shadow-md">
           <div className="flex items-center gap-3">
             <div className="text-3xl leading-none" aria-hidden>
               💌

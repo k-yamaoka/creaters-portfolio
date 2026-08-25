@@ -102,7 +102,7 @@ def build():
             name="トップページが正常に表示される",
             given="ブラウザで https://creaters-portfolio.vercel.app を開ける状態",
             when="トップ URL にアクセス",
-            then="200 OK で表示され「AILIER」ロゴ / ブランド名が画面のどこかに含まれる",
+            then="200 OK で表示され「アイムビ」ロゴ / ブランド名が画面のどこかに含まれる",
             note="Playwright smoke で 2026/07/22 に検証済"),
         auto_case(id="TOP-002", account="全員",
             name="Hero メインコピーの改行が仕様どおり",
@@ -145,7 +145,7 @@ def build():
         manual_case(id="TOP-009", account="全員",
             name="ヘッダー ロゴから / に戻る",
             given="任意のページ",
-            when="ヘッダーの AILIER ロゴ クリック",
+            when="ヘッダーの アイムビ ロゴ クリック",
             then="/ (トップページ) に遷移"),
         manual_case(id="TOP-010", account="全員",
             name="FEATURE セクション表示",
@@ -179,7 +179,7 @@ def build():
             when="トップページ表示",
             then="レイアウトが適切にリフロー / 動画 / テキスト 見やすい"),
     ]
-    sheet_defs.append(("01_トップページ", "AILIER のランディングページ (ログイン不要)", "全員", cases))
+    sheet_defs.append(("01_トップページ", "アイムビ のランディングページ (ログイン不要)", "全員", cases))
 
     # =========================================================================
     # Sheet 02: 新規登録
@@ -491,7 +491,7 @@ def build():
             name="/pricing 比較インフォグラフィック",
             given="/pricing",
             when="下にスクロール",
-            then="ランサーズ / クラウドワークス / ココナラ との比較表 + 「AILIER 合計 15%」明示"),
+            then="ランサーズ / クラウドワークス / ココナラ との比較表 + 「アイムビ 合計 15%」明示"),
         auto_case(id="PUB-004", account="全員",
             name="/help 主要 7 FAQ 表示",
             given="ブラウザ",
@@ -540,7 +540,7 @@ def build():
             when="/jobs",
             then="案件カード表示 + タグでフィルタ可"),
         manual_case(id="PUB-013", account="全員",
-            name="/help 「AILIERで解決しない場合」で相談窓口一覧",
+            name="/help 「アイムビで解決しない場合」で相談窓口一覧",
             given="/help",
             when="スクロール",
             then="国民生活センター / 法テラス / 弁護士 ADR / 警察 #9110 等 電話番号付き一覧表示"),
@@ -548,7 +548,7 @@ def build():
             name="/help 「手元保存」ガイド",
             given="/help",
             when="Q 検索",
-            then="「AILIER の記録以外に手元にも保存すべきか」Q&A 表示"),
+            then="「アイムビ の記録以外に手元にも保存すべきか」Q&A 表示"),
     ]
     sheet_defs.append(("05_公開ページ", "/pricing /help /terms /company /privacy /how-it-works /creator-guide /jobs 等", "全員", cases))
 
@@ -1667,12 +1667,12 @@ def build():
             name="通報者に受付自動返信メール届く",
             given="通報送信直後",
             when="通報者メールボックス",
-            then="「【AILIER】ご通報を受け付けました」件名"),
+            then="「【アイムビ】ご通報を受け付けました」件名"),
         manual_case(id="RPT-012", account="全員",
             name="自動非公開時 クリエイターにも Email",
             given="3 IP 到達",
             when="creator メールボックス",
-            then="「【AILIER】あなたの作品「XXX」が一時非公開になりました」件名 + 異議申立 72h 案内"),
+            then="「【アイムビ】あなたの作品「XXX」が一時非公開になりました」件名 + 異議申立 72h 案内"),
         manual_case(id="RPT-013", account="全員",
             name="1〜2 通目時点で creator に通知しない (誤報保護)",
             given="通報 1〜2 通",
@@ -1745,17 +1745,17 @@ def build():
             name="Email 出し分け (unpublish)",
             given="unpublish 実行",
             when="creator メールボックス",
-            then="「【AILIER】作品「XXX」を一時非公開にしました (異議申立 可)」件名 + 72h 申立導線"),
+            then="「【アイムビ】作品「XXX」を一時非公開にしました (異議申立 可)」件名 + 72h 申立導線"),
         manual_case(id="MOD-011", account="管理者",
             name="Email 出し分け (delete)",
             given="delete 実行",
             when="creator メールボックス",
-            then="「【AILIER】作品「XXX」を削除しました (最終措置)」件名"),
+            then="「【アイムビ】作品「XXX」を削除しました (最終措置)」件名"),
         manual_case(id="MOD-012", account="管理者",
             name="Email 出し分け (restore)",
             given="restore 実行",
             when="creator メールボックス",
-            then="「【AILIER】作品「XXX」の公開を再開しました」件名"),
+            then="「【アイムビ】作品「XXX」の公開を再開しました」件名"),
         manual_case(id="MOD-013", account="管理者",
             name="unpublish/delete で resolved に自動更新",
             given="open reports あり",
@@ -2394,7 +2394,7 @@ def build():
             name="サスペンド 通知メール",
             given="cron が自動停止発火",
             when="対象 creator メールボックス",
-            then="「【AILIER】アカウントは一時停止されました」件名 + 異議申立 72h + 相談窓口"),
+            then="「【アイムビ】アカウントは一時停止されました」件名 + 異議申立 72h + 相談窓口"),
         manual_case(id="ACCT-006", account="停止済",
             name="復帰 (admin 操作)",
             given="admin",
@@ -2746,7 +2746,7 @@ def build():
             name="トップページ <title>",
             given="/",
             when="ページソース確認",
-            then="'AILIER — AI クリエイターマッチング' 等 適切な title"),
+            then="'アイムビ — AI クリエイターマッチング' 等 適切な title"),
         manual_case(id="SEO-002", account="全員",
             name="トップページ og:image",
             given="/",
@@ -2761,7 +2761,7 @@ def build():
             name="creator 詳細 動的 title (display_name 含む)",
             given="/creators/[id]",
             when="title 確認",
-            then="'creator の display_name | AILIER' 動的セット"),
+            then="'creator の display_name | アイムビ' 動的セット"),
         manual_case(id="SEO-005", account="全員",
             name="job 詳細 動的 title",
             given="/jobs/[id]",
@@ -3139,7 +3139,7 @@ def build():
             name="メール送信元 (From) 統一",
             given="任意メール",
             when="From ヘッダー",
-            then="AILIER 運営 <no-reply@...> 統一"),
+            then="アイムビ 運営 <no-reply@...> 統一"),
         manual_case(id="MAIL-023", account="全員",
             name="メール返信先 (Reply-To) support",
             given="任意メール",
@@ -3398,7 +3398,7 @@ def build():
     # =========================================================================
     ws = wb.create_sheet(title="00_目次")
     ws.merge_cells("A1:D1")
-    ws["A1"] = "AILIER テストケース (非エンジニア向け 拡充版)"
+    ws["A1"] = "アイムビ テストケース (非エンジニア向け 拡充版)"
     ws["A1"].font = Font(bold=True, size=16, color="4F46E5")
     ws["A1"].alignment = Alignment(horizontal="left", vertical="center")
     ws.row_dimensions[1].height = 32

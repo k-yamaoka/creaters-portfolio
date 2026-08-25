@@ -4,7 +4,7 @@
  *
  * 流れ:
  *  1. .env.local から SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY を読み込み
- *  2. 「AILIER Sample Client」専用クライアントを auth + profiles +
+ *  2. 「Aimovie Sample Client」専用クライアントを auth + profiles +
  *     client_profiles に作成 (既存なら再利用)
  *  3. sample-jobs-metadata.json (5 案件) を順に処理
  *  4. jobs テーブルに INSERT
@@ -33,8 +33,8 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 
 const METADATA_PATH = path.join(REPO_ROOT, "scripts/sample-jobs-metadata.json");
 const SAMPLE_CLIENT_EMAIL = "sample-client@ailier.app";
-const SAMPLE_CLIENT_NAME = "AILIER Sample Client";
-const SAMPLE_COMPANY_NAME = "AILIER 営業サンプル";
+const SAMPLE_CLIENT_NAME = "Aimovie Sample Client";
+const SAMPLE_COMPANY_NAME = "Aimovie 営業サンプル";
 
 // ===== Env =====
 function loadEnvLocal() {

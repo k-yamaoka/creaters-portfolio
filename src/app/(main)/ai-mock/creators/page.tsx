@@ -37,7 +37,7 @@ export default function AiCreatorsListPage() {
             AI CREATORS
           </p>
           <h1 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[3rem]">
-            <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text text-transparent">
               専門家
             </span>
             を、ツールから選ぶ。

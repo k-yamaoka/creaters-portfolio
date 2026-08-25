@@ -108,7 +108,7 @@ export default function AiMockHome() {
               </p>
 
               <h1 className="mt-8 text-[2.4rem] font-black leading-[1.1] tracking-tight sm:text-[3.6rem] lg:text-[4.8rem]">
-                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text text-transparent">
                   SNS広告動画
                 </span>
                 を、
@@ -665,7 +665,7 @@ export default function AiMockHome() {
             START NOW
           </p>
           <h2 className="mt-8 text-balance text-[2.5rem] font-black leading-[1.1] sm:text-[3.5rem] lg:text-[5rem]">
-            <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text text-transparent">
               AIで、広告動画を
             </span>
             <br />

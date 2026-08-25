@@ -171,6 +171,17 @@ export function Sidebar({ role }: SidebarProps) {
         ? creatorLinks
         : clientLinks;
 
+  // 役割別 active アクセント (Cinema Ink):
+  //   creator = 深紺 (制作の信頼)
+  //   client  = ember  (発注の火花)
+  //   admin   = 黒     (中立管理)
+  const activeBg =
+    role === "creator"
+      ? "bg-aimovie-navy-900"
+      : role === "client"
+        ? "bg-aimovie-ember-500"
+        : "bg-gray-900";
+
   return (
     <aside className="w-64 shrink-0">
       <nav className="sticky top-24 space-y-1">
@@ -189,7 +200,7 @@ export function Sidebar({ role }: SidebarProps) {
                 isSub ? "ml-6 py-2 text-xs" : "py-3 text-sm font-medium"
               } ${
                 isActive
-                  ? "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
+                  ? `${activeBg} text-white`
                   : "text-[#4F4F4F] hover:bg-[#F2F2F2]"
               }`}
             >

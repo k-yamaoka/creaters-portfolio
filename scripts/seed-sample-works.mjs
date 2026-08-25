@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * AILIER Sample Works を Supabase に投入するスクリプト。
+ * Aimovie Sample Works を Supabase に投入するスクリプト。
  *
  * 流れ:
  *  1. .env.local から SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY を読み込み
- *  2. 「AILIER Showcase」専用クリエイターを auth + profiles + creator_profiles
+ *  2. 「Aimovie Showcase」専用クリエイターを auth + profiles + creator_profiles
  *     に作成 (既存なら再利用)
  *  3. metadata JSON (sample-works-metadata.json) を順に処理
  *  4. 各 mp4 を portfolio-videos/samples/<fileId>.mp4 にアップロード
@@ -43,7 +43,7 @@ const POSTERS_DIR = process.env.SAMPLE_POSTERS_DIR || "/tmp/ailier-posters";
 const METADATA_PATH = path.join(REPO_ROOT, "scripts/sample-works-metadata.json");
 
 const SHOWCASE_EMAIL = "showcase@ailier.app";
-const SHOWCASE_NAME = "AILIER Showcase";
+const SHOWCASE_NAME = "Aimovie Showcase";
 const BUCKET = "portfolio-videos";
 const STORAGE_PREFIX = "samples";
 
@@ -157,7 +157,7 @@ async function ensureShowcaseCreator() {
     .from("creator_profiles")
     .insert({
       user_id: profileId,
-      bio: "AILIER 公式サンプル作品集。Sora 2 / Veo 3 / Runway Gen-4 / Kling 2.x で生成された見本動画を 18 本掲載しています。",
+      bio: "Aimovie 公式サンプル作品集。Sora 2 / Veo 3 / Runway Gen-4 / Kling 2.x で生成された見本動画を 18 本掲載しています。",
       genres: [
         "SNS広告動画",
         "商品紹介動画",
@@ -270,7 +270,7 @@ async function seedOne(creatorId, meta) {
 
 // ===== main =====
 async function main() {
-  console.log("== AILIER sample works seed ==");
+  console.log("== Aimovie sample works seed ==");
   console.log(`Supabase URL: ${SUPABASE_URL}`);
   console.log(`Videos dir:   ${VIDEOS_DIR}`);
   console.log(`Posters dir:  ${POSTERS_DIR}`);
@@ -278,7 +278,7 @@ async function main() {
   const meta = JSON.parse(fs.readFileSync(METADATA_PATH, "utf-8"));
   console.log(`Metadata:     ${meta.length} 件\n`);
 
-  console.log("[1] AILIER Showcase クリエイターを準備");
+  console.log("[1] Aimovie Showcase クリエイターを準備");
   const creatorId = await ensureShowcaseCreator();
   console.log(`  creator_id: ${creatorId}\n`);
 
