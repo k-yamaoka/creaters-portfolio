@@ -140,14 +140,14 @@ export function SearchTopBar({
           }
           className={`inline-flex items-center gap-2 rounded-pill border px-3 py-2 text-xs transition-colors ${
             filters.availableNow
-              ? "border-neon-pink/60 bg-neon-pink/10 text-ink"
+              ? "border-aimovie-ember-500/60 bg-aimovie-ember-500/10 text-ink"
               : "border-ink/15 bg-paper text-ink/70 hover:border-ink/35 hover:text-ink"
           }`}
         >
           <span
             aria-hidden
             className={`relative inline-block h-4 w-7 rounded-full transition-colors ${
-              filters.availableNow ? "bg-neon-pink" : "bg-ink/20"
+              filters.availableNow ? "bg-aimovie-ember-500" : "bg-ink/20"
             }`}
           >
             <span

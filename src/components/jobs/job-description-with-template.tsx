@@ -46,7 +46,7 @@ export function JobDescriptionWithTemplate() {
 
       {/* テンプレート選択 */}
       <div className="mb-4">
-        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-neon-purple-deep">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-aimovie-navy-900">
           テンプレート
         </p>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -59,7 +59,7 @@ export function JobDescriptionWithTemplate() {
                 onClick={() => applyTemplate(tmpl.value)}
                 className={`flex items-start gap-3 rounded-xl border-2 px-3 py-2.5 text-left transition-colors ${
                   isActive
-                    ? "border-neon-pink bg-neon-purple/10"
+                    ? "border-aimovie-ember-500 bg-aimovie-navy-700/10"
                     : "border-[#E0E0E0] hover:border-[#BDBDBD]"
                 }`}
               >
@@ -67,7 +67,7 @@ export function JobDescriptionWithTemplate() {
                 <div className="min-w-0 flex-1">
                   <p
                     className={`text-sm font-bold ${
-                      isActive ? "text-neon-purple-deep" : "text-[#4F4F4F]"
+                      isActive ? "text-aimovie-navy-900" : "text-[#4F4F4F]"
                     }`}
                   >
                     {tmpl.label}
@@ -78,7 +78,7 @@ export function JobDescriptionWithTemplate() {
                 </div>
                 {isActive && (
                   <svg
-                    className="h-4 w-4 shrink-0 text-neon-pink"
+                    className="h-4 w-4 shrink-0 text-aimovie-ember-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={3}
@@ -104,7 +104,7 @@ export function JobDescriptionWithTemplate() {
         onChange={(e) => setContent(e.target.value)}
         rows={14}
         required
-        className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+        className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
         placeholder={
           "例:\n・動画の目的や配信先\n・ターゲット視聴者\n・希望するテイストや参考動画\n・素材の有無 (撮影が必要か等)\n・その他の要件"
         }

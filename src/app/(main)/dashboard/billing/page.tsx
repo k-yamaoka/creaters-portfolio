@@ -146,13 +146,13 @@ export default async function BillingPage() {
                         {status.shortLabel}
                       </span>
                     </td>
-                    <td className="whitespace-nowrap px-4 py-3 text-right font-bold text-neon-purple-deep">
+                    <td className="whitespace-nowrap px-4 py-3 text-right font-bold text-aimovie-navy-900">
                       {formatPrice(row.total_amount)}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`/dashboard/orders/${row.id}`}
-                        className="text-xs font-bold text-neon-purple-deep transition-colors hover:text-neon-pink"
+                        className="text-xs font-bold text-aimovie-navy-900 transition-colors hover:text-aimovie-ember-500"
                       >
                         詳細 →
                       </Link>
@@ -187,7 +187,7 @@ function SummaryCard({
     <div
       className={`rounded-2xl border p-4 shadow-card ${
         tone === "accent"
-          ? "border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/[0.06] to-aimovie-navy-700/[0.04]"
+          ? "border-aimovie-ember-500/30 bg-gradient-to-br from-aimovie-ember-500/[0.06] to-aimovie-navy-700/[0.04]"
           : "border-gray-200 bg-white"
       }`}
     >
@@ -196,7 +196,7 @@ function SummaryCard({
       </p>
       <p
         className={`mt-2 text-2xl font-black leading-none sm:text-3xl ${
-          tone === "accent" ? "text-neon-purple-deep" : "text-gray-900"
+          tone === "accent" ? "text-aimovie-navy-900" : "text-gray-900"
         }`}
       >
         {formatPrice(value)}

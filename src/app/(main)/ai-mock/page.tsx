@@ -54,8 +54,8 @@ export default function AiMockHome() {
       {/* =================================================
           BANNER — Mock notice
           ================================================= */}
-      <div className="bg-neon-pink/10 border-y border-neon-pink/30 px-4 py-2 text-center">
-        <p className="text-xs font-bold text-neon-purple-deep">
+      <div className="bg-aimovie-ember-500/10 border-y border-aimovie-ember-500/30 px-4 py-2 text-center">
+        <p className="text-xs font-bold text-aimovie-navy-900">
           🚀 これは「AIクリエイター特化型」のデザインモックです（社内検討用）
           <Link
             href="/"
@@ -69,7 +69,7 @@ export default function AiMockHome() {
       {/* =================================================
           HERO — Dark midnight neon
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep text-white">
+      <section className="relative overflow-hidden bg-aimovie-navy-950 text-white">
         {/* Grid background */}
         <div
           className="absolute inset-0 opacity-30"
@@ -82,19 +82,19 @@ export default function AiMockHome() {
           }}
         />
         {/* Glow accents */}
-        <div className="absolute -left-32 top-0 h-[480px] w-[480px] rounded-full bg-neon-pink opacity-30 blur-[120px]" />
-        <div className="absolute -right-24 top-32 h-[400px] w-[400px] rounded-full bg-neon-cyan opacity-25 blur-[100px]" />
-        <div className="absolute left-1/2 -bottom-32 h-[360px] w-[720px] -translate-x-1/2 rounded-full bg-neon-purple opacity-20 blur-[100px]" />
+        <div className="absolute -left-32 top-0 h-[480px] w-[480px] rounded-full bg-aimovie-ember-500 opacity-30 blur-[120px]" />
+        <div className="absolute -right-24 top-32 h-[400px] w-[400px] rounded-full bg-aimovie-navy-500 opacity-25 blur-[100px]" />
+        <div className="absolute left-1/2 -bottom-32 h-[360px] w-[720px] -translate-x-1/2 rounded-full bg-aimovie-navy-700 opacity-20 blur-[100px]" />
 
         <span
           aria-hidden
-          className="pointer-events-none absolute right-12 top-16 text-neon-pink animate-float"
+          className="pointer-events-none absolute right-12 top-16 text-aimovie-ember-500 animate-float"
         >
           <NeonStar size={36} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute left-12 bottom-24 text-neon-cyan animate-sway"
+          className="pointer-events-none absolute left-12 bottom-24 text-aimovie-navy-500 animate-sway"
         >
           <SparkStar size={28} />
         </span>
@@ -102,8 +102,8 @@ export default function AiMockHome() {
         <div className="relative mx-auto max-w-container px-6 pb-28 pt-20 lg:px-10 lg:pb-36 lg:pt-28">
           <div className="grid grid-cols-12 gap-8 lg:gap-12">
             <div className="col-span-12 lg:col-span-7">
-              <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
-                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
+              <p className="inline-flex items-center gap-2 rounded-pill border border-aimovie-ember-500/40 bg-aimovie-ember-500/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-aimovie-ember-400">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-aimovie-ember-500" />
                 AI CREATORS PLATFORM
               </p>
 
@@ -114,7 +114,7 @@ export default function AiMockHome() {
                 を、
                 <br />
                 <span className="text-white">AIで量産</span>
-                <span className="text-neon-pink">する。</span>
+                <span className="text-aimovie-ember-500">する。</span>
               </h1>
 
               <p className="mt-8 max-w-xl text-[15px] leading-[2] text-white/70">
@@ -151,10 +151,10 @@ export default function AiMockHome() {
               {/* Stats */}
               <div className="mt-14 grid grid-cols-2 gap-y-6 lg:grid-cols-4">
                 {[
-                  { num: "2日", label: "最短納品", color: "text-neon-pink" },
-                  { num: "1/5", label: "従来比コスト", color: "text-neon-cyan" },
-                  { num: "10×", label: "クリエイティブ量", color: "text-neon-purple" },
-                  { num: "0円", label: "撮影費", color: "text-neon-sunset" },
+                  { num: "2日", label: "最短納品", color: "text-aimovie-ember-500" },
+                  { num: "1/5", label: "従来比コスト", color: "text-aimovie-navy-500" },
+                  { num: "10×", label: "クリエイティブ量", color: "text-aimovie-navy-700" },
+                  { num: "0円", label: "撮影費", color: "text-aimovie-ember-400" },
                 ].map((s) => (
                   <div key={s.label}>
                     <p
@@ -203,10 +203,10 @@ export default function AiMockHome() {
                 ))}
               </div>
               {/* Floating badge */}
-              <div className="absolute -left-4 -top-4 rotate-[-6deg] rounded-xl border-2 border-neon-pink bg-neon-midnight-deep px-3 py-1.5 text-xs font-black text-neon-pink shadow-[0_0_20px_rgba(255,77,157,0.5)]">
+              <div className="absolute -left-4 -top-4 rotate-[-6deg] rounded-xl border-2 border-aimovie-ember-500 bg-aimovie-navy-950 px-3 py-1.5 text-xs font-black text-aimovie-ember-500 shadow-[0_0_20px_rgba(255,77,157,0.5)]">
                 AB案 +27
               </div>
-              <div className="absolute -bottom-2 -right-2 rotate-[5deg] rounded-xl border-2 border-neon-cyan bg-neon-midnight-deep px-3 py-1.5 text-xs font-black text-neon-cyan shadow-[0_0_20px_rgba(77,213,247,0.5)]">
+              <div className="absolute -bottom-2 -right-2 rotate-[5deg] rounded-xl border-2 border-aimovie-navy-500 bg-aimovie-navy-950 px-3 py-1.5 text-xs font-black text-aimovie-navy-500 shadow-[0_0_20px_rgba(77,213,247,0.5)]">
                 CTR 2.3x
               </div>
             </div>
@@ -214,23 +214,23 @@ export default function AiMockHome() {
         </div>
 
         {/* Marquee — AI tools */}
-        <div className="relative overflow-hidden border-y border-neon-purple/40 bg-neon-midnight py-4">
+        <div className="relative overflow-hidden border-y border-aimovie-navy-700/40 bg-aimovie-navy-900 py-4">
           <div className="flex animate-marquee whitespace-nowrap">
             {Array.from({ length: 6 }).map((_, i) => (
               <span
                 key={i}
                 className="mx-6 inline-flex items-center gap-4 text-lg font-black tracking-tight text-white"
               >
-                <span className="text-neon-pink">Sora 2</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-cyan">Veo 3</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-pink">Runway</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-sunset">Midjourney</span>
-                <span className="text-neon-purple">×</span>
-                <span className="text-neon-cyan">Kling</span>
-                <span className="text-neon-purple">×</span>
+                <span className="text-aimovie-ember-500">Sora 2</span>
+                <span className="text-aimovie-navy-700">×</span>
+                <span className="text-aimovie-navy-500">Veo 3</span>
+                <span className="text-aimovie-navy-700">×</span>
+                <span className="text-aimovie-ember-500">Runway</span>
+                <span className="text-aimovie-navy-700">×</span>
+                <span className="text-aimovie-ember-400">Midjourney</span>
+                <span className="text-aimovie-navy-700">×</span>
+                <span className="text-aimovie-navy-500">Kling</span>
+                <span className="text-aimovie-navy-700">×</span>
               </span>
             ))}
           </div>
@@ -243,13 +243,13 @@ export default function AiMockHome() {
       <section className="relative overflow-hidden bg-paper py-28">
         <span
           aria-hidden
-          className="pointer-events-none absolute -left-10 top-32 text-neon-pink/20"
+          className="pointer-events-none absolute -left-10 top-32 text-aimovie-ember-500/20"
         >
           <Blob size={200} />
         </span>
         <span
           aria-hidden
-          className="pointer-events-none absolute right-10 bottom-24 text-neon-cyan/30"
+          className="pointer-events-none absolute right-10 bottom-24 text-aimovie-navy-500/30"
         >
           <Blob size={160} />
         </span>
@@ -275,21 +275,21 @@ export default function AiMockHome() {
                 no: "01",
                 title: "撮影費・人件費ゼロ",
                 body: "ロケ・スタジオ・出演者・機材費すべて不要。AI生成だけで完結。従来制作の1/5のコストで同等品質を実現。",
-                accent: "bg-neon-pink",
+                accent: "bg-aimovie-ember-500",
                 badge: "Cost",
               },
               {
                 no: "02",
                 title: "AB案を10倍量産",
                 body: "1日10本の高速イテレーション。広告効果を見ながら毎週新クリエイティブを投入。勝ちパターンを発見しやすい。",
-                accent: "bg-neon-cyan",
+                accent: "bg-aimovie-navy-500",
                 badge: "Speed",
               },
               {
                 no: "03",
                 title: "クリエイターの専門知識",
                 body: "プロンプト力・ツール選定・ブランド整合性は人間の判断。「AI使うだけ」のフリーランスとは段違いの仕上がり。",
-                accent: "bg-neon-purple",
+                accent: "bg-aimovie-navy-700",
                 badge: "Quality",
               },
             ].map((item) => (
@@ -303,7 +303,7 @@ export default function AiMockHome() {
                   >
                     <span className="text-base font-black">{item.no}</span>
                   </span>
-                  <span className="rounded-pill bg-neon-midnight-deep px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
+                  <span className="rounded-pill bg-aimovie-navy-950 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-white">
                     {item.badge}
                   </span>
                 </div>
@@ -359,7 +359,7 @@ export default function AiMockHome() {
                   style={{ background: c.avatar }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                  <div className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
+                  <div className="absolute right-3 top-3 rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-aimovie-navy-900">
                     AI
                   </div>
                   <div className="absolute bottom-3 left-3 right-3">
@@ -377,7 +377,7 @@ export default function AiMockHome() {
                     {c.tools.slice(0, 3).map((tool) => (
                       <span
                         key={tool}
-                        className="rounded-full bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white"
+                        className="rounded-full bg-aimovie-navy-950 px-2 py-0.5 text-[10px] font-bold text-white"
                       >
                         {tool}
                       </span>
@@ -387,7 +387,7 @@ export default function AiMockHome() {
                     <span className="text-[10px] font-bold uppercase tracking-wider text-ink-muted">
                       from
                     </span>
-                    <span className="text-base font-black text-neon-purple-deep">
+                    <span className="text-base font-black text-aimovie-navy-900">
                       ¥{c.priceFrom.toLocaleString()}〜
                     </span>
                   </div>
@@ -401,13 +401,13 @@ export default function AiMockHome() {
       {/* =================================================
           AI tools we support
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
-        <div className="absolute -left-32 top-12 h-[400px] w-[400px] rounded-full bg-neon-purple opacity-25 blur-[120px]" />
-        <div className="absolute -right-24 bottom-0 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+      <section className="relative overflow-hidden bg-aimovie-navy-950 py-28 text-white">
+        <div className="absolute -left-32 top-12 h-[400px] w-[400px] rounded-full bg-aimovie-navy-700 opacity-25 blur-[120px]" />
+        <div className="absolute -right-24 bottom-0 h-[360px] w-[360px] rounded-full bg-aimovie-navy-500 opacity-20 blur-[100px]" />
 
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <div className="text-center">
-            <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+            <p className="inline-flex items-center gap-2 rounded-pill border border-aimovie-navy-500/40 bg-aimovie-navy-500/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-aimovie-navy-500">
               SUPPORTED AI TOOLS
             </p>
             <h2 className="mt-6 text-[2.25rem] font-black leading-[1.2] tracking-tight sm:text-[3rem] lg:text-[3.75rem]">
@@ -430,7 +430,7 @@ export default function AiMockHome() {
                 key={tool.name}
                 className={`group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br ${tool.color} p-6 transition-all hover:scale-105`}
               >
-                <div className="absolute inset-0 bg-neon-midnight-deep/40" />
+                <div className="absolute inset-0 bg-aimovie-navy-950/40" />
                 <div className="relative">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">
                     {tool.category}
@@ -497,8 +497,8 @@ export default function AiMockHome() {
                   "効果分析レポート",
                 ],
                 style:
-                  "bg-neon-midnight-deep border-neon-pink text-white shadow-[0_0_40px_rgba(255,77,157,0.3)]",
-                priceColor: "text-neon-pink",
+                  "bg-aimovie-navy-950 border-aimovie-ember-500 text-white shadow-[0_0_40px_rgba(255,77,157,0.3)]",
+                priceColor: "text-aimovie-ember-500",
                 featured: true,
               },
               {
@@ -524,7 +524,7 @@ export default function AiMockHome() {
                 }`}
               >
                 {plan.featured && (
-                  <div className="absolute right-6 top-6 rounded-pill bg-neon-pink px-3 py-1 text-[10px] font-black text-white">
+                  <div className="absolute right-6 top-6 rounded-pill bg-aimovie-ember-500 px-3 py-1 text-[10px] font-black text-white">
                     {plan.tag}
                   </div>
                 )}
@@ -564,7 +564,7 @@ export default function AiMockHome() {
                       <span
                         className={`mt-0.5 inline-block h-4 w-4 shrink-0 rounded-full text-center text-[10px] font-bold leading-4 ${
                           plan.featured
-                            ? "bg-neon-pink text-white"
+                            ? "bg-aimovie-ember-500 text-white"
                             : "bg-accent-500 text-ink"
                         }`}
                       >
@@ -578,7 +578,7 @@ export default function AiMockHome() {
                   href="/ai-mock/creators"
                   className={`mt-8 inline-flex w-full items-center justify-between gap-2 rounded-pill px-5 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
                     plan.featured
-                      ? "bg-neon-pink text-white hover:bg-neon-pink-soft"
+                      ? "bg-aimovie-ember-500 text-white hover:bg-aimovie-ember-400"
                       : "border-2 border-ink bg-paper text-ink hover:bg-ink/5 hover:text-ink"
                   }`}
                 >
@@ -633,7 +633,7 @@ export default function AiMockHome() {
                 <span className="absolute -left-3 -top-3 inline-flex h-10 w-10 items-center justify-center rounded-pill bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-sm font-black text-white shadow-[0_0_15px_rgba(255,77,157,0.5)]">
                   {i + 1}
                 </span>
-                <p className="text-[10px] font-bold tracking-[0.16em] text-neon-purple-deep">
+                <p className="text-[10px] font-bold tracking-[0.16em] text-aimovie-navy-900">
                   {s.step}
                 </p>
                 <h3 className="mt-3 text-lg font-black">{s.title}</h3>
@@ -649,19 +649,19 @@ export default function AiMockHome() {
       {/* =================================================
           Closing CTA
           ================================================= */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-28 text-white">
-        <div className="absolute -left-32 top-0 h-[500px] w-[500px] rounded-full bg-neon-pink opacity-30 blur-[140px]" />
-        <div className="absolute -right-20 bottom-0 h-[400px] w-[400px] rounded-full bg-neon-cyan opacity-25 blur-[120px]" />
+      <section className="relative overflow-hidden bg-aimovie-navy-950 py-28 text-white">
+        <div className="absolute -left-32 top-0 h-[500px] w-[500px] rounded-full bg-aimovie-ember-500 opacity-30 blur-[140px]" />
+        <div className="absolute -right-20 bottom-0 h-[400px] w-[400px] rounded-full bg-aimovie-navy-500 opacity-25 blur-[120px]" />
 
         <span
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-12 -translate-x-1/2 text-neon-pink animate-float"
+          className="pointer-events-none absolute left-1/2 top-12 -translate-x-1/2 text-aimovie-ember-500 animate-float"
         >
           <RetroSun size={70} />
         </span>
 
         <div className="relative mx-auto max-w-container px-6 text-center lg:px-10">
-          <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan">
+          <p className="inline-flex items-center gap-2 rounded-pill border border-aimovie-navy-500/40 bg-aimovie-navy-500/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-aimovie-navy-500">
             START NOW
           </p>
           <h2 className="mt-8 text-balance text-[2.5rem] font-black leading-[1.1] sm:text-[3.5rem] lg:text-[5rem]">

@@ -147,7 +147,7 @@ function PortfolioCardTile({
         }
       }}
       aria-label={`${portfolio.title} を再生`}
-      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-ink/10 bg-ink/5 text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-neon-pink/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-neon-pink`}
+      className={`group relative ${aspectClass} cursor-pointer overflow-hidden rounded-xl border border-ink/10 bg-ink/5 text-left shadow-[0_15px_40px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:border-aimovie-ember-500/40 hover:shadow-[0_20px_50px_-15px_rgba(255,77,157,0.4)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-aimovie-ember-500`}
     >
       {/* Media */}
       {isImage ? (

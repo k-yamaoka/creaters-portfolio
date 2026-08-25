@@ -191,7 +191,7 @@ function PortfolioItemGrid({
           {(horizontalItems.length > 0 || verticalItems.length > 0) && (
             <div className="mb-4 flex items-center gap-2">
               <div className="h-px flex-1 bg-[#F2F2F2]" />
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-neon-purple-deep">
+              <span className="inline-flex items-center gap-1 text-xs font-bold text-aimovie-navy-900">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700" />
                 静止画クリエイティブ
               </span>

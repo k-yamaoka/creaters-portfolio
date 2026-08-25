@@ -441,7 +441,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 name="title"
                 type="text"
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder={
                   mediaType === "image"
                     ? "作品タイトル(例: コスメD2C 春バナー A案)"
@@ -457,7 +457,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               <textarea
                 name="description"
                 rows={3}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder={
                   mediaType === "image"
                     ? "作品のコンセプト・制作背景など"
@@ -512,7 +512,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       />
                       <label
                         htmlFor="portfolio-image-input"
-                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-neon-cyan/40 bg-neon-cyan/5 px-4 py-10 text-center transition-colors hover:border-neon-cyan hover:bg-neon-cyan/10 ${
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-aimovie-navy-500/40 bg-aimovie-navy-500/5 px-4 py-10 text-center transition-colors hover:border-aimovie-navy-500 hover:bg-aimovie-navy-500/10 ${
                           uploadingImage
                             ? "pointer-events-none opacity-50"
                             : ""
@@ -520,7 +520,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       >
                         {uploadingImage ? (
                           <>
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neon-cyan/30 border-t-neon-cyan" />
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-aimovie-navy-500/30 border-t-aimovie-navy-500" />
                             <span className="text-xs text-[#828282]">
                               アップロード中...
                             </span>
@@ -528,7 +528,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                         ) : (
                           <>
                             <svg
-                              className="h-8 w-8 text-neon-cyan"
+                              className="h-8 w-8 text-aimovie-navy-500"
                               fill="none"
                               viewBox="0 0 24 24"
                               strokeWidth={1.5}
@@ -540,7 +540,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                                 d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"
                               />
                             </svg>
-                            <span className="text-sm font-bold text-neon-purple-deep">
+                            <span className="text-sm font-bold text-aimovie-navy-900">
                               クリックして画像を選択
                             </span>
                             <span className="text-[10px] text-[#BDBDBD]">
@@ -572,7 +572,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                           />
                         ) : extractingThumb ? (
                           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-green-200 bg-white">
-                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-pink/30 border-t-neon-pink" />
+                            <div className="h-5 w-5 animate-spin rounded-full border-2 border-aimovie-ember-500/30 border-t-aimovie-ember-500" />
                           </div>
                         ) : (
                           <Video size={24} strokeWidth={1.6} className="text-green-700" aria-hidden />
@@ -626,18 +626,18 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       />
                       <label
                         htmlFor="portfolio-video-input"
-                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-neon-pink/40 bg-neon-pink/5 px-4 py-10 text-center transition-colors hover:border-neon-pink hover:bg-neon-pink/10 ${
+                        className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-aimovie-ember-500/40 bg-aimovie-ember-500/5 px-4 py-10 text-center transition-colors hover:border-aimovie-ember-500 hover:bg-aimovie-ember-500/10 ${
                           uploadingVideo ? "pointer-events-none opacity-50" : ""
                         }`}
                       >
                         {uploadingVideo ? (
                           <>
-                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-neon-pink/30 border-t-neon-pink" />
-                            <span className="text-xs font-bold text-neon-purple-deep">
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-aimovie-ember-500/30 border-t-aimovie-ember-500" />
+                            <span className="text-xs font-bold text-aimovie-navy-900">
                               アップロード中... {uploadProgress}%
                             </span>
                             {uploadProgress > 0 && (
-                              <div className="h-1.5 w-48 overflow-hidden rounded-full bg-neon-pink/20">
+                              <div className="h-1.5 w-48 overflow-hidden rounded-full bg-aimovie-ember-500/20">
                                 <div
                                   className="h-full bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 transition-all"
                                   style={{ width: `${uploadProgress}%` }}
@@ -647,8 +647,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                           </>
                         ) : (
                           <>
-                            <Video size={36} strokeWidth={1.6} className="text-neon-purple-deep" aria-hidden />
-                            <span className="text-sm font-bold text-neon-purple-deep">
+                            <Video size={36} strokeWidth={1.6} className="text-aimovie-navy-900" aria-hidden />
+                            <span className="text-sm font-bold text-aimovie-navy-900">
                               クリックして動画を選択
                             </span>
                             <span className="text-[10px] text-[#BDBDBD]">
@@ -670,7 +670,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 </label>
                 <select
                   name="genre"
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 >
                   <option value="">選択してください</option>
                   {GENRES.map((g) => (
@@ -687,7 +687,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 <input
                   name="tags"
                   type="text"
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                   placeholder="カンマ区切り: 企業VP, ドローン"
                 />
               </div>
@@ -703,7 +703,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   name="role_scope"
                   type="text"
                   maxLength={200}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                   placeholder="例: プロンプト生成 + 動画編集"
                 />
                 <p className="mt-1 text-[11px] text-[#828282]">
@@ -718,7 +718,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                   name="display_tag"
                   type="text"
                   maxLength={20}
-                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                  className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                   placeholder="例: 商用実績 / 縦型"
                 />
                 <p className="mt-1 text-[11px] text-[#828282]">
@@ -734,7 +734,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
               <input
                 name="external_url"
                 type="url"
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="https://youtube.com/watch?v=..."
               />
               <p className="mt-1 text-[11px] text-[#828282]">
@@ -766,8 +766,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                               onClick={() => toggleFormAiTool(t.name)}
                               className={`rounded-pill border px-2.5 py-1 text-[11px] font-medium transition-colors ${
                                 active
-                                  ? "border-neon-purple bg-gradient-to-r from-aimovie-navy-700 to-aimovie-ember-500 text-white"
-                                  : "border-[#BDBDBD] bg-white text-[#4F4F4F] hover:border-neon-purple"
+                                  ? "border-aimovie-navy-700 bg-gradient-to-r from-aimovie-navy-700 to-aimovie-ember-500 text-white"
+                                  : "border-[#BDBDBD] bg-white text-[#4F4F4F] hover:border-aimovie-navy-700"
                               }`}
                             >
                               {t.name}
@@ -780,7 +780,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 })}
               </div>
               <p className="mt-1 text-[11px] text-[#828282]">
-                選択中: <span className="font-bold text-neon-purple-deep">{selectedAiTools.length}</span> 件
+                選択中: <span className="font-bold text-aimovie-navy-900">{selectedAiTools.length}</span> 件
               </p>
             </div>
           </div>
@@ -791,7 +791,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 type="checkbox"
                 checked={hasPublishPermission}
                 onChange={(e) => setHasPublishPermission(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#BDBDBD] text-neon-purple-deep focus:ring-neon-pink"
+                className="mt-0.5 h-4 w-4 shrink-0 rounded border-[#BDBDBD] text-aimovie-navy-900 focus:ring-aimovie-ember-500"
               />
               <div className="text-sm leading-relaxed text-[#4F4F4F]">
                 <span className="font-bold text-[#222]">
@@ -858,9 +858,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         </div>
       ) : (
         <>
-          <div className="flex items-start gap-3 rounded-xl border border-neon-purple/20 bg-neon-purple/10 p-4">
+          <div className="flex items-start gap-3 rounded-xl border border-aimovie-navy-700/20 bg-aimovie-navy-700/10 p-4">
             <svg
-              className="mt-0.5 h-5 w-5 shrink-0 text-neon-purple-deep"
+              className="mt-0.5 h-5 w-5 shrink-0 text-aimovie-navy-900"
               fill="none"
               viewBox="0 0 24 24"
               strokeWidth={1.5}
@@ -872,11 +872,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                 d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z"
               />
             </svg>
-            <div className="min-w-0 flex-1 text-sm leading-relaxed text-neon-purple-deep">
+            <div className="min-w-0 flex-1 text-sm leading-relaxed text-aimovie-navy-900">
               <p className="font-bold">
                 クリエイター一覧に表示する作品: {items.filter((i) => i.is_featured === true).length} / 4 件
               </p>
-              <p className="mt-0.5 text-xs text-neon-purple-deep/80">
+              <p className="mt-0.5 text-xs text-aimovie-navy-900/80">
                 「★ 表示する」ボタンで切り替え。最大4件まで選択でき、企業のクリエイター一覧画面のサムネイル行に表示されます。
               </p>
             </div>
@@ -1075,13 +1075,13 @@ function PortfolioCard({
           />
           <label
             htmlFor={`thumb-input-${item.id}`}
-            className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border-2 border-dashed border-neon-purple/30 bg-white px-4 py-4 text-center transition-colors hover:border-neon-pink hover:bg-neon-pink/10/30 ${
+            className={`flex cursor-pointer flex-col items-center gap-1.5 rounded-lg border-2 border-dashed border-aimovie-navy-700/30 bg-white px-4 py-4 text-center transition-colors hover:border-aimovie-ember-500 hover:bg-aimovie-ember-500/10/30 ${
               uploading ? "pointer-events-none opacity-50" : ""
             }`}
           >
             {uploading ? (
               <>
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-purple/30 border-t-neon-pink" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-aimovie-navy-700/30 border-t-aimovie-ember-500" />
                 <span className="text-xs text-ink-muted">
                   アップロード中...
                 </span>
@@ -1089,7 +1089,7 @@ function PortfolioCard({
             ) : (
               <>
                 <svg
-                  className="h-5 w-5 text-neon-purple-deep"
+                  className="h-5 w-5 text-aimovie-navy-900"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
@@ -1101,7 +1101,7 @@ function PortfolioCard({
                     d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"
                   />
                 </svg>
-                <span className="text-xs font-bold text-neon-purple-deep">
+                <span className="text-xs font-bold text-aimovie-navy-900">
                   画像を選択して差し替え
                 </span>
                 <span className="text-[10px] text-ink-soft">
@@ -1131,7 +1131,7 @@ function PortfolioCard({
           </p>
         )}
         {item.genre && (
-          <span className="mt-2 inline-block rounded-pill bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple-deep">
+          <span className="mt-2 inline-block rounded-pill bg-aimovie-navy-700/10 px-2.5 py-0.5 text-[11px] font-bold text-aimovie-navy-900">
             {item.genre}
           </span>
         )}
@@ -1150,7 +1150,7 @@ function PortfolioCard({
             {item.used_ai_tools.slice(0, 6).map((t) => (
               <span
                 key={t}
-                className="rounded-pill bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-navy-700/10 px-2 py-0.5 text-[10px] font-bold text-neon-purple-deep"
+                className="rounded-pill bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-navy-700/10 px-2 py-0.5 text-[10px] font-bold text-aimovie-navy-900"
               >
                 {t}
               </span>
@@ -1169,7 +1169,7 @@ function PortfolioCard({
             href={item.external_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-neon-cyan transition-colors hover:text-neon-pink"
+            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-aimovie-navy-500 transition-colors hover:text-aimovie-ember-500"
           >
             <svg
               className="h-3 w-3"
@@ -1196,8 +1196,8 @@ function PortfolioCard({
             aria-pressed={item.is_featured}
             className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 ${
               item.is_featured
-                ? "bg-neon-pink text-ink hover:bg-neon-pink/80"
-                : "border border-ink/20 bg-white text-ink-muted hover:border-neon-pink hover:text-ink"
+                ? "bg-aimovie-ember-500 text-ink hover:bg-aimovie-ember-500/80"
+                : "border border-ink/20 bg-white text-ink-muted hover:border-aimovie-ember-500 hover:text-ink"
             }`}
             title={
               item.is_featured

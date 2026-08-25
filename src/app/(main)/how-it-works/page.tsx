@@ -80,19 +80,19 @@ export default function HowItWorksPage() {
               step: "01",
               title: "プロフィール登録",
               desc: "アカウントを作成し、自己紹介・使用ツール（Sora / Veo / Runway / Midjourney など）・得意ジャンル・最低受注金額を設定。ポートフォリオを掲載します。",
-              color: "bg-neon-midnight-deep",
+              color: "bg-aimovie-navy-950",
             },
             {
               step: "02",
               title: "スカウト or 応募",
               desc: "企業からの直接スカウトを受けるか、AI動画案件に自ら応募して仕事を獲得します。営業活動はアイムビにお任せ。",
-              color: "bg-neon-midnight-deep",
+              color: "bg-aimovie-navy-950",
             },
             {
               step: "03",
               title: "AIで動画・静止画を生成 × 納品",
               desc: "AIで動画と静止画クリエイティブを生成・編集し、短納期で納品。クライアントの検収完了後、エスクロー方式で確実に報酬を受け取れます。",
-              color: "bg-neon-midnight-deep",
+              color: "bg-aimovie-navy-950",
             },
           ].map((item) => (
             <div key={item.step} className="text-center">

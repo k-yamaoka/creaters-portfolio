@@ -44,7 +44,7 @@ export default async function DashboardJobEditPage({
         </div>
         <Link
           href={`/dashboard/jobs/${job.id}`}
-          className="text-xs font-bold text-neon-purple-deep transition-colors hover:text-neon-pink"
+          className="text-xs font-bold text-aimovie-navy-900 transition-colors hover:text-aimovie-ember-500"
         >
           ← 詳細に戻る
         </Link>

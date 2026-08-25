@@ -75,7 +75,7 @@ export default async function InvitationsInboxPage() {
       <div className="flex items-baseline gap-3">
         <h1 className="text-2xl font-bold text-gray-900">💌 運営からのおすすめ案件</h1>
         {pending.length > 0 && (
-          <span className="rounded-full bg-neon-pink px-3 py-0.5 text-xs font-bold text-white">
+          <span className="rounded-full bg-aimovie-ember-500 px-3 py-0.5 text-xs font-bold text-white">
             {pending.length} 件 未回答
           </span>
         )}

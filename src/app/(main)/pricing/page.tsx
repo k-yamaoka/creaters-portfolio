@@ -19,7 +19,7 @@ export default function PricingPage() {
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">
       {/* Hero */}
       <div className="text-center">
-        <div className="mx-auto inline-flex items-center gap-1.5 rounded-full border border-neon-pink/40 bg-neon-pink/5 px-3 py-1 text-xs font-bold text-neon-pink">
+        <div className="mx-auto inline-flex items-center gap-1.5 rounded-full border border-aimovie-ember-500/40 bg-aimovie-ember-500/5 px-3 py-1 text-xs font-bold text-aimovie-ember-500">
           <Sparkles size={12} strokeWidth={2} aria-hidden />
           クリエイター 手数料 0% ・ 企業側 15% のみ
         </div>
@@ -34,8 +34,8 @@ export default function PricingPage() {
       {/* 2 プラン カード */}
       <div className="mx-auto mt-14 grid max-w-4xl gap-8 md:grid-cols-2">
         {/* Client */}
-        <div className="relative overflow-hidden rounded-[20px] border-2 border-neon-purple/20 bg-white p-8 sm:p-10">
-          <p className="text-sm font-bold text-neon-purple-deep">
+        <div className="relative overflow-hidden rounded-[20px] border-2 border-aimovie-navy-700/20 bg-white p-8 sm:p-10">
+          <p className="text-sm font-bold text-aimovie-navy-900">
             企業・クライアント
           </p>
           <div className="mt-4 flex items-baseline gap-1">
@@ -64,7 +64,7 @@ export default function PricingPage() {
                 <Check
                   size={16}
                   strokeWidth={2.2}
-                  className="shrink-0 text-neon-pink"
+                  className="shrink-0 text-aimovie-ember-500"
                   aria-hidden
                 />
                 {t}
@@ -80,7 +80,7 @@ export default function PricingPage() {
         </div>
 
         {/* Creator */}
-        <div className="relative overflow-hidden rounded-[20px] border-2 border-neon-pink/50 bg-white p-8 sm:p-10">
+        <div className="relative overflow-hidden rounded-[20px] border-2 border-aimovie-ember-500/50 bg-white p-8 sm:p-10">
           <div className="absolute right-4 top-4 rounded-full bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
             0% Forever
           </div>
@@ -109,7 +109,7 @@ export default function PricingPage() {
                 <Check
                   size={16}
                   strokeWidth={2.2}
-                  className="shrink-0 text-neon-pink"
+                  className="shrink-0 text-aimovie-ember-500"
                   aria-hidden
                 />
                 {t}
@@ -154,7 +154,7 @@ export default function PricingPage() {
               <span className="text-sm font-medium text-[#4F4F4F]">
                 {item.genre}
               </span>
-              <span className="text-sm font-bold text-neon-purple-deep">
+              <span className="text-sm font-bold text-aimovie-navy-900">
                 {item.price}
               </span>
             </div>
@@ -225,7 +225,7 @@ function ComparisonInfographic() {
   return (
     <div className="mx-auto mt-24 max-w-4xl">
       <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-neon-pink">
+        <p className="text-xs font-bold uppercase tracking-widest text-aimovie-ember-500">
           Cost Comparison
         </p>
         <h2 className="mt-2 text-2xl font-bold text-[#222]">
@@ -233,7 +233,7 @@ function ComparisonInfographic() {
         </h2>
         <p className="mt-2 text-sm text-[#828282]">
           大手クラウドソーシングは 発注者 + 受注者 で 22〜27% 前後。
-          アイムビ は合計 <b className="text-neon-pink">15%</b> のみで、
+          アイムビ は合計 <b className="text-aimovie-ember-500">15%</b> のみで、
           クリエイターは満額受取が可能です。
         </p>
       </div>
@@ -253,19 +253,19 @@ function ComparisonInfographic() {
             {COMPARISON.map((row) => (
               <tr
                 key={row.key}
-                className={row.highlight ? "bg-neon-pink/5" : ""}
+                className={row.highlight ? "bg-aimovie-ember-500/5" : ""}
               >
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <span
                       className={`font-bold ${
-                        row.highlight ? "text-neon-pink" : "text-gray-900"
+                        row.highlight ? "text-aimovie-ember-500" : "text-gray-900"
                       }`}
                     >
                       {row.name}
                     </span>
                     {row.highlight && (
-                      <span className="rounded-full bg-neon-pink px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+                      <span className="rounded-full bg-aimovie-ember-500 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
                         当社
                       </span>
                     )}
@@ -280,7 +280,7 @@ function ComparisonInfographic() {
                 <td
                   className={`px-4 py-3 text-right font-mono tabular-nums ${
                     row.creatorFee === 0
-                      ? "font-bold text-neon-pink"
+                      ? "font-bold text-aimovie-ember-500"
                       : "text-gray-700"
                   }`}
                 >
@@ -288,7 +288,7 @@ function ComparisonInfographic() {
                 </td>
                 <td
                   className={`px-4 py-3 text-right font-mono tabular-nums font-bold ${
-                    row.highlight ? "text-neon-pink" : "text-gray-900"
+                    row.highlight ? "text-aimovie-ember-500" : "text-gray-900"
                   }`}
                 >
                   {row.total}%
@@ -350,8 +350,8 @@ function SavingsTile({
   desc: string;
 }) {
   return (
-    <div className="rounded-xl border border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/5 via-white to-aimovie-navy-700/5 p-4 text-center shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-neon-pink">
+    <div className="rounded-xl border border-aimovie-ember-500/30 bg-gradient-to-br from-aimovie-ember-500/5 via-white to-aimovie-navy-700/5 p-4 text-center shadow-sm">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-aimovie-ember-500">
         {label}
       </p>
       <p className="mt-1 font-display text-2xl font-black text-[#222]">
@@ -369,7 +369,7 @@ function FeeFlowDiagram() {
   return (
     <div className="mx-auto mt-24 max-w-3xl">
       <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-widest text-neon-purple-deep">
+        <p className="text-xs font-bold uppercase tracking-widest text-aimovie-navy-900">
           Fee Flow
         </p>
         <h2 className="mt-2 text-2xl font-bold text-[#222]">
@@ -423,10 +423,10 @@ function FlowStep({
 }) {
   const toneClass =
     tone === "creator"
-      ? "border-neon-pink/40 bg-gradient-to-br from-aimovie-ember-500/10 to-white text-neon-pink"
+      ? "border-aimovie-ember-500/40 bg-gradient-to-br from-aimovie-ember-500/10 to-white text-aimovie-ember-500"
       : tone === "platform"
         ? "border-gray-300 bg-gray-50 text-gray-700"
-        : "border-neon-purple/30 bg-neon-purple/5 text-neon-purple-deep";
+        : "border-aimovie-navy-700/30 bg-aimovie-navy-700/5 text-aimovie-navy-900";
   return (
     <div
       className={`rounded-2xl border-2 p-5 shadow-sm ${toneClass}`}

@@ -142,7 +142,7 @@ export function JobForm() {
           type="text"
           required
           maxLength={50}
-          className="w-full rounded-lg border-2 border-[#E0E0E0] px-4 py-4 text-base font-medium outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          className="w-full rounded-lg border-2 border-[#E0E0E0] px-4 py-4 text-base font-medium outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
           placeholder="例: 新商品のプロモーション動画制作（50文字以内）"
         />
       </section>
@@ -170,7 +170,7 @@ export function JobForm() {
                 key={genre}
                 className={`flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border-2 px-3 py-2 text-sm transition-colors ${
                   isSelected
-                    ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
+                    ? "border-aimovie-ember-500 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                     : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                 }`}
               >
@@ -183,7 +183,7 @@ export function JobForm() {
                 <div
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
                     isSelected
-                      ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
+                      ? "border-aimovie-ember-500 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                       : "border-[#BDBDBD]"
                   }`}
                 >
@@ -213,14 +213,14 @@ export function JobForm() {
             onClick={() => setGenresOtherShow((v) => !v)}
             className={`flex items-center gap-2 whitespace-nowrap rounded-lg border-2 px-3 py-2 text-sm transition-colors ${
               genresOtherShow
-                ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
+                ? "border-aimovie-ember-500 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                 : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
             }`}
           >
             <div
               className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 ${
                 genresOtherShow
-                  ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
+                  ? "border-aimovie-ember-500 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                   : "border-[#BDBDBD]"
               }`}
             >
@@ -248,7 +248,7 @@ export function JobForm() {
             type="text"
             value={genresOther}
             onChange={(e) => setGenresOther(e.target.value)}
-            className="mt-3 w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+            className="mt-3 w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             placeholder="自由入力（例: 学校紹介、医療系インタビュー など）"
             maxLength={60}
           />
@@ -290,16 +290,16 @@ export function JobForm() {
                   e.target.value.replace(/[^0-9]/g, "").slice(0, 10)
                 )
               }
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
               placeholder="500000"
             />
           </div>
 
           {/* 自動算出: 1 本あたりの単価 */}
           {(unitHigh !== null || unitLow !== null) && (
-            <div className="rounded-lg bg-neon-purple/10 px-4 py-4">
+            <div className="rounded-lg bg-aimovie-navy-700/10 px-4 py-4">
               <p className="text-xs text-[#828282]">1 本あたりの単価（自動算出）</p>
-              <p className="mt-1 text-lg font-bold text-neon-purple-deep">
+              <p className="mt-1 text-lg font-bold text-aimovie-navy-900">
                 {unitHigh !== null && unitLow !== null && unitHigh === unitLow
                   ? formatPrice(unitHigh)
                   : unitHigh !== null && unitLow !== null
@@ -362,7 +362,7 @@ export function JobForm() {
           type="submit"
           onClick={() => setSaveMode("draft")}
           disabled={saving}
-          className="rounded-pill border border-gray-300 bg-white px-6 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink disabled:opacity-50"
+          className="rounded-pill border border-gray-300 bg-white px-6 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:border-aimovie-ember-500 hover:text-aimovie-ember-500 disabled:opacity-50"
         >
           {saving && saveMode === "draft" ? "保存中..." : "下書き保存"}
         </button>

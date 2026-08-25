@@ -660,14 +660,14 @@ export function MessageThread({
             }}
             placeholder="メッセージを入力 (Enter送信 / Shift+Enter改行)"
             rows={1}
-            className="flex-1 resize-none rounded-xl border border-ink/20 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+            className="flex-1 resize-none rounded-xl border border-ink/20 bg-white px-4 py-3 text-sm leading-relaxed outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             autoComplete="off"
           />
           <button
             type="button"
             onClick={handleSend}
             disabled={sending || uploading || (!input.trim() && !attachmentUrl)}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white transition-colors hover:bg-neon-purple disabled:opacity-50"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white transition-colors hover:bg-aimovie-navy-700 disabled:opacity-50"
             aria-label="送信"
           >
             <svg

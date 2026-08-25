@@ -47,7 +47,7 @@ export function FoundingCreatorCounterClient() {
           ? "border-gray-300 bg-gray-100 text-gray-500"
           : urgent
             ? "border-red-300 bg-red-50 text-red-700"
-            : "border-neon-pink/40 bg-neon-pink/5 text-neon-pink"
+            : "border-aimovie-ember-500/40 bg-aimovie-ember-500/5 text-aimovie-ember-500"
       }`}
     >
       <Sparkles size={12} strokeWidth={2} aria-hidden />

@@ -295,7 +295,7 @@ export function RichUploadDropzone({
           onClick={() => setTab("file")}
           className={`inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             tab === "file"
-              ? "border-neon-pink text-neon-pink"
+              ? "border-aimovie-ember-500 text-aimovie-ember-500"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
@@ -307,7 +307,7 @@ export function RichUploadDropzone({
           onClick={() => setTab("url")}
           className={`inline-flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
             tab === "url"
-              ? "border-neon-pink text-neon-pink"
+              ? "border-aimovie-ember-500 text-aimovie-ember-500"
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
@@ -327,15 +327,15 @@ export function RichUploadDropzone({
                 : isDragReject
                   ? "border-red-400 bg-red-50"
                   : isDragActive
-                    ? "border-neon-pink bg-neon-pink/5"
-                    : "border-gray-300 bg-white hover:border-neon-pink/60 hover:bg-neon-pink/[0.03] cursor-pointer"
+                    ? "border-aimovie-ember-500 bg-aimovie-ember-500/5"
+                    : "border-gray-300 bg-white hover:border-aimovie-ember-500/60 hover:bg-aimovie-ember-500/[0.03] cursor-pointer"
             }`}
           >
             <input {...getInputProps()} />
             <UploadCloud
               size={32}
               strokeWidth={1.6}
-              className={isDragActive ? "text-neon-pink" : "text-gray-400"}
+              className={isDragActive ? "text-aimovie-ember-500" : "text-gray-400"}
               aria-hidden
             />
             <p className="mt-3 text-sm font-medium text-gray-700">
@@ -369,13 +369,13 @@ export function RichUploadDropzone({
               }}
               disabled={disabled}
               placeholder="https://www.youtube.com/watch?v=..."
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink disabled:bg-gray-50"
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500 disabled:bg-gray-50"
             />
             <button
               type="button"
               onClick={handleAddUrl}
               disabled={disabled || urlInput.trim() === ""}
-              className="shrink-0 rounded-lg bg-neon-pink px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-neon-pink/90 disabled:bg-gray-300"
+              className="shrink-0 rounded-lg bg-aimovie-ember-500 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-aimovie-ember-500/90 disabled:bg-gray-300"
             >
               追加
             </button>

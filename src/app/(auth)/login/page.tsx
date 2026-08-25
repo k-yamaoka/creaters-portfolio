@@ -42,15 +42,15 @@ function LoginForm() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
-      <div className="pointer-events-none absolute -left-32 top-0 h-[300px] w-[300px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
-      <div className="pointer-events-none absolute -right-24 bottom-0 h-[260px] w-[260px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+    <div className="relative flex min-h-screen items-center justify-center bg-aimovie-navy-950 px-4">
+      <div className="pointer-events-none absolute -left-32 top-0 h-[300px] w-[300px] rounded-full bg-aimovie-ember-500 opacity-25 blur-[100px]" />
+      <div className="pointer-events-none absolute -right-24 bottom-0 h-[260px] w-[260px] rounded-full bg-aimovie-navy-500 opacity-20 blur-[100px]" />
 
       {/* Close button → top */}
       <Link
         href="/"
         aria-label="閉じてトップへ戻る"
-        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/10 hover:text-neon-pink"
+        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-aimovie-ember-500/60 hover:bg-white/10 hover:text-aimovie-ember-500"
       >
         <svg
           className="h-5 w-5"
@@ -100,7 +100,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="example@email.com"
               />
             </div>
@@ -115,7 +115,7 @@ function LoginForm() {
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-neon-pink hover:underline"
+                  className="text-xs text-aimovie-ember-500 hover:underline"
                 >
                   パスワードをお忘れの方
                 </Link>
@@ -127,7 +127,7 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="6文字以上"
               />
             </div>
@@ -188,7 +188,7 @@ function LoginForm() {
             アカウントをお持ちでない方は{" "}
             <Link
               href="/register"
-              className="font-medium text-neon-pink hover:underline"
+              className="font-medium text-aimovie-ember-500 hover:underline"
             >
               新規登録
             </Link>

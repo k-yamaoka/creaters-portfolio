@@ -201,12 +201,12 @@ export function CreatorsPageClient({
       <div className="mx-auto max-w-container px-6 pb-10 pt-6 lg:px-10">
         {/* クリエイター本人向け案内 — search bar 直上に密着させ、Hero との余白を埋める */}
         {isCreatorViewer && (
-          <div className="mb-4 inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-pill border border-aimovie-navy-500/40 bg-aimovie-navy-500/10 px-3 py-1.5 text-xs font-bold text-aimovie-ivory-300">
             <span aria-hidden>★</span>
             自分のプロフィールを編集する場合は
             <Link
               href="/dashboard/profile"
-              className="text-neon-cyan underline underline-offset-4"
+              className="text-aimovie-navy-500 underline underline-offset-4"
             >
               マイプロフィール →
             </Link>
@@ -360,15 +360,15 @@ function CreatorRow({
   // 共通の "soft long shadow" + わずかな border 強調だけにする。
   const tierRing =
     tier === "gold"
-      ? "border-neon-sunset/60 hover:border-neon-sunset/80"
+      ? "border-aimovie-ember-400/60 hover:border-aimovie-ember-400/80"
       : tier === "silver"
-        ? "border-neon-cyan/40 hover:border-neon-cyan/60"
+        ? "border-aimovie-navy-500/40 hover:border-aimovie-navy-500/60"
         : "border-ink/10 hover:border-ink/25";
   const tierBg =
     tier === "gold"
-      ? "bg-neon-sunset/[0.07]"
+      ? "bg-aimovie-ember-400/[0.07]"
       : tier === "silver"
-        ? "bg-neon-cyan/[0.05]"
+        ? "bg-aimovie-navy-500/[0.05]"
         : "bg-ink/[0.03]";
   // クリエイターが「お気に入り表示」フラグを付けた作品を最大4件。
   // is_featured カラム未マイグレーションでも壊れないよう optional 扱い。
@@ -419,7 +419,7 @@ function CreatorRow({
             <BadgeCheck size={12} strokeWidth={1.8} fill="currentColor" className="-mt-0.5 inline-block" aria-hidden /> 認証済
           </div>
           {/* リボン下部の折り影 */}
-          <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-neon-sunset/80" />
+          <div className="absolute right-0 top-[60px] h-3 w-2 rotate-45 bg-aimovie-ember-400/80" />
         </div>
       )}
       <span className="sr-only">
@@ -461,7 +461,7 @@ function CreatorRow({
             <span
               className={`inline-flex items-center gap-1 rounded-pill px-2.5 py-0.5 text-xs font-bold text-ink ${
                 tier === "gold"
-                  ? "bg-neon-sunset/25 text-neon-sunset"
+                  ? "bg-aimovie-ember-400/25 text-aimovie-ember-400"
                   : totalLikes > 0
                     ? "bg-ink/10"
                     : "bg-ink/[0.04] text-ink/65"
@@ -471,13 +471,13 @@ function CreatorRow({
                 size={12}
                 strokeWidth={1.8}
                 fill="currentColor"
-                className="text-neon-pink"
+                className="text-aimovie-ember-500"
                 aria-hidden
               />
               {totalLikes === 0 && <span>0</span>}
             </span>
             {/* 作品数のみ表示 (経験年数バッジと作品を見る CTA は撤去) */}
-            <span className="inline-flex items-center gap-1 rounded-pill border border-neon-cyan/30 bg-neon-cyan/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-cyan">
+            <span className="inline-flex items-center gap-1 rounded-pill border border-aimovie-navy-500/30 bg-aimovie-navy-500/10 px-2.5 py-0.5 text-[11px] font-bold text-aimovie-navy-500">
               <Video size={12} strokeWidth={1.8} aria-hidden />
               作品 {creator.portfolio_items.length} 件
             </span>
@@ -509,7 +509,7 @@ function CreatorRow({
               {creator.genres.slice(0, 4).map((g) => (
                 <span
                   key={`g-${g}`}
-                  className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-2.5 py-0.5 text-[11px] font-bold text-neon-purple"
+                  className="rounded-pill border border-aimovie-navy-700/40 bg-aimovie-navy-700/10 px-2.5 py-0.5 text-[11px] font-bold text-aimovie-navy-700"
                 >
                   {g}
                 </span>
@@ -520,11 +520,11 @@ function CreatorRow({
 
         {/* 右: 最低対応金額 (上下中央寄せ、認証リボンと被らないよう mt-8 確保) */}
         <div className="col-span-12 flex items-center justify-end sm:col-span-3 sm:mt-8">
-          <div className="rounded-2xl border border-neon-pink/30 bg-neon-pink/5 px-5 py-4 text-right backdrop-blur-sm">
+          <div className="rounded-2xl border border-aimovie-ember-500/30 bg-aimovie-ember-500/5 px-5 py-4 text-right backdrop-blur-sm">
             <p className="text-[10px] font-bold tracking-wider text-ink/55">
               最低対応金額
             </p>
-            <p className="mt-1 text-xl font-black text-neon-pink sm:text-2xl">
+            <p className="mt-1 text-xl font-black text-aimovie-ember-500 sm:text-2xl">
               {unitPrice ?? "応相談"}
             </p>
           </div>
@@ -806,7 +806,7 @@ function CreatorGridCard({
               strokeWidth={1.8}
               fill="currentColor"
               aria-hidden
-              className="text-neon-sunset"
+              className="text-aimovie-ember-400"
             />
             認証
           </span>
@@ -839,7 +839,7 @@ function CreatorGridCard({
               size={11}
               strokeWidth={1.8}
               fill="currentColor"
-              className="text-neon-pink"
+              className="text-aimovie-ember-500"
               aria-hidden
             />
             {totalLikes}
@@ -851,7 +851,7 @@ function CreatorGridCard({
           <span className="block text-[9px] tracking-wider text-ink/45">
             最低対応
           </span>
-          <span className="text-xs font-bold text-neon-pink">
+          <span className="text-xs font-bold text-aimovie-ember-500">
             {unitPrice ?? "応相談"}
           </span>
         </span>

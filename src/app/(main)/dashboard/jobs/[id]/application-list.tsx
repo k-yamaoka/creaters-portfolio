@@ -107,7 +107,7 @@ export function ApplicationList({
         return (
           <div key={app.id} className="rounded-2xl bg-white p-6 shadow-card">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neon-purple/15 text-sm font-bold text-neon-purple-deep">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-aimovie-navy-700/15 text-sm font-bold text-aimovie-navy-900">
                 {initial}
               </div>
 
@@ -116,7 +116,7 @@ export function ApplicationList({
                   <div className="flex items-center gap-3">
                     <Link
                       href={`/creators/${creator.id}`}
-                      className="text-sm font-bold text-[#222] hover:text-neon-pink"
+                      className="text-sm font-bold text-[#222] hover:text-aimovie-ember-500"
                     >
                       {displayName}
                     </Link>
@@ -140,7 +140,7 @@ export function ApplicationList({
                 {app.proposed_price && (
                   <p className="mt-2 text-sm">
                     <span className="text-[#828282]">提案金額: </span>
-                    <span className="font-bold text-neon-purple-deep">
+                    <span className="font-bold text-aimovie-navy-900">
                       {formatPrice(app.proposed_price)}
                     </span>
                   </p>

@@ -47,7 +47,7 @@ export default function CreatorGuidePage() {
               "虚偽の情報や誇大な表現は禁止です",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-aimovie-navy-900" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -69,7 +69,7 @@ export default function CreatorGuidePage() {
               "サムネイル画像は作品の内容がわかるものを設定してください",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-aimovie-navy-900" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -89,7 +89,7 @@ export default function CreatorGuidePage() {
               "取引成立時にシステム手数料（15%）が差し引かれます",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-aimovie-navy-900" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -111,7 +111,7 @@ export default function CreatorGuidePage() {
               "クライアントの個人情報や機密情報は適切に管理してください",
             ].map((t) => (
               <li key={t} className="flex items-start gap-2.5 text-sm text-[#4F4F4F]">
-                <svg className="mt-0.5 h-4 w-4 shrink-0 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="mt-0.5 h-4 w-4 shrink-0 text-aimovie-navy-900" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -149,7 +149,7 @@ export default function CreatorGuidePage() {
         <div className="text-center">
           <p className="text-sm text-[#828282]">
             ガイドラインに関するご質問は
-            <Link href="/help" className="font-medium text-neon-purple-deep hover:underline">
+            <Link href="/help" className="font-medium text-aimovie-navy-900 hover:underline">
               ヘルプセンター
             </Link>
             からお問い合わせください。

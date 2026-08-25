@@ -130,7 +130,7 @@
     @apply font-display font-bold leading-[1.4] text-ink;
   }
   .eyebrow {
-    @apply inline-flex items-center gap-2 text-[12px] font-bold tracking-[0.16em] text-neon-purple-deep;
+    @apply inline-flex items-center gap-2 text-[12px] font-bold tracking-[0.16em] text-aimovie-navy-900;
   }
   .eyebrow::before {
     content: "";
@@ -167,8 +167,9 @@
     background-size: 100% 100%;
     padding: 0 0.15em;
   }
+  /* Cinema Ink 化: 旧 neon 色を Aimovie パレット (#0F1E3D navy / #FF6B35 ember) に */
   .underline-neon {
-    background-image: linear-gradient(180deg, transparent 60%, #4dd5f7 60%, #4dd5f7 92%, transparent 92%);
+    background-image: linear-gradient(180deg, transparent 60%, #FF6B35 60%, #FF6B35 92%, transparent 92%);
     background-repeat: no-repeat;
     background-size: 100% 100%;
     padding: 0 0.15em;
@@ -176,28 +177,29 @@
   .underline-squiggle {
     text-decoration-line: underline;
     text-decoration-style: wavy;
-    text-decoration-color: #ff4d9d;
+    text-decoration-color: #FF6B35;
     text-decoration-thickness: 2px;
     text-underline-offset: 6px;
   }
   .dotted-bg {
-    background-image: radial-gradient(circle, rgba(157,92,255,0.18) 1.4px, transparent 1.5px);
+    background-image: radial-gradient(circle, rgba(15,30,61,0.15) 1.4px, transparent 1.5px);
     background-size: 22px 22px;
   }
   .grid-bg {
     background-image:
-      linear-gradient(rgba(157,92,255,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(157,92,255,0.06) 1px, transparent 1px);
+      linear-gradient(rgba(15,30,61,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,30,61,0.06) 1px, transparent 1px);
     background-size: 32px 32px;
   }
+  /* .neon-glow-pink / .neon-glow-cyan は名前だけ後方互換維持、色は ember / navy に */
   .neon-glow-pink {
-    box-shadow: 0 0 28px rgba(255, 77, 157, 0.4);
+    box-shadow: 0 0 28px rgba(255, 107, 53, 0.4);
   }
   .neon-glow-cyan {
-    box-shadow: 0 0 28px rgba(77, 213, 247, 0.4);
+    box-shadow: 0 0 28px rgba(15, 30, 61, 0.35);
   }
   .text-gradient-neon {
-    background: linear-gradient(90deg, #ff4d9d, #9d5cff, #4dd5f7);
+    background: linear-gradient(90deg, #FF6B35, #FF8A5C, #F7F5F0);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -219,19 +221,19 @@
 
   /* Tags / chips */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-pill bg-neon-purple/10 px-3 py-1 text-xs font-bold text-neon-purple-deep;
+    @apply inline-flex items-center gap-1.5 rounded-pill bg-aimovie-navy-700/10 px-3 py-1 text-xs font-bold text-aimovie-navy-900;
   }
   .chip-yellow {
-    @apply inline-flex items-center gap-1.5 rounded-pill bg-neon-cyan/20 px-3 py-1 text-xs font-bold text-neon-purple-deep;
+    @apply inline-flex items-center gap-1.5 rounded-pill bg-aimovie-navy-500/20 px-3 py-1 text-xs font-bold text-aimovie-navy-900;
   }
   .chip-outline {
     @apply inline-flex items-center gap-1.5 rounded-pill border border-ink/20 bg-white px-3 py-1 text-xs font-medium text-ink-muted;
   }
   .chip-neon {
-    @apply inline-flex items-center gap-1.5 rounded-pill bg-neon-midnight-deep px-3 py-1 text-xs font-bold text-white;
+    @apply inline-flex items-center gap-1.5 rounded-pill bg-aimovie-navy-950 px-3 py-1 text-xs font-bold text-white;
   }
   .chip-tool {
-    @apply inline-flex items-center gap-1 rounded-pill bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white;
+    @apply inline-flex items-center gap-1 rounded-pill bg-aimovie-navy-950 px-2 py-0.5 text-[10px] font-bold text-white;
   }
 
   /* ============================================================

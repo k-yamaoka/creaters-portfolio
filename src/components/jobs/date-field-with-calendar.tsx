@@ -67,13 +67,13 @@ export function DateFieldWithCalendar({
           defaultValue={defaultValue}
           // 右側のカレンダーアイコン分の余白を確保。
           // ネイティブの indicator は appearance:none で隠す ('-webkit-' 接頭辞対応)。
-          className="w-full appearance-none rounded-lg border border-[#E0E0E0] bg-white px-4 py-3 pr-12 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink [&::-webkit-calendar-picker-indicator]:opacity-0"
+          className="w-full appearance-none rounded-lg border border-[#E0E0E0] bg-white px-4 py-3 pr-12 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500 [&::-webkit-calendar-picker-indicator]:opacity-0"
         />
         <button
           type="button"
           onClick={openPicker}
           aria-label={`${label}を選択`}
-          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-lg text-[#828282] transition-colors hover:bg-neon-pink/10 hover:text-neon-pink"
+          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-lg text-[#828282] transition-colors hover:bg-aimovie-ember-500/10 hover:text-aimovie-ember-500"
         >
           <svg
             className="h-5 w-5"

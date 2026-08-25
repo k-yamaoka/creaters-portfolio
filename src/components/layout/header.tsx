@@ -183,11 +183,11 @@ export function Header({
         header:
           "fixed left-0 right-0 top-0 z-50 border-b border-gray-200 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.04)]",
         navLink:
-          "rounded-pill px-4 py-2 text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-neon-pink",
+          "rounded-pill px-4 py-2 text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-aimovie-ember-500",
         iconBtn:
-          "relative flex h-10 w-10 items-center justify-center rounded-pill text-gray-600 transition-colors hover:bg-gray-100 hover:text-neon-pink",
+          "relative flex h-10 w-10 items-center justify-center rounded-pill text-gray-600 transition-colors hover:bg-gray-100 hover:text-aimovie-ember-500",
         userMenuBtn:
-          "flex items-center gap-2 rounded-pill border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-900 transition-all hover:-translate-y-0.5 hover:border-neon-pink/60 hover:text-neon-pink",
+          "flex items-center gap-2 rounded-pill border border-gray-300 bg-white px-3 py-2 text-sm font-bold text-gray-900 transition-all hover:-translate-y-0.5 hover:border-aimovie-ember-500/60 hover:text-aimovie-ember-500",
         dropdown:
           "absolute right-0 top-full z-50 mt-3 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.12)]",
         dropdownSm:
@@ -203,11 +203,11 @@ export function Header({
         notifBody: "mt-0.5 truncate text-xs text-gray-500",
         notifMeta: "mt-1 text-[10px] text-gray-400",
         menuItem:
-          "block px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-neon-pink",
+          "block px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-aimovie-ember-500",
         logoutBtn:
           "w-full border-t border-gray-200 px-4 py-2.5 text-left text-sm font-medium text-red-500 transition-colors hover:bg-red-50",
         loginLink:
-          "rounded-pill px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-neon-pink",
+          "rounded-pill px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-100 hover:text-aimovie-ember-500",
         mobileBtn:
           "flex h-10 w-10 items-center justify-center rounded-pill border border-gray-300 text-gray-700 md:hidden",
         mobileMenu:
@@ -218,7 +218,7 @@ export function Header({
       }
     : {
         // 2026-06-16 Step 4: ダーク (LP) テーマを Axis Ov Films 系へ刷新。
-        // 旧 neon-midnight-deep/neon-pink hover を ink-deep/sand に統一。
+        // 旧 aimovie-navy-950/aimovie-ember-500 hover を ink-deep/sand に統一。
         header:
           "fixed left-0 right-0 top-0 z-50 border-b border-white/10 bg-aimovie-navy-950/85 backdrop-blur-xl",
         navLink:
@@ -352,7 +352,7 @@ export function Header({
                   />
                 </svg>
                 {unreadCount > 0 && (
-                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-pill bg-neon-pink px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(255,77,157,0.7)]">
+                  <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-pill bg-aimovie-ember-500 px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(255,77,157,0.7)]">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -379,7 +379,7 @@ export function Header({
                     />
                   </svg>
                   {unreadNotifs > 0 && (
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-pill bg-neon-pink px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(255,77,157,0.7)]">
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-pill bg-aimovie-ember-500 px-1 text-[10px] font-bold text-white shadow-[0_0_8px_rgba(255,77,157,0.7)]">
                       {unreadNotifs > 99 ? "99+" : unreadNotifs}
                     </span>
                   )}
@@ -416,7 +416,7 @@ export function Header({
                                 });
                               }}
                               className={`${T.notifItem} ${
-                                !n.is_read ? "bg-neon-pink/10" : ""
+                                !n.is_read ? "bg-aimovie-ember-500/10" : ""
                               }`}
                             >
                               <p
@@ -505,7 +505,7 @@ export function Header({
                         className={`${T.menuItem} inline-flex items-center gap-2`}
                         onClick={() => setUserMenuOpen(false)}
                       >
-                        <Heart size={16} strokeWidth={1.8} fill="currentColor" className="text-neon-pink" aria-hidden />
+                        <Heart size={16} strokeWidth={1.8} fill="currentColor" className="text-aimovie-ember-500" aria-hidden />
                         いいねした動画
                       </Link>
                       <Link
@@ -587,7 +587,7 @@ export function Header({
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {creatorsLinkLabel}
-                <span className="text-neon-pink">→</span>
+                <span className="text-aimovie-ember-500">→</span>
               </Link>
             )}
             {showCreatorsLink && (
@@ -597,7 +597,7 @@ export function Header({
                 onClick={() => setMobileMenuOpen(false)}
               >
                 ポートフォリオ
-                <span className="text-neon-pink">→</span>
+                <span className="text-aimovie-ember-500">→</span>
               </Link>
             )}
             {showJobsLink && (
@@ -607,7 +607,7 @@ export function Header({
                 onClick={() => setMobileMenuOpen(false)}
               >
                 案件を探す
-                <span className="text-neon-pink">→</span>
+                <span className="text-aimovie-ember-500">→</span>
               </Link>
             )}
             {showPostJobCta && (
@@ -627,7 +627,7 @@ export function Header({
                 onClick={() => setMobileMenuOpen(false)}
               >
                 マイページ
-                <span className="text-neon-pink">→</span>
+                <span className="text-aimovie-ember-500">→</span>
               </Link>
             )}
             <Link
@@ -636,7 +636,7 @@ export function Header({
               onClick={() => setMobileMenuOpen(false)}
             >
               使い方
-              <span className="text-neon-pink">→</span>
+              <span className="text-aimovie-ember-500">→</span>
             </Link>
             <div className="mt-6 flex flex-col gap-3 pt-2">
               {user ? (

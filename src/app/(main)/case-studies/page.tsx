@@ -84,7 +84,7 @@ export default function CaseStudiesPage() {
             {/* Content */}
             <div className="flex-1 p-6 sm:p-8 md:p-10">
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-pill bg-neon-purple/10 px-3 py-1 text-xs font-bold text-neon-purple-deep">
+                <span className="rounded-pill bg-aimovie-navy-700/10 px-3 py-1 text-xs font-bold text-aimovie-navy-900">
                   {item.genre}
                 </span>
                 <span className="rounded bg-[#F2F2F2] px-2 py-1 text-xs text-[#828282]">
@@ -117,7 +117,7 @@ export default function CaseStudiesPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-neon-purple-deep">解決策</p>
+                  <p className="text-xs font-bold text-aimovie-navy-900">解決策</p>
                   <p className="mt-1 text-sm leading-relaxed text-[#4F4F4F]">
                     {item.solution}
                   </p>

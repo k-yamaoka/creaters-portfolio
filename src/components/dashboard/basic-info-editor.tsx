@@ -256,7 +256,7 @@ export function BasicInfoEditor({
                 />
               )
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-black text-neon-purple-deep">
+              <div className="flex h-full w-full items-center justify-center text-2xl font-black text-aimovie-navy-900">
                 {initial}
               </div>
             )}
@@ -267,7 +267,7 @@ export function BasicInfoEditor({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="absolute -bottom-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-neon-pink text-white shadow-card transition-colors hover:bg-neon-pink/90"
+                className="absolute -bottom-1 -right-1 inline-flex h-9 w-9 items-center justify-center rounded-full bg-aimovie-ember-500 text-white shadow-card transition-colors hover:bg-aimovie-ember-500/90"
                 aria-label="画像を選択"
               >
                 <svg
@@ -317,7 +317,7 @@ export function BasicInfoEditor({
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   maxLength={40}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base font-bold text-gray-900 outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink sm:max-w-sm"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-base font-bold text-gray-900 outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500 sm:max-w-sm"
                   placeholder="例: 山田 太郎"
                 />
                 <p className="mt-1 text-xs text-gray-500">{roleLabel}</p>
@@ -341,7 +341,7 @@ export function BasicInfoEditor({
                       step={1000}
                       value={minAmountInput}
                       onChange={(e) => setMinAmountInput(e.target.value)}
-                      className="w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                      className="w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                       placeholder="30000"
                     />
                     <span className="text-sm text-gray-500">〜</span>
@@ -360,7 +360,7 @@ export function BasicInfoEditor({
               </h1>
               <p className="mt-1 text-sm text-gray-500">{roleLabel}</p>
               {isCreator && (
-                <p className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-neon-pink/10 px-3 py-1 text-xs font-bold text-neon-pink-deep">
+                <p className="mt-2 inline-flex items-center gap-1.5 rounded-pill bg-aimovie-ember-500/10 px-3 py-1 text-xs font-bold text-aimovie-ember-500-deep">
                   <CreditCard size={14} strokeWidth={1.8} aria-hidden />
                   最低受注金額:{" "}
                   {minAmountSaved == null
@@ -399,7 +399,7 @@ export function BasicInfoEditor({
             <button
               type="button"
               onClick={enterEdit}
-              className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink"
+              className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:border-aimovie-ember-500 hover:text-aimovie-ember-500"
             >
               <svg
                 className="h-4 w-4"

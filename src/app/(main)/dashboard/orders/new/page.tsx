@@ -62,7 +62,7 @@ export default async function NewOrderPage({
 
             <div className="mt-4 border-t border-[#F2F2F2] pt-4">
               <h3 className="text-sm font-bold text-[#828282]">最低受注金額</h3>
-              <p className="mt-1 text-2xl font-black text-neon-purple-deep">
+              <p className="mt-1 text-2xl font-black text-aimovie-navy-900">
                 {minAmount != null ? `${formatPrice(minAmount)}〜` : "応相談"}
               </p>
               <p className="mt-1 text-[11px] text-[#BDBDBD]">

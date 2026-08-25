@@ -63,12 +63,12 @@ export default async function LikesPage() {
   return (
     <div className="relative mx-auto max-w-container px-6 py-12 lg:px-10">
       <div className="mb-8">
-        <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
-          <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
+        <p className="inline-flex items-center gap-2 rounded-pill border border-aimovie-ember-500/40 bg-aimovie-ember-500/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-aimovie-ember-400">
+          <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-aimovie-ember-500" />
           MY FAVORITES
         </p>
         <h1 className="mt-4 inline-flex items-center gap-3 text-3xl font-black tracking-tight text-white sm:text-[2.5rem]">
-          <Heart size={36} strokeWidth={1.6} fill="currentColor" className="text-neon-pink" aria-hidden />
+          <Heart size={36} strokeWidth={1.6} fill="currentColor" className="text-aimovie-ember-500" aria-hidden />
           いいねした動画
         </h1>
         <p className="mt-2 text-sm text-white/65">

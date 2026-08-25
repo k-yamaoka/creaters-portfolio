@@ -72,7 +72,7 @@ export default function SelectRolePage() {
               onClick={() => setRole("client")}
               className={`rounded-xl border-2 px-4 py-6 text-center transition-colors ${
                 role === "client"
-                  ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
+                  ? "border-aimovie-navy-900 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                   : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
               }`}
             >
@@ -87,7 +87,7 @@ export default function SelectRolePage() {
               onClick={() => setRole("creator")}
               className={`rounded-xl border-2 px-4 py-6 text-center transition-colors ${
                 role === "creator"
-                  ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
+                  ? "border-aimovie-navy-900 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                   : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
               }`}
             >
@@ -109,7 +109,7 @@ export default function SelectRolePage() {
                 <label
                   className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                     userType === "individual"
-                      ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
+                      ? "border-aimovie-navy-900 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
@@ -125,7 +125,7 @@ export default function SelectRolePage() {
                 <label
                   className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                     userType === "corporate"
-                      ? "border-neon-purple-deep bg-neon-purple/10 text-neon-purple-deep"
+                      ? "border-aimovie-navy-900 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >

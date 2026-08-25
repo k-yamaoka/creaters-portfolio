@@ -189,7 +189,7 @@ export function TagsAdmin({ category, tags }: Props) {
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setEditingId(tag.id)}
-                          className="mr-2 text-xs text-neon-purple-deep hover:underline"
+                          className="mr-2 text-xs text-aimovie-navy-900 hover:underline"
                         >
                           編集
                         </button>

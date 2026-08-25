@@ -139,7 +139,7 @@ export function FullscreenVideoModal({
                 size={12}
                 strokeWidth={1.8}
                 fill="currentColor"
-                className="text-neon-pink"
+                className="text-aimovie-ember-500"
                 aria-hidden
               />
               {likeCount}

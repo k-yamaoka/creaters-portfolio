@@ -93,7 +93,7 @@ export default async function DashboardJobsPage() {
                       <div className="flex flex-wrap items-center gap-3">
                         <Link
                           href={`/dashboard/jobs/${job.id}`}
-                          className="text-base font-bold text-[#222] transition-colors hover:text-neon-pink sm:text-lg"
+                          className="text-base font-bold text-[#222] transition-colors hover:text-aimovie-ember-500 sm:text-lg"
                         >
                           {job.title}
                         </Link>
@@ -163,7 +163,7 @@ export default async function DashboardJobsPage() {
                     </Link>
                     <Link
                       href={`/dashboard/jobs/${job.id}/edit`}
-                      className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink"
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-aimovie-ember-500 hover:text-aimovie-ember-500"
                     >
                       <svg
                         aria-hidden
@@ -183,7 +183,7 @@ export default async function DashboardJobsPage() {
                     </Link>
                     <Link
                       href={`/dashboard/jobs/${job.id}`}
-                      className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink"
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-aimovie-ember-500 hover:text-aimovie-ember-500"
                     >
                       詳細
                     </Link>

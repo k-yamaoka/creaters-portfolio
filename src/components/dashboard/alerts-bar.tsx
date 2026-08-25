@@ -90,7 +90,7 @@ export function DashboardAlertsBar({
   return (
     <section className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-card">
       <div className="mb-3 flex items-center gap-2">
-        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-neon-pink" />
+        <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-aimovie-ember-500" />
         <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-gray-500">
           要対応アラート
         </h2>
@@ -114,7 +114,7 @@ export function DashboardAlertsBar({
                   isUrgent
                     ? "border-red-300 bg-red-50 hover:border-red-400 hover:shadow-card"
                     : isHot
-                      ? "border-neon-pink/40 bg-neon-pink/[0.06] hover:border-neon-pink hover:shadow-card"
+                      ? "border-aimovie-ember-500/40 bg-aimovie-ember-500/[0.06] hover:border-aimovie-ember-500 hover:shadow-card"
                       : "border-gray-200 bg-gray-50/60 opacity-70"
                 }`}
               >
@@ -123,7 +123,7 @@ export function DashboardAlertsBar({
                     isUrgent
                       ? "bg-red-100 text-red-600"
                       : isHot
-                        ? "bg-neon-pink/15 text-neon-pink"
+                        ? "bg-aimovie-ember-500/15 text-aimovie-ember-500"
                         : "bg-gray-100 text-gray-400"
                   }`}
                 >

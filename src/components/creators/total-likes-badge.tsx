@@ -11,7 +11,7 @@ export function TotalLikesBadge({ initialTotal }: { initialTotal: number }) {
   const total = Math.max(0, initialTotal + delta);
   return (
     <span className="inline-flex items-center gap-1.5">
-      <Heart size={16} strokeWidth={1.8} fill="currentColor" className="text-neon-pink" aria-hidden />
+      <Heart size={16} strokeWidth={1.8} fill="currentColor" className="text-aimovie-ember-500" aria-hidden />
       総いいね {total}
     </span>
   );

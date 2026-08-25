@@ -248,7 +248,7 @@ export default async function DashboardPage() {
 
       {/* C-3: 未回答スカウト バナー (最優先で見せる) */}
       {isCreator && hasCreatorProfile && pendingInvitationsCount > 0 && (
-        <div className="mt-6 rounded-2xl border-2 border-neon-pink/40 bg-gradient-to-r from-aimovie-ember-500/10 via-aimovie-navy-700/10 to-aimovie-ivory-300/10 p-5 shadow-md">
+        <div className="mt-6 rounded-2xl border-2 border-aimovie-ember-500/40 bg-gradient-to-r from-aimovie-ember-500/10 via-aimovie-navy-700/10 to-aimovie-ivory-300/10 p-5 shadow-md">
           <div className="flex items-center gap-3">
             <div className="text-3xl leading-none" aria-hidden>
               💌
@@ -315,10 +315,10 @@ export default async function DashboardPage() {
 
       {/* Admin quick link */}
       {isAdmin && (
-        <div className="mt-6 rounded-2xl border border-neon-purple/30 bg-neon-purple/5 p-6">
+        <div className="mt-6 rounded-2xl border border-aimovie-navy-700/30 bg-aimovie-navy-700/5 p-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neon-purple/15">
-              <svg className="h-5 w-5 text-neon-purple-deep" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-aimovie-navy-700/15">
+              <svg className="h-5 w-5 text-aimovie-navy-900" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
               </svg>
             </div>
@@ -335,9 +335,9 @@ export default async function DashboardPage() {
 
       {/* Creator: prompt to create profile */}
       {isCreator && !hasCreatorProfile && (
-        <div className="mt-6 rounded-2xl border-2 border-dashed border-neon-purple/30 bg-neon-purple/10 p-6">
+        <div className="mt-6 rounded-2xl border-2 border-dashed border-aimovie-navy-700/30 bg-aimovie-navy-700/10 p-6">
           <div className="flex items-center gap-3">
-            <Video size={36} strokeWidth={1.6} className="text-neon-purple-deep" aria-hidden />
+            <Video size={36} strokeWidth={1.6} className="text-aimovie-navy-900" aria-hidden />
             <div className="flex-1">
               <h2 className="font-bold text-gray-900">クリエイタープロフィールを作成しましょう</h2>
               <p className="mt-1 text-sm text-gray-500">プロフィールを設定すると、クライアントからの検索結果に表示されます</p>
@@ -351,9 +351,9 @@ export default async function DashboardPage() {
 
       {/* Client: prompt to set company info */}
       {!isCreator && !isAdmin && !hasClientProfile && (
-        <div className="mt-6 rounded-2xl border-2 border-dashed border-neon-purple/30 bg-neon-purple/10 p-6">
+        <div className="mt-6 rounded-2xl border-2 border-dashed border-aimovie-navy-700/30 bg-aimovie-navy-700/10 p-6">
           <div className="flex items-center gap-3">
-            <Building2 size={36} strokeWidth={1.6} className="text-neon-purple-deep" aria-hidden />
+            <Building2 size={36} strokeWidth={1.6} className="text-aimovie-navy-900" aria-hidden />
             <div className="flex-1">
               <h2 className="font-bold text-gray-900">企業情報を登録しましょう</h2>
               <p className="mt-1 text-sm text-gray-500">企業情報を登録すると、クリエイターへの依頼がスムーズになります</p>
@@ -393,7 +393,7 @@ export default async function DashboardPage() {
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-500">総いいね数</p>
-              <Heart size={28} strokeWidth={1.6} fill="currentColor" className="text-neon-pink" aria-hidden />
+              <Heart size={28} strokeWidth={1.6} fill="currentColor" className="text-aimovie-ember-500" aria-hidden />
             </div>
             <p className="mt-2 text-3xl font-bold text-gray-900">
               {totalLikes.toLocaleString()}

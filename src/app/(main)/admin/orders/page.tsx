@@ -113,7 +113,7 @@ export default async function AdminOrdersPage({
         </div>
         <div className="rounded-2xl bg-white p-5 shadow-card">
           <p className="text-sm text-[#828282]">総手数料</p>
-          <p className="mt-1 text-2xl font-bold text-neon-purple-deep">
+          <p className="mt-1 text-2xl font-bold text-aimovie-navy-900">
             {formatPrice(totalFees)}
           </p>
         </div>
@@ -174,7 +174,7 @@ export default async function AdminOrdersPage({
                   <td className="px-5 py-3">
                     <Link
                       href={`/dashboard/orders/${order.id}`}
-                      className="text-xs font-medium text-neon-purple-deep hover:underline"
+                      className="text-xs font-medium text-aimovie-navy-900 hover:underline"
                     >
                       {order.order_number}
                     </Link>

@@ -103,7 +103,7 @@ export function MockCreatorsList() {
     },
   ];
   // 2026-06-16 Step 4: Axis 風モノトーンに彩度下げ。
-  // neon-pink/purple/cyan/sunset → paper/sand/ink の階調のみ。
+  // aimovie-ember-500/purple/cyan/sunset → paper/sand/ink の階調のみ。
   return (
     <div className="space-y-0 divide-y divide-ink/10 bg-paper p-4">
       {rows.map((r, i) => (

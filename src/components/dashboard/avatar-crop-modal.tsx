@@ -81,7 +81,7 @@ export function AvatarCropModal({
         </p>
 
         {/* Crop area — 正方形 */}
-        <div className="relative mt-4 aspect-square w-full overflow-hidden rounded-xl bg-neon-midnight-deep">
+        <div className="relative mt-4 aspect-square w-full overflow-hidden rounded-xl bg-aimovie-navy-950">
           <Cropper
             image={imageSrc}
             crop={crop}
@@ -110,7 +110,7 @@ export function AvatarCropModal({
             step={0.05}
             value={zoom}
             onChange={(e) => setZoom(Number(e.target.value))}
-            className="block w-full accent-neon-pink"
+            className="block w-full accent-aimovie-ember-500"
           />
         </div>
 

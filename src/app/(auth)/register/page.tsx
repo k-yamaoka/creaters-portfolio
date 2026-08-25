@@ -120,11 +120,11 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="relative flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4">
+      <div className="relative flex min-h-screen items-center justify-center bg-aimovie-navy-950 px-4">
         <Link
           href="/"
           aria-label="閉じてトップへ戻る"
-          className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/10 hover:text-neon-pink"
+          className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-aimovie-ember-500/60 hover:bg-white/10 hover:text-aimovie-ember-500"
         >
           <svg
             className="h-5 w-5"
@@ -163,7 +163,7 @@ export default function RegisterPage() {
                 type="button"
                 onClick={handleResend}
                 disabled={resending}
-                className="mb-3 inline-block text-sm font-bold text-neon-pink hover:underline disabled:opacity-50"
+                className="mb-3 inline-block text-sm font-bold text-aimovie-ember-500 hover:underline disabled:opacity-50"
               >
                 {resending ? "再送中..." : "確認メールを再送する"}
               </button>
@@ -180,12 +180,12 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-neon-midnight-deep px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center bg-aimovie-navy-950 px-4 py-12">
       {/* Close button → top */}
       <Link
         href="/"
         aria-label="閉じてトップへ戻る"
-        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-white/10 hover:text-neon-pink"
+        className="absolute right-5 top-5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/80 backdrop-blur-sm transition-all hover:border-aimovie-ember-500/60 hover:bg-white/10 hover:text-aimovie-ember-500"
       >
         <svg
           className="h-5 w-5"
@@ -236,7 +236,7 @@ export default function RegisterPage() {
                   onClick={() => setRole("client")}
                   className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                     role === "client"
-                      ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                      ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
@@ -248,7 +248,7 @@ export default function RegisterPage() {
                   onClick={() => setRole("creator")}
                   className={`rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                     role === "creator"
-                      ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                      ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
                       : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                   }`}
                 >
@@ -268,7 +268,7 @@ export default function RegisterPage() {
                   <label
                     className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                       userType === "individual"
-                        ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                        ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
                         : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                     }`}
                   >
@@ -285,7 +285,7 @@ export default function RegisterPage() {
                   <label
                     className={`flex cursor-pointer items-center gap-2 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
                       userType === "corporate"
-                        ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                        ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
                         : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                     }`}
                   >
@@ -319,7 +319,7 @@ export default function RegisterPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="山田 太郎"
               />
             </div>
@@ -337,7 +337,7 @@ export default function RegisterPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="example@email.com"
               />
             </div>
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="6文字以上"
               />
             </div>
@@ -417,7 +417,7 @@ export default function RegisterPage() {
             すでにアカウントをお持ちの方は{" "}
             <Link
               href="/login"
-              className="font-medium text-neon-pink hover:underline"
+              className="font-medium text-aimovie-ember-500 hover:underline"
             >
               ログイン
             </Link>

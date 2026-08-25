@@ -79,7 +79,7 @@ export function JobEditForm({ job }: { job: Job }) {
           required
           maxLength={50}
           defaultValue={job.title}
-          className="w-full rounded-lg border-2 border-[#E0E0E0] px-4 py-3 text-base font-medium outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          className="w-full rounded-lg border-2 border-[#E0E0E0] px-4 py-3 text-base font-medium outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
         />
       </section>
 
@@ -95,7 +95,7 @@ export function JobEditForm({ job }: { job: Job }) {
           id="status"
           name="status"
           defaultValue={job.status}
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink sm:max-w-md"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500 sm:max-w-md"
         >
           {STATUSES.map((s) => (
             <option key={s.value} value={s.value}>
@@ -121,7 +121,7 @@ export function JobEditForm({ job }: { job: Job }) {
                 key={genre}
                 className={`flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border-2 px-3 py-2 text-sm transition-colors ${
                   isSelected
-                    ? "border-neon-pink bg-neon-purple/10 text-neon-purple-deep"
+                    ? "border-aimovie-ember-500 bg-aimovie-navy-700/10 text-aimovie-navy-900"
                     : "border-[#E0E0E0] text-[#4F4F4F] hover:border-[#BDBDBD]"
                 }`}
               >
@@ -134,7 +134,7 @@ export function JobEditForm({ job }: { job: Job }) {
                 <div
                   className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 ${
                     isSelected
-                      ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
+                      ? "border-aimovie-ember-500 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
                       : "border-[#BDBDBD]"
                   }`}
                 >
@@ -175,7 +175,7 @@ export function JobEditForm({ job }: { job: Job }) {
           rows={8}
           maxLength={3000}
           defaultValue={job.description ?? ""}
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
         />
         <p className="mt-1 text-[11px] text-[#828282]">
           ※ 制作要件 (本数 / 完成尺 / 納品形式等) の編集は本フォームには含まれません。大幅な変更が必要な場合は本案件を締切ってから再掲載してください。
@@ -202,7 +202,7 @@ export function JobEditForm({ job }: { job: Job }) {
               min={0}
               max={9999999999}
               defaultValue={job.budget_min ?? ""}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
           <div>
@@ -219,7 +219,7 @@ export function JobEditForm({ job }: { job: Job }) {
               min={0}
               max={9999999999}
               defaultValue={job.budget_max ?? ""}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
           <div>
@@ -234,7 +234,7 @@ export function JobEditForm({ job }: { job: Job }) {
               name="deadline"
               type="date"
               defaultValue={toInputDate(job.deadline)}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
           <div>
@@ -249,7 +249,7 @@ export function JobEditForm({ job }: { job: Job }) {
               name="delivery_deadline"
               type="date"
               defaultValue={toInputDate(job.delivery_deadline)}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
         </div>

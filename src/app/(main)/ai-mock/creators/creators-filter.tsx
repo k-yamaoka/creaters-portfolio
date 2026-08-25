@@ -107,7 +107,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
               <button
                 type="button"
                 onClick={clearAll}
-                className="text-[11px] font-bold text-neon-purple-deep underline"
+                className="text-[11px] font-bold text-aimovie-navy-900 underline"
               >
                 クリア
               </button>
@@ -129,7 +129,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                     onClick={() => toggleTool(tool)}
                     className={`rounded-pill border px-2.5 py-1 text-[11px] font-bold transition-all ${
                       active
-                        ? "border-neon-pink bg-neon-pink text-white"
+                        ? "border-aimovie-ember-500 bg-aimovie-ember-500 text-white"
                         : "border-ink/15 bg-paper text-ink hover:border-ink/40"
                     }`}
                   >
@@ -155,7 +155,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                     onClick={() => setSelectedGenre(active ? null : g)}
                     className={`rounded-pill border px-2.5 py-1 text-[11px] font-bold transition-all ${
                       active
-                        ? "border-neon-purple bg-neon-purple text-white"
+                        ? "border-aimovie-navy-700 bg-aimovie-navy-700 text-white"
                         : "border-ink/15 bg-paper text-ink hover:border-ink/40"
                     }`}
                   >
@@ -179,7 +179,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                   onClick={() => setPriceRange(i)}
                   className={`rounded-md border px-2 py-1.5 text-[11px] font-bold transition-all ${
                     priceRange === i
-                      ? "border-neon-cyan bg-neon-cyan/15 text-neon-purple-deep"
+                      ? "border-aimovie-navy-500 bg-aimovie-navy-500/15 text-aimovie-navy-900"
                       : "border-ink/15 bg-paper text-ink hover:border-ink/40"
                   }`}
                 >
@@ -195,7 +195,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
       <div>
         <div className="mb-6 flex items-baseline justify-between">
           <p className="text-sm font-bold text-ink">
-            <span className="text-2xl font-black text-neon-purple-deep">
+            <span className="text-2xl font-black text-aimovie-navy-900">
               {filtered.length}
             </span>
             <span className="ml-1 text-ink-muted">名のクリエイター</span>
@@ -221,7 +221,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
             <button
               type="button"
               onClick={clearAll}
-              className="mt-4 text-sm font-bold text-neon-purple-deep underline"
+              className="mt-4 text-sm font-bold text-aimovie-navy-900 underline"
             >
               フィルターをクリア
             </button>
@@ -241,10 +241,10 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <div className="absolute right-3 top-3 flex gap-1">
-                    <span className="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-neon-purple-deep">
+                    <span className="rounded-full bg-white/95 px-2 py-0.5 text-[10px] font-black text-aimovie-navy-900">
                       AI
                     </span>
-                    <span className="rounded-full bg-neon-midnight-deep/90 px-2 py-0.5 text-[10px] font-black text-white">
+                    <span className="rounded-full bg-aimovie-navy-950/90 px-2 py-0.5 text-[10px] font-black text-white">
                       ★ {c.rating}
                     </span>
                   </div>
@@ -266,7 +266,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                     {c.tools.slice(0, 4).map((tool) => (
                       <span
                         key={tool}
-                        className="rounded-full bg-neon-midnight-deep px-2 py-0.5 text-[10px] font-bold text-white"
+                        className="rounded-full bg-aimovie-navy-950 px-2 py-0.5 text-[10px] font-bold text-white"
                       >
                         {tool}
                       </span>
@@ -282,7 +282,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                     {c.genres.slice(0, 3).map((g) => (
                       <span
                         key={g}
-                        className="rounded-full border border-neon-purple/30 bg-neon-purple/10 px-2 py-0.5 text-[10px] font-bold text-neon-purple-deep"
+                        className="rounded-full border border-aimovie-navy-700/30 bg-aimovie-navy-700/10 px-2 py-0.5 text-[10px] font-bold text-aimovie-navy-900"
                       >
                         {g}
                       </span>
@@ -294,7 +294,7 @@ export function CreatorsFilter({ creators }: { creators: AiCreator[] }) {
                       <p className="text-[9px] font-bold uppercase tracking-wider text-ink-muted">
                         from
                       </p>
-                      <p className="mt-0.5 text-sm font-black text-neon-purple-deep">
+                      <p className="mt-0.5 text-sm font-black text-aimovie-navy-900">
                         ¥{(c.priceFrom / 10000).toFixed(0)}万〜
                       </p>
                     </div>

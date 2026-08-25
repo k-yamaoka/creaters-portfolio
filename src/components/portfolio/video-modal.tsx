@@ -82,7 +82,7 @@ export function VideoModal({
           type="button"
           onClick={onClose}
           aria-label="閉じる"
-          className="absolute -right-1 -top-12 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-ink/30 bg-ink/10 text-ink backdrop-blur-sm transition-all hover:border-neon-pink/60 hover:bg-ink/15 lg:-right-12 lg:top-0"
+          className="absolute -right-1 -top-12 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-ink/30 bg-ink/10 text-ink backdrop-blur-sm transition-all hover:border-aimovie-ember-500/60 hover:bg-ink/15 lg:-right-12 lg:top-0"
         >
           <svg
             className="h-5 w-5"

@@ -112,7 +112,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               type="text"
               required
               defaultValue={user.display_name}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
 
@@ -138,7 +138,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                 step={1000}
                 defaultValue={cp?.minimum_order_amount ?? ""}
                 placeholder="30000"
-                className="w-48 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-48 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
               />
               <span className="text-sm text-[#828282]">〜</span>
             </div>
@@ -163,8 +163,8 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               onClick={() => toggleGenre(genre)}
               className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
                 selectedGenres.includes(genre)
-                  ? "border-neon-pink bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
-                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-pink"
+                  ? "border-aimovie-ember-500 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
+                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-aimovie-ember-500"
               }`}
             >
               {genre}
@@ -187,8 +187,8 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
               onClick={() => toggleLength(length)}
               className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
                 selectedLengths.includes(length)
-                  ? "border-neon-cyan bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700 text-white"
-                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-cyan"
+                  ? "border-aimovie-navy-500 bg-gradient-to-r from-aimovie-navy-500 to-aimovie-navy-700 text-white"
+                  : "border-[#BDBDBD] text-[#4F4F4F] hover:border-aimovie-navy-500"
               }`}
             >
               {length}
@@ -203,7 +203,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           <h2 className="text-lg font-bold text-[#222]">強み</h2>
           <span
             className={`text-xs font-bold ${
-              strengthsAtLimit ? "text-neon-pink" : "text-[#828282]"
+              strengthsAtLimit ? "text-aimovie-ember-500" : "text-[#828282]"
             }`}
           >
             {selectedStrengths.length} / {MAX_STRENGTHS}
@@ -225,10 +225,10 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                 aria-pressed={active}
                 className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "border-neon-pink bg-neon-pink text-white shadow-[0_0_14px_rgba(255,77,157,0.4)]"
+                    ? "border-aimovie-ember-500 bg-aimovie-ember-500 text-white shadow-[0_0_14px_rgba(255,77,157,0.4)]"
                     : disabled
                       ? "cursor-not-allowed border-[#E0E0E0] text-[#BDBDBD] opacity-60"
-                      : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-pink"
+                      : "border-[#BDBDBD] text-[#4F4F4F] hover:border-aimovie-ember-500"
                 }`}
                 title={disabled ? `最大${MAX_STRENGTHS}つまで` : undefined}
               >
@@ -238,7 +238,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           })}
         </div>
         {strengthsAtLimit && (
-          <p className="mt-3 inline-flex items-center gap-1 text-xs text-neon-purple-deep">
+          <p className="mt-3 inline-flex items-center gap-1 text-xs text-aimovie-navy-900">
             <CheckCircle2 size={14} strokeWidth={1.8} fill="currentColor" aria-hidden />
             {MAX_STRENGTHS}つ選択済み。変更する場合はチェック済みを外してください。
           </p>
@@ -271,8 +271,8 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                         onClick={() => toggleAiTool(t.name)}
                         className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-colors ${
                           active
-                            ? "border-neon-purple bg-gradient-to-r from-aimovie-navy-700 to-aimovie-ember-500 text-white"
-                            : "border-[#BDBDBD] text-[#4F4F4F] hover:border-neon-purple"
+                            ? "border-aimovie-navy-700 bg-gradient-to-r from-aimovie-navy-700 to-aimovie-ember-500 text-white"
+                            : "border-[#BDBDBD] text-[#4F4F4F] hover:border-aimovie-navy-700"
                         }`}
                       >
                         {t.name}
@@ -285,7 +285,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           })}
         </div>
         <p className="mt-3 text-xs text-[#828282]">
-          選択中: <span className="font-bold text-neon-purple-deep">{selectedAiTools.length}</span> 件
+          選択中: <span className="font-bold text-aimovie-navy-900">{selectedAiTools.length}</span> 件
         </p>
       </section>
 
@@ -316,7 +316,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                     className="peer sr-only"
                   />
                   <span
-                    className={`inline-flex items-center rounded-pill border-2 px-3 py-1.5 text-xs font-bold transition-colors ${s.color} border-transparent peer-checked:border-neon-pink peer-checked:shadow-[0_0_10px_rgba(255,77,157,0.35)]`}
+                    className={`inline-flex items-center rounded-pill border-2 px-3 py-1.5 text-xs font-bold transition-colors ${s.color} border-transparent peer-checked:border-aimovie-ember-500 peer-checked:shadow-[0_0_10px_rgba(255,77,157,0.35)]`}
                   >
                     {s.label}
                   </span>
@@ -345,7 +345,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                 step={1}
                 defaultValue={cp?.typical_first_draft_days ?? ""}
                 placeholder="7"
-                className="w-28 rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-28 rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
               />
               <span className="text-sm text-[#4F4F4F]">日</span>
             </div>
@@ -377,7 +377,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
                 type="url"
                 defaultValue={cp?.social_links?.[def.key] ?? ""}
                 placeholder={def.placeholder}
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-2.5 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
               />
             </div>
           ))}
@@ -395,7 +395,7 @@ export function ProfileForm({ user }: { user: CurrentUser }) {
           rows={6}
           defaultValue={cp?.bio ?? ""}
           placeholder="例: 元・広告代理店プランナー。Meta広告のAB案を1週間で50案出すスタイル。Sora 2 + Runway での合成編集が得意で、コスメD2C・SaaS業界での実績多数。"
-          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
         />
       </section>
 

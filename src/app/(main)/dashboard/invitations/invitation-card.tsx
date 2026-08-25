@@ -80,12 +80,12 @@ export function InvitationCard({ invitation }: Props) {
       : "予算応相談";
 
   return (
-    <li className="overflow-hidden rounded-2xl border-2 border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/5 via-white to-aimovie-navy-700/5 shadow-md">
-      <div className="border-b border-neon-pink/20 bg-neon-pink/10 px-4 py-2">
-        <p className="inline-flex items-center gap-1.5 text-[11px] font-bold text-neon-pink">
+    <li className="overflow-hidden rounded-2xl border-2 border-aimovie-ember-500/30 bg-gradient-to-br from-aimovie-ember-500/5 via-white to-aimovie-navy-700/5 shadow-md">
+      <div className="border-b border-aimovie-ember-500/20 bg-aimovie-ember-500/10 px-4 py-2">
+        <p className="inline-flex items-center gap-1.5 text-[11px] font-bold text-aimovie-ember-500">
           <Sparkles size={12} strokeWidth={2} aria-hidden />
           運営からのおすすめ
-          <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-neon-pink/80">
+          <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-aimovie-ember-500/80">
             <Clock size={10} strokeWidth={2} aria-hidden />
             {remaining > 0
               ? `残り ${remaining} 日で自動見送り`
@@ -128,8 +128,8 @@ export function InvitationCard({ invitation }: Props) {
         )}
 
         {inv.message && (
-          <div className="mt-3 rounded-lg border-l-4 border-neon-pink bg-neon-pink/5 px-3 py-2 text-xs text-gray-800">
-            <p className="text-[10px] font-bold text-neon-pink">
+          <div className="mt-3 rounded-lg border-l-4 border-aimovie-ember-500 bg-aimovie-ember-500/5 px-3 py-2 text-xs text-gray-800">
+            <p className="text-[10px] font-bold text-aimovie-ember-500">
               運営から一言:
             </p>
             <p className="mt-1 whitespace-pre-wrap italic">{inv.message}</p>
@@ -141,7 +141,7 @@ export function InvitationCard({ invitation }: Props) {
             {(job?.genres ?? []).slice(0, 6).map((g) => (
               <span
                 key={g}
-                className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-2 py-0.5 text-[10px] font-bold text-neon-purple"
+                className="rounded-pill border border-aimovie-navy-700/40 bg-aimovie-navy-700/10 px-2 py-0.5 text-[10px] font-bold text-aimovie-navy-700"
               >
                 {g}
               </span>

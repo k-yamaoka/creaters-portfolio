@@ -43,7 +43,7 @@ export function VisualStyleSelector() {
               }
               className={`group relative aspect-[5/6] overflow-hidden rounded-2xl border-2 text-left transition-[transform,box-shadow] duration-200 ease-out will-change-transform ${
                 isActive
-                  ? "scale-[1.03] border-neon-pink shadow-[0_18px_45px_-15px_rgba(255,77,157,0.6)]"
+                  ? "scale-[1.03] border-aimovie-ember-500 shadow-[0_18px_45px_-15px_rgba(255,77,157,0.6)]"
                   : "border-transparent hover:scale-[1.05] hover:shadow-[0_18px_45px_-15px_rgba(0,0,0,0.4)]"
               }`}
             >

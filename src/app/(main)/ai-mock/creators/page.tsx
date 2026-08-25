@@ -13,8 +13,8 @@ export default function AiCreatorsListPage() {
   return (
     <>
       {/* Mock banner */}
-      <div className="bg-neon-pink/10 border-y border-neon-pink/30 px-4 py-2 text-center">
-        <p className="text-xs font-bold text-neon-purple-deep">
+      <div className="bg-aimovie-ember-500/10 border-y border-aimovie-ember-500/30 px-4 py-2 text-center">
+        <p className="text-xs font-bold text-aimovie-navy-900">
           🚀 AIクリエイター特化型モック
           <Link href="/ai-mock" className="ml-3 underline hover:no-underline">
             LPに戻る
@@ -27,13 +27,13 @@ export default function AiCreatorsListPage() {
       </div>
 
       {/* Header band */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-16 text-white">
-        <div className="absolute -left-32 top-0 h-[300px] w-[300px] rounded-full bg-neon-pink opacity-25 blur-[100px]" />
-        <div className="absolute -right-20 bottom-0 h-[280px] w-[280px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+      <section className="relative overflow-hidden bg-aimovie-navy-950 py-16 text-white">
+        <div className="absolute -left-32 top-0 h-[300px] w-[300px] rounded-full bg-aimovie-ember-500 opacity-25 blur-[100px]" />
+        <div className="absolute -right-20 bottom-0 h-[280px] w-[280px] rounded-full bg-aimovie-navy-500 opacity-20 blur-[100px]" />
 
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
-          <p className="inline-flex items-center gap-2 rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-pink-soft">
-            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-pink" />
+          <p className="inline-flex items-center gap-2 rounded-pill border border-aimovie-ember-500/40 bg-aimovie-ember-500/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-aimovie-ember-400">
+            <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-aimovie-ember-500" />
             AI CREATORS
           </p>
           <h1 className="mt-6 text-[2rem] font-black leading-[1.2] sm:text-[3rem]">

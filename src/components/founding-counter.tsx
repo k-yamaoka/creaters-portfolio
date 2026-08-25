@@ -26,15 +26,15 @@ export async function FoundingCreatorCounter({
 
   if (variant === "hero") {
     return (
-      <div className="rounded-2xl border border-neon-pink/30 bg-gradient-to-br from-aimovie-ember-500/10 via-white to-aimovie-navy-700/10 p-5 shadow-sm">
+      <div className="rounded-2xl border border-aimovie-ember-500/30 bg-gradient-to-br from-aimovie-ember-500/10 via-white to-aimovie-navy-700/10 p-5 shadow-sm">
         <div className="flex items-center gap-2">
           <Sparkles
             size={16}
             strokeWidth={2}
-            className="text-neon-pink"
+            className="text-aimovie-ember-500"
             aria-hidden
           />
-          <p className="text-xs font-bold uppercase tracking-widest text-neon-pink">
+          <p className="text-xs font-bold uppercase tracking-widest text-aimovie-ember-500">
             Founding Creators / 創設メンバー
           </p>
         </div>
@@ -43,7 +43,7 @@ export async function FoundingCreatorCounter({
             <>受付終了</>
           ) : (
             <>
-              残り <span className="text-neon-pink">{remaining}</span> 名 / 全
+              残り <span className="text-aimovie-ember-500">{remaining}</span> 名 / 全
               {slotLimit} 名
             </>
           )}
@@ -55,7 +55,7 @@ export async function FoundingCreatorCounter({
                 ? "bg-gray-400"
                 : urgent
                   ? "bg-red-500"
-                  : "bg-neon-pink"
+                  : "bg-aimovie-ember-500"
             }`}
             style={{ width: `${percent}%` }}
           />
@@ -80,7 +80,7 @@ export async function FoundingCreatorCounter({
           ? "border-gray-300 bg-gray-100 text-gray-500"
           : urgent
             ? "border-red-300 bg-red-50 text-red-700"
-            : "border-neon-pink/40 bg-neon-pink/5 text-neon-pink"
+            : "border-aimovie-ember-500/40 bg-aimovie-ember-500/5 text-aimovie-ember-500"
       }`}
     >
       <Sparkles size={12} strokeWidth={2} aria-hidden />

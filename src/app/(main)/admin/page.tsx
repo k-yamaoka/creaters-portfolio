@@ -131,7 +131,7 @@ export default async function AdminDashboardPage({
               href={r === "all" ? "/admin" : `/admin?range=${r}`}
               className={`rounded-full px-3 py-1.5 transition-colors ${
                 r === range
-                  ? "bg-white font-bold text-neon-purple-deep shadow"
+                  ? "bg-white font-bold text-aimovie-navy-900 shadow"
                   : "text-gray-500 hover:text-gray-800"
               }`}
             >
@@ -216,7 +216,7 @@ function StatCard({
     <div className="rounded-2xl bg-white p-6 shadow-card">
       <p className="text-sm text-[#828282]">{label}</p>
       <p
-        className={`mt-1 text-2xl font-bold ${accent ? "text-neon-purple-deep" : "text-[#222]"}`}
+        className={`mt-1 text-2xl font-bold ${accent ? "text-aimovie-navy-900" : "text-[#222]"}`}
       >
         {value}
       </p>

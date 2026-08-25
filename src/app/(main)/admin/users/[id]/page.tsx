@@ -281,7 +281,7 @@ export default async function AdminUserDetailPage({
                     <td className="py-2 text-right">
                       <Link
                         href={`/dashboard/orders/${o.id}`}
-                        className="text-xs text-neon-purple-deep hover:underline"
+                        className="text-xs text-aimovie-navy-900 hover:underline"
                       >
                         詳細 →
                       </Link>

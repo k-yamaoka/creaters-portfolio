@@ -143,7 +143,7 @@ export function CancelDialog({
           value={reason}
           onChange={(e) => setReason(e.target.value.slice(0, 500))}
           rows={2}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
           placeholder={
             isCreator
               ? "例) スケジュールが確保できなくなったため"

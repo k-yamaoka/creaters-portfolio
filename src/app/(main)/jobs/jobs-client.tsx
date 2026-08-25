@@ -261,7 +261,7 @@ export function JobsPageClient({
               placeholder="キーワードで検索"
               value={filters.keyword || ""}
               onChange={(e) => updateFilter({ keyword: e.target.value || undefined })}
-              className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] py-2.5 pl-9 pr-3 text-sm text-[#222] placeholder-[#BDBDBD] outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
 
@@ -270,7 +270,7 @@ export function JobsPageClient({
             <select
               value={filters.sortBy || "recommended"}
               onChange={(e) => updateFilter({ sortBy: e.target.value as JobSearchFilters["sortBy"] })}
-              className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="rounded-lg border border-[#E0E0E0] px-3 py-2.5 text-sm text-[#4F4F4F] outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value} disabled={o.value === "recommended" && !hasProfile}>
@@ -338,7 +338,7 @@ export function JobsPageClient({
               {TABS.map((t) => {
                 const active = (filters.statusFilter ?? "all") === t.key;
                 const accent =
-                  t.tone === "urgent" ? "border-red-500 text-red-600" : "border-neon-pink text-neon-pink";
+                  t.tone === "urgent" ? "border-red-500 text-red-600" : "border-aimovie-ember-500 text-aimovie-ember-500";
                 return (
                   <button
                     key={t.key}
@@ -358,7 +358,7 @@ export function JobsPageClient({
                         active
                           ? t.tone === "urgent"
                             ? "bg-red-100 text-red-600"
-                            : "bg-neon-pink/15 text-neon-pink"
+                            : "bg-aimovie-ember-500/15 text-aimovie-ember-500"
                           : "bg-gray-100 text-gray-500"
                       }`}
                     >
@@ -401,8 +401,8 @@ export function JobsPageClient({
                         onClick={() => toggleGenre(genre)}
                         className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                           isActive
-                            ? "border-neon-purple-deep bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
-                            : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
+                            ? "border-aimovie-navy-900 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
+                            : "border-[#E0E0E0] text-[#4F4F4F] hover:border-aimovie-navy-900 hover:text-aimovie-navy-900"
                         }`}
                       >
                         {genre}
@@ -418,13 +418,13 @@ export function JobsPageClient({
               <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
                 案件金額の上限
               </h3>
-              <p className="mt-2 text-sm font-bold text-neon-purple-deep">
+              <p className="mt-2 text-sm font-bold text-aimovie-navy-900">
                 〜{" "}
                 {draftBudgetMax >= BUDGET_CEIL
                   ? "100万+"
                   : formatPrice(draftBudgetMax)}
                 {budgetDirty && (
-                  <span className="ml-2 text-[10px] font-bold text-neon-pink">
+                  <span className="ml-2 text-[10px] font-bold text-aimovie-ember-500">
                     未適用
                   </span>
                 )}
@@ -442,7 +442,7 @@ export function JobsPageClient({
                     setDraftBudgetMax(Number(e.target.value))
                   }
                   aria-label="案件金額の上限"
-                  className="block w-full accent-neon-pink"
+                  className="block w-full accent-aimovie-ember-500"
                 />
                 <div className="mt-1 flex justify-between text-[10px] text-[#828282]">
                   <span>0</span>
@@ -467,8 +467,8 @@ export function JobsPageClient({
                       onClick={() => setDraftBudgetMax(q.max)}
                       className={`rounded-pill border px-2.5 py-0.5 text-[11px] font-bold transition-colors ${
                         active
-                          ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
-                          : "border-[#E0E0E0] text-[#828282] hover:border-neon-pink hover:text-neon-pink"
+                          ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
+                          : "border-[#E0E0E0] text-[#828282] hover:border-aimovie-ember-500 hover:text-aimovie-ember-500"
                       }`}
                     >
                       {q.label}
@@ -552,8 +552,8 @@ export function JobsPageClient({
                           onClick={() => toggleGenre(genre)}
                           className={`rounded-pill border px-3 py-1.5 text-xs font-medium transition-all ${
                             isActive
-                              ? "border-neon-purple-deep bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
-                              : "border-[#E0E0E0] text-[#4F4F4F] hover:border-neon-purple-deep hover:text-neon-purple-deep"
+                              ? "border-aimovie-navy-900 bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 text-white"
+                              : "border-[#E0E0E0] text-[#4F4F4F] hover:border-aimovie-navy-900 hover:text-aimovie-navy-900"
                           }`}
                         >
                           {genre}
@@ -570,7 +570,7 @@ export function JobsPageClient({
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#828282]">
                       案件金額の上限
                     </h3>
-                    <p className="text-sm font-bold text-neon-purple-deep">
+                    <p className="text-sm font-bold text-aimovie-navy-900">
                       〜{" "}
                       {draftBudgetMax >= BUDGET_CEIL
                         ? "100万+"
@@ -587,7 +587,7 @@ export function JobsPageClient({
                       setDraftBudgetMax(Number(e.target.value))
                     }
                     aria-label="案件金額の上限"
-                    className="block w-full accent-neon-pink"
+                    className="block w-full accent-aimovie-ember-500"
                   />
                   <div className="mt-1 flex justify-between text-[10px] text-[#828282]">
                     <span>0</span>
@@ -700,7 +700,7 @@ export function JobsPageClient({
                       </div>
                       <div className="shrink-0 text-right">
                         {budgetText && (
-                          <p className="text-lg font-bold text-neon-purple-deep">
+                          <p className="text-lg font-bold text-aimovie-navy-900">
                             {budgetText}
                           </p>
                         )}

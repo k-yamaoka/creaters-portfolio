@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
               placeholder="6文字以上"
             />
           </div>
@@ -111,7 +111,7 @@ export default function ResetPasswordPage() {
               onChange={(e) => setConfirm(e.target.value)}
               required
               minLength={6}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
           <button

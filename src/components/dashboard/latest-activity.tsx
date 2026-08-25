@@ -26,7 +26,7 @@ export function DashboardLatestActivity({
         <div className="flex items-center gap-2">
           <span
             aria-hidden
-            className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-aimovie-navy-500/15 to-aimovie-navy-700/15 text-neon-cyan"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-aimovie-navy-500/15 to-aimovie-navy-700/15 text-aimovie-navy-500"
           >
             <svg
               className="h-4 w-4"
@@ -48,7 +48,7 @@ export function DashboardLatestActivity({
         </div>
         <Link
           href="/dashboard/messages"
-          className="text-xs font-bold text-neon-purple-deep transition-colors hover:text-neon-pink"
+          className="text-xs font-bold text-aimovie-navy-900 transition-colors hover:text-aimovie-ember-500"
         >
           すべて →
         </Link>
@@ -114,7 +114,7 @@ function ActivityIcon({
     <span
       className={`relative mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
         unread
-          ? "bg-neon-pink/10 text-neon-pink"
+          ? "bg-aimovie-ember-500/10 text-aimovie-ember-500"
           : "bg-gray-100 text-gray-500"
       }`}
     >

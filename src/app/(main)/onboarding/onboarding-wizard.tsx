@@ -217,7 +217,7 @@ export function OnboardingWizard({
               <div
                 className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${
                   active
-                    ? "border-neon-pink bg-neon-pink/5 text-neon-pink"
+                    ? "border-aimovie-ember-500 bg-aimovie-ember-500/5 text-aimovie-ember-500"
                     : done
                       ? "border-emerald-300 bg-emerald-50 text-emerald-700"
                       : "border-gray-200 bg-white text-gray-500"
@@ -226,7 +226,7 @@ export function OnboardingWizard({
                 <span
                   className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${
                     active
-                      ? "bg-neon-pink text-white"
+                      ? "bg-aimovie-ember-500 text-white"
                       : done
                         ? "bg-emerald-500 text-white"
                         : "bg-gray-200 text-gray-500"
@@ -325,7 +325,7 @@ function Step1({
           <label
             className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
               userType === "individual"
-                ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
                 : "border-gray-200 text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -342,7 +342,7 @@ function Step1({
           <label
             className={`flex cursor-pointer items-center justify-center rounded-lg border-2 px-4 py-3 text-sm font-medium transition-colors ${
               userType === "corporate"
-                ? "border-neon-pink bg-neon-pink/10 text-neon-pink"
+                ? "border-aimovie-ember-500 bg-aimovie-ember-500/10 text-aimovie-ember-500"
                 : "border-gray-200 text-gray-700 hover:border-gray-300"
             }`}
           >
@@ -370,7 +370,7 @@ function Step1({
           rows={3}
           maxLength={2000}
           placeholder="得意ジャンル・活動歴・使えるツールなどを 1〜2 行で。"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
         />
       </div>
 
@@ -378,7 +378,7 @@ function Step1({
         <button
           type="button"
           onClick={onNext}
-          className="inline-flex items-center gap-2 rounded-pill bg-neon-pink px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-neon-pink/90"
+          className="inline-flex items-center gap-2 rounded-pill bg-aimovie-ember-500 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-aimovie-ember-500/90"
         >
           次へ: 作品を登録
           <ArrowRight size={16} strokeWidth={2} aria-hidden />
@@ -452,7 +452,7 @@ function Step2({
           type="button"
           onClick={onSubmit}
           disabled={!canSubmit}
-          className="inline-flex items-center gap-2 rounded-pill bg-neon-pink px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-neon-pink/90 disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="inline-flex items-center gap-2 rounded-pill bg-aimovie-ember-500 px-5 py-2.5 text-sm font-bold text-white shadow-md hover:bg-aimovie-ember-500/90 disabled:cursor-not-allowed disabled:bg-gray-300"
         >
           {submitting ? "投稿中..." : "投稿して公開する"}
           {!submitting && <ArrowRight size={16} strokeWidth={2} aria-hidden />}

@@ -249,7 +249,7 @@ export default async function ConversationPage({
               />
             </svg>
           </Link>
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-neon-purple/15 text-sm font-bold text-neon-purple-deep">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-aimovie-navy-700/15 text-sm font-bold text-aimovie-navy-900">
             {partner.display_name[0]}
           </div>
           <div>

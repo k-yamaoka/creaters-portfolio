@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+                className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none transition-colors focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
                 placeholder="example@email.com"
               />
             </div>
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
             </button>
           </form>
           <div className="mt-6 text-center text-sm text-[#828282]">
-            <Link href="/login" className="text-neon-pink hover:underline">
+            <Link href="/login" className="text-aimovie-ember-500 hover:underline">
               ログイン画面に戻る
             </Link>
           </div>

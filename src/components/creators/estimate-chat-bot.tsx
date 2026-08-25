@@ -14,7 +14,7 @@ import { Bot, SendHorizonal, MessageSquare } from "lucide-react";
  *  - bg-white/[0.04] / text-white を gray-* に統一
  *  - メッセージエリアの背景をわずかにグレー (bg-gray-50) にしてチャットだと
  *    一目で分かる視覚ヒエラルキー
- *  - 入力欄に明確な border + focus 時に neon-purple リング
+ *  - 入力欄に明確な border + focus 時に aimovie-navy-700 リング
  *  - 送信ボタンを大きめのグラデピル + アイコン + ラベル "送信" で訴求
  */
 export function EstimateChatBot({ creatorId }: { creatorId: string }) {
@@ -76,7 +76,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
                 key={q}
                 type="button"
                 onClick={() => send(q)}
-                className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-left text-xs text-gray-800 transition-all hover:border-neon-cyan/50 hover:bg-neon-cyan/[0.05] hover:text-gray-900"
+                className="block w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-left text-xs text-gray-800 transition-all hover:border-aimovie-navy-500/50 hover:bg-aimovie-navy-500/[0.05] hover:text-gray-900"
               >
                 {q}
               </button>
@@ -108,7 +108,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
             })}
             {isLoading && (
               <div className="flex items-center gap-1.5 px-3.5 text-[11px] text-gray-500">
-                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-aimovie-navy-500" />
                 考え中…
               </div>
             )}
@@ -131,7 +131,7 @@ export function EstimateChatBot({ creatorId }: { creatorId: string }) {
           disabled={isLoading}
           placeholder="依頼内容を入力 (例: 縦型15秒×5本)"
           aria-label="AI 見積もりの質問"
-          className="flex-1 rounded-pill border border-gray-300 bg-white px-4 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-neon-purple focus:ring-2 focus:ring-neon-purple/20 disabled:opacity-50"
+          className="flex-1 rounded-pill border border-gray-300 bg-white px-4 py-2 text-xs text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-aimovie-navy-700 focus:ring-2 focus:ring-aimovie-navy-700/20 disabled:opacity-50"
         />
         <button
           type="submit"

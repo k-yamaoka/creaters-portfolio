@@ -51,7 +51,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               type="text"
               required
               defaultValue={user.display_name}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
 
@@ -93,7 +93,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               type="text"
               defaultValue={cp?.company_name ?? ""}
               placeholder="例: 株式会社サンプル"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
 
@@ -110,7 +110,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               type="url"
               defaultValue={cp?.company_url ?? ""}
               placeholder="https://example.com"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
           </div>
 
@@ -125,7 +125,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               id="industry"
               name="industry"
               defaultValue={cp?.industry ?? ""}
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             >
               <option value="">選択してください</option>
               <option value="IT・通信">IT・通信</option>
@@ -157,7 +157,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               maxLength={1500}
               defaultValue={cp?.company_description ?? ""}
               placeholder="例: SNS広告運用支援会社。月間500本以上の動画クリエイティブを運用し、SaaS・D2C・教育業界での実績多数。"
-              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm leading-relaxed outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
             <p className="mt-1 text-[11px] text-[#828282]">
               ※ クリエイターが案件内容を判断する際の重要情報になります (最大 1,500 字)
@@ -178,7 +178,7 @@ export function ClientForm({ user }: { user: CurrentUser }) {
               maxLength={14}
               defaultValue={cp?.invoice_registration_number ?? ""}
               placeholder="例: T1234567890123"
-              className="w-full max-w-xs rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm font-mono outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink"
+              className="w-full max-w-xs rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm font-mono outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500"
             />
             <p className="mt-1 text-[11px] text-[#828282]">
               ※ 適格請求書発行事業者の登録番号 (T で始まる 13 桁) を入力してください。任意項目です。

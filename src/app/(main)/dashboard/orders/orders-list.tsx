@@ -83,7 +83,7 @@ export function OrdersList({
               onClick={() => setTab(t.key)}
               className={`relative -mb-px inline-flex items-center gap-1.5 border-b-2 px-3 pb-2 pt-1 text-sm font-bold transition-colors ${
                 active
-                  ? "border-neon-pink text-neon-pink"
+                  ? "border-aimovie-ember-500 text-aimovie-ember-500"
                   : "border-transparent text-gray-500 hover:text-gray-900"
               }`}
             >
@@ -91,7 +91,7 @@ export function OrdersList({
               <span
                 className={`rounded-pill px-1.5 py-0 text-[10px] font-bold ${
                   active
-                    ? "bg-neon-pink/15 text-neon-pink"
+                    ? "bg-aimovie-ember-500/15 text-aimovie-ember-500"
                     : "bg-gray-100 text-gray-500"
                 }`}
               >
@@ -236,7 +236,7 @@ export function OrdersList({
                       </div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-lg font-bold text-neon-purple-deep">
+                      <p className="text-lg font-bold text-aimovie-navy-900">
                         {formatPrice(row.total_amount)}
                       </p>
                       <p className="mt-1 text-sm text-[#828282]">
@@ -251,7 +251,7 @@ export function OrdersList({
                   {row.partnerUserId && (
                     <Link
                       href={`/dashboard/messages/${row.partnerUserId}`}
-                      className="inline-flex items-center gap-1 rounded-pill border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-neon-pink hover:text-neon-pink"
+                      className="inline-flex items-center gap-1 rounded-pill border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-colors hover:border-aimovie-ember-500 hover:text-aimovie-ember-500"
                     >
                       <svg
                         aria-hidden

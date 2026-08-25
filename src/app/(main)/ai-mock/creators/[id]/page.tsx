@@ -33,8 +33,8 @@ export default async function CreatorDetailPage({
   return (
     <>
       {/* Mock banner */}
-      <div className="bg-neon-pink/10 border-y border-neon-pink/30 px-4 py-2 text-center">
-        <p className="text-xs font-bold text-neon-purple-deep">
+      <div className="bg-aimovie-ember-500/10 border-y border-aimovie-ember-500/30 px-4 py-2 text-center">
+        <p className="text-xs font-bold text-aimovie-navy-900">
           🚀 AIクリエイター特化型モック
           <Link href="/ai-mock" className="ml-3 underline hover:no-underline">
             LPに戻る
@@ -50,9 +50,9 @@ export default async function CreatorDetailPage({
       </div>
 
       {/* Hero band */}
-      <section className="relative overflow-hidden bg-neon-midnight-deep py-16 text-white">
-        <div className="absolute -left-32 top-0 h-[400px] w-[400px] rounded-full bg-neon-pink opacity-25 blur-[120px]" />
-        <div className="absolute -right-20 bottom-0 h-[360px] w-[360px] rounded-full bg-neon-cyan opacity-20 blur-[100px]" />
+      <section className="relative overflow-hidden bg-aimovie-navy-950 py-16 text-white">
+        <div className="absolute -left-32 top-0 h-[400px] w-[400px] rounded-full bg-aimovie-ember-500 opacity-25 blur-[120px]" />
+        <div className="absolute -right-20 bottom-0 h-[360px] w-[360px] rounded-full bg-aimovie-navy-500 opacity-20 blur-[100px]" />
 
         <div className="relative mx-auto max-w-container px-6 lg:px-10">
           <nav className="text-[11px] font-bold text-white/60">
@@ -81,7 +81,7 @@ export default async function CreatorDetailPage({
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-pill border border-neon-pink/40 bg-neon-pink/10 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-neon-pink-soft">
+                <span className="rounded-pill border border-aimovie-ember-500/40 bg-aimovie-ember-500/10 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-aimovie-ember-400">
                   {creator.specialty}
                 </span>
                 <span className="rounded-pill bg-white/10 px-3 py-1 text-[10px] font-bold text-white">
@@ -169,9 +169,9 @@ export default async function CreatorDetailPage({
                   {creator.tools.map((tool) => (
                     <span
                       key={tool}
-                      className="inline-flex items-center gap-2 rounded-pill border border-ink bg-neon-midnight-deep px-4 py-2 text-sm font-bold text-white"
+                      className="inline-flex items-center gap-2 rounded-pill border border-ink bg-aimovie-navy-950 px-4 py-2 text-sm font-bold text-white"
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-neon-pink" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-aimovie-ember-500" />
                       {tool}
                     </span>
                   ))}
@@ -185,7 +185,7 @@ export default async function CreatorDetailPage({
                   {creator.genres.map((g) => (
                     <span
                       key={g}
-                      className="rounded-pill border-2 border-neon-purple/40 bg-neon-purple/10 px-4 py-2 text-sm font-bold text-neon-purple-deep"
+                      className="rounded-pill border-2 border-aimovie-navy-700/40 bg-aimovie-navy-700/10 px-4 py-2 text-sm font-bold text-aimovie-navy-900"
                     >
                       {g}
                     </span>
@@ -208,11 +208,11 @@ export default async function CreatorDetailPage({
                           style={{ background: s.thumbnail }}
                         >
                           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/50 to-transparent">
-                            <span className="rounded-full bg-white/95 p-4 text-2xl text-neon-purple-deep">
+                            <span className="rounded-full bg-white/95 p-4 text-2xl text-aimovie-navy-900">
                               ▶
                             </span>
                           </div>
-                          <span className="absolute right-3 top-3 rounded-full bg-neon-pink px-2 py-0.5 text-[10px] font-black text-white">
+                          <span className="absolute right-3 top-3 rounded-full bg-aimovie-ember-500 px-2 py-0.5 text-[10px] font-black text-white">
                             AI生成
                           </span>
                         </div>
@@ -223,7 +223,7 @@ export default async function CreatorDetailPage({
                           <p className="mt-1 text-xs text-ink-muted">
                             {s.client}
                           </p>
-                          <p className="mt-2 inline-block rounded-md bg-neon-cyan/15 px-2 py-1 text-[11px] font-bold text-neon-purple-deep">
+                          <p className="mt-2 inline-block rounded-md bg-aimovie-navy-500/15 px-2 py-1 text-[11px] font-bold text-aimovie-navy-900">
                             {s.metrics}
                           </p>
                         </div>
@@ -237,8 +237,8 @@ export default async function CreatorDetailPage({
             {/* Right: pricing sidebar (sticky) */}
             <aside className="lg:sticky lg:top-24 lg:h-fit">
               <div className="overflow-hidden rounded-xl border-2 border-ink bg-white shadow-pop">
-                <div className="bg-neon-midnight-deep p-5 text-white">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-neon-cyan">
+                <div className="bg-aimovie-navy-950 p-5 text-white">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-aimovie-navy-500">
                     PACKAGES
                   </p>
                   <p className="mt-1 text-lg font-black">料金プラン</p>
@@ -252,12 +252,12 @@ export default async function CreatorDetailPage({
                           {p.name}
                         </p>
                         {i === 1 && (
-                          <span className="rounded-pill bg-neon-pink px-2 py-0.5 text-[9px] font-black text-white">
+                          <span className="rounded-pill bg-aimovie-ember-500 px-2 py-0.5 text-[9px] font-black text-white">
                             人気
                           </span>
                         )}
                       </div>
-                      <p className="mt-2 text-2xl font-black text-neon-purple-deep">
+                      <p className="mt-2 text-2xl font-black text-aimovie-navy-900">
                         ¥{p.price.toLocaleString()}
                       </p>
                       <dl className="mt-4 space-y-1.5 text-xs">
@@ -294,15 +294,15 @@ export default async function CreatorDetailPage({
                   </p>
                   <ul className="mt-3 space-y-1.5 text-xs text-ink">
                     <li className="flex items-center gap-2">
-                      <span className="text-neon-pink">●</span>
+                      <span className="text-aimovie-ember-500">●</span>
                       エスクロー決済
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-neon-cyan">●</span>
+                      <span className="text-aimovie-navy-500">●</span>
                       納品確認後にお支払い
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-neon-purple">●</span>
+                      <span className="text-aimovie-navy-700">●</span>
                       シンプル手数料 15%
                     </li>
                   </ul>
@@ -343,7 +343,7 @@ export default async function CreatorDetailPage({
                     <p className="line-clamp-2 text-xs font-bold text-ink">
                       {c.headline}
                     </p>
-                    <p className="mt-2 text-xs font-black text-neon-purple-deep">
+                    <p className="mt-2 text-xs font-black text-aimovie-navy-900">
                       ¥{c.priceFrom.toLocaleString()}〜
                     </p>
                   </div>

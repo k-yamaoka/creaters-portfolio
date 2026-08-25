@@ -187,7 +187,7 @@ export function VideoPreviewCard({
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/20">
           <div className="scale-0 rounded-full bg-white/90 p-3.5 shadow-lg transition-transform duration-300 group-hover:scale-100">
             <svg
-              className="h-5 w-5 text-neon-purple-deep"
+              className="h-5 w-5 text-aimovie-navy-900"
               fill="currentColor"
               viewBox="0 0 24 24"
             >

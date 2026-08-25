@@ -107,21 +107,8 @@ const config: Config = {
           "ink-500": "#5C5D67",
           "ink-400": "#8A8A93",
         },
-        // ---- 旧 neon-* を Aimovie 色にリマップ (段階的移行) ----
-        // 既存 77 ファイルの neon-pink/purple 参照が自動的に新色に切替わる。
-        // 完全撤去は 後続 PR で。
-        neon: {
-          pink: "#FF6B35",            // → ember (CTA)
-          "pink-soft": "#FF8A5C",     // → ember 明るめ
-          purple: "#1E3B6E",          // → navy-700
-          "purple-deep": "#0F1E3D",   // → navy-900 (見出し / 主要 accent)
-          cyan: "#2E5AA5",            // → navy-500 (補助 accent)
-          "cyan-soft": "#EDE9DE",     // → ivory 系
-          sunset: "#FF8A5C",          // → ember 明るめ
-          magenta: "#E5541B",         // → ember 濃いめ
-          midnight: "#0F1E3D",        // → navy
-          "midnight-deep": "#0A1428", // → navy 最深
-        },
+        // 旧 neon.* alias は 2026-08-25 リブランド v4 で全 aimovie-* に置換済
+        // (77 ファイル → 0 件残)。alias は撤去。
       },
       borderRadius: {
         sm: "8px",

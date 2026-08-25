@@ -58,7 +58,7 @@ export function SectionTabs({ tabs }: { tabs: SectionTab[] }) {
               onClick={() => scrollTo(tab.id)}
               className={`group flex shrink-0 items-center gap-1.5 rounded-pill border px-4 py-2 text-xs font-bold transition-all ${
                 isActive
-                  ? "border-neon-pink/60 bg-gradient-to-r from-aimovie-ember-500/20 to-aimovie-navy-700/20 text-ink shadow-[0_0_14px_rgba(255,77,157,0.35)]"
+                  ? "border-aimovie-ember-500/60 bg-gradient-to-r from-aimovie-ember-500/20 to-aimovie-navy-700/20 text-ink shadow-[0_0_14px_rgba(255,77,157,0.35)]"
                   : "border-ink/15 bg-ink/[0.04] text-ink/70 hover:border-ink/30 hover:text-ink"
               }`}
             >

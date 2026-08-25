@@ -91,7 +91,7 @@ export function UserList({ users }: { users: User[] }) {
                 <td className="px-5 py-4">
                   <a
                     href={`/admin/users/${user.id}`}
-                    className="text-sm font-bold text-[#222] hover:text-neon-purple-deep hover:underline"
+                    className="text-sm font-bold text-[#222] hover:text-aimovie-navy-900 hover:underline"
                   >
                     {user.display_name}
                   </a>

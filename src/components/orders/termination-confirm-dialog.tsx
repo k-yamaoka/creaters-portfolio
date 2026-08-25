@@ -226,7 +226,7 @@ export function TerminationConfirmDialog({
               rows={2}
               disabled={submitting}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink disabled:bg-gray-50"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-aimovie-ember-500 focus:ring-1 focus:ring-aimovie-ember-500 disabled:bg-gray-50"
               placeholder="例) 双方合意のうえで見送ります"
             />
           </div>

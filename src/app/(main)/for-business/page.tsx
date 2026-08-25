@@ -14,7 +14,7 @@ export default function ForBusinessPage() {
     <div className="mx-auto max-w-container px-6 py-16 lg:px-[6.25rem]">
       {/* Hero */}
       <div className="text-center">
-        <p className="text-sm font-bold tracking-widest text-neon-purple-deep">
+        <p className="text-sm font-bold tracking-widest text-aimovie-navy-900">
           FOR BUSINESS
         </p>
         <h1 className="mt-4 text-3xl font-bold text-[#222] sm:text-[2.75rem]">
@@ -70,9 +70,9 @@ export default function ForBusinessPage() {
             key={item.title}
             className="rounded-[15px] bg-white p-8 shadow-card"
           >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-neon-purple/10">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-aimovie-navy-700/10">
               <svg
-                className="h-7 w-7 text-neon-purple-deep"
+                className="h-7 w-7 text-aimovie-navy-900"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -108,7 +108,7 @@ export default function ForBusinessPage() {
               className="flex items-center gap-3 rounded-xl bg-white p-5 shadow-card"
             >
               <svg
-                className="h-5 w-5 shrink-0 text-neon-pink"
+                className="h-5 w-5 shrink-0 text-aimovie-ember-500"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={2}
@@ -134,7 +134,7 @@ export default function ForBusinessPage() {
         </p>
         <div className="mx-auto mt-12 max-w-md rounded-2xl bg-white p-8 shadow-card">
           <p className="text-sm text-[#828282]">システム手数料</p>
-          <p className="mt-2 text-4xl font-bold text-neon-purple-deep">15%</p>
+          <p className="mt-2 text-4xl font-bold text-aimovie-navy-900">15%</p>
           <p className="mt-2 text-sm text-[#828282]">
             取引金額に対して（クリエイター負担）
           </p>
@@ -146,7 +146,7 @@ export default function ForBusinessPage() {
               "1件からでも利用可能",
             ].map((t) => (
               <li key={t} className="flex items-center gap-2 text-sm text-[#4F4F4F]">
-                <svg className="h-4 w-4 shrink-0 text-neon-pink" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg className="h-4 w-4 shrink-0 text-aimovie-ember-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                 </svg>
                 {t}
@@ -157,7 +157,7 @@ export default function ForBusinessPage() {
       </div>
 
       {/* CTA */}
-      <div className="mt-24 rounded-2xl bg-neon-midnight-deep p-10 text-center sm:p-16">
+      <div className="mt-24 rounded-2xl bg-aimovie-navy-950 p-10 text-center sm:p-16">
         <h2 className="text-2xl font-bold text-white sm:text-3xl">
           まずは無料登録から始めましょう
         </h2>

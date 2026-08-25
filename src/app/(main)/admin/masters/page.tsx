@@ -59,7 +59,7 @@ export default async function AdminMastersPage({
               href={`/admin/masters?category=${t.key}`}
               className={`inline-flex items-baseline gap-2 border-b-2 px-4 py-2 text-sm ${
                 t.key === activeCategory
-                  ? "border-neon-purple-deep font-bold text-neon-purple-deep"
+                  ? "border-aimovie-navy-900 font-bold text-aimovie-navy-900"
                   : "border-transparent text-gray-500 hover:text-gray-800"
               }`}
             >

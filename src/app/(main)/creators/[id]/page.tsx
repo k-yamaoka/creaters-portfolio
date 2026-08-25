@@ -163,7 +163,7 @@ export default async function CreatorDetailPage({
         <div className="bg-gray-50 pt-6">
           <div className="mx-auto flex max-w-container items-center justify-between gap-3 px-6 lg:px-10">
             <nav className="text-xs text-gray-500">
-              <Link href="/creators" className="hover:text-neon-pink">
+              <Link href="/creators" className="hover:text-aimovie-ember-500">
                 AIクリエイターを探す
               </Link>
               <span className="mx-2">/</span>
@@ -237,7 +237,7 @@ export default async function CreatorDetailPage({
                 </div>
                 <div className="mt-4 flex flex-wrap gap-3 text-sm text-gray-600">
                   <span className="inline-flex items-center gap-1.5">
-                    <Video size={16} strokeWidth={1.8} className="text-neon-pink" aria-hidden />
+                    <Video size={16} strokeWidth={1.8} className="text-aimovie-ember-500" aria-hidden />
                     作品 {creator.portfolio_items.length} 件
                   </span>
                   <TotalLikesBadge initialTotal={totalLikes} />
@@ -250,7 +250,7 @@ export default async function CreatorDetailPage({
                 <div className="mt-4 flex flex-wrap gap-2">
                   {typicalFirstDraftDays != null && (
                     <span
-                      className="inline-flex items-center gap-1.5 rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-3 py-1 text-[11px] font-bold text-neon-purple-deep"
+                      className="inline-flex items-center gap-1.5 rounded-pill border border-aimovie-navy-700/40 bg-aimovie-navy-700/10 px-3 py-1 text-[11px] font-bold text-aimovie-navy-900"
                       title="初稿提出までの目安日数 (クリエイター自己申告)"
                     >
                       <svg
@@ -340,7 +340,7 @@ export default async function CreatorDetailPage({
                     {creator.genres.map((genre) => (
                       <span
                         key={genre}
-                        className="rounded-pill border border-neon-purple/40 bg-neon-purple/10 px-3 py-1 text-xs font-bold text-neon-purple-deep"
+                        className="rounded-pill border border-aimovie-navy-700/40 bg-aimovie-navy-700/10 px-3 py-1 text-xs font-bold text-aimovie-navy-900"
                       >
                         {genre}
                       </span>
@@ -378,7 +378,7 @@ export default async function CreatorDetailPage({
                   {creator.video_lengths.map((l) => (
                     <span
                       key={l}
-                      className="rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-3 py-1.5 text-xs font-bold text-neon-cyan-soft"
+                      className="rounded-pill border border-aimovie-navy-500/40 bg-aimovie-navy-500/10 px-3 py-1.5 text-xs font-bold text-aimovie-ivory-300"
                     >
                       {l}
                     </span>
@@ -395,7 +395,7 @@ export default async function CreatorDetailPage({
                   {creator.ai_tools.map((t) => (
                     <span
                       key={t}
-                      className="rounded-pill border border-neon-pink/40 bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-navy-700/10 px-3 py-1 text-xs font-bold text-gray-900"
+                      className="rounded-pill border border-aimovie-ember-500/40 bg-gradient-to-r from-aimovie-ember-500/10 to-aimovie-navy-700/10 px-3 py-1 text-xs font-bold text-gray-900"
                     >
                       {t}
                     </span>
@@ -506,8 +506,8 @@ export default async function CreatorDetailPage({
           <div className="relative mx-auto max-w-container px-6 lg:px-10">
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
               <div>
-                <p className="inline-flex items-center gap-2 rounded-pill border border-neon-cyan/40 bg-neon-cyan/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-neon-cyan-soft">
-                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-neon-cyan" />
+                <p className="inline-flex items-center gap-2 rounded-pill border border-aimovie-navy-500/40 bg-aimovie-navy-500/10 px-4 py-1.5 text-[11px] font-bold tracking-[0.16em] text-aimovie-ivory-300">
+                  <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-aimovie-navy-500" />
                   SIMILAR CREATORS
                 </p>
                 <h2 className="mt-4 text-2xl font-bold text-gray-900 sm:text-3xl">
