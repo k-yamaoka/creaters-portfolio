@@ -227,10 +227,12 @@ export default async function HomePage() {
           className="pointer-events-none absolute left-6 top-1/2 hidden -translate-y-1/2 md:block"
         >
           <p
-            className="font-mono text-[10px] uppercase tracking-[0.32em] text-paper/45"
+            className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50"
             style={{ writingMode: "vertical-rl" }}
           >
-            (アイムビ — REEL 2026)
+            <span className="text-aimovie-ember-500">AIMOVIE</span>
+            <span className="mx-2 text-white/30">/</span>
+            REEL 2026
           </p>
         </div>
 
@@ -260,7 +262,9 @@ export default async function HomePage() {
                 style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
               >
                 <span style={{ whiteSpace: "nowrap" }}>
-                  <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-navy-700 to-aimovie-ivory-300 bg-clip-text text-transparent">
+                  {/* Cinema Ink: ember(火花) → ivory(スポットライト) の
+                      横グラデ。navy を挟むと暗い動画背景で沈むので排除。 */}
+                  <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text text-transparent">
                     AIクリエイター
                   </span>
                   と、
@@ -284,9 +288,11 @@ export default async function HomePage() {
 
             <RevealOnScroll delay={360}>
               <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+                {/* 主 CTA: ember solid (Cinema Ink 主役色) + 深紺 ring focus。
+                    hover で ember-600 に締まる。 */}
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,77,157,0.55)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_36px_-10px_rgba(255,77,157,0.7)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neon-pink/60 focus-visible:ring-offset-2 focus-visible:ring-offset-ink-deep"
+                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-aimovie-ember-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,107,53,0.55)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-aimovie-ember-600 hover:shadow-[0_14px_36px_-10px_rgba(255,107,53,0.75)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aimovie-ember-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-aimovie-navy-950"
                 >
                   無料ではじめる
                 </Link>

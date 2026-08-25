@@ -139,7 +139,9 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
 
   return (
     <section
-      className={`relative h-[100svh] min-h-[600px] w-full overflow-hidden bg-ink-deep text-paper ${className}`}
+      // 2026-08-25 リブランド: Cinema Ink 化
+      //   純黒 (bg-ink-deep) を深紺 (aimovie-navy-950) に変更し、映画のフィルム感を強化。
+      className={`relative h-[100svh] min-h-[600px] w-full overflow-hidden bg-aimovie-navy-950 text-white ${className}`}
       aria-label="アイムビ — AI クリエイターと企業をつなぐ"
     >
       {current && (
@@ -167,23 +169,61 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
         />
       )}
 
-      {/* スクリム — テキスト可読性 + axis 風沈静化 */}
+      {/* スクリム — テキスト可読性 + Cinema Ink の深紺トーン */}
+      {/*   純黒 rgba(6,8,11,...) から 深紺 rgba(10,20,40,...) にシフト。 */}
+      {/*   ハイライト角に ember tint を薄く差して "光源" の存在を暗示。 */}
       <div
         aria-hidden
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(135deg, rgba(6,8,11,0.72) 0%, rgba(6,8,11,0.38) 45%, rgba(6,8,11,0.66) 100%)",
+            "linear-gradient(135deg, rgba(10,20,40,0.78) 0%, rgba(10,20,40,0.32) 45%, rgba(10,20,40,0.70) 100%)",
         }}
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-ink-deep/85 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-aimovie-navy-950/90 to-transparent"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-ink-deep/90 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-aimovie-navy-950/95 to-transparent"
       />
+      {/* 左下 ember グロー (装飾): CTA 領域をほのかに温めるための光源 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-0 h-96 w-96 -translate-x-1/3 translate-y-1/4 rounded-full opacity-25 blur-3xl"
+        style={{ background: "radial-gradient(closest-side, #FF6B35, transparent)" }}
+      />
+
+      {/* フィルムパーフォレーション (perforation) — 上下端に四角穴が並ぶ film-strip モチーフ */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-3 hidden h-2 items-center justify-between gap-2 px-6 opacity-40 md:flex"
+      >
+        {Array.from({ length: 24 }).map((_, i) => (
+          <span
+            key={`t${i}`}
+            className="h-2 w-4 rounded-[2px] bg-white/20"
+          />
+        ))}
+      </div>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-3 hidden h-2 items-center justify-between gap-2 px-6 opacity-40 md:flex"
+      >
+        {Array.from({ length: 24 }).map((_, i) => (
+          <span
+            key={`b${i}`}
+            className="h-2 w-4 rounded-[2px] bg-white/20"
+          />
+        ))}
+      </div>
+
+      {/* 四隅コーナー クロップマーク (映画スクリプトの trim mark 風) — ember 色 */}
+      <div aria-hidden className="pointer-events-none absolute left-4 top-4 h-6 w-6 border-l-2 border-t-2 border-aimovie-ember-500/70 md:left-6 md:top-6" />
+      <div aria-hidden className="pointer-events-none absolute right-4 top-4 h-6 w-6 border-r-2 border-t-2 border-aimovie-ember-500/70 md:right-6 md:top-6" />
+      <div aria-hidden className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b-2 border-l-2 border-aimovie-ember-500/70 md:bottom-6 md:left-6" />
+      <div aria-hidden className="pointer-events-none absolute bottom-4 right-4 h-6 w-6 border-b-2 border-r-2 border-aimovie-ember-500/70 md:bottom-6 md:right-6" />
 
       {/* オーバーレイ層 (テキスト / CTA / 装飾ラベル) */}
       <div className="relative z-10 mx-auto flex h-full max-w-wide flex-col px-6 lg:px-10">

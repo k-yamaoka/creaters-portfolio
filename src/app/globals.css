@@ -314,17 +314,18 @@
   /* Ghost variant — Axis のサブ動線。ドットなし、ボーダーのみ。
      主 CTA の隣に静かに並べる用。 */
   .btn-axis-ghost {
-    @apply inline-flex items-center justify-center gap-3 rounded-pill border border-paper/20 bg-transparent px-5 py-2 text-xs font-medium text-paper/85 transition-colors;
+    /* Cinema Ink 化: 深紺 Hero 上の 透明枠 ボタン。hover で ember 縁に温めがつく */
+    @apply inline-flex items-center justify-center gap-3 rounded-pill border border-white/25 bg-transparent px-5 py-2 text-xs font-medium text-white/90 transition-colors;
     font-family: var(--font-inter), sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     min-width: 168px;
   }
   .btn-axis-ghost:hover {
-    @apply border-paper/60 text-paper;
+    @apply border-aimovie-ember-500/80 text-white;
   }
   .btn-axis-ghost:focus-visible {
-    @apply outline-none ring-2 ring-sand/60 ring-offset-2 ring-offset-ink-deep;
+    @apply outline-none ring-2 ring-aimovie-ember-500/60 ring-offset-2 ring-offset-aimovie-navy-950;
   }
   /* === ライト (白基調) 版 Axis ボタン === */
   /* 2026-06-17: サイト全体を白基調にした際に、白背景でも使える Axis ボタン。
