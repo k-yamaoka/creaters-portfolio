@@ -17,6 +17,7 @@ import {
 } from "@/components/shared/editing-requirements";
 import { PrePaymentAlert } from "@/components/orders/pre-payment-alert";
 import { DisputeStatusBadge } from "@/components/orders/dispute-status-badge";
+import { AutoApproveBanner } from "@/components/orders/auto-approve-banner";
 import { evaluateRevisionState } from "@/lib/order-flow";
 
 export default async function OrderDetailPage({
@@ -156,7 +157,16 @@ export default async function OrderDetailPage({
               {status.shortLabel}
             </span>
             <span>{order.order_number}</span>
-            <span>{formatDateJP(order.created_at)}</span>
+            <span>
+              <span className="text-[#BDBDBD]">起票日:</span>{" "}
+              {formatDateJP(order.created_at)}
+            </span>
+            {order.delivery_deadline_at && (
+              <span className="font-medium text-[#4F4F4F]">
+                <span className="text-[#BDBDBD]">納品期限:</span>{" "}
+                {formatDateJP(order.delivery_deadline_at)}
+              </span>
+            )}
             {/* 00071: 運営裁定中バッジ (受付済/確認中/対応完了) */}
             {order.active_dispute_id && (
               <DisputeAdminBadge disputeId={order.active_dispute_id} />
@@ -166,10 +176,17 @@ export default async function OrderDetailPage({
       </div>
 
       {/* 00071: 仮払い前アラート (escrow が held/released 以外のとき常時表示) */}
-      <div className="mt-4">
+      <div className="mt-4 space-y-3">
         <PrePaymentAlert
           escrowStatus={order.escrow_status}
           isCreator={isCreator}
+        />
+        {/* TZ-004: みなし検収 (auto_approve_at) 予告バナー */}
+        <AutoApproveBanner
+          autoApproveAt={order.auto_approve_at}
+          isCreator={isCreator}
+          escrowStatus={order.escrow_status}
+          status={order.status}
         />
       </div>
 
