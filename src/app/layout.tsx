@@ -44,7 +44,7 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://aimovie-works.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "アイムビ (アイムビ) — AIクリエイター特化型の企業マッチングプラットフォーム",
+    default: "アイムビ (Aimovie) — AIクリエイター特化型の企業マッチングプラットフォーム",
     template: "%s | アイムビ",
   },
   description:
@@ -67,20 +67,20 @@ export const metadata: Metadata = {
     "AI静止画",
     "マッチングプラットフォーム",
     "アイムビ",
-    "アイムビ",
+    "Aimovie",
   ],
   openGraph: {
     type: "website",
     locale: "ja_JP",
     url: siteUrl,
     siteName: "アイムビ",
-    title: "アイムビ (アイムビ) — AIクリエイター特化型の企業マッチングプラットフォーム",
+    title: "アイムビ (Aimovie) — AIクリエイター特化型の企業マッチングプラットフォーム",
     description:
       "Sora・Veo・Runway・Seedance を使いこなすAIクリエイターに、SNS広告動画・プロダクト紹介・コーポレートVP・採用動画を依頼できる専門プラットフォーム。撮影不要・完全リモート。",
   },
   twitter: {
     card: "summary_large_image",
-    title: "アイムビ (アイムビ) — AIクリエイター特化型マッチング",
+    title: "アイムビ (Aimovie) — AIクリエイター特化型マッチング",
     description:
       "AIクリエイターと企業をつなぐ専門マッチングプラットフォーム",
   },
