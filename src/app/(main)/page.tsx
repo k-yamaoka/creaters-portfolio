@@ -230,7 +230,7 @@ export default async function HomePage() {
             className="font-mono text-[10px] uppercase tracking-[0.32em] text-white/50"
             style={{ writingMode: "vertical-rl" }}
           >
-            <span className="text-aimovie-ember-500">AIMOVIE</span>
+            <span className="text-aimovie-ember-500">アイムビ</span>
             <span className="mx-2 text-white/30">/</span>
             REEL 2026
           </p>

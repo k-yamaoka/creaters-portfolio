@@ -195,36 +195,6 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
         style={{ background: "radial-gradient(closest-side, #FF6B35, transparent)" }}
       />
 
-      {/* フィルムパーフォレーション (perforation) — 上下端に四角穴が並ぶ film-strip モチーフ */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-3 hidden h-2 items-center justify-between gap-2 px-6 opacity-40 md:flex"
-      >
-        {Array.from({ length: 24 }).map((_, i) => (
-          <span
-            key={`t${i}`}
-            className="h-2 w-4 rounded-[2px] bg-white/20"
-          />
-        ))}
-      </div>
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-3 hidden h-2 items-center justify-between gap-2 px-6 opacity-40 md:flex"
-      >
-        {Array.from({ length: 24 }).map((_, i) => (
-          <span
-            key={`b${i}`}
-            className="h-2 w-4 rounded-[2px] bg-white/20"
-          />
-        ))}
-      </div>
-
-      {/* 四隅コーナー クロップマーク (映画スクリプトの trim mark 風) — ember 色 */}
-      <div aria-hidden className="pointer-events-none absolute left-4 top-4 h-6 w-6 border-l-2 border-t-2 border-aimovie-ember-500/70 md:left-6 md:top-6" />
-      <div aria-hidden className="pointer-events-none absolute right-4 top-4 h-6 w-6 border-r-2 border-t-2 border-aimovie-ember-500/70 md:right-6 md:top-6" />
-      <div aria-hidden className="pointer-events-none absolute bottom-4 left-4 h-6 w-6 border-b-2 border-l-2 border-aimovie-ember-500/70 md:bottom-6 md:left-6" />
-      <div aria-hidden className="pointer-events-none absolute bottom-4 right-4 h-6 w-6 border-b-2 border-r-2 border-aimovie-ember-500/70 md:bottom-6 md:right-6" />
-
       {/* オーバーレイ層 (テキスト / CTA / 装飾ラベル) */}
       <div className="relative z-10 mx-auto flex h-full max-w-wide flex-col px-6 lg:px-10">
         {children}

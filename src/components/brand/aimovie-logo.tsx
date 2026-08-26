@@ -101,13 +101,13 @@ export function AimovieLogo({
       {showText && (
         <span className="flex flex-col leading-none">
           <span className={`font-display font-black tracking-tight ${textClass} ${textColor}`}>
-            Aimovie<span className={dotColor}>.</span>
+            アイムビ<span className={dotColor}>.</span>
           </span>
           {showTagline && (
             <span
-              className={`mt-1 text-[9px] font-medium uppercase tracking-[0.22em] ${taglineColor}`}
+              className={`mt-1 text-[9px] font-medium tracking-[0.14em] ${taglineColor}`}
             >
-              アイムビ · AIクリエイター × 企業のマッチング
+              AIクリエイター × 企業のマッチング
             </span>
           )}
         </span>
