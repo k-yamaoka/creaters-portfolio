@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Flag, X, CheckCircle2 } from "lucide-react";
 
 /**
@@ -70,8 +71,24 @@ export function ReportDialog({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!open) return null;
+  // Portal 用: SSR では document 不在なので mount 後にのみ portal 化
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // body スクロール ロック (背景スクロール抑制)
+  useEffect(() => {
+    if (!open) return;
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = orig;
+    };
+  }, [open]);
+
+  if (!open || !mounted) return null;
 
   async function handleSubmit() {
     if (!category) return;
@@ -112,16 +129,25 @@ export function ReportDialog({
     onClose();
   }
 
-  return (
+  // Portal で body 直下に描画。親カードに transform / overflow:hidden が
+  // 付いていても fixed の位置決めが親を基準にしてしまうバグ (CSS 仕様) を回避。
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-label="コンテンツ通報"
+      onClick={(e) => {
+        // 背景クリックで閉じる (dialog 本体クリックは stopPropagation)
+        if (e.target === e.currentTarget) close();
+      }}
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div
+        className="relative my-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* ヘッダ */}
-        <div className="flex items-center gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3">
+        <div className="flex shrink-0 items-center gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-100">
             <Flag
               size={16}
@@ -151,7 +177,7 @@ export function ReportDialog({
           </button>
         </div>
 
-        <div className="px-5 py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
           {done ? (
             <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
               <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100">
@@ -259,6 +285,7 @@ export function ReportDialog({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
