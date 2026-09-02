@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { SearchTopBar } from "@/components/creators/search-filters";
 // 2026-06-19 Section 6: Material Symbols (MIcon) は lucide-react に統一。
 // OS 絵文字相当の MIcon も含めて廃止し、ライン系で一貫した質感に揃える。
@@ -38,9 +39,43 @@ export function CreatorsPageClient({
 }) {
   const likedIdSet = useMemo(() => new Set(likedIds), [likedIds]);
   const isCreatorViewer = viewerRole === "creator";
-  const [filters, setFilters] = useState<CreatorSearchFilters>({
-    sortBy: "recommended",
-  });
+
+  // URL クエリ の初期反映 (テストケース URL-004 tags / URL-005 sort)
+  //   ?sort=recommended | rating | price_low | price_high
+  //         (互換 alias: price_asc → price_low, price_desc → price_high)
+  //   ?genre=<name>     単一ジャンル
+  //   ?budget=all | u50k | 50k_100k | o100k
+  //   ?q=<keyword>      キーワード検索
+  //   ?available=1      すぐに対応可能 フィルタ
+  //   不正値 / 未指定はそれぞれのデフォルトに fallback
+  const searchParams = useSearchParams();
+  const initialFilters: CreatorSearchFilters = (() => {
+    const sortAlias: Record<string, CreatorSearchFilters["sortBy"]> = {
+      recommended: "recommended",
+      rating: "rating",
+      price_low: "price_low",
+      price_high: "price_high",
+      price_asc: "price_low",
+      price_desc: "price_high",
+    };
+    const rawSort = searchParams.get("sort") ?? "";
+    const rawBudget = searchParams.get("budget") ?? "";
+    const validBudget: Record<string, CreatorSearchFilters["budgetTier"]> = {
+      all: "all",
+      u50k: "u50k",
+      "50k_100k": "50k_100k",
+      o100k: "o100k",
+    };
+    return {
+      sortBy: sortAlias[rawSort] ?? "recommended",
+      genre: searchParams.get("genre") ?? undefined,
+      budgetTier: validBudget[rawBudget],
+      keyword: searchParams.get("q") ?? undefined,
+      availableNow: searchParams.get("available") === "1" ? true : undefined,
+    };
+  })();
+
+  const [filters, setFilters] = useState<CreatorSearchFilters>(initialFilters);
   // 2026-06-22 リスト/グリッド切替。既定はリスト (= 横長カード)。
   const [isGridView, setIsGridView] = useState(false);
 
