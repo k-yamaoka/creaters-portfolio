@@ -220,6 +220,32 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
   } else if (newStatus === "data_sharing") {
     // 契約後のテスト用フォールバック: Stripeなしで data_sharing に進めた場合は escrow held に
     updateData.escrow_status = "held";
+  } else if (newStatus === "production") {
+    // production 遷移 (= 制作開始) 時に 納期を確定。
+    // migration 00085 で追加した delivery_deadline_at に
+    //   now() + jobs.delivery_days 日 (デフォルト 14 日) をセット。
+    // 既にセット済 (再遷移や revision → production の戻り) の場合は上書きしない。
+    // orders → jobs は直接 FK 無し。job_applications.order_id (00083) 経由で辿る。
+    const { data: cur } = await supabase
+      .from("orders")
+      .select("delivery_deadline_at")
+      .eq("id", orderId)
+      .maybeSingle();
+    if (!cur?.delivery_deadline_at) {
+      let deliveryDays = 14;
+      const { data: app } = await supabase
+        .from("job_applications")
+        .select("job:jobs!job_applications_job_id_fkey ( delivery_days )")
+        .eq("order_id", orderId)
+        .maybeSingle();
+      const jobDays = (app as unknown as { job?: { delivery_days?: number } } | null)
+        ?.job?.delivery_days;
+      if (jobDays && jobDays > 0) {
+        deliveryDays = jobDays;
+      }
+      const deadline = new Date(Date.now() + deliveryDays * 86_400_000);
+      updateData.delivery_deadline_at = deadline.toISOString();
+    }
   } else if (newStatus === "cancelled") {
     updateData.escrow_status = "refunded";
   }
