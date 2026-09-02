@@ -72,6 +72,25 @@ export async function GET(request: Request) {
       | null;
     if (r?.ok && r.user_id) {
       suspendedIds.push(r.user_id);
+      // 監査ログ (moderation_actions) に auto_account_suspend を記録
+      // migration 00086 で profile ターゲット + cron 用 action_type を許可済。
+      const scoreLabel =
+        typeof r.score === "number" ? ` score=${r.score}` : "";
+      const { error: logErr } = await supabase
+        .from("moderation_actions")
+        .insert({
+          target_type: "profile",
+          target_id: r.user_id,
+          actor_user_id: null, // system 実行なので NULL
+          actor_role: "system",
+          action_type: "auto_account_suspend",
+          reason: `未納品ペナルティ score >= ${SUSPEND_THRESHOLD} で自動停止${scoreLabel}`,
+        });
+      if (logErr) {
+        console.error(
+          `[cron/suspend] audit log insert failed for ${r.user_id}: ${logErr.message}`
+        );
+      }
     }
   }
 
