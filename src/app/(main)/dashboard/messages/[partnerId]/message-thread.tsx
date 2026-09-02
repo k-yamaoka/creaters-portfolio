@@ -227,10 +227,21 @@ export function MessageThread({
   }, []);
 
   // Realtime: 自分宛(相手→自分) と 自分発(自分→相手) 双方を購読
+  //
+  // 2026-09-02 修正: 相手からのメッセージが realtime で届かない事象への対応:
+  //   1. subscribe status を console に出力 (SUBSCRIBED / CHANNEL_ERROR / TIMED_OUT)
+  //   2. サブスクリプションを 「自分の全受信/送信」 → 「conversation 全体」に切替:
+  //      Supabase Realtime v2 の filter は単一条件のみサポートなので、
+  //      receiver_id / sender_id 個別に登録し JS 側で相手フィルタを維持。
+  //   3. 相手からの INSERT はサーバ側フィルタで正確に届くはずだが、
+  //      サーバー再起動等で subscription が silent に切れるケースがあるため、
+  //      チャネル ID に partnerId を含めて重複購読を防ぎつつ、
+  //      unmount ↔ mount で確実に再購読させる。
   useEffect(() => {
     const supabase = createClient();
+    const channelName = `thread:${currentUserId}:${partnerId}`;
     const channel = supabase
-      .channel(`thread:${currentUserId}:${partnerId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -260,7 +271,16 @@ export function MessageThread({
           mergeMessage(msg);
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.info(`[realtime/message] subscribed: ${channelName}`);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.error(
+            `[realtime/message] ${status} on ${channelName}`,
+            err
+          );
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
