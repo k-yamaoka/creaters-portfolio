@@ -5,9 +5,26 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import { createClient } from "@/lib/supabase/client";
 
+/**
+ * next パラメータの Open Redirect 対策。
+ * - "/" で始まり
+ * - "//" or "/\" で始まらない (プロトコル相対 URL 除外)
+ * - CR/LF 混入無し
+ * のみ許可。それ以外は "/dashboard" にフォールバック。
+ * (src/app/auth/callback/route.ts と同じロジック)
+ */
+function safeNextPath(raw: string | null): string {
+  if (!raw) return "/dashboard";
+  if (!raw.startsWith("/")) return "/dashboard";
+  if (raw.startsWith("//") || raw.startsWith("/\\")) return "/dashboard";
+  if (/[\r\n]/.test(raw)) return "/dashboard";
+  return raw;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const nextPath = safeNextPath(searchParams.get("next"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(() => {
@@ -37,7 +54,7 @@ function LoginForm() {
       return;
     }
 
-    router.push("/");
+    router.push(nextPath);
     router.refresh();
   };
 
@@ -154,9 +171,13 @@ function LoginForm() {
               type="button"
               onClick={async () => {
                 const supabase = createClient();
+                // OAuth callback にも next を伝搬。auth callback route 側でも
+                // 再度 safeNextPath で検証してから遷移する (二重防御)。
+                const cbUrl = new URL("/auth/callback", window.location.origin);
+                if (nextPath !== "/dashboard") cbUrl.searchParams.set("next", nextPath);
                 await supabase.auth.signInWithOAuth({
                   provider: "google",
-                  options: { redirectTo: `${window.location.origin}/auth/callback` },
+                  options: { redirectTo: cbUrl.toString() },
                 });
               }}
               className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#E0E0E0] px-4 py-3 text-sm font-medium text-[#4F4F4F] transition-colors hover:bg-[#F8F8F8]"
@@ -173,7 +194,12 @@ function LoginForm() {
             <button
               type="button"
               onClick={() => {
-                window.location.href = "/api/auth/line";
+                // LINE OAuth も next を伝搬 (start endpoint 側で state cookie に保存する想定)
+                const url =
+                  nextPath !== "/dashboard"
+                    ? `/api/auth/line?next=${encodeURIComponent(nextPath)}`
+                    : "/api/auth/line";
+                window.location.href = url;
               }}
               className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#06C755] bg-[#06C755] px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-[#05b14c]"
             >

@@ -159,9 +159,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // start endpoint で保存した next path を取り出して redirect 先に。
+    // 型チェック済 (safeNextPath 相当) の値のみ入っているが 二重防御。
+    const rawNext = request.cookies.get("line_oauth_next")?.value ?? null;
+    const nextPath =
+      rawNext &&
+      rawNext.startsWith("/") &&
+      !rawNext.startsWith("//") &&
+      !rawNext.startsWith("/\\") &&
+      !/[\r\n]/.test(rawNext)
+        ? rawNext
+        : "/";
     revalidatePath("/", "layout");
-    const response = NextResponse.redirect(`${origin}/`);
+    const response = NextResponse.redirect(`${origin}${nextPath}`);
     response.cookies.delete("line_oauth_state");
+    response.cookies.delete("line_oauth_next");
     return response;
   } catch {
     return NextResponse.redirect(`${origin}/login?error=line_auth_error`);
