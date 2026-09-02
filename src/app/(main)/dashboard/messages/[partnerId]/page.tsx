@@ -60,10 +60,18 @@ function toRequirementsData(job: JobRequirementsRow): EditingRequirementsData {
 
 export default async function ConversationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ partnerId: string }>;
+  searchParams: Promise<{ orderId?: string }>;
 }) {
   const { partnerId } = await params;
+  const sp = await searchParams;
+  // URL ?orderId=xxx で 「特定 order 紐付けモード」で開く (テストケース URL-007)
+  // - チャットの下部 OrderTodoBanner を その order 前提で表示
+  // - 「別画面で開く」リンクを その order 詳細に差し替え
+  //   (activeOrder 選定ロジックで 最優先扱いにする)
+  const preferOrderId = typeof sp.orderId === "string" ? sp.orderId : null;
   const me = await getCurrentUser();
   if (!me) redirect("/login");
   const supabase = await createClient();
@@ -167,10 +175,14 @@ export default async function ConversationPage({
         .eq("client_id", cp.id)
         .eq("creator_id", crp.id)
         .order("updated_at", { ascending: false })
-        .limit(5);
+        .limit(20);
+      // ?orderId=xxx が付いていれば その order を最優先 (当事者 order 集合の内側のみ許可)
+      const preferred = preferOrderId
+        ? (orders ?? []).find((o) => o.id === preferOrderId)
+        : null;
       // cancelled は最後の手段
       const live = (orders ?? []).find((o) => o.status !== "cancelled");
-      const pick = live ?? orders?.[0] ?? null;
+      const pick = preferred ?? live ?? orders?.[0] ?? null;
       if (pick) {
         activeOrder = { id: pick.id, title: pick.title, status: pick.status };
       }
