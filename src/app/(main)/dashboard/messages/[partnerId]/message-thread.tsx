@@ -271,16 +271,7 @@ export function MessageThread({
           mergeMessage(msg);
         }
       )
-      .subscribe((status, err) => {
-        if (status === "SUBSCRIBED") {
-          console.info(`[realtime/message] subscribed: ${channelName}`);
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-          console.error(
-            `[realtime/message] ${status} on ${channelName}`,
-            err
-          );
-        }
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
