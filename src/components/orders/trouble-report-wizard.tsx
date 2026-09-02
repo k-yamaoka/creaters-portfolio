@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -163,8 +164,24 @@ export function TroubleReportWizard({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [doneMessage, setDoneMessage] = useState("");
+  const [mounted, setMounted] = useState(false);
 
-  if (!open) return null;
+  // Portal 用: SSR で document 不在なので mount 後にのみ portal 化
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // open 中は body scroll をロック (背景スクロール抑制)
+  useEffect(() => {
+    if (!open) return;
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = orig;
+    };
+  }, [open]);
+
+  if (!open || !mounted) return null;
 
   const catMeta = category
     ? CATEGORIES.find((c) => c.key === category) ?? null
@@ -258,16 +275,25 @@ export function TroubleReportWizard({
     }
   }
 
-  return (
+  // Portal で body 直下に描画。親カードに transform / overflow:hidden が
+  // 付いていても fixed の位置決めが親を基準にしてしまうバグ (CSS 仕様) を回避。
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto bg-black/60 p-4 sm:items-center"
       role="dialog"
       aria-modal="true"
       aria-label="運営に相談する"
+      onClick={(e) => {
+        // 背景クリックで閉じる (dialog 本体は stopPropagation)
+        if (e.target === e.currentTarget) close();
+      }}
     >
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div
+        className="relative my-auto flex max-h-[calc(100dvh-2rem)] w-full max-w-xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* ヘッダ */}
-        <div className="flex items-center gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3">
+        <div className="flex shrink-0 items-center gap-3 border-b border-gray-100 bg-gray-50 px-5 py-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100">
             <MessageCircleQuestion
               size={18}
@@ -294,7 +320,7 @@ export function TroubleReportWizard({
           </button>
         </div>
 
-        <div className="px-5 py-5 sm:px-6 sm:py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
           {/* ---- STEP: select ---- */}
           {step === "select" && (
             <>
@@ -518,7 +544,8 @@ export function TroubleReportWizard({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
