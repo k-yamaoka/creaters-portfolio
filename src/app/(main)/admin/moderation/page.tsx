@@ -142,13 +142,14 @@ export default async function AdminModerationPage({
     .limit(100);
 
   // 3. 監査ログ (検索 + ページネーション対応)
+  // 2026-09-02: target_type を portfolio_item に限定していたのを撤去し、
+  // profile (account_suspend 等) と job (invitation_send) も表示。
   let auditQuery = admin
     .from("moderation_actions")
     .select(
-      "id, action_type, actor_role, reason, created_at, target_id, actor_user_id, actor:profiles!moderation_actions_actor_user_id_fkey ( display_name )",
+      "id, action_type, actor_role, reason, created_at, target_type, target_id, actor_user_id, actor:profiles!moderation_actions_actor_user_id_fkey ( display_name )",
       { count: "exact" }
     )
-    .eq("target_type", "portfolio_item")
     .order("created_at", { ascending: false });
   if (auditAction) auditQuery = auditQuery.eq("action_type", auditAction);
   if (auditQ) auditQuery = auditQuery.ilike("reason", `%${auditQ}%`);
@@ -497,9 +498,22 @@ export default async function AdminModerationPage({
               className="rounded-lg border border-gray-200 py-1 pl-2 pr-8"
             >
               <option value="">全 action</option>
-              <option value="unpublish">unpublish</option>
-              <option value="delete">delete</option>
-              <option value="restore">restore</option>
+              <optgroup label="作品">
+                <option value="unpublish">unpublish</option>
+                <option value="delete">delete</option>
+                <option value="restore">restore</option>
+                <option value="auto_unpublish">auto_unpublish</option>
+              </optgroup>
+              <optgroup label="アカウント">
+                <option value="account_suspend">account_suspend</option>
+                <option value="account_restore">account_restore</option>
+                <option value="account_verify">account_verify</option>
+                <option value="account_unverify">account_unverify</option>
+                <option value="auto_account_suspend">auto_account_suspend</option>
+              </optgroup>
+              <optgroup label="案件">
+                <option value="invitation_send">invitation_send</option>
+              </optgroup>
             </select>
             <button
               type="submit"
@@ -522,18 +536,30 @@ export default async function AdminModerationPage({
                 actor_role: string;
                 reason: string;
                 created_at: string;
+                target_type: string;
                 target_id: string;
                 actor?: { display_name?: string };
               };
+              const targetLabel =
+                row.target_type === "profile"
+                  ? "アカウント"
+                  : row.target_type === "job"
+                    ? "案件"
+                    : "作品";
               return (
                 <li
                   key={row.id}
                   className="rounded-lg border border-gray-100 bg-white px-3 py-2 text-xs"
                 >
                   <div className="flex items-baseline justify-between gap-2">
-                    <span className="font-bold text-gray-900">
-                      {row.action_type}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                        {targetLabel}
+                      </span>
+                      <span className="font-bold text-gray-900">
+                        {row.action_type}
+                      </span>
+                    </div>
                     <span className="text-[10px] tabular-nums text-gray-500">
                       {formatDateTimeJP(row.created_at)} JST
                     </span>

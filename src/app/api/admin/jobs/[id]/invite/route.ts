@@ -179,8 +179,35 @@ export async function POST(
     }
   }
 
+  // 監査ログ (moderation_actions) に一括送信の実行を記録。
+  // migration 00087 で target_type='job' + action_type='invitation_send' を許可。
+  // 失敗しても main 処理 (既に招待 INSERT 済) は影響ないので console.error のみ。
+  try {
+    const { error: logErr } = await admin
+      .from("moderation_actions")
+      .insert({
+        target_type: "job",
+        target_id: jobId,
+        actor_user_id: user.id,
+        actor_role: "admin",
+        action_type: "invitation_send",
+        reason:
+          `一括スカウト送信: 新規 ${newlyInvited.length} 名 / ` +
+          `重複 skip ${skipped} 名` +
+          (message ? ` / メッセージ有 (${message.length} 字)` : ""),
+      });
+    if (logErr) {
+      console.error(
+        `[admin/jobs/invite] audit log insert failed: ${logErr.message}`
+      );
+    }
+  } catch (e) {
+    console.error("[admin/jobs/invite] audit log threw", e);
+  }
+
   revalidatePath("/admin/jobs");
   revalidatePath(`/admin/jobs/${jobId}`);
+  revalidatePath("/admin/moderation");
 
   return NextResponse.json({
     ok: true,
