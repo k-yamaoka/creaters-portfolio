@@ -374,6 +374,54 @@ export default async function OrderDetailPage({
               <p className="text-sm font-bold text-green-700">レビュー投稿済み</p>
             </div>
           )}
+
+          {/* ==============================
+              下部メッセージパネル (左メニュー「メッセージ」と同期)
+              中央カラム内に配置。親の space-y-6 で 他カード と 24px 間隔統一。
+              相手が退会済みの場合は表示しない
+              ============================== */}
+          {partnerUserId && (
+            <div className="rounded-2xl bg-white p-6 shadow-card">
+              <div className="mb-3 flex items-center justify-between border-b border-[#F2F2F2] pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-aimovie-navy-700/15 text-sm font-bold text-aimovie-navy-900">
+                    {partnerName[0] ?? "?"}
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-bold text-[#222]">
+                      {partnerName} とのメッセージ
+                    </h2>
+                    <p className="text-xs text-[#828282]">
+                      左メニューの「メッセージ」と同期されています
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={`/dashboard/messages/${partnerUserId}`}
+                  className="text-xs font-medium text-aimovie-navy-900 hover:underline"
+                >
+                  別画面で開く →
+                </Link>
+              </div>
+              <MessageThread
+                initialMessages={(threadMessages ?? []) as never}
+                currentUserId={user.id}
+                partnerId={partnerUserId}
+                senderRole={user.role}
+                compact
+                footerSlot={
+                  user.role === "client" || user.role === "creator" ? (
+                    <OrderTodoBanner
+                      orderId={order.id}
+                      orderTitle={order.title}
+                      status={order.status}
+                      viewerRole={user.role}
+                    />
+                  ) : null
+                }
+              />
+            </div>
+          )}
         </div>
 
         {/* Right: Summary */}
@@ -439,53 +487,6 @@ export default async function OrderDetailPage({
           </div>
         </div>
       </div>
-
-      {/* ==============================
-          下部メッセージパネル (左メニュー「メッセージ」と同期)
-          相手が退会済みの場合は表示しない
-          ============================== */}
-      {partnerUserId && (
-        <div className="mt-8 rounded-2xl bg-white p-6 shadow-card">
-          <div className="mb-3 flex items-center justify-between border-b border-[#F2F2F2] pb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-aimovie-navy-700/15 text-sm font-bold text-aimovie-navy-900">
-                {partnerName[0] ?? "?"}
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-[#222]">
-                  {partnerName} とのメッセージ
-                </h2>
-                <p className="text-xs text-[#828282]">
-                  左メニューの「メッセージ」と同期されています
-                </p>
-              </div>
-            </div>
-            <Link
-              href={`/dashboard/messages/${partnerUserId}`}
-              className="text-xs font-medium text-aimovie-navy-900 hover:underline"
-            >
-              別画面で開く →
-            </Link>
-          </div>
-          <MessageThread
-            initialMessages={(threadMessages ?? []) as never}
-            currentUserId={user.id}
-            partnerId={partnerUserId}
-            senderRole={user.role}
-            compact
-            footerSlot={
-              user.role === "client" || user.role === "creator" ? (
-                <OrderTodoBanner
-                  orderId={order.id}
-                  orderTitle={order.title}
-                  status={order.status}
-                  viewerRole={user.role}
-                />
-              ) : null
-            }
-          />
-        </div>
-      )}
     </div>
   );
 }
