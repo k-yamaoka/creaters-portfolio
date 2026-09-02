@@ -12,6 +12,7 @@ import {
   DashboardLatestActivity,
   type ActivityItem,
 } from "@/components/dashboard/latest-activity";
+import { WelcomeToast } from "@/components/dashboard/welcome-toast";
 // 2026-06-12 ダッシュボード整理:
 // - 売上・収益状況 / おすすめ案件 / アナリティクス の 3 セクションを撤去
 // - プロフィール充実度はバナー (BasicInfoEditor) に統合 (独立カードを撤去)
@@ -219,6 +220,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="text-gray-900">
+      {/* URL ?welcome=1 でオンボーディング直後の歓迎トースト */}
+      <WelcomeToast />
+
       {/* 基本情報 (アバター + 表示名) を編集できる Welcome 兼 Editor。
           2026-06-16: プロフィール充実度メーターは完全撤去 */}
       <BasicInfoEditor
