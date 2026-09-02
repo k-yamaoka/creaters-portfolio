@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { ModerationActionForm } from "./moderation-action-form";
+import { formatDateTimeJP } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -493,7 +494,7 @@ export default async function AdminModerationPage({
             <select
               name="audit_action"
               defaultValue={auditAction}
-              className="rounded-lg border border-gray-200 px-2 py-1"
+              className="rounded-lg border border-gray-200 py-1 pl-2 pr-8"
             >
               <option value="">全 action</option>
               <option value="unpublish">unpublish</option>
@@ -533,8 +534,8 @@ export default async function AdminModerationPage({
                     <span className="font-bold text-gray-900">
                       {row.action_type}
                     </span>
-                    <span className="text-[10px] text-gray-500">
-                      {row.created_at.slice(0, 16).replace("T", " ")}
+                    <span className="text-[10px] tabular-nums text-gray-500">
+                      {formatDateTimeJP(row.created_at)} JST
                     </span>
                   </div>
                   <p className="mt-0.5 text-[11px] text-gray-600">
