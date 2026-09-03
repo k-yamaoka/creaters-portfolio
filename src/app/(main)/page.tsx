@@ -677,32 +677,13 @@ function FeatureRow({
   const mockDir = reverse ? "left" : "right";
 
   const axisNo = no.replace("FEATURE ", "Feature ");
-  const bigNumber = no.match(/(\d+)/)?.[1] ?? "00";
 
   return (
     <div className="relative">
-      {/* === 背景 装飾ナンバリング ===
-          2026-07-10: 箇条書き削除に伴いテキスト列が短くなったため
-          背景数字も小さめ (clamp 3.5rem 〜 8rem) に縮小、
-          控えめアクセントに徹する。 */}
-      <ParallaxImage
-        intensity={0.06}
-        className={`pointer-events-none absolute top-[50%] -translate-y-1/2 z-0 ${
-          reverse ? "-right-4 lg:right-[-1vw]" : "-left-4 lg:left-[-1vw]"
-        }`}
-      >
-        <span
-          aria-hidden
-          className="block font-display font-semibold leading-none tracking-[-0.04em] text-[clamp(3.5rem,8vw,8rem)]"
-          style={{
-            color: "transparent",
-            WebkitTextStroke: "1.5px rgba(10,13,18,0.28)",
-          }}
-        >
-          {bigNumber}
-        </span>
-      </ParallaxImage>
-
+      {/* 2026-09-03: 背景装飾ナンバリング (巨大 03 / 04 等) は、右カラム
+          モックが縦長になると本文テキストと重なって可読性を損ねる事故が
+          発生したため撤去。エッジのカラー数字 (FEATURE 04 の eyebrow) で
+          十分に節目は伝わる。 */}
       <div
         className={`relative z-10 grid grid-cols-1 items-start gap-8 sm:gap-12 lg:items-center lg:gap-24 ${
           reverse ? "lg:grid-cols-[1.62fr,1fr]" : "lg:grid-cols-[1fr,1.62fr]"
