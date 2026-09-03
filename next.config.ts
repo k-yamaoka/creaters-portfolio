@@ -72,6 +72,24 @@ const nextConfig: NextConfig = {
       ],
     },
   ],
+  redirects: async () => [
+    {
+      // 2026-09-03: Vercel の初期ドメイン (creaters-portfolio.vercel.app) に
+      //   アクセスがあったら 本番の独自ドメイン (aimovie-works.com) に恒久
+      //   リダイレクトする。SEO 上の重複コンテンツ + ブランディング整合の
+      //   ため。preview デプロイ (creaters-portfolio-<hash>-...vercel.app)
+      //   は デバッグ用途で残すため対象外。
+      source: "/:path*",
+      has: [
+        {
+          type: "host",
+          value: "creaters-portfolio.vercel.app",
+        },
+      ],
+      destination: "https://aimovie-works.com/:path*",
+      permanent: true,
+    },
+  ],
 };
 
 export default nextConfig;
