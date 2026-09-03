@@ -649,38 +649,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* =================================================
-          07 — Start — 締めの一行ステートメント (Axis "Every story…" オマージュ)
-          ================================================= */}
-      <section className="relative bg-paper text-ink">
-        <div className="relative mx-auto max-w-narrow px-gutter py-16 text-center">
-          <RevealOnScroll delay={0}>
-            <p className="eyebrow-mono">(07 — Start)<span className="ml-2 text-ink/35">／ はじめる</span></p>
-          </RevealOnScroll>
-
-          <RevealOnScroll delay={80}>
-            <h2 className="headline-display mt-12 text-[clamp(2rem,5vw,3.75rem)] leading-[1.2] text-ink">
-              どんな映像も、
-              <br />
-              ここから<span className="italic text-sand">生まれる。</span>
-            </h2>
-          </RevealOnScroll>
-
-          <RevealOnScroll delay={240}>
-            <p className="body-jp mx-auto mt-12 max-w-prose-jp text-ink/60">
-              プロフィール閲覧は無料、依頼前にチャット相談も。
-            </p>
-          </RevealOnScroll>
-
-          <RevealOnScroll delay={360}>
-            <div className="mt-12 flex justify-center">
-              <Link href="/creators" className="btn-axis">
-                クリエイターを見る
-              </Link>
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
     </>
   );
 }
