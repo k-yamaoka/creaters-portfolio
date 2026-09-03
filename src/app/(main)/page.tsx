@@ -659,15 +659,11 @@ export default async function HomePage() {
           </RevealOnScroll>
 
           <RevealOnScroll delay={80}>
-            <h2 className="headline-display mt-12 text-[clamp(2.75rem,7vw,6rem)] text-ink">
-              Every story
+            <h2 className="headline-display mt-12 text-[clamp(2rem,5vw,3.75rem)] leading-[1.2] text-ink">
+              どんな映像も、
               <br />
-              starts with{" "}
-              <span className="italic text-sand">us.</span>
+              ここから<span className="italic text-sand">生まれる。</span>
             </h2>
-            <p className="mt-4 text-sm font-medium tracking-wide text-ink/60">
-              どんな映像も、ここから生まれる。
-            </p>
           </RevealOnScroll>
 
           <RevealOnScroll delay={240}>
