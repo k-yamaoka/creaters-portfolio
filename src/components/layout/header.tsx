@@ -164,16 +164,18 @@ export function Header({
   // 新仕様: 常に light。例外として home top の Hero (動画 dark) の上に重なる
   // ときだけ Header を「透過モード」で白文字に切替 (over dark video)。
   const pathname = usePathname() ?? "";
-  const isHome = pathname === "/";
+  // ページ最上部に HeroFullscreen (ダーク動画) を持つページ。
+  // TOP / と /portfolios は同じ Hero を使うのでヘッダーも同じ透過モードにする。
+  const isHeroPage = pathname === "/" || pathname === "/portfolios";
   const [scrolledPast, setScrolledPast] = useState(false);
   useEffect(() => {
-    if (!isHome) return;
+    if (!isHeroPage) return;
     const onScroll = () => setScrolledPast(window.scrollY > 80);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isHome]);
-  const isTransparent = isHome && !scrolledPast;
+  }, [isHeroPage]);
+  const isTransparent = isHeroPage && !scrolledPast;
   // 透過時 (=Hero 直上) は白文字 dark テーマの T を使用、それ以外は light。
   const isLight = !isTransparent;
 
