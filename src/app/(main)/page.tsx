@@ -677,12 +677,9 @@ export default async function HomePage() {
           </RevealOnScroll>
 
           <RevealOnScroll delay={360}>
-            <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <div className="mt-12 flex justify-center">
               <Link href="/creators" className="btn-axis">
                 クリエイターを見る
-              </Link>
-              <Link href="/register" className="btn-axis-ghost">
-                クリエイター登録
               </Link>
             </div>
           </RevealOnScroll>
