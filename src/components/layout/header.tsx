@@ -331,7 +331,7 @@ export function Header({
                       : "btn-axis mr-1"
                   }
                 >
-                  {isLight ? "案件を発注する" : "Post a job"}
+                  案件を発注する
                 </Link>
               )}
               {/* Message icon */}
@@ -541,7 +541,7 @@ export function Header({
                 href="/register"
                 className={isLight ? "btn-primary text-xs" : "btn-axis"}
               >
-                {isLight ? "無料ではじめる" : "Get started"}
+                無料ではじめる
               </Link>
             </>
           )}
@@ -618,7 +618,7 @@ export function Header({
                 className={`${T.mobileLink} text-sand`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {isLight ? "案件を発注する" : "Post a job"}
+                案件を発注する
                 <span aria-hidden>→</span>
               </Link>
             )}
@@ -678,7 +678,7 @@ export function Header({
                     className={isLight ? "btn-primary justify-center" : "btn-axis justify-center"}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    {isLight ? "無料ではじめる" : "Get started"}
+                    無料ではじめる
                   </Link>
                 </>
               )}
