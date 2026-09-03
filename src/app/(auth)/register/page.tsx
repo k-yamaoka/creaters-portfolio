@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Building2, Video } from "lucide-react";
 import { validateDisplayName } from "@/lib/name-validation";
 import { FoundingCreatorCounterClient } from "@/components/founding-counter-client";
+import { AimovieLogo } from "@/components/brand/aimovie-logo";
 
 /**
  * Supabase Auth から返ってきた英語エラーメッセージを日本語に置き換える。
@@ -198,15 +199,8 @@ export default function RegisterPage() {
         </svg>
       </Link>
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-aimovie-navy-900 to-aimovie-ember-500 text-sm font-black text-white shadow-[0_0_16px_rgba(255,77,157,0.5)]">
-              A
-            </div>
-            <span className="text-xl font-black text-white">
-              AI<span className="bg-gradient-to-r from-aimovie-ember-500 to-aimovie-ivory-300 bg-clip-text text-transparent">LIER</span>
-            </span>
-          </Link>
+        <div className="mb-8 flex justify-center">
+          <AimovieLogo variant="dark" size="md" />
         </div>
 
         <div className="rounded-2xl bg-white p-8 shadow-card">
