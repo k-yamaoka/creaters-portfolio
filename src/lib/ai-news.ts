@@ -157,15 +157,16 @@ const RSS_SOURCES: RssSource[] = [
     url: "https://prtimes.jp/index.rdf",
     isGoogleNews: false,
     requireKeywordFilter: true,
-    // 2026-07-21: PR TIMES はジャンル雑多で最新 100 件程度の RSS を返すため、
-    //   デフォルト 30 件のサンプルではほぼ AI 系にヒットしない。
-    //   - perSourceLimit: RSS 全件を舐めるため 200 に増強
-    //   - perSourceCandidate: マッチが多いときは 8 件まで採用
-    //   - filterMode: "ai_only" — 動画語彙が無くても AI 系のプレスリリース
-    //     (AI 制作会社ローンチ / 生成 AI サービス公開 等) は掲載価値あり
+    // 2026-07-21: PR TIMES はジャンル雑多で最新 100 件程度の RSS を返す。
+    //   サンプルを増やすため perSourceLimit を 200 に拡張。
+    // 2026-09-03: filterMode: "ai_only" を撤去。実運用で PR TIMES 由来の
+    //   非動画 AI プレスリリース (工場 EXPO / タクシー配車 / 就活アプリ
+    //   / 外食サミット 等) が LP を占領する事故が発生したため、strict
+    //   (AI × 動画 の intersection) 一律に戻す。動画 AI プロダクト発表
+    //   (Sora / Veo / Runway ローンチ等) は VIDEO_AI_PRODUCTS 単独ヒット
+    //   で拾えるので実害は無い。
     perSourceLimit: 200,
-    perSourceCandidate: 8,
-    filterMode: "ai_only",
+    perSourceCandidate: 4,
   },
   {
     name: "Yahoo!ニュース ライフ",
@@ -865,17 +866,59 @@ export const getCachedAiNews = unstable_cache(
 );
 
 /**
+ * 蓄積済みの item のうち、現在の strict フィルタに合致しなくなった
+ * タイトル (=非動画 AI ニュース) を削除する。
+ *
+ * 2026-09-03: PR TIMES ソースを ai_only → strict に絞ったのに伴い、
+ * 過去に ai_only で通過した非動画 AI プレスリリースがそのまま LP を
+ * 占領していた事故のリカバリ。以後の Cron で自己修復する。
+ */
+async function purgeIrrelevantItems(): Promise<number> {
+  try {
+    const supabase = getWriteClient();
+    const cutoff = new Date(
+      Date.now() - RETENTION_DAYS * 86400_000
+    ).toISOString();
+    const { data } = await supabase
+      .from("ai_news_items")
+      .select("id, title")
+      .or(`published_at.gte.${cutoff},captured_at.gte.${cutoff}`);
+    const bad = (data ?? []).filter(
+      (r) => !titleMatchesKeywords(r.title as string, "strict")
+    );
+    if (bad.length === 0) return 0;
+    const { error } = await supabase
+      .from("ai_news_items")
+      .delete()
+      .in(
+        "id",
+        bad.map((r) => r.id)
+      );
+    if (error) {
+      console.error("[ai-news] purge failed", error);
+      return 0;
+    }
+    return bad.length;
+  } catch (e) {
+    console.error("[ai-news] purge threw", e);
+    return 0;
+  }
+}
+
+/**
  * Cron からの呼び出し:
  *  1) RSS を fetch + キーワード フィルタ + OGP 展開
  *  2) 新規 item を Supabase に upsert (URL 重複はスキップ)
- *  3) キャッシュを無効化 → 次リクエストで getRecentItems 再実行
- *  4) 直近 8 件を返却 (Cron のログ確認用)
+ *  3) strict に合致しなくなった蓄積済 item を purge
+ *  4) キャッシュを無効化 → 次リクエストで getRecentItems 再実行
+ *  5) 直近 8 件を返却 (Cron のログ確認用)
  */
 export async function refreshAiNewsCache(): Promise<AiNewsItem[]> {
   const fresh = await fetchAndEnrichAiNews();
   const persisted = await persistItems(fresh);
+  const purged = await purgeIrrelevantItems();
   console.log(
-    `[ai-news] refresh: fetched=${fresh.length} persisted=${persisted}`
+    `[ai-news] refresh: fetched=${fresh.length} persisted=${persisted} purged=${purged}`
   );
   revalidateTag(CACHE_TAG);
   return getRecentItems();
