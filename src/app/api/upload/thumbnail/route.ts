@@ -78,7 +78,9 @@ export async function POST(request: NextRequest) {
     .upload(filename, file, {
       contentType: file.type,
       upsert: false,
-      cacheControl: "2592000",
+      // MOD-028/029: 30 日 → 1 時間に短縮。deleted 作品の purge cron 後、
+      //   CDN edge cache が長期間 stale bytes を返す事故を防ぐ。
+      cacheControl: "3600",
     });
 
   if (uploadError) {

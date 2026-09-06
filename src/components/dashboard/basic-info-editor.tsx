@@ -162,7 +162,10 @@ export function BasicInfoEditor({
           const { error: upErr } = await supabase.storage
             .from("avatars")
             .upload(path, pendingFile, {
-              cacheControl: "2592000",
+              // MOD-028/029: 30 日 → 1 時間。退会時の avatar 物理削除後、
+              //   CDN edge cache が長期間 stale アバターを配信する事故を防ぐ。
+              //   同一 URL 上書きの cache-bust は 下記 ?t=Date.now() で継続。
+              cacheControl: "3600",
               upsert: true,
               contentType: pendingFile.type,
             });

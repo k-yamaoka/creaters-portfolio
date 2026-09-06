@@ -95,7 +95,9 @@ export async function POST(request: NextRequest) {
     .upload(filename, file, {
       contentType: file.type,
       upsert: false,
-      cacheControl: "2592000",
+      // MOD-028/029: 30 日 → 1 時間。チャット添付は削除・退会時の即時
+      //   無効化を優先。
+      cacheControl: "3600",
     });
 
   if (uploadError) {

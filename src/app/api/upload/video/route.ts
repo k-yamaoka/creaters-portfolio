@@ -90,9 +90,12 @@ export async function POST(request: NextRequest) {
     .upload(filename, file, {
       contentType: file.type,
       upsert: false,
-      // CDN edge / ブラウザで 30 日キャッシュ。動画は immutable なので Supabase
-      // Storage egress (無料枠 5GB / Pro 250GB) を最大節約するため長期に固定。
-      cacheControl: "2592000",
+      // 2026-09-06 変更: 30 日 → 1 時間 (MOD-028/029)。deleted 作品の
+      //   purge cron 実行後、CDN edge cache が長期間 stale で 削除済動画を
+      //   返す事故を防ぐ。動画は immutable でも privacy が優先。
+      //   egress は path 単位で長時間 hit する視聴セッション内では変わらず、
+      //   全体影響は 数% 程度と想定。
+      cacheControl: "3600",
     });
 
   if (uploadError) {
