@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "導入事例",
   description:
     "アイムビを活用した企業のAI動画制作成功事例をご紹介します。",
+  alternates: { canonical: "/case-studies" },
 };
 
 export const revalidate = 3600;

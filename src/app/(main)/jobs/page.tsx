@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "AI動画案件を探す",
   description:
     "企業が掲載したAI動画制作の募集案件から、あなたのAIスキルに合った仕事を見つけましょう。",
+  alternates: { canonical: "/jobs" },
 };
 
 export const revalidate = 60;

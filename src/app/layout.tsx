@@ -47,6 +47,8 @@ export const metadata: Metadata = {
     default: "アイムビ — AIクリエイター特化型の企業マッチングプラットフォーム",
     template: "%s | アイムビ",
   },
+  // SEO-009: ルート (/) 用 canonical。子ページは 自身の metadata で上書き。
+  alternates: { canonical: "/" },
   description:
     "Sora・Veo・Runway・Seedance を使いこなすAIクリエイターと、企業をつなぐ専門マッチングプラットフォーム。SNS広告動画・プロダクト紹介・コーポレートVP・採用動画まで、撮影不要・完全リモートで構成から納品まで一貫。",
   keywords: [

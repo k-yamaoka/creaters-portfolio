@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "AIクリエイターガイドライン",
   description:
     "アイムビで活動するAIクリエイター向けのガイドライン。プロンプト力・ツール選定・著作権・透明性を満たす運用方針をまとめています。",
+  alternates: { canonical: "/creator-guide" },
 };
 
 // D-1: 先着 50 名の残数をリアルタイムに近い形で反映するため 60s

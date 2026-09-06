@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "AIクリエイターを探す",
   description:
     "Sora・Veo・Runway・Midjourneyを使いこなすAIクリエイターを、ツール・ジャンル・料金で検索。最適なクリエイターを見つけましょう。",
+  alternates: { canonical: "/creators" },
 };
 
 // 役割で表示が変わるため revalidate キャッシュは外す

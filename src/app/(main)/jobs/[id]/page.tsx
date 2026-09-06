@@ -32,6 +32,8 @@ export async function generateMetadata({
   return {
     title: { absolute: fullTitle },
     description: desc ?? `${title} の詳細・応募はアイムビでご覧いただけます。`,
+    // SEO-009: 動的パスの canonical。metadataBase で絶対 URL に解決される。
+    alternates: { canonical: `/jobs/${id}` },
     openGraph: {
       title: fullTitle,
       description: desc,

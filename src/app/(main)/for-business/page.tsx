@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "企業の方へ",
   description:
     "AIクリエイターに直接依頼。Sora / Veo / Runway / Midjourney を活用し、撮影費ゼロ・最短2日納品でAI動画制作を実現。",
+  alternates: { canonical: "/for-business" },
 };
 
 export const revalidate = 3600;

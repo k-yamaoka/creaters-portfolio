@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "ヘルプセンター",
   description:
     "アイムビ のよくある質問と使い方ガイド。手数料・支払いタイミング・登録方法・著作権・案件量・他サービス併用・レスポンス目安などをまとめています。",
+  alternates: { canonical: "/help" },
 };
 
 export const revalidate = 3600;

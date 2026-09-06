@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "利用規約",
   description: "アイムビの利用規約。",
+  alternates: { canonical: "/terms" },
 };
 
 export const revalidate = 3600;

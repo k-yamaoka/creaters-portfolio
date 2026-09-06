@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "プライバシーポリシー",
   description:
     "アイムビ (Comhuman-Quality株式会社) におけるユーザー個人情報の取扱いを定めます。",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {

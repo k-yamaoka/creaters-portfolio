@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "料金体系",
   description:
     "アイムビ の料金体系。クリエイター手数料 0%、企業側手数料 15%。他プラットフォームより最大 12 ポイント有利なトータル コストで、AI クリエイティブ制作をスタートできます。",
+  alternates: { canonical: "/pricing" },
 };
 
 // F-4: 2026-07-16 全面リニューアル。

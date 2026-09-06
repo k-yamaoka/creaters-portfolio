@@ -29,6 +29,8 @@ export async function generateMetadata({
     description: bio
       ? `${displayName} のポートフォリオ・実績・料金。${bio}`
       : `${displayName} のポートフォリオ・実績・料金をアイムビでご覧いただけます。`,
+    // SEO-009: 動的パスの canonical。metadataBase で絶対 URL に解決される。
+    alternates: { canonical: `/creators/${id}` },
     openGraph: {
       title: fullTitle,
       description: bio,
@@ -52,6 +54,7 @@ import { LikeDeltaProvider } from "@/components/portfolio/like-delta-context";
 import { TotalLikesBadge } from "@/components/creators/total-likes-badge";
 import { CreatorQrCard } from "@/components/creators/creator-qr-card";
 import { SocialLinkRow } from "@/components/creators/social-link-row";
+import { JsonLd } from "@/components/seo/json-ld";
 // SectionTabs はクリエイター詳細の上部からは撤去 (ユーザー判断: タブナビ不要)
 
 export default async function CreatorDetailPage({
@@ -204,8 +207,43 @@ export default async function CreatorDetailPage({
 
   // SNS リンクは <SocialLinkRow /> 側で順序 + ラベル + アイコンを管理する
 
+  // SEO-010: Person schema (schema.org) を出力。Google が検索結果 の
+  //   Knowledge Panel 生成や Rich Result 表示に 活用する。
+  //   URL/画像/所属/実績等の 検証可能な事実のみ 埋める。
+  const displayNameForLd =
+    creator.profiles?.display_name?.trim() || "クリエイター";
+  const avatarUrlForLd = creator.profiles?.avatar_url ?? undefined;
+  const socialUrls = Object.values(creator.social_links ?? {}).filter(
+    (v): v is string => typeof v === "string" && v.startsWith("http")
+  );
+  const personJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: displayNameForLd,
+    url: `https://aimovie-works.com/creators/${id}`,
+    jobTitle: "AIクリエイター",
+    worksFor: {
+      "@type": "Organization",
+      name: "アイムビ (Aimovie)",
+      url: "https://aimovie-works.com",
+    },
+  };
+  if (avatarUrlForLd) personJsonLd.image = avatarUrlForLd;
+  if (creator.bio?.trim()) personJsonLd.description = creator.bio.trim();
+  if (socialUrls.length > 0) personJsonLd.sameAs = socialUrls;
+  if (creator.location) personJsonLd.homeLocation = {
+    "@type": "Place",
+    name: creator.location,
+  };
+  if (creator.years_of_experience && creator.years_of_experience > 0) {
+    personJsonLd.knowsAbout = creator.ai_tools?.length
+      ? creator.ai_tools
+      : ["AI動画生成", "AI画像生成"];
+  }
+
   return (
     <LikeDeltaProvider>
+      <JsonLd data={personJsonLd} />
       {/* 2026-06-24 Section A: ページ全体を bg-gray-50 + Card UI 構造に再設計。
           - 各カードは bg-white + rounded-2xl + shadow-sm + border-gray-100 で統一
           - 上部 (Hero) は「プロフィール概要カード」として 1 つの白カードに集約

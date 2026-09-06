@@ -1,15 +1,47 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export const metadata: Metadata = {
   title: "運営会社",
   description: "AIクリエイター特化型マッチングプラットフォーム アイムビ の運営会社（Comhuman-Quality株式会社）情報。",
+  alternates: { canonical: "/company" },
 };
 
 export const revalidate = 3600;
 
+// SEO-010: 会社概要ページに Organization schema (schema.org) を出力。
+//   Google が検索結果 の Knowledge Panel やナレッジグラフに 活用する。
+const ORGANIZATION_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Comhuman-Quality株式会社",
+  alternateName: ["アイムビ", "Aimovie"],
+  url: "https://aimovie-works.com",
+  logo: "https://aimovie-works.com/opengraph-image",
+  email: "info@comhuman-quality.com",
+  telephone: "+81-3-6403-3319",
+  foundingDate: "2023-06-09",
+  founder: {
+    "@type": "Person",
+    name: "山岡 浩志",
+  },
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "恵比寿1-15-9-403",
+    addressLocality: "渋谷区",
+    addressRegion: "東京都",
+    postalCode: "150-0013",
+    addressCountry: "JP",
+  },
+  sameAs: ["https://comhuman-quality.com/"],
+  description:
+    "AIクリエイター特化型マッチングプラットフォーム『アイムビ (Aimovie)』を運営。Sora / Veo / Runway / Midjourney 等を使いこなすAIクリエイターと企業を結ぶプラットフォーム。",
+};
+
 export default function CompanyPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16 lg:px-0">
+      <JsonLd data={ORGANIZATION_JSONLD} />
       <h1 className="text-3xl font-bold text-[#222]">運営会社</h1>
 
       <div className="mt-10 rounded-2xl bg-white p-8 shadow-card">

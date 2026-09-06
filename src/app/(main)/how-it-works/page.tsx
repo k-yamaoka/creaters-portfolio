@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "使い方",
   description:
     "アイムビの使い方。企業もAIクリエイターも3ステップでAI動画制作を始められます。",
+  alternates: { canonical: "/how-it-works" },
 };
 
 export const revalidate = 3600;

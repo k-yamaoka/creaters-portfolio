@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "AI動画ポートフォリオを見る",
   description:
     "Sora / Veo / Runway / Midjourney を使いこなすAIクリエイターのAI動画作品を、プラットフォーム別に一覧で探せます。",
+  alternates: { canonical: "/portfolios" },
 };
 
 // いいね状態が一覧に反映されるよう動的レンダリング
