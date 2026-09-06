@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Building2, Video } from "lucide-react";
 import { validateDisplayName } from "@/lib/name-validation";
@@ -48,6 +48,9 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  // REG-017: 再送ボタンの cooldown (Supabase の rate limit 抑制 — デフォルトは 60 秒 / 通)
+  const [resendCooldownEndsAt, setResendCooldownEndsAt] = useState<number | null>(null);
+  const [nowMs, setNowMs] = useState<number>(() => Date.now());
 
   // メールテンプレートに埋め込む URL は本番ドメインを優先 (localhost が
   // メール内に固定されないように NEXT_PUBLIC_APP_URL を尊重する)
@@ -73,8 +76,24 @@ export default function RegisterPage() {
       return;
     }
 
+    // REG-016 診断: emailRedirectTo が Supabase Dashboard の
+    //   Authentication > URL Configuration > Redirect URLs allowlist に
+    //   載っていないと Supabase は メール送信を拒否する。redirectBase が
+    //   空 or localhost のとき console に警告を出して デバッグしやすくする。
+    const redirectTo = `${redirectBase}/auth/callback`;
+    if (!redirectBase || redirectBase.includes("localhost")) {
+      // localhost の場合は Supabase Dashboard 側 で
+      //   "http://localhost:3000/**" を Redirect URLs に登録している前提。
+      //   未登録だと signUp は成功するがメールが送信されない。
+      console.warn(
+        "[register] emailRedirectTo が localhost/空です:",
+        redirectTo,
+        "Supabase Dashboard の Redirect URLs allowlist に登録されている必要があります。"
+      );
+    }
+
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -85,7 +104,7 @@ export default function RegisterPage() {
           // role=creator のとき creator_profiles に user_type を書き込む想定。
           ...(role === "creator" ? { user_type: userType } : {}),
         },
-        emailRedirectTo: `${redirectBase}/auth/callback`,
+        emailRedirectTo: redirectTo,
       },
     });
 
@@ -95,14 +114,46 @@ export default function RegisterPage() {
       return;
     }
 
+    // REG-016 診断: Supabase は「既に登録済みの メールアドレス」に対して
+    //   duplicate エラーを返さず、data.user を返しつつ identities を空配列に
+    //   することで silently no-op する (email enumeration 攻撃対策)。
+    //   このため 「メールが届かない」現象の 半数は 「実は既登録」ケース。
+    //   identities 空を検知して 明示的にエラー表示する。
+    const identitiesLength = data?.user?.identities?.length ?? 0;
+    if (data?.user && identitiesLength === 0) {
+      setError(
+        "このメールアドレスは既に登録済みの可能性があります。既に届いた確認メールを ご確認いただくか、ログインをお試しください。届いていない場合は下の再送ボタンから 送信できます。"
+      );
+      setSuccess(true);
+      setLoading(false);
+      return;
+    }
+
     setSuccess(true);
     setLoading(false);
   };
 
+  // 1 秒ごとに現在時刻を更新 (cooldown 残時間表示用)
+  useEffect(() => {
+    if (!resendCooldownEndsAt) return;
+    const timer = setInterval(() => {
+      setNowMs(Date.now());
+      if (Date.now() >= resendCooldownEndsAt) {
+        setResendCooldownEndsAt(null);
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldownEndsAt]);
+
+  const cooldownRemainSec = resendCooldownEndsAt
+    ? Math.max(0, Math.ceil((resendCooldownEndsAt - nowMs) / 1000))
+    : 0;
+
   const handleResend = async () => {
-    if (resending) return;
+    if (resending || cooldownRemainSec > 0) return;
     setResending(true);
     setError(null);
+    setResent(false);
     const supabase = createClient();
     const { error: resendErr } = await supabase.auth.resend({
       type: "signup",
@@ -115,6 +166,8 @@ export default function RegisterPage() {
       setError(localizeAuthError(resendErr.message));
     } else {
       setResent(true);
+      // REG-017: 60 秒 cooldown を張って 連打による Supabase rate limit を回避
+      setResendCooldownEndsAt(Date.now() + 60_000);
     }
     setResending(false);
   };
@@ -155,20 +208,44 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
-            {resent ? (
-              <p className="mb-6 text-xs text-green-600">
+            {resent && cooldownRemainSec > 0 && (
+              <p className="mb-3 text-xs text-green-600">
                 再送しました。受信トレイをご確認ください。
               </p>
-            ) : (
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resending}
-                className="mb-3 inline-block text-sm font-bold text-aimovie-ember-500 hover:underline disabled:opacity-50"
-              >
-                {resending ? "再送中..." : "確認メールを再送する"}
-              </button>
             )}
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending || cooldownRemainSec > 0}
+              className="mb-3 inline-block text-sm font-bold text-aimovie-ember-500 hover:underline disabled:opacity-50"
+            >
+              {resending
+                ? "再送中..."
+                : cooldownRemainSec > 0
+                  ? `再送可能まで ${cooldownRemainSec} 秒`
+                  : "確認メールを再送する"}
+            </button>
+            {/* REG-016 診断: メール未着時の 復旧手順 */}
+            <div className="mb-2 mt-1 rounded-lg bg-[#F8F8F8] p-3 text-left text-[11px] leading-relaxed text-[#828282]">
+              <p className="mb-1 font-bold text-[#4F4F4F]">
+                届かない場合のご確認事項
+              </p>
+              <ul className="list-disc space-y-0.5 pl-4">
+                <li>迷惑メール / 促銷 フォルダに 振り分けられていないか</li>
+                <li>メールアドレスの タイプミス がないか (再登録要)</li>
+                <li>会社/団体のメール フィルタで no-reply 系が ブロックされていないか</li>
+                <li>
+                  15 分待って 上記いずれも該当しない場合は{" "}
+                  <a
+                    href="mailto:support@aimovie-works.com"
+                    className="text-aimovie-ember-500 hover:underline"
+                  >
+                    support@aimovie-works.com
+                  </a>
+                  {" "}まで ご連絡ください
+                </li>
+              </ul>
+            </div>
             <div className="mt-4">
               <Link href="/login" className="btn-primary">
                 ログインページへ
