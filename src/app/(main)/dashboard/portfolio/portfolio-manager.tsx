@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   addPortfolioItem,
@@ -12,6 +13,28 @@ import { GENRES, AI_TOOLS, AI_TOOL_CATEGORIES } from "@/lib/constants";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { TrashIcon } from "@/components/ui/trash-icon";
 import { Video } from "lucide-react";
+
+/**
+ * 複数ファイル並列アップロード用の 1 ジョブ状態 (UPL-002)。
+ *
+ * status 遷移: queued → signing → uploading → thumb → done | error
+ *   - queued:    ユーザーが選択直後、処理待機中
+ *   - signing:   /api/upload/video/sign で署名 token 発行中
+ *   - uploading: Supabase Storage への直 PUT 中
+ *   - thumb:     動画から 1 フレーム抽出 + /api/upload/thumbnail に POST
+ *   - done:      video_url / thumb_url 確定、バッチ INSERT 待ち
+ *   - error:     いずれかの段階で失敗 (errorMsg に理由)
+ */
+type UploadJob = {
+  id: string;
+  file: File;
+  progress: number;
+  status: "queued" | "signing" | "uploading" | "thumb" | "done" | "error";
+  videoUrl?: string;
+  aspect?: VideoAspect;
+  thumbUrl?: string | null;
+  errorMsg?: string;
+};
 
 type PortfolioItem = {
   id: string;
@@ -143,6 +166,7 @@ async function extractVideoThumbnail(file: File): Promise<Blob | null> {
 }
 
 export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -158,6 +182,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [uploadedVideoAspect, setUploadedVideoAspect] =
     useState<VideoAspect | null>(null);
   const [hasPublishPermission, setHasPublishPermission] = useState(false);
+  // 複数ファイル並列アップロード (UPL-002)。>1 ファイル選択時のみ使う。
+  const [multiJobs, setMultiJobs] = useState<UploadJob[]>([]);
+  const [multiUploading, setMultiUploading] = useState(false);
   // 使用 AI ツール (作品単位、複数選択)
   const [selectedAiTools, setSelectedAiTools] = useState<string[]>([]);
   const toggleFormAiTool = (name: string) =>
@@ -289,6 +316,195 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setError(e instanceof Error ? e.message : "アップロードに失敗しました");
     }
     setUploadingVideo(false);
+  };
+
+  /**
+   * 単一ジョブを (sign → upload → thumb) の順に処理し、状態を都度更新する。
+   * 複数ファイル並列アップロード用 (UPL-002)。1 ファイル選択時は handleVideoUpload
+   * を使うため呼ばれない。
+   */
+  const processOneJob = async (job: UploadJob): Promise<UploadJob> => {
+    const patch = (p: Partial<UploadJob>) =>
+      setMultiJobs((prev) =>
+        prev.map((j) => (j.id === job.id ? { ...j, ...p } : j))
+      );
+
+    // 50MB 制限 (Supabase Free tier に合わせる)
+    if (job.file.size > 50 * 1024 * 1024) {
+      const err = `ファイルサイズが 50MB を超えています (${Math.round(job.file.size / 1024 / 1024)}MB)`;
+      patch({ status: "error", errorMsg: err });
+      return { ...job, status: "error", errorMsg: err };
+    }
+
+    // アスペクト比検出
+    const aspect = await new Promise<VideoAspect>((resolve) => {
+      const video = document.createElement("video");
+      const url = URL.createObjectURL(job.file);
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        const a = detectAspect(video.videoWidth, video.videoHeight);
+        URL.revokeObjectURL(url);
+        resolve(a);
+      };
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        resolve("horizontal");
+      };
+      video.src = url;
+    });
+
+    // 1) 署名 URL 発行
+    patch({ status: "signing", progress: 5 });
+    let signData: {
+      token?: string;
+      path?: string;
+      publicUrl?: string;
+      error?: string;
+    };
+    try {
+      const signRes = await fetch("/api/upload/video/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: job.file.name,
+          contentType: job.file.type,
+          size: job.file.size,
+        }),
+      });
+      signData = await signRes.json();
+      if (
+        !signRes.ok ||
+        !signData.token ||
+        !signData.path ||
+        !signData.publicUrl
+      ) {
+        throw new Error(signData.error ?? "署名URL取得失敗");
+      }
+    } catch (e) {
+      const err = e instanceof Error ? e.message : "署名URL取得に失敗";
+      patch({ status: "error", errorMsg: err });
+      return { ...job, status: "error", errorMsg: err };
+    }
+
+    // 2) Storage 直 PUT (Supabase SDK は progress を出さないので疑似 50→100)
+    patch({ status: "uploading", progress: 50 });
+    try {
+      const browserSupabase = createBrowserSupabase();
+      const { error: uploadError } = await browserSupabase.storage
+        .from("portfolio-videos")
+        .uploadToSignedUrl(signData.path!, signData.token!, job.file, {
+          contentType: job.file.type,
+          upsert: false,
+        });
+      if (uploadError) throw new Error(uploadError.message);
+    } catch (e) {
+      const err = e instanceof Error ? e.message : "アップロード失敗";
+      patch({ status: "error", errorMsg: err });
+      return { ...job, status: "error", errorMsg: err };
+    }
+
+    // 3) サムネ自動抽出 (失敗しても致命的ではない)
+    patch({ status: "thumb", progress: 90, videoUrl: signData.publicUrl, aspect });
+    let thumbUrl: string | null = null;
+    try {
+      const thumbBlob = await extractVideoThumbnail(job.file);
+      if (thumbBlob) {
+        const tfd = new FormData();
+        tfd.append(
+          "file",
+          new File([thumbBlob], "auto-thumb.jpg", { type: "image/jpeg" })
+        );
+        const tres = await fetch("/api/upload/thumbnail", {
+          method: "POST",
+          body: tfd,
+        });
+        const tdata = (await tres.json()) as { url?: string };
+        if (tres.ok && tdata.url) thumbUrl = tdata.url;
+      }
+    } catch (e) {
+      console.warn("[multi-upload] thumb extraction failed:", e);
+    }
+
+    const done: UploadJob = {
+      ...job,
+      status: "done",
+      progress: 100,
+      videoUrl: signData.publicUrl,
+      aspect,
+      thumbUrl,
+    };
+    patch({ status: "done", progress: 100, thumbUrl });
+    return done;
+  };
+
+  /**
+   * 複数ファイル並列アップロード (UPL-002)。>1 ファイル選択時に発火。
+   *   - 各ファイルを Promise.all で並列 (sign → PUT → thumb)
+   *   - 全完了後、成功分を /api/portfolio/batch で 1 リクエスト INSERT
+   *   - タイトルはファイル名 (拡張子除去)、詳細は投稿後に個別編集で埋める運用
+   */
+  const handleMultiFileUpload = async (files: File[]) => {
+    const jobs: UploadJob[] = files.map((f) => ({
+      id:
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random()}`,
+      file: f,
+      progress: 0,
+      status: "queued",
+    }));
+    setMultiJobs(jobs);
+    setMultiUploading(true);
+    setError(null);
+
+    const results = await Promise.all(jobs.map((j) => processOneJob(j)));
+    const ok = results.filter(
+      (r): r is UploadJob & { videoUrl: string } =>
+        r.status === "done" && !!r.videoUrl
+    );
+
+    if (ok.length > 0) {
+      try {
+        const batchRes = await fetch("/api/portfolio/batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: ok.map((r) => ({
+              media_type: "video",
+              title:
+                r.file.name.replace(/\.[^.]+$/, "").slice(0, 120) || "無題の作品",
+              video_url: r.videoUrl,
+              video_platform: "mp4",
+              thumbnail_url: r.thumbUrl ?? null,
+            })),
+          }),
+        });
+        if (!batchRes.ok) {
+          const data = (await batchRes.json()) as { error?: string };
+          throw new Error(data.error ?? "バッチ投稿失敗");
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "バッチ投稿に失敗しました");
+        setMultiUploading(false);
+        return;
+      }
+    }
+
+    const failed = results.filter((r) => r.status === "error");
+    if (failed.length > 0) {
+      setError(
+        `${failed.length} 件のアップロードに失敗しました (成功: ${ok.length} 件)`
+      );
+    }
+
+    // クリーンアップ + サーバー state を再取得
+    setMultiJobs([]);
+    setMultiUploading(false);
+    if (ok.length > 0) {
+      setShowForm(false);
+      resetFormState();
+      router.refresh();
+    }
   };
 
   const handleImageUpload = async (file: File) => {
@@ -616,18 +832,28 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                       <input
                         type="file"
                         accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+                        multiple
                         onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) void handleVideoUpload(file);
+                          const files = Array.from(e.target.files ?? []);
+                          if (files.length === 0) return;
+                          // 1 ファイル → 詳細フォーム経由の従来フロー
+                          // 複数ファイル → 並列アップロード + バッチ INSERT (UPL-002)
+                          if (files.length === 1) {
+                            void handleVideoUpload(files[0]);
+                          } else {
+                            void handleMultiFileUpload(files);
+                          }
+                          // 同じファイルを連続選択できるよう input をリセット
+                          e.target.value = "";
                         }}
-                        disabled={uploadingVideo}
+                        disabled={uploadingVideo || multiUploading}
                         className="hidden"
                         id="portfolio-video-input"
                       />
                       <label
                         htmlFor="portfolio-video-input"
                         className={`flex cursor-pointer flex-col items-center gap-2 rounded-lg border-2 border-dashed border-aimovie-ember-500/40 bg-aimovie-ember-500/5 px-4 py-10 text-center transition-colors hover:border-aimovie-ember-500 hover:bg-aimovie-ember-500/10 ${
-                          uploadingVideo ? "pointer-events-none opacity-50" : ""
+                          uploadingVideo || multiUploading ? "pointer-events-none opacity-50" : ""
                         }`}
                       >
                         {uploadingVideo ? (
@@ -645,18 +871,77 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                               </div>
                             )}
                           </>
+                        ) : multiUploading ? (
+                          <>
+                            <div className="h-6 w-6 animate-spin rounded-full border-2 border-aimovie-ember-500/30 border-t-aimovie-ember-500" />
+                            <span className="text-xs font-bold text-aimovie-navy-900">
+                              {multiJobs.filter((j) => j.status === "done").length} /{" "}
+                              {multiJobs.length} 完了
+                            </span>
+                          </>
                         ) : (
                           <>
                             <Video size={36} strokeWidth={1.6} className="text-aimovie-navy-900" aria-hidden />
                             <span className="text-sm font-bold text-aimovie-navy-900">
-                              クリックして動画を選択
+                              クリックして動画を選択 (複数可)
                             </span>
                             <span className="text-[10px] text-[#BDBDBD]">
-                              MP4 / WebM / MOV (50MB 以下)
+                              MP4 / WebM / MOV (1 ファイル 50MB 以下) / 複数選択で並列アップロード + 一括投稿
                             </span>
                           </>
                         )}
                       </label>
+
+                      {/* 複数ファイル 並列アップロード時: ファイル毎プログレス */}
+                      {multiJobs.length > 0 && (
+                        <ul className="mt-3 space-y-1.5">
+                          {multiJobs.map((j) => (
+                            <li
+                              key={j.id}
+                              className="flex items-center gap-3 rounded-md border border-aimovie-navy-500/10 bg-white px-3 py-2 text-xs"
+                            >
+                              <span
+                                className="min-w-0 flex-1 truncate font-medium text-aimovie-navy-900"
+                                title={j.file.name}
+                              >
+                                {j.file.name}
+                              </span>
+                              <div className="h-1.5 w-32 overflow-hidden rounded-full bg-aimovie-navy-500/10">
+                                <div
+                                  className={`h-full transition-all ${
+                                    j.status === "error"
+                                      ? "bg-red-500"
+                                      : "bg-gradient-to-r from-aimovie-navy-900 to-aimovie-ember-500"
+                                  }`}
+                                  style={{ width: `${j.progress}%` }}
+                                />
+                              </div>
+                              <span
+                                className={`w-16 text-right ${
+                                  j.status === "error"
+                                    ? "text-red-600"
+                                    : j.status === "done"
+                                      ? "text-green-600"
+                                      : "text-ink-muted"
+                                }`}
+                                title={j.errorMsg ?? ""}
+                              >
+                                {j.status === "error"
+                                  ? "エラー"
+                                  : j.status === "done"
+                                    ? "完了"
+                                    : j.status === "thumb"
+                                      ? "サムネ生成"
+                                      : j.status === "uploading"
+                                        ? `${j.progress}%`
+                                        : j.status === "signing"
+                                          ? "準備中"
+                                          : "待機"}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   )}
                 </div>
