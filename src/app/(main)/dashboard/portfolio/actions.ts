@@ -264,6 +264,64 @@ export async function togglePortfolioFeatured(id: string, next: boolean) {
   return { success: true };
 }
 
+/**
+ * CDET-004: 自分の作品を「公開 ⇔ 一時非公開」に トグルする。
+ *
+ *   published → unpublished (= 一覧・詳細から隠す、削除ではない)
+ *   unpublished → published (= 公開再開)
+ *
+ * admin による強制 unpublish (moderation_actions に 'unpublish' 記録) とは
+ * 独立した「自主非公開」経路。creator 自身の意思で 一時的に取り下げる用途。
+ * admin モデレーション履歴は残らず、moderation_reason には「creator 自主
+ * 非公開」を書き込む。
+ */
+export async function toggleOwnPortfolioVisibility(id: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: creator } = await supabase
+    .from("creator_profiles")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+  if (!creator) return { error: "権限がありません" };
+
+  const { data: item, error: fetchErr } = await supabase
+    .from("portfolio_items")
+    .select("id, moderation_status")
+    .eq("id", id)
+    .eq("creator_id", creator.id)
+    .maybeSingle();
+  if (fetchErr || !item) return { error: "対象作品が見つかりません" };
+  // admin による deleted は creator では戻せない (最終措置)
+  if (item.moderation_status === "deleted") {
+    return { error: "削除済み作品は creator では復元できません" };
+  }
+
+  const nextStatus =
+    item.moderation_status === "unpublished" ? "published" : "unpublished";
+  const { error } = await supabase
+    .from("portfolio_items")
+    .update({
+      moderation_status: nextStatus,
+      moderation_reason:
+        nextStatus === "unpublished" ? "creator 自主非公開" : null,
+      moderated_at: new Date().toISOString(),
+      moderated_by: user.id,
+    })
+    .eq("id", id)
+    .eq("creator_id", creator.id);
+  if (error) return { error: "公開状態の更新に失敗しました" };
+
+  revalidatePath("/dashboard/portfolio");
+  revalidatePath("/creators");
+  revalidatePath("/portfolios");
+  return { success: true, nextStatus };
+}
+
 export async function deletePortfolioItem(id: string) {
   const supabase = await createClient();
   const {

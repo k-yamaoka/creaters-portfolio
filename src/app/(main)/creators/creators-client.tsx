@@ -112,15 +112,18 @@ export function CreatorsPageClient({
     let result = [...creators];
 
     if (filters.keyword) {
-      const kw = filters.keyword.toLowerCase();
-      result = result.filter(
-        (c) =>
-          (c.profiles.display_name ?? "").toLowerCase().includes(kw) ||
-          (c.bio ?? "").toLowerCase().includes(kw) ||
-          (c.strengths ?? []).some((s) => s.toLowerCase().includes(kw)) ||
-          (c.video_lengths ?? []).some((l) => l.toLowerCase().includes(kw)) ||
-          (c.genres ?? []).some((g) => g.toLowerCase().includes(kw))
-      );
+      // CLIST-010 修正: display_name のみを対象に、trim + スペース区切り
+      //   AND 検索。ジャンル / 強み / タグは既存の chip / dropdown で
+      //   絞り込む前提。keyword 検索は「名前を思い出せる相手を探す」用途に
+      //   限定して 結果の可読性を上げる。
+      const raw = (filters.keyword ?? "").trim().toLowerCase();
+      const parts = raw.split(/\s+/).filter(Boolean);
+      if (parts.length > 0) {
+        result = result.filter((c) => {
+          const name = (c.profiles.display_name ?? "").toLowerCase();
+          return parts.every((p) => name.includes(p));
+        });
+      }
     }
 
     if (filters.genres && filters.genres.length > 0) {

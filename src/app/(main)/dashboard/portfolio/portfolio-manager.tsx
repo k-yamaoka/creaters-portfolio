@@ -7,6 +7,7 @@ import {
   addPortfolioItem,
   deletePortfolioItem,
   togglePortfolioFeatured,
+  toggleOwnPortfolioVisibility,
   updatePortfolioThumbnail,
 } from "./actions";
 import { GENRES, AI_TOOLS, AI_TOOL_CATEGORIES } from "@/lib/constants";
@@ -64,6 +65,8 @@ type PortfolioItem = {
   role_scope?: string | null;
   external_url?: string | null;
   display_tag?: string | null;
+  // CDET-004: 自主非公開ステータス
+  moderation_status?: string | null;
 };
 
 type MediaType = "video" | "image";
@@ -1587,6 +1590,19 @@ function PortfolioCard({
     setTogglingFeatured(false);
   };
 
+  // CDET-004: 自主非公開 ⇔ 公開再開 の toggle
+  const [togglingVisibility, setTogglingVisibility] = useState(false);
+  const isSelfUnpublished =
+    item.moderation_status === "unpublished";
+  const isDeletedByAdmin = item.moderation_status === "deleted";
+  const handleToggleVisibility = async () => {
+    if (togglingVisibility) return;
+    setTogglingVisibility(true);
+    const res = await toggleOwnPortfolioVisibility(item.id);
+    if (res?.error) onFeaturedError(res.error);
+    setTogglingVisibility(false);
+  };
+
   const isImage = item.media_type === "image";
   // display_tag が設定されていればそれを最優先 (例: 「商用実績」「縦型 9:16」)
   // 未設定なら platform から自動ラベルを付ける。
@@ -1883,7 +1899,7 @@ function PortfolioCard({
           </a>
         )}
 
-        <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleToggleFeatured}
@@ -1903,6 +1919,27 @@ function PortfolioCard({
             <span aria-hidden>★</span>
             {item.is_featured ? "表示中" : "表示する"}
           </button>
+          {/* CDET-004: 自主 公開 / 非公開 の toggle */}
+          {!isDeletedByAdmin && (
+            <button
+              type="button"
+              onClick={handleToggleVisibility}
+              disabled={togglingVisibility}
+              aria-pressed={isSelfUnpublished}
+              className={`inline-flex items-center gap-1.5 rounded-pill px-3 py-1.5 text-xs font-bold transition-colors disabled:opacity-50 ${
+                isSelfUnpublished
+                  ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                  : "border border-ink/20 bg-white text-ink-muted hover:border-yellow-400 hover:text-yellow-700"
+              }`}
+              title={
+                isSelfUnpublished
+                  ? "クリックで公開再開"
+                  : "クリックで一時非公開 (一覧・詳細から隠す)"
+              }
+            >
+              {isSelfUnpublished ? "🙈 非公開中" : "🙉 公開中"}
+            </button>
+          )}
           <button
             type="button"
             onClick={onDelete}
