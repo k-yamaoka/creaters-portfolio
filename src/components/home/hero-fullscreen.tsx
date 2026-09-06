@@ -47,17 +47,24 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function HeroFullscreen({ videos, children, className = "" }: Props) {
-  // クライアントマウント時にシャッフル順序を確定 (毎回ロードで違う順)。
-  // 空配列ガード。1 本なら "ループっぽく" 同じものを使う (onEnded を無視)
+  // 順序: SSR / hydration 一致のため、初期状態は videos そのまま。
+  // マウント直後にシャッフルすると <video src> が張替って初回ロードが
+  // 無駄になるため、次回の advance() 発火時 (10 秒後 or onEnded 時) に
+  // 初めて order をシャッフルする。
   const [order, setOrder] = useState<FullscreenVideoSource[]>(videos);
   const [cursor, setCursor] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [opacity, setOpacity] = useState(0);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const shuffledOnceRef = useRef(false);
 
   useEffect(() => {
-    setOrder(shuffle(videos));
+    // videos prop 自体が変わったときのみリセット。
+    // 初回マウント時 (同じ配列) はシャッフルしない → PERF-001: 初回動画の
+    // 二重ロードを回避し LCP を短縮。
+    setOrder(videos);
     setCursor(0);
+    shuffledOnceRef.current = false;
   }, [videos]);
 
   useEffect(() => {
@@ -105,6 +112,16 @@ export function HeroFullscreen({ videos, children, className = "" }: Props) {
         v.play().catch(() => {});
       }
       return;
+    }
+    // 初回 advance で 残り (先頭以外) をシャッフルする。SSR 一致した初回
+    // 動画は既に再生済なので、以降の順序をランダム化。
+    if (!shuffledOnceRef.current) {
+      shuffledOnceRef.current = true;
+      setOrder((prev) => {
+        const head = prev[0];
+        const rest = shuffle(prev.slice(1));
+        return head ? [head, ...rest] : rest;
+      });
     }
     // 次の cursor に進む。順序リスト末尾まで行ったら再シャッフルして折返し
     setCursor((c) => {

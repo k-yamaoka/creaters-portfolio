@@ -236,85 +236,74 @@ export default async function HomePage() {
           </p>
         </div>
 
-        {/* === 下端: テキスト + CTA (Axis 風 左寄せ) === */}
+        {/* === 下端: テキスト + CTA (Axis 風 左寄せ) ===
+            PERF-001: 元は各要素を RevealOnScroll で包み IntersectionObserver
+            発火まで opacity:0 / translateY(24px) を維持していた。しかし
+            この h1 が Lighthouse の LCP 候補であるため、初回 paint 時に
+            即座に確定表示するよう unwrap した。stagger を残したい場合は
+            CSS @starting-style / animation-delay で JS 依存無しに再現可能。 */}
         <div className="mt-auto pb-20 pt-32 sm:pb-28 lg:pb-32">
           <div className="max-w-xl lg:max-w-2xl">
-            <RevealOnScroll delay={0}>
-              <p className="inline-flex items-center gap-2 rounded-pill border border-paper/20 bg-paper/[0.04] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/75 backdrop-blur-sm">
-                <span
-                  aria-hidden
-                  className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-aimovie-ember-500 to-aimovie-ivory-300"
-                />
-                AI Creators Platform
-              </p>
-            </RevealOnScroll>
+            <p className="inline-flex items-center gap-2 rounded-pill border border-paper/20 bg-paper/[0.04] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.22em] text-paper/75 backdrop-blur-sm">
+              <span
+                aria-hidden
+                className="inline-block h-1.5 w-1.5 rounded-full bg-gradient-to-r from-aimovie-ember-500 to-aimovie-ivory-300"
+              />
+              AI Creators Platform
+            </p>
 
-            <RevealOnScroll delay={120}>
-              {/* Hero メインコピー (2026-07-21 改修):
-                    - word-break: keep-all + overflow-wrap: break-word で 単語内改行を禁止
-                    - 「AIクリエイターと、」を white-space:nowrap の span で 1 段目として保護
-                       → 縮小時も 「AIクリエ / イターと、」のような単語割れが発生しない
-                    - グラデーション span は nowrap span の内側に維持 (bg-clip 崩れ回避)
-                    - select-none で テキスト選択ハイライトを無効化 (各種ベンダープレフィックス
-                       含む Tailwind の select-none クラス) */}
-              <h1
-                className="headline-display mt-6 select-none text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper"
-                style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
-              >
-                <span style={{ whiteSpace: "nowrap" }}>
-                  {/* Cinema Ink: ember(火花) → ivory(スポットライト) の
-                      横グラデ。navy を挟むと暗い動画背景で沈むので排除。 */}
-                  <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text text-transparent">
-                    AIクリエイター
-                  </span>
-                  と、
+            {/* Hero メインコピー (LCP 対象): word-break: keep-all + nowrap
+                span で 単語内改行 / bg-clip 崩れを回避しつつ、初回 paint 即
+                確定表示 (PERF-001)。 */}
+            <h1
+              className="headline-display mt-6 select-none text-[clamp(2.5rem,7vw,5.5rem)] leading-[1.05] text-paper"
+              style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
+            >
+              <span style={{ whiteSpace: "nowrap" }}>
+                <span className="bg-gradient-to-r from-aimovie-ember-500 via-aimovie-ember-400 to-aimovie-ivory-100 bg-clip-text text-transparent">
+                  AIクリエイター
                 </span>
-                <br />
-                <span style={{ whiteSpace: "nowrap" }}>企業をつなぐ。</span>
-              </h1>
-            </RevealOnScroll>
-
-            <RevealOnScroll delay={240}>
-              <p
-                className="body-jp mt-6 max-w-prose-jp select-none text-sm text-paper/85 sm:text-base"
-                style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
-              >
-                Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
-                SNS広告動画・商品紹介・採用動画を依頼できる専門マッチング
-                プラットフォーム。撮影不要・完全リモート・低予算で、構成から
-                完成までおまかせ。
-              </p>
-            </RevealOnScroll>
-
-            <RevealOnScroll delay={360}>
-              <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                {/* 主 CTA: ember solid (Cinema Ink 主役色) + 深紺 ring focus。
-                    hover で ember-600 に締まる。 */}
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center gap-2 rounded-pill bg-aimovie-ember-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,107,53,0.55)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-aimovie-ember-600 hover:shadow-[0_14px_36px_-10px_rgba(255,107,53,0.75)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aimovie-ember-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-aimovie-navy-950"
-                >
-                  無料ではじめる
-                </Link>
-                <Link href="/creators" className="btn-axis-ghost">
-                  クリエイターを探す
-                </Link>
-              </div>
-            </RevealOnScroll>
-
-            {/* スクロールヒント */}
-            <RevealOnScroll delay={520} className="mt-12">
-              <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-paper/55">
-                <span aria-hidden>▾</span>
-                <span>(Scroll to explore)</span>
+                と、
               </span>
-            </RevealOnScroll>
+              <br />
+              <span style={{ whiteSpace: "nowrap" }}>企業をつなぐ。</span>
+            </h1>
+
+            <p
+              className="body-jp mt-6 max-w-prose-jp select-none text-sm text-paper/85 sm:text-base"
+              style={{ wordBreak: "keep-all", overflowWrap: "break-word" }}
+            >
+              Sora・Veo・Runway・Seedance を使いこなすクリエイターに、
+              SNS広告動画・商品紹介・採用動画を依頼できる専門マッチング
+              プラットフォーム。撮影不要・完全リモート・低予算で、構成から
+              完成までおまかせ。
+            </p>
+
+            <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              <Link
+                href="/register"
+                className="inline-flex items-center justify-center gap-2 rounded-pill bg-aimovie-ember-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_-10px_rgba(255,107,53,0.55)] transition-all duration-300 ease-out hover:-translate-y-0.5 hover:bg-aimovie-ember-600 hover:shadow-[0_14px_36px_-10px_rgba(255,107,53,0.75)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-aimovie-ember-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-aimovie-navy-950"
+              >
+                無料ではじめる
+              </Link>
+              <Link href="/creators" className="btn-axis-ghost">
+                クリエイターを探す
+              </Link>
+            </div>
+
+            <span className="mt-12 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-paper/55">
+              <span aria-hidden>▾</span>
+              <span>(Scroll to explore)</span>
+            </span>
           </div>
         </div>
       </HeroFullscreen>
 
       {/* Section 5: Hero 直下動画帯 — 注目 4 本を横一列に並べ常時微再生 */}
-      <HeroUnderBand works={bandWorks} />
+      {/* PERF-003: cv-auto でスクロール到達までレンダをスキップ */}
+      <div className="cv-auto">
+        <HeroUnderBand works={bandWorks} />
+      </div>
 
       {/* 2026-07-03 撤去:
           - MarqueeText "AI Video Creators — For Business" (装飾横スクロール)
@@ -361,7 +350,9 @@ export default async function HomePage() {
           共創メッセージは Value Props と FEATURE で機能ベースに置換済。 */}
 
       {/* Section 5: Works ダイジェスト — タブ切替で 18 本フィルタリング */}
-      <WorksDigest works={digestWorks} />
+      <div className="cv-auto">
+        <WorksDigest works={digestWorks} />
+      </div>
 
       {/* 2026-07-03 撤去:
           MarqueeText "View More Works — Made With AI" (装飾横スクロール)。
@@ -383,7 +374,8 @@ export default async function HomePage() {
           ================================================= */}
       <section
         id="features"
-        className="relative overflow-x-hidden text-ink"
+        className="cv-auto relative overflow-x-hidden text-ink"
+        style={{ containIntrinsicSize: "auto 2400px" }}
       >
         {/* 2026-07-03 撤去: FEATURE セクションの見出し帯
             ("Movie commerce, end-to-end." + 説明文)。
@@ -467,7 +459,7 @@ export default async function HomePage() {
       {/* =================================================
           04 — Process (旧 HOW TO USE) — 3 ステップを罫線縦割りに
           ================================================= */}
-      <section id="how" className="relative bg-paper text-ink">
+      <section id="how" className="cv-auto relative bg-paper text-ink">
         <div className="relative mx-auto max-w-wide px-gutter py-10 lg:py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr,2fr] lg:items-end">
             <RevealOnScroll delay={0}>
@@ -543,7 +535,9 @@ export default async function HomePage() {
           サーバコンポーネントで getCachedAiNews() を await、
           og:title と og:image URL のみ表示 (本文/リード文は取得しない)
           ================================================= */}
-      <AiNewsSection />
+      <div className="cv-auto">
+        <AiNewsSection />
+      </div>
 
       {/* 2026-09-03 (URL-009): 06 — FAQ セクションは /pricing 下部に移設。
           ヘッダーの「FAQ」リンク (→ /pricing#faq) から到達する導線に統一。 */}
