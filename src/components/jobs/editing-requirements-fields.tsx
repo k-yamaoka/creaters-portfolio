@@ -103,11 +103,14 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
     deliveryFormats.length > 0 ||
     (deliveryFormatsOtherShow && deliveryFormatsOther.trim().length > 0);
 
-  // 参考URL の有効件数 (空白除去後 1 件以上)
+  // 参考URL の有効件数 (空白除去後)
+  // JOB-012: 「参考動画を持たない企業も掲載できるよう任意化」の指摘に対応。
+  //   ただし推奨は残す (テンプレ 3 件以上)。以降は validity から外して
+  //   任意扱いに。
   const validReferenceUrls = referenceUrls
     .map((u) => u.trim())
     .filter(Boolean);
-  const referenceUrlsFilled = validReferenceUrls.length >= 1;
+  void validReferenceUrls;
 
   // アスペクト比 必須化 (2026-06-12)。チップ選択 or その他自由入力のいずれかが
   // 埋まっていれば OK。
@@ -117,11 +120,10 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
 
   useEffect(() => {
     onValidityChange?.(
-      deliveryFormatsFilled && referenceUrlsFilled && aspectRatiosFilled
+      deliveryFormatsFilled && aspectRatiosFilled
     );
   }, [
     deliveryFormatsFilled,
-    referenceUrlsFilled,
     aspectRatiosFilled,
     onValidityChange,
   ]);
@@ -377,16 +379,17 @@ export function EditingRequirementsFields({ onCountChange, onValidityChange }: P
           )}
         </div>
 
-        {/* 参考動画URL (必須 / 1件以上、3件以上推奨) */}
+        {/* 参考動画URL (JOB-012 対応: 任意化。ただし 3 件以上推奨) */}
         <div>
           <label className="mb-1.5 flex items-center text-sm font-medium text-[#4F4F4F]">
             参考動画URL
-            <RequiredMark />
+            <span className="ml-2 text-[10px] font-normal text-[#828282]">(任意)</span>
           </label>
           <p className="mb-2 text-xs text-[#828282]">
             ※ イメージのズレを防ぐため、テイスト・尺感・編集の方向性が伝わる
             <span className="font-bold text-[#4F4F4F]"> 3 件以上</span>
-            の参考動画 URL を添付することを推奨します。
+            の参考動画 URL を添付することを推奨します (参考動画をお持ちでない
+            場合は空欄でも掲載可能です)。
           </p>
           <div className="space-y-2">
             {referenceUrls.map((url, idx) => (

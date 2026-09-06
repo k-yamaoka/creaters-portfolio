@@ -14,6 +14,36 @@ export async function POST(request: NextRequest) {
 
   const { jobId, creatorId, message, proposed_price } = await request.json();
 
+  // JOB-021: 募集終了とのすれ違い対策。応募直前に status='open' を再確認し、
+  //   閉じられていたら 409 + 明確なメッセージで返す。従来は INSERT が通って
+  //   しまい、企業側は「募集終了案件に応募が来た」謎状態になっていた。
+  const { data: jobStatusRow } = await supabase
+    .from("jobs")
+    .select("status, deadline")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (!jobStatusRow) {
+    return NextResponse.json(
+      { error: "この案件は見つかりません" },
+      { status: 404 }
+    );
+  }
+  if (jobStatusRow.status !== "open") {
+    return NextResponse.json(
+      { error: "この案件は募集を終了しました" },
+      { status: 409 }
+    );
+  }
+  if (
+    jobStatusRow.deadline &&
+    new Date(jobStatusRow.deadline).getTime() < Date.now()
+  ) {
+    return NextResponse.json(
+      { error: "この案件は応募期限を過ぎています" },
+      { status: 409 }
+    );
+  }
+
   // 1. 応募を登録（trigger が application_count を自動同期）
   const { error } = await supabase.from("job_applications").insert({
     job_id: jobId,

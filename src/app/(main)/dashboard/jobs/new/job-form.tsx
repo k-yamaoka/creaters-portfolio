@@ -355,6 +355,23 @@ export function JobForm() {
         </div>
       </section>
 
+      {/* JOB-013: 送信 disabled の理由を明示。全部埋めたつもりで押せない
+          企業がどこで詰まっているか気付けるように、不足項目を並べる。 */}
+      {!canSubmit && !saving && (
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-xs text-yellow-800">
+          <p className="font-bold">「案件を掲載する」を有効化するには以下を入力してください:</p>
+          <ul className="mt-1.5 ml-4 list-disc space-y-0.5">
+            {!genresFilled && <li>制作ジャンル (1 つ以上)</li>}
+            {!editingValid && (
+              <li>制作要件 セクションの必須項目 (納品形式 / アスペクト比 等)</li>
+            )}
+            {computedUnitPrice === null && (
+              <li>全体見積もり + 本数 (単価が算出できません)</li>
+            )}
+          </ul>
+        </div>
+      )}
+
       <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row sm:items-center">
         {/* 下書き保存 — タイトルがあれば押せる。後で /dashboard/jobs の下書き
             タブから続きを編集できる想定 (status=draft で保存)。 */}

@@ -87,10 +87,12 @@ export function JobsPageClient({
   viewerProfile?: ViewerProfile | null;
 }) {
   const hasProfile = !!viewerProfile;
+  // JOB-002/016: デフォルトタブを 「募集中 (open)」 に。ユーザーがまず見たい
+  // のは 応募可能な案件で、終了案件は「終了」タブで確認する動線に統一。
   const [filters, setFilters] = useState<JobSearchFilters>({
     // クリエイタープロフがある場合だけ "おすすめ" をデフォルト、なければ "新着"
     sortBy: hasProfile ? "recommended" : "newest",
-    statusFilter: "all",
+    statusFilter: "open",
   });
   const [genreOpen, setGenreOpen] = useState(true);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -640,6 +642,9 @@ export function JobsPageClient({
                 })();
                 const deadlineText = (() => {
                   if (!job.deadline) return null;
+                  // JOB-016: closed 案件は「募集終了」バッジで既に伝わっている
+                  //   ので「残り X 日」を出さない (矛盾表示回避)。
+                  if (!isOpen) return null;
                   if (remain == null) return formatDateJP(job.deadline);
                   if (remain < 0) return "受付終了";
                   if (remain === 0) return "本日締切!";
