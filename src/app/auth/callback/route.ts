@@ -17,10 +17,61 @@ function safeNextPath(raw: string | null): string {
   return raw;
 }
 
+/**
+ * Supabase Auth の action type ごとの 事後遷移先。
+ *   recovery      → パスワード再設定フォーム
+ *   email_change  → ダッシュボードに 「変更完了」バナー付きで戻す
+ *   invite        → 役割 (creator/client) 選択画面
+ *   magiclink     → ダッシュボード (通常ログインと同扱い)
+ *   signup / null → デフォルト経路 (creator 未完了なら /onboarding、他は next)
+ */
+function destinationForType(type: string | null): string | null {
+  switch (type) {
+    case "recovery":
+      return "/reset-password";
+    case "email_change":
+      return "/dashboard?email_changed=1";
+    case "invite":
+      return "/select-role";
+    case "magiclink":
+      return "/dashboard";
+    default:
+      return null;
+  }
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  // 新 verifyOtp フロー: token_hash + type (recovery / email / invite / signup 等)
+  const tokenHash = searchParams.get("token_hash");
   const next = safeNextPath(searchParams.get("next"));
+  // Supabase メールリンク の type param (recovery / email_change / invite / magiclink / signup)
+  const type = searchParams.get("type");
+
+  // 1) token_hash 経由 (メール確認 / パスワード再設定 の 現行 標準フロー)
+  if (tokenHash && type) {
+    const supabase = await createClient();
+    // OtpType の enum: 'signup' | 'invite' | 'magiclink' | 'recovery' | 'email_change' | 'email'
+    const otpType = (type === "email_change" ? "email" : type) as
+      | "signup"
+      | "invite"
+      | "magiclink"
+      | "recovery"
+      | "email";
+    const { error } = await supabase.auth.verifyOtp({
+      type: otpType,
+      token_hash: tokenHash,
+    });
+    if (!error) {
+      revalidatePath("/", "layout");
+      const dest = destinationForType(type) ?? next;
+      return NextResponse.redirect(`${origin}${dest}`);
+    }
+    return NextResponse.redirect(
+      `${origin}/login?error=auth_callback_error&reason=verify_otp`
+    );
+  }
 
   if (code) {
     const supabase = await createClient();
@@ -55,6 +106,13 @@ export async function GET(request: Request) {
 
       // Revalidate all pages so layout picks up new auth state
       revalidatePath("/", "layout");
+
+      // type param が明示されていれば それを最優先で尊重
+      // (recovery なら reset-password、email_change なら dashboard 等)
+      const typedDest = destinationForType(type);
+      if (typedDest) {
+        return NextResponse.redirect(`${origin}${typedDest}`);
+      }
 
       // 00068: creator ロールで、まだオンボーディング未完了 (portfolio 0 点 &
       //   onboarding_completed_at IS NULL) の場合は /onboarding に流す。
