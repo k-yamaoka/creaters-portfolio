@@ -218,6 +218,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
       user.email?.split("@")[0] ||
       "ユーザー";
 
+    // RLS-001: 00089 で profiles.* SELECT が REVOKE 済み。INSERT ... RETURNING *
+    //   は SELECT 権限が必要で 403 になるため、列を明示。
     const { data: newProfile, error } = await supabase
       .from("profiles")
       .insert({
@@ -226,7 +228,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
         display_name,
         role,
       })
-      .select()
+      .select("id, role, display_name, avatar_url, is_verified")
       .single();
 
     if (error || !newProfile) return null;
