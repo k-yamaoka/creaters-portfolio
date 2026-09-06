@@ -1,9 +1,47 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/supabase/queries";
 
 // 案件詳細は応募ステータス・閲覧者依存で表示が変わるため動的レンダリング
 export const dynamic = "force-dynamic";
+
+// SEO-005: 案件詳細の <title> を jobs.title ベースの動的値に。
+//   layout.tsx の template: "%s | アイムビ" が サフィックスを自動付与。
+//   非公開/削除済案件でも クローラーには 「案件が見つかりません」を返して
+//   誤 index を防ぐ。
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: job } = await supabase
+    .from("jobs")
+    .select("title, description, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (!job) {
+    return { title: "案件が見つかりません" };
+  }
+  const title = job.title?.trim() || "案件";
+  const desc = job.description?.trim().slice(0, 160) || undefined;
+  return {
+    title,
+    description: desc ?? `${title} の詳細・応募はアイムビでご覧いただけます。`,
+    openGraph: {
+      title: `${title} | アイムビ`,
+      description: desc,
+      type: "article",
+    },
+    // 募集終了案件は クローラーに index させない (SEO 品質保持)
+    robots:
+      job.status === "open"
+        ? undefined
+        : { index: false, follow: true },
+  };
+}
 import { formatPrice, formatDateJP } from "@/lib/utils";
 import Link from "next/link";
 import { ApplyButton } from "./apply-button";

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +7,33 @@ import { createClient } from "@/lib/supabase/server";
 
 // プロフィール編集・いいね数などが即時反映されるよう動的レンダリング
 export const dynamic = "force-dynamic";
+
+// SEO-004: クリエイター詳細の <title> を display_name ベースの動的値に。
+//   layout.tsx の template: "%s | アイムビ" で サフィックスが自動付与される。
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const creator = await getCreatorById(id);
+  if (!creator) {
+    return { title: "クリエイターが見つかりません" };
+  }
+  const displayName = creator.profiles?.display_name?.trim() || "クリエイター";
+  const bio = creator.bio?.trim().slice(0, 120) || undefined;
+  return {
+    title: displayName,
+    description: bio
+      ? `${displayName} のポートフォリオ・実績・料金。${bio}`
+      : `${displayName} のポートフォリオ・実績・料金をアイムビでご覧いただけます。`,
+    openGraph: {
+      title: `${displayName} | アイムビ`,
+      description: bio,
+      type: "profile",
+    },
+  };
+}
 // E-4 (2026-07-16): 星評価・レビュー は準備中扱いのため ReviewList import は解除。
 //   フェーズ 2 で復活予定。fetch も削除して DB クエリを節約。
 import { PortfolioFilterable } from "@/components/creators/portfolio-filterable";
