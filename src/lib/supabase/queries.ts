@@ -63,9 +63,11 @@ export type CreatorWithRelations = {
 export async function getCreators(): Promise<CreatorWithRelations[]> {
   const supabase = await createClient();
 
-  // 00067: 公開条件 — ポートフォリオを 1 点以上登録した creator のみ検索対象。
-  //   is_searchable は portfolio_items INSERT/DELETE trigger で自動更新される
-  //   ので、ここでは単純に true で絞り込む。
+  // PERF-009: 従来は creator_profiles.* + portfolio_items 全 moderation_status
+  //   を pull → アプリ側で filter していたため、ペイロードが数 MB を超える
+  //   ケースがあった。移行 00088 の composite index を前提に、
+  //   embedded resource filter で unpublished/deleted を DB 側で除外する。
+  //   `!inner` は付けないので portfolio 0 件の creator も残る (旧挙動維持)。
   const { data, error } = await supabase
     .from("creator_profiles")
     .select(
@@ -76,12 +78,19 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
         avatar_url,
         is_verified
       ),
-      portfolio_items (
+      portfolio_items!creator_id (
         id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role, moderation_status
       )
       `
     )
     .eq("is_searchable", true)
+    // portfolio_items embedded に対する server-side filter:
+    //   moderation_status IS NULL または NOT IN (unpublished, deleted)
+    //   PostgREST の or() は foreignTable 指定で embedded 行にのみ適用される。
+    .or(
+      "moderation_status.is.null,moderation_status.not.in.(unpublished,deleted)",
+      { foreignTable: "portfolio_items" }
+    )
     // D-1: ファウンディング クリエイターを上位表示 (creator_profiles.is_early_member=true)。
     //   同順位内では従来通り rating DESC。
     .order("is_early_member", { ascending: false })
@@ -92,18 +101,7 @@ export async function getCreators(): Promise<CreatorWithRelations[]> {
     return [];
   }
 
-  // 00072: unpublished / deleted な portfolio_items は 公開一覧から除外
-  const rows = (data ?? []) as unknown as CreatorWithRelations[];
-  return rows.map((c) => ({
-    ...c,
-    portfolio_items: (c.portfolio_items ?? []).filter(
-      (p) =>
-        (p as unknown as { moderation_status?: string }).moderation_status !==
-          "unpublished" &&
-        (p as unknown as { moderation_status?: string }).moderation_status !==
-          "deleted"
-    ),
-  }));
+  return (data ?? []) as unknown as CreatorWithRelations[];
 }
 
 export async function getCreatorById(
@@ -111,6 +109,8 @@ export async function getCreatorById(
 ): Promise<CreatorWithRelations | null> {
   const supabase = await createClient();
 
+  // PERF-009: getCreators と同じく embedded resource filter で
+  //   unpublished/deleted を DB 側除外し、アプリ側 filter を撤去。
   const { data, error } = await supabase
     .from("creator_profiles")
     .select(
@@ -121,12 +121,16 @@ export async function getCreatorById(
         avatar_url,
         is_verified
       ),
-      portfolio_items (
+      portfolio_items!creator_id (
         id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role, moderation_status
       )
       `
     )
     .eq("id", id)
+    .or(
+      "moderation_status.is.null,moderation_status.not.in.(unpublished,deleted)",
+      { foreignTable: "portfolio_items" }
+    )
     .single();
 
   if (error) {
@@ -134,18 +138,7 @@ export async function getCreatorById(
     return null;
   }
 
-  // 00072: unpublished / deleted な作品は公開ページから除外
-  const row = data as unknown as CreatorWithRelations;
-  return {
-    ...row,
-    portfolio_items: (row.portfolio_items ?? []).filter(
-      (p) =>
-        (p as unknown as { moderation_status?: string }).moderation_status !==
-          "unpublished" &&
-        (p as unknown as { moderation_status?: string }).moderation_status !==
-          "deleted"
-    ),
-  };
+  return data as unknown as CreatorWithRelations;
 }
 
 export type CurrentUser = {
@@ -199,9 +192,11 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   if (!user) return null;
 
+  // PERF-009: select("*") で全カラム (bio 長文 / meta jsonb 等) を毎リクエスト
+  //   pull していたのを、実際に使う 6 カラムに絞る。
   let { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, email, role, display_name, avatar_url, is_verified")
     .eq("id", user.id)
     .single();
 
@@ -227,6 +222,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     if (error || !newProfile) return null;
     profile = newProfile;
   }
+  if (!profile) return null;
 
   let creator_profile = undefined;
   let client_profile = undefined;

@@ -38,18 +38,16 @@ export default async function DashboardPage() {
 
   const supabase = await createClient();
 
-  // 総いいね数 = このクリエイターの全 portfolio_items の like_count 合計 (旧 ④
-  // アナリティクス撤去後も、評価セクションの「総いいね数」カードで使用)
+  // 総いいね数 = このクリエイターの全 portfolio_items の like_count 合計。
+  // PERF-009: 全 like_count 行を pull → アプリ側 reduce (N+1 相当) を廃止し、
+  //   移行 00088 で追加した RPC sum_creator_portfolio_likes(creator_id) で
+  //   DB 側 1 行 aggregate に変更。
   let totalLikes = 0;
   if (isCreator && hasCreatorProfile) {
-    const { data: rows } = await supabase
-      .from("portfolio_items")
-      .select("like_count")
-      .eq("creator_id", user.creator_profile!.id);
-    totalLikes = (rows ?? []).reduce(
-      (sum, r) => sum + ((r as { like_count: number | null }).like_count ?? 0),
-      0
-    );
+    const { data } = await supabase.rpc("sum_creator_portfolio_likes", {
+      p_creator_id: user.creator_profile!.id,
+    });
+    totalLikes = typeof data === "number" ? data : Number(data ?? 0);
   }
 
   // ===== ① 要対応アラート =====
