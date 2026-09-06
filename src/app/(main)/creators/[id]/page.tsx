@@ -8,8 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 // プロフィール編集・いいね数などが即時反映されるよう動的レンダリング
 export const dynamic = "force-dynamic";
 
-// SEO-004: クリエイター詳細の <title> を display_name ベースの動的値に。
-//   layout.tsx の template: "%s | アイムビ" で サフィックスが自動付与される。
+// SEO-004: クリエイター詳細の <title> を display_name ベースの 動的値に。
+//   要件通り "{display_name} | アイムビ" を absolute で 直接指定して
+//   layout.tsx の template 解決に依存しない (仕様書との文字列一致を保証)。
 export async function generateMetadata({
   params,
 }: {
@@ -18,19 +19,24 @@ export async function generateMetadata({
   const { id } = await params;
   const creator = await getCreatorById(id);
   if (!creator) {
-    return { title: "クリエイターが見つかりません" };
+    return { title: { absolute: "クリエイターが見つかりません | アイムビ" } };
   }
   const displayName = creator.profiles?.display_name?.trim() || "クリエイター";
   const bio = creator.bio?.trim().slice(0, 120) || undefined;
+  const fullTitle = `${displayName} | アイムビ`;
   return {
-    title: displayName,
+    title: { absolute: fullTitle },
     description: bio
       ? `${displayName} のポートフォリオ・実績・料金。${bio}`
       : `${displayName} のポートフォリオ・実績・料金をアイムビでご覧いただけます。`,
     openGraph: {
-      title: `${displayName} | アイムビ`,
+      title: fullTitle,
       description: bio,
       type: "profile",
+    },
+    twitter: {
+      title: fullTitle,
+      description: bio,
     },
   };
 }

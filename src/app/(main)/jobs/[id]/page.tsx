@@ -6,8 +6,9 @@ import { getCurrentUser } from "@/lib/supabase/queries";
 // 案件詳細は応募ステータス・閲覧者依存で表示が変わるため動的レンダリング
 export const dynamic = "force-dynamic";
 
-// SEO-005: 案件詳細の <title> を jobs.title ベースの動的値に。
-//   layout.tsx の template: "%s | アイムビ" が サフィックスを自動付与。
+// SEO-005: 案件詳細の <title> を jobs.title ベースの 動的値に。
+//   要件通り "{job_title} | アイムビ" を absolute で 直接指定して
+//   layout.tsx の template 解決に依存しない (仕様書との文字列一致を保証)。
 //   非公開/削除済案件でも クローラーには 「案件が見つかりません」を返して
 //   誤 index を防ぐ。
 export async function generateMetadata({
@@ -23,17 +24,22 @@ export async function generateMetadata({
     .eq("id", id)
     .maybeSingle();
   if (!job) {
-    return { title: "案件が見つかりません" };
+    return { title: { absolute: "案件が見つかりません | アイムビ" } };
   }
   const title = job.title?.trim() || "案件";
   const desc = job.description?.trim().slice(0, 160) || undefined;
+  const fullTitle = `${title} | アイムビ`;
   return {
-    title,
+    title: { absolute: fullTitle },
     description: desc ?? `${title} の詳細・応募はアイムビでご覧いただけます。`,
     openGraph: {
-      title: `${title} | アイムビ`,
+      title: fullTitle,
       description: desc,
       type: "article",
+    },
+    twitter: {
+      title: fullTitle,
+      description: desc,
     },
     // 募集終了案件は クローラーに index させない (SEO 品質保持)
     robots:
