@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
+import { FaqSection } from "@/components/pricing/faq-section";
 
 export const metadata: Metadata = {
   title: "料金体系",
@@ -164,6 +165,11 @@ export default function PricingPage() {
           ※ 上記は参考価格です。実際の金額は AI クリエイターの料金プランをご確認ください。
         </p>
       </div>
+
+      {/* 2026-09-03 (URL-009): LP TOP から FAQ を移設。id="faq" は
+          ヘッダー「FAQ」リンク (/pricing#faq) と ハッシュ直接アクセスの
+          両方から明示的 scrollIntoView される。 */}
+      <FaqSection />
     </div>
   );
 }

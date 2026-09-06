@@ -315,6 +315,13 @@ export function Header({
             >
               使い方
             </Link>
+            {/* URL-009: FAQ は /pricing 下部に統合済み (#faq に scroll) */}
+            <Link
+              href="/pricing#faq"
+              className={T.navLink}
+            >
+              FAQ
+            </Link>
           </nav>
         </div>
 
@@ -638,6 +645,14 @@ export function Header({
               onClick={() => setMobileMenuOpen(false)}
             >
               使い方
+              <span className="text-aimovie-ember-500">→</span>
+            </Link>
+            <Link
+              href="/pricing#faq"
+              className={T.mobileLink}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              FAQ
               <span className="text-aimovie-ember-500">→</span>
             </Link>
             <div className="mt-6 flex flex-col gap-3 pt-2">
