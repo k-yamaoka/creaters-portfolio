@@ -119,6 +119,9 @@ export async function getCreatorById(
   // PERF-009 + RLS-001: getCreators と同じ列制約。"*" は 00089 で 401 化するため
   //   CREATOR_PROFILE_PUBLIC_COLS で明示列。
   //   embedded resource filter で unpublished/deleted を DB 側除外。
+  // CDET-016: profiles.is_active を fetch し、suspended user の詳細ページを
+  //   404 相当 (null 返却) にする。/creators 一覧は既に is_searchable=true
+  //   縛りで除外済だが、直接 URL アクセス経路がザル状態だった。
   const { data, error } = await supabase
     .from("creator_profiles")
     .select(
@@ -127,7 +130,8 @@ export async function getCreatorById(
       profiles!creator_profiles_user_id_fkey (
         display_name,
         avatar_url,
-        is_verified
+        is_verified,
+        is_active
       ),
       portfolio_items!creator_id (
         id, title, description, media_type, video_url, video_platform, image_url, thumbnail_url, aspect_ratio, like_count, genre, tags, used_ai_tools, role_scope, external_url, display_tag, duration_seconds, visual_style, resolution, usage_role, moderation_status
@@ -146,7 +150,15 @@ export async function getCreatorById(
     return null;
   }
 
-  return data as unknown as CreatorWithRelations;
+  // suspended user は 一律 404 扱い。CTA・見積もり・メッセージ導線を全て
+  // 落とすシンプル対策。将来的に「一時停止中」表示を出したくなったら
+  // 別コンポーネントで isActive === false を分岐実装する。
+  const raw = data as unknown as CreatorWithRelations & {
+    profiles: { is_active?: boolean };
+  };
+  if (raw.profiles && raw.profiles.is_active === false) return null;
+
+  return raw as unknown as CreatorWithRelations;
 }
 
 export type CurrentUser = {

@@ -17,9 +17,12 @@ type Items = CreatorWithRelations["portfolio_items"];
 export function PortfolioFilterable({
   items,
   isAuthed = false,
+  likedIds,
 }: {
   items: Items;
   isAuthed?: boolean;
+  /** CLIST-014: viewer が既に いいね済みの portfolio_item_id 集合 */
+  likedIds?: Set<string>;
 }) {
   const [selected, setSelected] = useState<PortfolioFormat>("all");
 
@@ -78,7 +81,7 @@ export function PortfolioFilterable({
         })}
       </div>
 
-      <PortfolioGrid items={filtered} isAuthed={isAuthed} />
+      <PortfolioGrid items={filtered} isAuthed={isAuthed} likedIds={likedIds} />
     </div>
   );
 }

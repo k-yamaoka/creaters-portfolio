@@ -295,8 +295,9 @@ export default async function JobDetailPage({
               <p className="text-sm text-gray-500">
                 応募するにはログインが必要です
               </p>
+              {/* JOB-006: ログイン後 元の案件詳細に戻れるよう next= を付与 */}
               <Link
-                href="/login"
+                href={`/login?next=${encodeURIComponent(`/jobs/${id}`)}`}
                 className="btn-primary mt-4 inline-block text-sm"
               >
                 ログイン

@@ -56,6 +56,25 @@ export default async function CreatorDetailPage({
   }
   void viewerRole; // role 情報は今後の権限分岐用に保持
 
+  // CLIST-014: このクリエイターの portfolio_items のうち viewer が「いいね」
+  //   済みの id を取得。/portfolios ページと同じ実装パターン。
+  //   未ログインは空配列で fallback (LikeButton 側で /login に飛ばす)。
+  let likedIds: string[] = [];
+  if (viewer && creator.portfolio_items.length > 0) {
+    const { data: likes } = await supabase
+      .from("portfolio_likes")
+      .select("portfolio_item_id")
+      .eq("user_id", viewer.id)
+      .in(
+        "portfolio_item_id",
+        creator.portfolio_items.map((p) => p.id)
+      );
+    likedIds = (likes ?? []).map(
+      (r) => (r as { portfolio_item_id: string }).portfolio_item_id
+    );
+  }
+  const likedIdSet = new Set(likedIds);
+
   // 2026-06-25: 「アクティブ」「過去90日問い合わせ」「返信率」表示は UI から
   // 撤去したため、関連の messages 集計クエリも撤去 (DB 負荷低減)。
 
@@ -423,6 +442,7 @@ export default async function CreatorDetailPage({
                 <PortfolioFilterable
                   items={otherWorks}
                   isAuthed={!!viewer}
+                  likedIds={likedIdSet}
                 />
               </div>
             )}

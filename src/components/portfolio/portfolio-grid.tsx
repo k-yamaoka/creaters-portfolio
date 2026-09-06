@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import { isVerticalVideo } from "@/lib/video-utils";
 import { ReportButton } from "@/components/reports/report-button";
+import { LikeButton } from "@/components/portfolio/like-button";
 
 const VideoPreviewCard = dynamic(
   () => import("./video-preview-card").then((m) => m.VideoPreviewCard),
@@ -19,6 +20,8 @@ type PortfolioItem = {
   video_platform: string;
   image_url?: string | null;
   thumbnail_url: string | null;
+  aspect_ratio?: "vertical" | "horizontal" | "square";
+  like_count?: number;
   genre: string | null;
   tags: string[];
 };
@@ -26,9 +29,12 @@ type PortfolioItem = {
 export function PortfolioGrid({
   items,
   isAuthed = false,
+  likedIds,
 }: {
   items: PortfolioItem[];
   isAuthed?: boolean;
+  /** CLIST-014: viewer が既に いいね済みの portfolio_item_id 集合 */
+  likedIds?: Set<string>;
 }) {
   // Group items by genre
   const grouped = items.reduce<Record<string, PortfolioItem[]>>((acc, item) => {
@@ -42,7 +48,7 @@ export function PortfolioGrid({
 
   // If only one genre or no genres, show flat grid
   if (genreKeys.length <= 1) {
-    return <PortfolioItemGrid items={items} isAuthed={isAuthed} />;
+    return <PortfolioItemGrid items={items} isAuthed={isAuthed} likedIds={likedIds} />;
   }
 
   // Show grouped by genre
@@ -56,7 +62,7 @@ export function PortfolioGrid({
               {grouped[genre].length}件
             </span>
           </div>
-          <PortfolioItemGrid items={grouped[genre]} isAuthed={isAuthed} />
+          <PortfolioItemGrid items={grouped[genre]} isAuthed={isAuthed} likedIds={likedIds} />
         </div>
       ))}
     </div>
@@ -66,19 +72,25 @@ export function PortfolioGrid({
 function PortfolioItemGrid({
   items,
   isAuthed = false,
+  likedIds,
 }: {
   items: PortfolioItem[];
   isAuthed?: boolean;
+  likedIds?: Set<string>;
 }) {
   const imageItems = items.filter((item) => item.media_type === "image");
   const videoItems = items.filter((item) => item.media_type !== "image");
 
-  const verticalItems = videoItems.filter((item) =>
-    isVerticalVideo(item.video_platform, item.video_url ?? "")
-  );
-  const horizontalItems = videoItems.filter(
-    (item) => !isVerticalVideo(item.video_platform, item.video_url ?? "")
-  );
+  // CDET-003 修正: item.aspect_ratio (DB stored value) を第一 signal に。
+  //   未設定のときだけ isVerticalVideo(URL 判定) にフォールバック。旧実装は
+  //   URL 判定オンリーで、DB 上 aspect_ratio="vertical" でも Cloudinary 直
+  //   などで vertical 判定できない作品が横型枠に入って歪んでいた。
+  const isItemVertical = (item: PortfolioItem) =>
+    item.aspect_ratio
+      ? item.aspect_ratio === "vertical"
+      : isVerticalVideo(item.video_platform, item.video_url ?? "");
+  const verticalItems = videoItems.filter(isItemVertical);
+  const horizontalItems = videoItems.filter((item) => !isItemVertical(item));
 
   return (
     <div className="space-y-6">
@@ -99,15 +111,26 @@ function PortfolioItemGrid({
                     className="h-full w-full"
                   />
                 </div>
-                {/* 00072: 通報アイコン (hover でうっすら表示) */}
-                <div className="absolute right-2 top-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
-                  <ReportButton
-                    targetType="portfolio_item"
-                    targetId={item.id}
-                    targetTitle={item.title}
+                {/* CLIST-014: いいね ♥ (常時表示、認証時は count 更新) +
+                    00072: 通報アイコン (hover でうっすら表示) を横並び */}
+                <div className="absolute right-2 top-2 z-10 flex items-center gap-2">
+                  <LikeButton
+                    portfolioItemId={item.id}
+                    initialLiked={likedIds?.has(item.id) ?? false}
+                    initialCount={item.like_count ?? 0}
                     isAuthed={isAuthed}
-                    variant="icon"
+                    variant="overlay"
+                    showCount
                   />
+                  <span className="opacity-0 transition-opacity group-hover:opacity-100">
+                    <ReportButton
+                      targetType="portfolio_item"
+                      targetId={item.id}
+                      targetTitle={item.title}
+                      isAuthed={isAuthed}
+                      variant="icon"
+                    />
+                  </span>
                 </div>
               </div>
               <div className="mt-3 min-w-0">
@@ -160,6 +183,26 @@ function PortfolioItemGrid({
                       sizes="(max-width: 640px) 50vw, 25vw"
                       className="h-full w-full"
                     />
+                  </div>
+                  {/* CLIST-014: 縦型 タイルにも いいね + 通報 */}
+                  <div className="absolute right-1.5 top-1.5 z-10 flex items-center gap-1.5">
+                    <LikeButton
+                      portfolioItemId={item.id}
+                      initialLiked={likedIds?.has(item.id) ?? false}
+                      initialCount={item.like_count ?? 0}
+                      isAuthed={isAuthed}
+                      variant="overlay"
+                      showCount
+                    />
+                    <span className="opacity-0 transition-opacity group-hover:opacity-100">
+                      <ReportButton
+                        targetType="portfolio_item"
+                        targetId={item.id}
+                        targetTitle={item.title}
+                        isAuthed={isAuthed}
+                        variant="icon"
+                      />
+                    </span>
                   </div>
                 </div>
                 <div className="mt-2 min-w-0">
@@ -223,7 +266,29 @@ function PortfolioItemGrid({
                         画像なし
                       </div>
                     )}
-                    {/* 旧「AI画像」バッジは撤去 (ユーザー指示: 不要なタグの削除) */}
+                    {/* CLIST-014: 静止画にも いいね + 通報 (通報のみ hover) */}
+                    <div
+                      className="absolute right-1.5 top-1.5 z-10 flex items-center gap-1.5"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <LikeButton
+                        portfolioItemId={item.id}
+                        initialLiked={likedIds?.has(item.id) ?? false}
+                        initialCount={item.like_count ?? 0}
+                        isAuthed={isAuthed}
+                        variant="overlay"
+                        showCount
+                      />
+                      <span className="opacity-0 transition-opacity group-hover:opacity-100">
+                        <ReportButton
+                          targetType="portfolio_item"
+                          targetId={item.id}
+                          targetTitle={item.title}
+                          isAuthed={isAuthed}
+                          variant="icon"
+                        />
+                      </span>
+                    </div>
                   </div>
                   <div className="mt-2 min-w-0">
                     <h3 className="line-clamp-2 break-words text-xs font-bold text-[#222]">

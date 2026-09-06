@@ -174,17 +174,20 @@ export function CreatorsPageClient({
         break;
       case "price_low":
       case "price_high": {
-        // 価格未設定 (= 応相談) は方向によらず常に末尾に固める
+        // 価格未設定 (= 応相談) は方向によらず常に末尾に固める。
+        // 同一金額 or 両方 null の tie 時は rating desc で決定的に並べる
+        // (CLIST-009: 未設定 creator が多いと asc/desc の見た目が同じに
+        //  なる問題への 部分緩和。実データが増えれば sort 差は明確になる)。
         const dir = filters.sortBy === "price_low" ? 1 : -1;
         result.sort((a, b) => {
-          // 最低受注金額 (minimum_order_amount) で並び替え。未設定は末尾固定。
           const pa = a.minimum_order_amount ?? Number.POSITIVE_INFINITY;
           const pb = b.minimum_order_amount ?? Number.POSITIVE_INFINITY;
           const ai = !isFinite(pa);
           const bi = !isFinite(pb);
-          if (ai && bi) return 0;
+          if (ai && bi) return b.rating - a.rating; // 未設定同士は rating desc
           if (ai) return 1;
           if (bi) return -1;
+          if (pa === pb) return b.rating - a.rating; // 同額 tie も rating desc
           return (pa - pb) * dir;
         });
         break;
