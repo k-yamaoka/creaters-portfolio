@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 
   const { data: stale, error } = await admin
     .from("content_reports")
-    .select("id, category, target_id, target_type, created_at")
+    .select("id, reason_category, target_id, target_type, created_at")
     .eq("status", "open")
     .lte("created_at", cutoff)
     .order("created_at", { ascending: true });
@@ -46,10 +46,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ ok: true, count: 0, message: "no stale reports" });
   }
 
-  // カテゴリ別に集約
+  // カテゴリ別に集約 (00072 schema: reason_category)
   const byCategory = new Map<string, number>();
   for (const r of stale ?? []) {
-    byCategory.set(r.category, (byCategory.get(r.category) ?? 0) + 1);
+    const cat = (r as { reason_category?: string }).reason_category ?? "other";
+    byCategory.set(cat, (byCategory.get(cat) ?? 0) + 1);
   }
   const oldestAt = stale?.[0]?.created_at;
   const ageDays = oldestAt
