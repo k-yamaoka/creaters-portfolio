@@ -8,6 +8,8 @@ import { templatesFor, type MessageTemplate } from "@/lib/message-templates";
 import { linkifyText } from "@/lib/linkify";
 import { ExternalTxWarning } from "@/components/orders/external-tx-warning";
 import { useBeforeUnload } from "@/lib/use-before-unload";
+import { isAbortError } from "@/lib/abort";
+import { X } from "lucide-react";
 
 export type Message = {
   id: string;
@@ -133,6 +135,8 @@ export function MessageThread({
   useBeforeUnload(uploading);
   // UPL-004: 直近失敗した添付ファイル (再試行ボタン用)
   const [lastAttachment, setLastAttachment] = useState<File | null>(null);
+  // UPL-005: 進行中アップロードの中断用 AbortController
+  const attachmentAbortRef = useRef<AbortController | null>(null);
 
   const templates = useMemo(() => templatesFor(senderRole), [senderRole]);
 
@@ -291,12 +295,16 @@ export function MessageThread({
     setLastAttachment(file);
     setError(null);
     setUploading(true);
+    // UPL-005: 中断用 controller
+    const abort = new AbortController();
+    attachmentAbortRef.current = abort;
     try {
       const fd = new FormData();
       fd.set("file", file);
       const res = await fetch("/api/upload/message-attachment", {
         method: "POST",
         body: fd,
+        signal: abort.signal,
       });
       const json: { url?: string; error?: string } = await res.json();
       if (!res.ok || !json.url) {
@@ -306,14 +314,27 @@ export function MessageThread({
       setAttachmentUrl(json.url);
       setLastAttachment(null);
     } catch (e) {
-      const msg =
-        e instanceof Error && e.message
-          ? `アップロードに失敗しました (${e.message})`
-          : "アップロードに失敗しました (通信状態をご確認ください)";
-      setError(msg);
+      if (isAbortError(e)) {
+        // UPL-005: キャンセル時は静かに初期状態へ戻す (エラー扱いにしない)
+        setLastAttachment(null);
+        setError(null);
+      } else {
+        const msg =
+          e instanceof Error && e.message
+            ? `アップロードに失敗しました (${e.message})`
+            : "アップロードに失敗しました (通信状態をご確認ください)";
+        setError(msg);
+      }
     } finally {
       setUploading(false);
+      attachmentAbortRef.current = null;
     }
+  };
+
+  /** UPL-005: 添付アップロードのキャンセル */
+  const cancelAttachmentUpload = () => {
+    attachmentAbortRef.current?.abort();
+    attachmentAbortRef.current = null;
   };
 
   const handleFilePick = async (
@@ -650,32 +671,34 @@ export function MessageThread({
         <div className="flex items-end gap-3">
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || sending}
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-ink/20 bg-white text-ink-muted transition-colors hover:border-ink hover:bg-paper-deep disabled:opacity-50"
-            aria-label="画像 / PDF を添付"
-            title="画像 (PNG/JPEG) / PDF を添付"
+            // UPL-005: アップロード中に押されたら fetch を abort。それ以外は
+            //   ファイル選択ダイアログを開く。
+            onClick={() => {
+              if (uploading) {
+                cancelAttachmentUpload();
+              } else {
+                fileInputRef.current?.click();
+              }
+            }}
+            disabled={sending}
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border bg-white transition-colors ${
+              uploading
+                ? "border-red-300 text-red-600 hover:border-red-500 hover:bg-red-50"
+                : "border-ink/20 text-ink-muted hover:border-ink hover:bg-paper-deep"
+            } disabled:opacity-50`}
+            aria-label={
+              uploading
+                ? "アップロードをキャンセル"
+                : "画像 / PDF を添付"
+            }
+            title={
+              uploading
+                ? "クリックでアップロードをキャンセル"
+                : "画像 (PNG/JPEG) / PDF を添付"
+            }
           >
             {uploading ? (
-              <svg
-                className="h-5 w-5 animate-spin"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
-              </svg>
+              <X size={18} strokeWidth={2.4} aria-hidden />
             ) : (
               <svg
                 className="h-5 w-5"

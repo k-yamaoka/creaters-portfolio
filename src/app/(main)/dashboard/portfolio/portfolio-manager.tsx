@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -14,6 +14,8 @@ import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { TrashIcon } from "@/components/ui/trash-icon";
 import { Video } from "lucide-react";
 import { useBeforeUnload } from "@/lib/use-before-unload";
+import { isAbortError, withAbort } from "@/lib/abort";
+import { X } from "lucide-react";
 
 /**
  * 複数ファイル並列アップロード用の 1 ジョブ状態 (UPL-002)。
@@ -30,7 +32,14 @@ type UploadJob = {
   id: string;
   file: File;
   progress: number;
-  status: "queued" | "signing" | "uploading" | "thumb" | "done" | "error";
+  status:
+    | "queued"
+    | "signing"
+    | "uploading"
+    | "thumb"
+    | "done"
+    | "error"
+    | "cancelled";
   videoUrl?: string;
   aspect?: VideoAspect;
   thumbUrl?: string | null;
@@ -192,6 +201,12 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   const [lastImageAttempt, setLastImageAttempt] = useState<File | null>(null);
   const [imageErrorMsg, setImageErrorMsg] = useState<string | null>(null);
 
+  // UPL-005: 単一アップロード中の中断用 AbortController。× ボタンで abort。
+  const videoAbortRef = useRef<AbortController | null>(null);
+  const imageAbortRef = useRef<AbortController | null>(null);
+  // multi upload: job id → AbortController の Map。個別 × / 全キャンセルで参照。
+  const multiAbortMapRef = useRef<Map<string, AbortController>>(new Map());
+
   // UPL-003: いずれかのアップロードが動作中は「戻る/リロード/タブ閉じ」で
   // ブラウザ標準の離脱確認を表示。すべて完了したら自動でリスナ解除。
   useBeforeUnload(uploadingVideo || uploadingImage || multiUploading);
@@ -240,6 +255,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setError(null);
     setUploadProgress(0);
 
+    // UPL-005: 進行中の abort 用 controller。× ボタンで abort。
+    const abort = new AbortController();
+    videoAbortRef.current = abort;
+    const signal = abort.signal;
+
     // アスペクト比を先に検出
     const aspect = await new Promise<VideoAspect>((resolve) => {
       const video = document.createElement("video");
@@ -267,6 +287,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           contentType: file.type,
           size: file.size,
         }),
+        signal, // UPL-005: キャンセル対応
       });
       const signData = (await signRes.json()) as {
         token?: string;
@@ -280,14 +301,20 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
 
       // 2) Supabase SDK の uploadToSignedUrl を使用 (ブラウザから直接 PUT)
       //    XHR の生 PUT は Supabase のリクエスト形式と差異があり 400 になるため。
+      // UPL-005: SDK は signal を受け付けないため withAbort で UI 側の await
+      //   のみ即座に打ち切る。背景 PUT は完了するが、その後の DB INSERT は
+      //   実行されず孤児となる (次回 fixMissingThumbnails cron が掃除する)。
       setUploadProgress(50); // SDK は progress イベントを出さないので疑似表示
       const browserSupabase = createBrowserSupabase();
-      const { error: uploadError } = await browserSupabase.storage
-        .from("portfolio-videos")
-        .uploadToSignedUrl(signData.path, signData.token, file, {
-          contentType: file.type,
-          upsert: false,
-        });
+      const { error: uploadError } = await withAbort(
+        browserSupabase.storage
+          .from("portfolio-videos")
+          .uploadToSignedUrl(signData.path, signData.token, file, {
+            contentType: file.type,
+            upsert: false,
+          }),
+        signal
+      );
       setUploadProgress(100);
 
       if (uploadError) {
@@ -302,6 +329,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       // 成功したので再試行用の File と エラー文言はクリア
       setLastVideoAttempt(null);
       setVideoErrorMsg(null);
+      videoAbortRef.current = null;
 
       // 3) サムネ自動抽出 + アップロード (失敗してもメイン処理は止めない)
       setExtractingThumb(true);
@@ -318,6 +346,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           const tres = await fetch("/api/upload/thumbnail", {
             method: "POST",
             body: tfd,
+            signal,
           });
           const tdata = (await tres.json()) as {
             url?: string;
@@ -335,17 +364,33 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setExtractingThumb(false);
       return;
     } catch (e) {
-      // UPL-004: 通信途絶 / タイムアウト / Storage エラー等を包括的に補足。
-      // videoErrorMsg にメッセージを積み、UI 側の「再試行」ボタンから
-      // 直近 lastVideoAttempt を再送できるようにする。
-      const msg =
-        e instanceof Error && e.message
-          ? e.message
-          : "アップロードに失敗しました (通信状態をご確認ください)";
-      setError(msg);
-      setVideoErrorMsg(msg);
+      // UPL-005: ユーザーが「×」でキャンセルした場合は AbortError → 静かに
+      //   初期状態へ戻す (エラーバナーも出さない)。
+      if (isAbortError(e)) {
+        setUploadProgress(0);
+        setLastVideoAttempt(null);
+        setVideoErrorMsg(null);
+      } else {
+        // UPL-004: 通信途絶 / タイムアウト / Storage エラー等を包括的に補足。
+        // videoErrorMsg にメッセージを積み、UI 側の「再試行」ボタンから
+        // 直近 lastVideoAttempt を再送できるようにする。
+        const msg =
+          e instanceof Error && e.message
+            ? e.message
+            : "アップロードに失敗しました (通信状態をご確認ください)";
+        setError(msg);
+        setVideoErrorMsg(msg);
+      }
     }
     setUploadingVideo(false);
+    videoAbortRef.current = null;
+  };
+
+  /** UPL-005: 単一動画アップロードのキャンセル */
+  const cancelVideoUpload = () => {
+    videoAbortRef.current?.abort();
+    videoAbortRef.current = null;
+    // setUploadingVideo(false) は catch → finally 相当ブロックで行われる
   };
 
   /**
@@ -359,8 +404,28 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         prev.map((j) => (j.id === job.id ? { ...j, ...p } : j))
       );
 
+    // UPL-005: このジョブ専用の abort controller を Map に登録。
+    //   × ボタン (cancelMultiJob) や 全キャンセル (cancelAllMultiJobs)
+    //   から参照して abort する。
+    const abort = new AbortController();
+    multiAbortMapRef.current.set(job.id, abort);
+    const signal = abort.signal;
+    const cleanupAbort = () => multiAbortMapRef.current.delete(job.id);
+    const handleAbort = (): UploadJob => {
+      cleanupAbort();
+      const cancelled: UploadJob = {
+        ...job,
+        status: "cancelled",
+        progress: 0,
+        errorMsg: undefined,
+      };
+      patch({ status: "cancelled", progress: 0, errorMsg: undefined });
+      return cancelled;
+    };
+
     // 50MB 制限 (Supabase Free tier に合わせる)
     if (job.file.size > 50 * 1024 * 1024) {
+      cleanupAbort();
       const err = `ファイルサイズが 50MB を超えています (${Math.round(job.file.size / 1024 / 1024)}MB)`;
       patch({ status: "error", errorMsg: err });
       return { ...job, status: "error", errorMsg: err };
@@ -400,6 +465,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
           contentType: job.file.type,
           size: job.file.size,
         }),
+        signal,
       });
       signData = await signRes.json();
       if (
@@ -411,7 +477,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         throw new Error(signData.error ?? "署名URL取得失敗");
       }
     } catch (e) {
+      if (isAbortError(e)) return handleAbort();
       const err = e instanceof Error ? e.message : "署名URL取得に失敗";
+      cleanupAbort();
       patch({ status: "error", errorMsg: err });
       return { ...job, status: "error", errorMsg: err };
     }
@@ -420,15 +488,20 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     patch({ status: "uploading", progress: 50 });
     try {
       const browserSupabase = createBrowserSupabase();
-      const { error: uploadError } = await browserSupabase.storage
-        .from("portfolio-videos")
-        .uploadToSignedUrl(signData.path!, signData.token!, job.file, {
-          contentType: job.file.type,
-          upsert: false,
-        });
+      const { error: uploadError } = await withAbort(
+        browserSupabase.storage
+          .from("portfolio-videos")
+          .uploadToSignedUrl(signData.path!, signData.token!, job.file, {
+            contentType: job.file.type,
+            upsert: false,
+          }),
+        signal
+      );
       if (uploadError) throw new Error(uploadError.message);
     } catch (e) {
+      if (isAbortError(e)) return handleAbort();
       const err = e instanceof Error ? e.message : "アップロード失敗";
+      cleanupAbort();
       patch({ status: "error", errorMsg: err });
       return { ...job, status: "error", errorMsg: err };
     }
@@ -447,14 +520,17 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         const tres = await fetch("/api/upload/thumbnail", {
           method: "POST",
           body: tfd,
+          signal,
         });
         const tdata = (await tres.json()) as { url?: string };
         if (tres.ok && tdata.url) thumbUrl = tdata.url;
       }
     } catch (e) {
+      if (isAbortError(e)) return handleAbort();
       console.warn("[multi-upload] thumb extraction failed:", e);
     }
 
+    cleanupAbort();
     const done: UploadJob = {
       ...job,
       status: "done",
@@ -465,6 +541,19 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     };
     patch({ status: "done", progress: 100, thumbUrl });
     return done;
+  };
+
+  /** UPL-005: 特定 multi ジョブをキャンセル */
+  const cancelMultiJob = (jobId: string) => {
+    const ac = multiAbortMapRef.current.get(jobId);
+    if (ac) ac.abort();
+    multiAbortMapRef.current.delete(jobId);
+  };
+
+  /** UPL-005: 進行中の全 multi ジョブを一括キャンセル */
+  const cancelAllMultiJobs = () => {
+    for (const [, ac] of multiAbortMapRef.current) ac.abort();
+    multiAbortMapRef.current.clear();
   };
 
   /**
@@ -521,15 +610,21 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     }
 
     const failed = results.filter((r) => r.status === "error");
+    const cancelled = results.filter((r) => r.status === "cancelled");
     if (failed.length > 0) {
       setError(
-        `${failed.length} 件のアップロードに失敗しました (成功: ${ok.length} 件)。下のリストの「再試行」ボタンからやり直せます。`
+        `${failed.length} 件のアップロードに失敗しました (成功: ${ok.length} 件${cancelled.length ? ` / キャンセル: ${cancelled.length} 件` : ""})。下のリストの「再試行」ボタンからやり直せます。`
       );
     }
 
     // UPL-004: 失敗ジョブは「再試行」ボタン付きで残す。成功分だけ削除。
-    const okIds = new Set(ok.map((r) => r.id));
-    setMultiJobs((prev) => prev.filter((j) => !okIds.has(j.id)));
+    // UPL-005: キャンセル済みジョブも list から取り除く (ユーザーの意思で
+    //   中断したので UI に残す価値なし)。
+    const removeIds = new Set<string>([
+      ...ok.map((r) => r.id),
+      ...cancelled.map((r) => r.id),
+    ]);
+    setMultiJobs((prev) => prev.filter((j) => !removeIds.has(j.id)));
     setMultiUploading(false);
     if (ok.length > 0) {
       router.refresh();
@@ -612,12 +707,16 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setImageErrorMsg(null);
     setUploadingImage(true);
     setError(null);
+    // UPL-005: 中断用 controller
+    const abort = new AbortController();
+    imageAbortRef.current = abort;
     const fd = new FormData();
     fd.append("file", file);
     try {
       const res = await fetch("/api/upload/thumbnail", {
         method: "POST",
         body: fd,
+        signal: abort.signal,
       });
       const data = await res.json();
       if (data.error) {
@@ -629,15 +728,28 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
         setImageErrorMsg(null);
       }
     } catch (e) {
-      // 通信途絶 / タイムアウトは fetch が TypeError を投げる
-      const msg =
-        e instanceof Error && e.message
-          ? `画像のアップロードに失敗しました (${e.message})`
-          : "画像のアップロードに失敗しました (通信状態をご確認ください)";
-      setError(msg);
-      setImageErrorMsg(msg);
+      if (isAbortError(e)) {
+        // UPL-005: キャンセル時は静かに初期状態へ戻す
+        setLastImageAttempt(null);
+        setImageErrorMsg(null);
+      } else {
+        // 通信途絶 / タイムアウトは fetch が TypeError を投げる
+        const msg =
+          e instanceof Error && e.message
+            ? `画像のアップロードに失敗しました (${e.message})`
+            : "画像のアップロードに失敗しました (通信状態をご確認ください)";
+        setError(msg);
+        setImageErrorMsg(msg);
+      }
     }
     setUploadingImage(false);
+    imageAbortRef.current = null;
+  };
+
+  /** UPL-005: 画像アップロードのキャンセル */
+  const cancelImageUpload = () => {
+    imageAbortRef.current?.abort();
+    imageAbortRef.current = null;
   };
 
   const handleAdd = async (formData: FormData) => {
@@ -877,6 +989,21 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                         )}
                       </label>
 
+                      {/* UPL-005: 画像アップロード中の × キャンセル */}
+                      {uploadingImage && (
+                        <div className="mt-2 flex items-center justify-end">
+                          <button
+                            type="button"
+                            onClick={cancelImageUpload}
+                            className="inline-flex items-center gap-1 rounded-md border border-ink/20 bg-white px-2.5 py-1 text-xs font-medium text-ink/70 transition-colors hover:border-red-400 hover:bg-red-50 hover:text-red-700"
+                            aria-label="アップロードをキャンセル"
+                          >
+                            <X size={12} strokeWidth={2.2} aria-hidden />
+                            キャンセル
+                          </button>
+                        </div>
+                      )}
+
                       {/* UPL-004: 画像アップロード失敗時の 再試行 */}
                       {!uploadingImage && imageErrorMsg && lastImageAttempt && (
                         <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs">
@@ -1029,6 +1156,36 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                         )}
                       </label>
 
+                      {/* UPL-005: 単一動画アップロード中の × キャンセル */}
+                      {uploadingVideo && (
+                        <div className="mt-2 flex items-center justify-end">
+                          <button
+                            type="button"
+                            onClick={cancelVideoUpload}
+                            className="inline-flex items-center gap-1 rounded-md border border-ink/20 bg-white px-2.5 py-1 text-xs font-medium text-ink/70 transition-colors hover:border-red-400 hover:bg-red-50 hover:text-red-700"
+                            aria-label="アップロードをキャンセル"
+                          >
+                            <X size={12} strokeWidth={2.2} aria-hidden />
+                            キャンセル
+                          </button>
+                        </div>
+                      )}
+
+                      {/* UPL-005: 複数並列アップロード中の 全キャンセル */}
+                      {multiUploading && (
+                        <div className="mt-2 flex items-center justify-end">
+                          <button
+                            type="button"
+                            onClick={cancelAllMultiJobs}
+                            className="inline-flex items-center gap-1 rounded-md border border-ink/20 bg-white px-2.5 py-1 text-xs font-medium text-ink/70 transition-colors hover:border-red-400 hover:bg-red-50 hover:text-red-700"
+                            aria-label="進行中のアップロードを全てキャンセル"
+                          >
+                            <X size={12} strokeWidth={2.2} aria-hidden />
+                            全キャンセル
+                          </button>
+                        </div>
+                      )}
+
                       {/* UPL-004: 単一ファイル動画アップロード失敗時の 再試行 */}
                       {!uploadingVideo &&
                         !multiUploading &&
@@ -1113,6 +1270,20 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                                   className="shrink-0 rounded-md border border-aimovie-ember-500/50 bg-white px-2 py-0.5 text-[11px] font-bold text-aimovie-ember-500 transition-colors hover:bg-aimovie-ember-500/10 disabled:opacity-40"
                                 >
                                   再試行
+                                </button>
+                              )}
+                              {/* UPL-005: 進行中ジョブに × キャンセルボタン */}
+                              {(j.status === "queued" ||
+                                j.status === "signing" ||
+                                j.status === "uploading" ||
+                                j.status === "thumb") && (
+                                <button
+                                  type="button"
+                                  onClick={() => cancelMultiJob(j.id)}
+                                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-ink/40 transition-colors hover:bg-red-50 hover:text-red-600"
+                                  aria-label={`${j.file.name} のアップロードをキャンセル`}
+                                >
+                                  <X size={12} strokeWidth={2.4} aria-hidden />
                                 </button>
                               )}
                             </li>
@@ -1393,6 +1564,8 @@ function PortfolioCard({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   // UPL-004: サムネ変更の直近失敗ぶんの File を保持
   const [lastAttempt, setLastAttempt] = useState<File | null>(null);
+  // UPL-005: 中断用 controller
+  const uploadAbortRef = useRef<AbortController | null>(null);
 
   // UPL-003: サムネ変更中もページ離脱警告
   useBeforeUnload(uploading);
@@ -1435,12 +1608,16 @@ function PortfolioCard({
     setLastAttempt(file);
     setUploading(true);
     setErrorMsg(null);
+    // UPL-005: 中断 controller
+    const abort = new AbortController();
+    uploadAbortRef.current = abort;
     const fd = new FormData();
     fd.append("file", file);
     try {
       const res = await fetch("/api/upload/thumbnail", {
         method: "POST",
         body: fd,
+        signal: abort.signal,
       });
       const data = await res.json();
       if (data.error) {
@@ -1456,14 +1633,27 @@ function PortfolioCard({
         }
       }
     } catch (e) {
-      // 通信途絶 / タイムアウトを補足
-      const msg =
-        e instanceof Error && e.message
-          ? `アップロードに失敗しました (${e.message})`
-          : "アップロードに失敗しました (通信状態をご確認ください)";
-      setErrorMsg(msg);
+      if (isAbortError(e)) {
+        // UPL-005: キャンセル時は静かに初期状態へ戻す
+        setLastAttempt(null);
+        setErrorMsg(null);
+      } else {
+        // 通信途絶 / タイムアウトを補足
+        const msg =
+          e instanceof Error && e.message
+            ? `アップロードに失敗しました (${e.message})`
+            : "アップロードに失敗しました (通信状態をご確認ください)";
+        setErrorMsg(msg);
+      }
     }
     setUploading(false);
+    uploadAbortRef.current = null;
+  };
+
+  /** UPL-005: サムネ変更のキャンセル */
+  const cancelUpload = () => {
+    uploadAbortRef.current?.abort();
+    uploadAbortRef.current = null;
   };
 
   return (
@@ -1606,12 +1796,20 @@ function PortfolioCard({
           <button
             type="button"
             onClick={() => {
-              setEditing(false);
-              setErrorMsg(null);
+              // UPL-005: アップロード中なら fetch を abort。完了後は
+              //   catch (AbortError) が uploading=false + lastAttempt=null
+              //   にリセットする。それ以外はパネルを閉じるだけ。
+              if (uploading) {
+                cancelUpload();
+              } else {
+                setEditing(false);
+                setErrorMsg(null);
+                setLastAttempt(null);
+              }
             }}
             className="mt-2 w-full text-center text-[11px] text-ink-muted hover:text-ink"
           >
-            キャンセル
+            {uploading ? "アップロードをキャンセル" : "キャンセル"}
           </button>
         </div>
       )}
