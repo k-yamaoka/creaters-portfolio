@@ -2,7 +2,6 @@
 
 import { useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { updateBasicInfo } from "@/app/(main)/dashboard/profile/actions";
 import { AvatarCropModal } from "./avatar-crop-modal";
 import { CreditCard } from "lucide-react";
@@ -155,27 +154,21 @@ export function BasicInfoEditor({
         let nextAvatarUrl: string | null | "__keep__" = "__keep__";
 
         if (pendingFile) {
-          // 1) Storage に直接アップロード (avatars/<userId>/avatar.<ext>)
-          const supabase = createBrowserClient();
-          const ext = pendingFile.name.split(".").pop()?.toLowerCase() || "png";
-          const path = `${userId}/avatar.${ext}`;
-          const { error: upErr } = await supabase.storage
-            .from("avatars")
-            .upload(path, pendingFile, {
-              // MOD-028/029: 30 日 → 1 時間。退会時の avatar 物理削除後、
-              //   CDN edge cache が長期間 stale アバターを配信する事故を防ぐ。
-              //   同一 URL 上書きの cache-bust は 下記 ?t=Date.now() で継続。
-              cacheControl: "3600",
-              upsert: true,
-              contentType: pendingFile.type,
-            });
-          if (upErr) {
-            setError(`画像のアップロードに失敗しました: ${upErr.message}`);
+          // PORT-015 / PORT-016 / PRO-012: 直接 SDK upload → /api/upload/avatar 経由に切替
+          //   server 側で 拡張子 + Content-Type + magic-number の 3 段検証 と
+          //   EXIF / GPS メタデータ 除去 を通してから Storage に upload する。
+          const fd = new FormData();
+          fd.set("file", pendingFile);
+          const res = await fetch("/api/upload/avatar", {
+            method: "POST",
+            body: fd,
+          });
+          const json: { url?: string; error?: string } = await res.json();
+          if (!res.ok || !json.url) {
+            setError(json.error ?? "画像のアップロードに失敗しました");
             return;
           }
-          const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-          // 古いキャッシュを無効化するためタイムスタンプを付与
-          nextAvatarUrl = `${data.publicUrl}?t=${Date.now()}`;
+          nextAvatarUrl = json.url;
         }
 
         // 2) 最低受注金額のローカル検証 (クリエイター時のみ)

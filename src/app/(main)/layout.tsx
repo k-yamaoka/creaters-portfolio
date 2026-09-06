@@ -23,7 +23,8 @@ export default async function MainLayout({
       .from("messages")
       .select("*", { count: "exact", head: true })
       .eq("receiver_id", user.id)
-      .eq("is_read", false);
+      .eq("is_read", false)
+      .eq("is_deleted", false);
     unreadCount = count ?? 0;
 
     const { data: notifs } = await supabase

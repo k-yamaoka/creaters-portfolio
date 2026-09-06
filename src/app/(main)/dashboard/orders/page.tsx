@@ -59,6 +59,7 @@ export default async function OrdersPage() {
         `and(sender_id.eq.${user.id},receiver_id.in.(${csvList})),` +
           `and(receiver_id.eq.${user.id},sender_id.in.(${csvList}))`
       )
+      .eq("is_deleted", false)
       .order("created_at", { ascending: false });
 
     for (const m of msgs ?? []) {

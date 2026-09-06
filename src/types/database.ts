@@ -70,6 +70,10 @@ export type Message = {
   receiver_id: string;
   content: string;
   is_read: boolean;
+  // MSG-010: 論理削除 (00073 migration で追加、UI で soft-hide) — 一覧クエリは
+  //   全て .eq("is_deleted", false) で除外する。物理削除は data-retention cron で行う。
+  is_deleted?: boolean;
+  retention_until?: string | null;
   created_at: string;
 };
 

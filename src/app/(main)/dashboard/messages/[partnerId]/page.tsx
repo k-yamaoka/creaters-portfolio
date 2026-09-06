@@ -136,12 +136,14 @@ export default async function ConversationPage({
   }
 
   // 二者間のメッセージ (anchor 以降のみ)
+  // MSG-010: is_deleted=true は 論理削除済 = 一覧から除外 (物理削除は retention cron 経由)
   let messagesQuery = supabase
     .from("messages")
     .select("*")
     .or(
       `and(sender_id.eq.${me.id},receiver_id.eq.${partnerId}),and(sender_id.eq.${partnerId},receiver_id.eq.${me.id})`
     )
+    .eq("is_deleted", false)
     .order("created_at", { ascending: true });
   if (threadAnchorAt) {
     messagesQuery = messagesQuery.gte("created_at", threadAnchorAt);

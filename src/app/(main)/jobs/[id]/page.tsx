@@ -82,6 +82,7 @@ export default async function JobDetailPage({
       .or(
         `and(sender_id.eq.${user.id},receiver_id.eq.${clientData.user_id}),and(sender_id.eq.${clientData.user_id},receiver_id.eq.${user.id})`
       )
+      .eq("is_deleted", false)
       .order("created_at", { ascending: true });
     if (applicationCreatedAt) {
       q = q.gte("created_at", applicationCreatedAt);

@@ -113,15 +113,16 @@ export async function sendMessage(
 }
 
 /**
- * 自分が「送信側」または「受信側」のいずれかであるメッセージを削除する。
+ * MSG-010: 自分が sender または receiver のメッセージを 論理削除 する。
  *
- * - 受信側として削除する場合: 自分のスレッドからは消えるが、相手側の履歴は残す
- *   が、いま messages テーブルは soft delete を持たないため、完全削除のみ。
- *   将来 archived_by_<role>_at を追加して soft hide に切替える余地あり。
- * - 自分のメッセージでない場合 (= 受信したもの) も、相手の同意なく自分の画面
- *   から消したい需要があるので削除を許可。これは「未読を放置すると残る」と
- *   ユーザーが訴えた問題への対処。
- * - 監査ログには残らない。ユーザー要望 (自分の画面の整理) を優先する。
+ * - 論理削除 = is_deleted=true にセットして UI からは 非表示化 (00073 migration
+ *   で既にカラム追加済)。物理削除は retention_until 経過後の cron に一任し、
+ *   監査/紛争裁定用の証跡を DB 上に一定期間保持する。
+ * - 双方 (sender/receiver) 共に「削除」= 論理削除で 相手側の履歴からも消える
+ *   仕様に統一 (MVP)。将来 role 別 hide が必要になったら archived_by_sender/
+ *   archived_by_receiver フラグに拡張する余地あり。
+ * - 「相手同意なく自分の画面から消したい」需要は 現状 論理削除で両側から消える
+ *   実装だが、監査目的では is_deleted と 残 retention_until で 追跡可能。
  */
 export async function deleteMessage(id: string) {
   const supabase = await createClient();
@@ -130,10 +131,10 @@ export async function deleteMessage(id: string) {
   } = await supabase.auth.getUser();
   if (!user) return { error: "ログインが必要です" };
 
-  // sender / receiver のいずれかが自分であることを保証して削除
+  // sender / receiver のいずれかが自分であることを保証して論理削除
   const { error } = await supabase
     .from("messages")
-    .delete()
+    .update({ is_deleted: true })
     .eq("id", id)
     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`);
 

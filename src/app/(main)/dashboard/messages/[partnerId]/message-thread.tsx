@@ -137,6 +137,17 @@ export function MessageThread({
   const [lastAttachment, setLastAttachment] = useState<File | null>(null);
   // UPL-005: 進行中アップロードの中断用 AbortController
   const attachmentAbortRef = useRef<AbortController | null>(null);
+  // MSG-017: オフライン検知 + 送信キュー + 復帰時自動再送
+  //   navigator.onLine のみでは 完全な検知にならない (ブラウザは 反対に false 出す
+  //   ことがある) が、UI 側で「オフラインで保留中」と伝えるには十分実用的。
+  //   復帰後は online イベント → キュー flush で 順序保持したまま再送する。
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator === "undefined" ? true : navigator.onLine
+  );
+  const pendingQueueRef = useRef<
+    Array<{ tempId: string; text: string; attachmentUrl: string | null }>
+  >([]);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const templates = useMemo(() => templatesFor(senderRole), [senderRole]);
 
@@ -234,6 +245,69 @@ export function MessageThread({
       );
     });
   }, []);
+
+  /**
+   * MSG-017: 1 通の実送信 + optimistic 差し替え。
+   *   handleSend からと online 復帰時の flushQueue から呼ばれる共通コア。
+   *   宣言位置は online listener effect よりも前に置く (effect の依存に入るため)。
+   */
+  const performSend = useCallback(
+    async (
+      tempId: string,
+      sentText: string,
+      sentAttachment: string | null
+    ): Promise<{ ok: true } | { ok: false; error: string }> => {
+      const fd = new FormData();
+      fd.set("receiver_id", partnerId);
+      fd.set("content", sentText);
+      if (sentAttachment) fd.set("attachment_url", sentAttachment);
+      const result = await sendMessage(fd);
+      if ("error" in result) return { ok: false, error: result.error };
+      replaceTemp(tempId, {
+        id: result.message.id,
+        sender_id: result.message.sender_id,
+        receiver_id: result.message.receiver_id,
+        content: result.message.content,
+        attachment_url: result.message.attachment_url,
+        created_at: result.message.created_at,
+        is_read: result.message.is_read,
+      });
+      return { ok: true };
+    },
+    [partnerId, replaceTemp]
+  );
+
+  // MSG-017: online/offline イベント購読 + 復帰時に pendingQueue を flush。
+  //   flush 中も新規送信は 現状態で判定 (順次 fetch なので保留順は保たれる)。
+  useEffect(() => {
+    const handleOnline = async () => {
+      setIsOnline(true);
+      // 復帰直後にキューを ドレイン。1 通ずつ順序保持で送信。
+      // 失敗した 1 通で ドレインを止めない — 次の通に進んで、失敗分は
+      // キュー先頭に戻す (優先順位保持) or ドロップして setError で通知。
+      while (pendingQueueRef.current.length > 0) {
+        const next = pendingQueueRef.current[0];
+        const r = await performSend(next.tempId, next.text, next.attachmentUrl);
+        if (!r.ok) {
+          // ネットワーク以外の失敗 (認可等) → 該当 optimistic を削除 + エラー表示
+          setMessages((prev) => prev.filter((m) => m.id !== next.tempId));
+          setError(r.error);
+          pendingQueueRef.current.shift();
+          setPendingCount(pendingQueueRef.current.length);
+          break;
+        }
+        pendingQueueRef.current.shift();
+        setPendingCount(pendingQueueRef.current.length);
+      }
+    };
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [performSend]);
 
   // Realtime: 自分宛(相手→自分) と 自分発(自分→相手) 双方を購読
   //
@@ -372,27 +446,27 @@ export function MessageThread({
     sentByMeFlag.current = true;
     setMessages((prev) => [...prev, optimistic]);
 
-    const fd = new FormData();
-    fd.set("receiver_id", partnerId);
-    fd.set("content", sentText);
-    if (sentAttachment) fd.set("attachment_url", sentAttachment);
-    const result = await sendMessage(fd);
+    // MSG-017: オフライン中は即座に fetch せず、キューに積んで online 復帰時に flush。
+    //   optimistic message は残す (相手に届いていない旨は「⏳送信保留」表示で伝える)。
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      pendingQueueRef.current.push({
+        tempId,
+        text: sentText,
+        attachmentUrl: sentAttachment,
+      });
+      setPendingCount(pendingQueueRef.current.length);
+      setSending(false);
+      textareaRef.current?.focus();
+      return;
+    }
 
-    if ("error" in result) {
+    const r = await performSend(tempId, sentText, sentAttachment);
+    if (!r.ok) {
+      // オンラインなのに失敗 = サーバー/認可エラー系 → キューに乗せず 入力復元
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setInput(sentText);
       setAttachmentUrl(sentAttachment);
-      setError(result.error);
-    } else {
-      replaceTemp(tempId, {
-        id: result.message.id,
-        sender_id: result.message.sender_id,
-        receiver_id: result.message.receiver_id,
-        content: result.message.content,
-        attachment_url: result.message.attachment_url,
-        created_at: result.message.created_at,
-        is_read: result.message.is_read,
-      });
+      setError(r.error);
     }
     setSending(false);
     textareaRef.current?.focus();
@@ -512,6 +586,24 @@ export function MessageThread({
 
       {/* 入力 */}
       <div className="relative border-t border-ink/10 pt-4">
+        {/* MSG-017: オフライン/保留中 バナー */}
+        {!isOnline && (
+          <p
+            className="mb-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800"
+            role="status"
+          >
+            オフラインです。送信内容は接続復帰時に自動送信します
+            {pendingCount > 0 ? ` (${pendingCount} 件保留中)` : ""}
+          </p>
+        )}
+        {isOnline && pendingCount > 0 && (
+          <p
+            className="mb-2 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-xs text-blue-800"
+            role="status"
+          >
+            保留中の {pendingCount} 件を送信しています…
+          </p>
+        )}
         {error && !(lastAttachment && !uploading) && (
           <p className="mb-2 text-xs text-red-500" role="alert">
             {error}

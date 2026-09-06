@@ -118,6 +118,7 @@ export default async function OrderDetailPage({
       .or(
         `and(sender_id.eq.${user.id},receiver_id.eq.${partnerUserId}),and(sender_id.eq.${partnerUserId},receiver_id.eq.${user.id})`
       )
+      .eq("is_deleted", false)
       .gte("created_at", anchorAt)
       .order("created_at", { ascending: true });
     threadMessages = data;
@@ -131,6 +132,7 @@ export default async function OrderDetailPage({
       .or(
         `and(sender_id.eq.${user.id},receiver_id.eq.${partnerUserId}),and(sender_id.eq.${partnerUserId},receiver_id.eq.${user.id})`
       )
+      .eq("is_deleted", false)
       .order("created_at", { ascending: true });
     threadMessages = data;
     await markAsRead(partnerUserId);

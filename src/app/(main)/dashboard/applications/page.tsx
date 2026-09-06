@@ -37,6 +37,7 @@ export default async function ApplicationsPage() {
     .select("sender_id")
     .eq("receiver_id", user.id)
     .eq("is_read", false)
+    .eq("is_deleted", false)
     .is("order_id", null);
   const unreadSenders = new Set<string>(
     (unreadRows ?? []).map((r) => (r as { sender_id: string }).sender_id)

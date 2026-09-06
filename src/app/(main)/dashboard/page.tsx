@@ -57,7 +57,8 @@ export default async function DashboardPage() {
       .from("messages")
       .select("*", { count: "exact", head: true })
       .eq("receiver_id", user.id)
-      .eq("is_read", false),
+      .eq("is_read", false)
+      .eq("is_deleted", false),
     supabase
       .from("notifications")
       .select("*", { count: "exact", head: true })
@@ -140,6 +141,7 @@ export default async function DashboardPage() {
         .from("messages")
         .select("id, sender_id, content, is_read, created_at")
         .eq("receiver_id", user.id)
+        .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .limit(5),
       (async () => {
