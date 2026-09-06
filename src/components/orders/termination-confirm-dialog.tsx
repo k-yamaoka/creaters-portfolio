@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, X, MessageCircleHeart } from "lucide-react";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 /**
  * 途中終了 (合意解約) の "自爆防止" 全画面モーダル。
@@ -49,6 +50,9 @@ export function TerminationConfirmDialog({
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // A11Y-004/005
+  useDialogA11y({ open, containerRef, onClose });
 
   if (!open) return null;
 
@@ -87,6 +91,8 @@ export function TerminationConfirmDialog({
       role="dialog"
       aria-modal="true"
       aria-label="途中終了の確認"
+      ref={containerRef}
+      tabIndex={-1}
     >
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* ヘッダ */}

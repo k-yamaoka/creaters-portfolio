@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { X, ArrowRight, Volume2, VolumeX, Heart } from "lucide-react";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 /**
  * クリック時に開く 100svh フルスクリーン動画モーダル。
@@ -47,22 +48,21 @@ export function FullscreenVideoModal({
   onClose,
 }: FullscreenVideoModalProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [muted, setMuted] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  // ESC で閉じる + body scroll lock
+  // A11Y-004/005: Esc 閉じ + Tab トラップ + 初期フォーカス + 復帰
+  useDialogA11y({ open: true, containerRef, onClose });
+
+  // 開いている間 body scroll lock
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
+  }, []);
 
   // prefers-reduced-motion 検出
   useEffect(() => {
@@ -88,6 +88,8 @@ export function FullscreenVideoModal({
       aria-modal="true"
       aria-label={`${title} を再生`}
       onClick={onClose}
+      ref={containerRef}
+      tabIndex={-1}
     >
       {/* === 背景 ぼかし poster — 動画読込中の埋め用 === */}
       {posterUrl && (

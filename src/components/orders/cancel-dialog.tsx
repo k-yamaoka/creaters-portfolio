@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, AlertTriangle } from "lucide-react";
 import {
@@ -8,6 +8,7 @@ import {
   type CancelBreakdown,
 } from "@/lib/cancel-policy";
 import type { OrderStatus } from "@/lib/order-status";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 /**
  * キャンセル確認ダイアログ (A-4)。
@@ -201,12 +202,17 @@ function ModalShell({
   title: string;
   children: React.ReactNode;
 }) {
+  // A11Y-004/005: Esc 閉じ + Tab トラップ + 初期フォーカス + 復帰
+  const containerRef = useRef<HTMLDivElement>(null);
+  useDialogA11y({ open: true, containerRef, onClose });
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       role="dialog"
       aria-modal="true"
       aria-label={title}
+      ref={containerRef}
+      tabIndex={-1}
     >
       <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">

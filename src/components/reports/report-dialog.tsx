@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Flag, X, CheckCircle2 } from "lucide-react";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 /**
  * コンテンツ通報ダイアログ (00072)。
@@ -72,6 +73,9 @@ export function ReportDialog({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // A11Y-004/005: Esc 閉じ + フォーカストラップ + 初期フォーカス + 復帰
+  useDialogA11y({ open, containerRef, onClose });
 
   // Portal 用: SSR では document 不在なので mount 後にのみ portal 化
   useEffect(() => {
@@ -137,6 +141,8 @@ export function ReportDialog({
       role="dialog"
       aria-modal="true"
       aria-label="コンテンツ通報"
+      ref={containerRef}
+      tabIndex={-1}
       onClick={(e) => {
         // 背景クリックで閉じる (dialog 本体クリックは stopPropagation)
         if (e.target === e.currentTarget) close();

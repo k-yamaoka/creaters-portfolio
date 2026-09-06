@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { LikeButton } from "./like-button";
 import { User, ArrowRight } from "lucide-react";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 export type VideoModalItem = {
   id: string;
@@ -42,19 +43,18 @@ export function VideoModal({
   isAuthed: boolean;
   onClose: () => void;
 }) {
-  // ESC で閉じる + scroll lock
+  const containerRef = useRef<HTMLDivElement>(null);
+  // A11Y-004/005: Esc 閉じ + Tab トラップ + 初期フォーカス + 復帰 は フック で 一括
+  useDialogA11y({ open: true, containerRef, onClose });
+
+  // 開いている間 body スクロール禁止
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
     };
-  }, [onClose]);
+  }, []);
 
   const isVideo = item.media_type === "video" && !!item.video_url;
   const isImage = item.media_type === "image";
@@ -72,6 +72,8 @@ export function VideoModal({
       onClick={onClose}
       role="dialog"
       aria-modal="true"
+      ref={containerRef}
+      tabIndex={-1}
     >
       <div
         className="relative flex w-full max-w-[1100px] flex-col gap-5 lg:flex-row"

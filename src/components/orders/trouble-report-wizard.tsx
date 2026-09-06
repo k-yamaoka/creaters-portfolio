@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 import Link from "next/link";
 import {
   X,
@@ -165,6 +166,9 @@ export function TroubleReportWizard({
   const [error, setError] = useState<string | null>(null);
   const [doneMessage, setDoneMessage] = useState("");
   const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // A11Y-004/005
+  useDialogA11y({ open, containerRef, onClose });
 
   // Portal 用: SSR で document 不在なので mount 後にのみ portal 化
   useEffect(() => {
@@ -283,6 +287,8 @@ export function TroubleReportWizard({
       role="dialog"
       aria-modal="true"
       aria-label="運営に相談する"
+      ref={containerRef}
+      tabIndex={-1}
       onClick={(e) => {
         // 背景クリックで閉じる (dialog 本体は stopPropagation)
         if (e.target === e.currentTarget) close();

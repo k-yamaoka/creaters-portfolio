@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { MessageThread } from "@/app/(main)/dashboard/messages/[partnerId]/message-thread";
+import { useDialogA11y } from "@/lib/use-dialog-a11y";
 
 type Role = "creator" | "client" | "admin" | undefined;
 
@@ -39,18 +40,17 @@ export function MessageDialog({
   triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  // A11Y-004/005: Esc 閉じ + Tab トラップ + 初期フォーカス + 復帰。
+  //   MessageThread の textarea が 中に居るので autoFocus=true でも 都合が良い。
+  useDialogA11y({ open, containerRef, onClose: () => setOpen(false) });
 
-  // Esc キーで閉じる + 開いている間 body スクロール禁止
+  // 開いている間 body スクロール禁止 (Esc / focus は useDialogA11y で処理)
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
   }, [open]);
@@ -71,6 +71,8 @@ export function MessageDialog({
           role="dialog"
           aria-modal="true"
           aria-label={`${partnerName} とのメッセージ`}
+          ref={containerRef}
+          tabIndex={-1}
         >
           {/* バックドロップ */}
           <div
