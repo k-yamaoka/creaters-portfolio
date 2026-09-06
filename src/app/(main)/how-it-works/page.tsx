@@ -233,44 +233,17 @@ export default function HowItWorksPage() {
         </div>
       </div>
 
-      {/* FAQ */}
-      <div className="mt-24">
-        <h2 className="text-center text-2xl font-bold text-[#222]">
-          よくある質問
-        </h2>
-        <div className="mx-auto mt-12 max-w-2xl space-y-4">
-          {[
-            {
-              q: "登録は無料ですか？",
-              a: "はい、企業・AIクリエイターともに登録は完全無料です。取引成立時にシステム手数料（15%）が発生します。",
-            },
-            {
-              q: "どんなジャンルのAI動画・静止画を依頼できますか？",
-              a: "Sora / Veo を活用したCM・PV、Runway / Midjourney を組み合わせた商品紹介、SNS広告用バナー静止画、AI絵コンテ、SNSショート動画、採用動画、企業VP、アニメーションなど、動画・静止画ともに幅広く対応しています。",
-            },
-            {
-              q: "支払いはどのように行われますか？",
-              a: "エスクロー（仮払い）方式を採用しています。制作開始前にクライアントが仮払いを行い、納品確認後にAIクリエイターへ報酬が支払われます。",
-            },
-            {
-              q: "キャンセルはできますか？",
-              a: "制作開始前（仮払い前）であればキャンセル可能です。仮払い後のキャンセルについては、双方の合意のもと対応いたします。",
-            },
-            {
-              q: "打ち合わせは対面で行いますか？",
-              a: "すべてオンラインで完結します。メッセージ機能やビデオ通話で打ち合わせを行い、納品までフルリモートで対応可能です。",
-            },
-          ].map((item) => (
-            <div
-              key={item.q}
-              className="rounded-2xl bg-white p-6 shadow-card"
-            >
-              <h3 className="font-bold text-[#222]">{item.q}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[#828282]">
-                {item.a}
-              </p>
-            </div>
-          ))}
+      {/* 2026-09-03: FAQ ブロックは /pricing#faq に統合済み (URL-009)。
+          単一情報源運用のため、ここでは導線リンクのみに置換。 */}
+      <div className="mt-24 text-center">
+        <h2 className="text-2xl font-bold text-[#222]">よくある質問</h2>
+        <p className="mt-3 text-sm text-[#828282]">
+          料金・修正回数・支払い・キャンセルなど、詳しくは FAQ をご覧ください。
+        </p>
+        <div className="mt-6">
+          <Link href="/pricing#faq" className="btn-secondary text-sm">
+            FAQ を見る
+          </Link>
         </div>
       </div>
     </div>
