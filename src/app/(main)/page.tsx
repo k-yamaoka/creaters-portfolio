@@ -5,8 +5,13 @@ import { getCreators, type CreatorWithRelations } from "@/lib/supabase/queries";
 // 旧 2 カラム (HeroVideoGrid 縦自動マーキー) は撤去。
 import { HeroFullscreen } from "@/components/home/hero-fullscreen";
 import { extractHeroVideos, isStockUrl } from "@/lib/hero-videos";
-import { HeroUnderBand, type BandWork } from "@/components/home/hero-under-band";
-import { WorksDigest, type DigestWork } from "@/components/home/works-digest";
+// PERF-008: 下スクロールで初めて必要になる 2 セクション (video 帯 /
+//   タブ切替 works ダイジェスト) は、bundle chunk を viewport 交差
+//   まで load しない Lazy ラッパ経由に切替。初回 JS 転送量を圧縮。
+import type { BandWork } from "@/components/home/hero-under-band";
+import type { DigestWork } from "@/components/home/works-digest";
+import { HeroUnderBandLazy } from "@/components/home/hero-under-band-lazy";
+import { WorksDigestLazy } from "@/components/home/works-digest-lazy";
 // 2026-07-03 撤去: MarqueeText / AccentVideoTile とも未使用に
 // (Co-creation セクション削除、アクセント動画 3 本削除、Marquee 2 本削除)
 import {
@@ -300,9 +305,10 @@ export default async function HomePage() {
       </HeroFullscreen>
 
       {/* Section 5: Hero 直下動画帯 — 注目 4 本を横一列に並べ常時微再生 */}
-      {/* PERF-003: cv-auto でスクロール到達までレンダをスキップ */}
+      {/* PERF-003 / PERF-008: cv-auto (render skip) +
+          HeroUnderBandLazy (bundle chunk を viewport 到達まで load しない) */}
       <div className="cv-auto">
-        <HeroUnderBand works={bandWorks} />
+        <HeroUnderBandLazy works={bandWorks} />
       </div>
 
       {/* 2026-07-03 撤去:
@@ -350,8 +356,10 @@ export default async function HomePage() {
           共創メッセージは Value Props と FEATURE で機能ベースに置換済。 */}
 
       {/* Section 5: Works ダイジェスト — タブ切替で 18 本フィルタリング */}
+      {/* PERF-008: WorksDigestLazy 経由で bundle chunk を viewport 到達まで
+          遅延ロード */}
       <div className="cv-auto">
-        <WorksDigest works={digestWorks} />
+        <WorksDigestLazy works={digestWorks} />
       </div>
 
       {/* 2026-07-03 撤去:

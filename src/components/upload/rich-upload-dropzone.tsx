@@ -462,6 +462,8 @@ function FileTile({
             src={file.previewUrl}
             alt=""
             className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <video
@@ -518,6 +520,8 @@ function UrlTile({
             src={url.thumbnailUrl}
             alt=""
             className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="p-2 text-center text-[10px] text-red-300">

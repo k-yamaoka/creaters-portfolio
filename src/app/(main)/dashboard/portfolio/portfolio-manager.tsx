@@ -919,6 +919,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                         src={uploadedImageUrl}
                         alt="ポートフォリオ画像"
                         className="h-24 w-24 rounded object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-green-700">
@@ -1049,6 +1051,8 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                             src={uploadedThumbUrl}
                             alt="自動抽出サムネ"
                             className="h-16 w-16 shrink-0 rounded-md border border-green-200 object-cover"
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : extractingThumb ? (
                           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border border-green-200 bg-white">

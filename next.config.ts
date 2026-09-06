@@ -45,7 +45,28 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "100mb",
     },
+    // PERF-008: 大きな barrel export を named-import 単位で tree-shake し、
+    //   クライアント バンドルへの過剰な import 混入を防ぐ。
+    optimizePackageImports: [
+      "lucide-react",
+      "@supabase/ssr",
+      "@supabase/supabase-js",
+      "clsx",
+      "tailwind-merge",
+    ],
   },
+  // PERF-008: サーバ専用ライブラリがクライアント バンドルに混入するのを
+  //   境界レベルで遮断する。誤って client component から import された
+  //   場合はビルドエラーになるため、レビュー時に検知できる。
+  serverExternalPackages: [
+    "@react-pdf/renderer",
+    "resend",
+    "rss-parser",
+    "open-graph-scraper",
+    "stripe",
+    "@upstash/redis",
+    "@upstash/ratelimit",
+  ],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "img.youtube.com" },

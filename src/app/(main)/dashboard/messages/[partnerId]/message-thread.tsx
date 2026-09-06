@@ -639,6 +639,8 @@ export function MessageThread({
                   src={attachmentUrl}
                   alt="添付プレビュー"
                   className="h-10 w-10 shrink-0 rounded object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <span className="flex-1 truncate text-xs text-ink-muted">
                   画像を添付
