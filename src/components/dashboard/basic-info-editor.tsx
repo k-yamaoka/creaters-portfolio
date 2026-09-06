@@ -6,6 +6,7 @@ import { createClient as createBrowserClient } from "@/lib/supabase/client";
 import { updateBasicInfo } from "@/app/(main)/dashboard/profile/actions";
 import { AvatarCropModal } from "./avatar-crop-modal";
 import { CreditCard } from "lucide-react";
+import { useBeforeUnload } from "@/lib/use-before-unload";
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB (Storage バケット上限と整合)
 const ALLOWED_MIME = [
@@ -67,6 +68,9 @@ export function BasicInfoEditor({
   const [cropMime, setCropMime] = useState<string>("image/jpeg");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // UPL-003: アバター画像 Storage アップロード中は「戻る/リロード」で警告
+  useBeforeUnload(pending && !!pendingFile);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const enterEdit = () => {

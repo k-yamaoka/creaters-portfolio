@@ -13,6 +13,7 @@ import { GENRES, AI_TOOLS, AI_TOOL_CATEGORIES } from "@/lib/constants";
 import { createClient as createBrowserSupabase } from "@/lib/supabase/client";
 import { TrashIcon } from "@/components/ui/trash-icon";
 import { Video } from "lucide-react";
+import { useBeforeUnload } from "@/lib/use-before-unload";
 
 /**
  * 複数ファイル並列アップロード用の 1 ジョブ状態 (UPL-002)。
@@ -185,6 +186,10 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   // 複数ファイル並列アップロード (UPL-002)。>1 ファイル選択時のみ使う。
   const [multiJobs, setMultiJobs] = useState<UploadJob[]>([]);
   const [multiUploading, setMultiUploading] = useState(false);
+
+  // UPL-003: いずれかのアップロードが動作中は「戻る/リロード/タブ閉じ」で
+  // ブラウザ標準の離脱確認を表示。すべて完了したら自動でリスナ解除。
+  useBeforeUnload(uploadingVideo || uploadingImage || multiUploading);
   // 使用 AI ツール (作品単位、複数選択)
   const [selectedAiTools, setSelectedAiTools] = useState<string[]>([]);
   const toggleFormAiTool = (name: string) =>
@@ -1214,6 +1219,9 @@ function PortfolioCard({
   const [uploading, setUploading] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // UPL-003: サムネ変更中もページ離脱警告
+  useBeforeUnload(uploading);
 
   const handleToggleFeatured = async () => {
     if (togglingFeatured) return;

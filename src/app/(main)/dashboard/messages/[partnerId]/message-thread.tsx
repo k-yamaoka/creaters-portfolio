@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { templatesFor, type MessageTemplate } from "@/lib/message-templates";
 import { linkifyText } from "@/lib/linkify";
 import { ExternalTxWarning } from "@/components/orders/external-tx-warning";
+import { useBeforeUnload } from "@/lib/use-before-unload";
 
 export type Message = {
   id: string;
@@ -128,6 +129,8 @@ export function MessageThread({
   // 添付画像 (アップロード済み URL)。送信時に消費 + リセット
   const [attachmentUrl, setAttachmentUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  // UPL-003: 添付画像アップロード中は「戻る/リロード」で警告
+  useBeforeUnload(uploading);
 
   const templates = useMemo(() => templatesFor(senderRole), [senderRole]);
 
