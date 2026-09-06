@@ -46,29 +46,29 @@ export default async function AdminDashboardPage({
   // ─── ユーザー統計 (全期間 or 期間内新規) ───
   const usersBase = supabase
     .from("profiles")
-    .select("*", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true });
   const { count: totalUsers } = await (startIso
     ? usersBase.gte("created_at", startIso)
     : usersBase);
   const { count: creatorCount } = await (startIso
     ? supabase
         .from("profiles")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("role", "creator")
         .gte("created_at", startIso)
     : supabase
         .from("profiles")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("role", "creator"));
   const { count: clientCount } = await (startIso
     ? supabase
         .from("profiles")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("role", "client")
         .gte("created_at", startIso)
     : supabase
         .from("profiles")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("role", "client"));
 
   // ─── 取引統計 (期間内 完了 or 全) ───

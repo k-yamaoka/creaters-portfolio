@@ -60,19 +60,26 @@ export type CreatorWithRelations = {
   // クリエイターの価格は minimum_order_amount に集約。
 };
 
+// creator_profiles で 公開列だけを列挙 (RLS-001 で 00089 が stripe_account_id 等を
+// REVOKE したため、"*" を使うと 401。CreatorWithRelations の型に含まれない
+// 列は削って型と GRANT を一致させる)。
+const CREATOR_PROFILE_PUBLIC_COLS =
+  "id, user_id, bio, video_lengths, strengths, ai_tools, genres, location, years_of_experience, rating, review_count, minimum_order_amount, profile_views, cover_image_url, availability_status, typical_first_draft_days, social_links, is_early_member, is_searchable, created_at, updated_at";
+
 export async function getCreators(): Promise<CreatorWithRelations[]> {
   const supabase = await createClient();
 
-  // PERF-009: 従来は creator_profiles.* + portfolio_items 全 moderation_status
-  //   を pull → アプリ側で filter していたため、ペイロードが数 MB を超える
-  //   ケースがあった。移行 00088 の composite index を前提に、
-  //   embedded resource filter で unpublished/deleted を DB 側で除外する。
+  // PERF-009 + RLS-001: 従来は creator_profiles.* で全カラム pull →
+  //   00089 の列 REVOKE により 401 になる (stripe_account_id 等が REVOKE
+  //   された結果、"*" 経由の SELECT が permission_denied)。明示列で読む。
+  //   加えて、embedded portfolio_items も moderation_status=unpublished/deleted
+  //   を PostgREST の .or foreignTable filter で DB 側除外する。
   //   `!inner` は付けないので portfolio 0 件の creator も残る (旧挙動維持)。
   const { data, error } = await supabase
     .from("creator_profiles")
     .select(
       `
-      *,
+      ${CREATOR_PROFILE_PUBLIC_COLS},
       profiles!creator_profiles_user_id_fkey (
         display_name,
         avatar_url,
@@ -109,13 +116,14 @@ export async function getCreatorById(
 ): Promise<CreatorWithRelations | null> {
   const supabase = await createClient();
 
-  // PERF-009: getCreators と同じく embedded resource filter で
-  //   unpublished/deleted を DB 側除外し、アプリ側 filter を撤去。
+  // PERF-009 + RLS-001: getCreators と同じ列制約。"*" は 00089 で 401 化するため
+  //   CREATOR_PROFILE_PUBLIC_COLS で明示列。
+  //   embedded resource filter で unpublished/deleted を DB 側除外。
   const { data, error } = await supabase
     .from("creator_profiles")
     .select(
       `
-      *,
+      ${CREATOR_PROFILE_PUBLIC_COLS},
       profiles!creator_profiles_user_id_fkey (
         display_name,
         avatar_url,
@@ -193,10 +201,12 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   if (!user) return null;
 
   // PERF-009: select("*") で全カラム (bio 長文 / meta jsonb 等) を毎リクエスト
-  //   pull していたのを、実際に使う 6 カラムに絞る。
+  //   pull していたのを、実際に使う 5 カラムに絞る。
+  // RLS-001: migration 00089 で profiles.email は authenticated からも
+  //   REVOKE 済み。own row の email は auth.users (user.email) から取得。
   let { data: profile } = await supabase
     .from("profiles")
-    .select("id, email, role, display_name, avatar_url, is_verified")
+    .select("id, role, display_name, avatar_url, is_verified")
     .eq("id", user.id)
     .single();
 
@@ -249,9 +259,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   return {
     id: user.id,
-    // migration 00082 で profiles.email は anon/authenticated からは REVOKE 済み。
-    // 自分自身の email は auth.users から取れるのでこちら経由で復元する。
-    email: profile.email ?? user.email ?? "",
+    // migration 00089 で profiles.email は authenticated からも REVOKE 済み。
+    // 自分自身の email は auth.users (supabase.auth.getUser 経由) だけから取得。
+    email: user.email ?? "",
     role: profile.role,
     display_name: profile.display_name,
     avatar_url: profile.avatar_url,
