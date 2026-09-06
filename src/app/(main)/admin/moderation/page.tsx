@@ -1,6 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { ModerationActionForm } from "./moderation-action-form";
+import { UnhandledReportsSelectable } from "./unhandled-reports-selectable";
 import { formatDateTimeJP } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -227,6 +228,9 @@ export default async function AdminModerationPage({
       </div>
 
       {/* 未対応通報 */}
+      {/* MOD-038: チェックボックス + 一括 unpublish/delete 対応の
+          Client Component に置換。row 毎の ModerationActionForm は
+          そのまま残す (個別操作の即応性)。 */}
       <section>
         <h3 className="mb-3 text-sm font-bold text-gray-900">
           未対応の通報 ({groupedList.length} 作品)
@@ -236,88 +240,28 @@ export default async function AdminModerationPage({
             未対応の通報はありません
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="w-full text-sm">
-              <thead className="border-b border-gray-100 bg-gray-50 text-left text-[11px] font-bold uppercase tracking-wider text-gray-500">
-                <tr>
-                  <th className="px-3 py-3">作品</th>
-                  <th className="px-3 py-3">クリエイター</th>
-                  <th className="px-3 py-3">状態</th>
-                  <th className="px-3 py-3 text-right">通報数 (unique IP)</th>
-                  <th className="px-3 py-3">主要カテゴリ</th>
-                  <th className="px-3 py-3">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {groupedList.map((g) => {
-                  const it = itemMap.get(g.targetId);
-                  const topCategory =
-                    Array.from(g.categories.entries()).sort(
-                      (a, b) => b[1] - a[1]
-                    )[0]?.[0] ?? "-";
-                  return (
-                    <tr key={g.targetId}>
-                      <td className="px-3 py-2.5">
-                        {it?.creator?.id ? (
-                          <Link
-                            href={`/creators/${it.creator.id}#portfolio`}
-                            className="font-medium text-gray-900 hover:text-red-600"
-                          >
-                            {it?.title ?? "(削除済み)"}
-                          </Link>
-                        ) : (
-                          <span className="font-medium text-gray-900">
-                            {it?.title ?? "(削除済み)"}
-                          </span>
-                        )}
-                        {g.latestNote && (
-                          <p className="mt-0.5 line-clamp-1 text-[11px] text-gray-500">
-                            {g.latestNote}
-                          </p>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-gray-700">
-                        {it?.creator?.profiles?.display_name ?? "-"}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <span
-                          className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold ${
-                            STATUS_BADGE[it?.moderation_status ?? ""] ??
-                            "bg-gray-50 text-gray-600 border-gray-200"
-                          }`}
-                        >
-                          {STATUS_LABEL[it?.moderation_status ?? ""] ??
-                            "unknown"}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-mono tabular-nums text-xs text-gray-700">
-                        {g.total} <span className="text-gray-400">(</span>
-                        <span
-                          className={
-                            g.uniqueIps.size >= 3
-                              ? "text-red-600 font-bold"
-                              : ""
-                          }
-                        >
-                          {g.uniqueIps.size}
-                        </span>
-                        <span className="text-gray-400">)</span>
-                      </td>
-                      <td className="px-3 py-2.5 text-[11px] text-gray-700">
-                        {CATEGORY_LABEL[topCategory] ?? topCategory}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <ModerationActionForm
-                          portfolioId={g.targetId}
-                          currentStatus={it?.moderation_status ?? "published"}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <UnhandledReportsSelectable
+            rows={groupedList.map((g) => {
+              const it = itemMap.get(g.targetId);
+              const topCategory =
+                Array.from(g.categories.entries()).sort(
+                  (a, b) => b[1] - a[1]
+                )[0]?.[0] ?? "-";
+              return {
+                targetId: g.targetId,
+                title: it?.title ?? null,
+                thumbnailUrl:
+                  it?.thumbnail_url ?? it?.image_url ?? null,
+                creatorId: it?.creator?.id ?? null,
+                creatorName: it?.creator?.profiles?.display_name ?? null,
+                currentStatus: it?.moderation_status ?? "published",
+                total: g.total,
+                uniqueIpCount: g.uniqueIps.size,
+                topCategory,
+                latestNote: g.latestNote,
+              };
+            })}
+          />
         )}
       </section>
 
