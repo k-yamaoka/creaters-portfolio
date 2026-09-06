@@ -186,6 +186,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
   // 複数ファイル並列アップロード (UPL-002)。>1 ファイル選択時のみ使う。
   const [multiJobs, setMultiJobs] = useState<UploadJob[]>([]);
   const [multiUploading, setMultiUploading] = useState(false);
+  // UPL-004: 直近の失敗した動画・画像アップロード対象を保持し「再試行」で再送
+  const [lastVideoAttempt, setLastVideoAttempt] = useState<File | null>(null);
+  const [videoErrorMsg, setVideoErrorMsg] = useState<string | null>(null);
+  const [lastImageAttempt, setLastImageAttempt] = useState<File | null>(null);
+  const [imageErrorMsg, setImageErrorMsg] = useState<string | null>(null);
 
   // UPL-003: いずれかのアップロードが動作中は「戻る/リロード/タブ閉じ」で
   // ブラウザ標準の離脱確認を表示。すべて完了したら自動でリスナ解除。
@@ -206,6 +211,11 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     setUploadProgress(0);
     setHasPublishPermission(false);
     setSelectedAiTools([]);
+    // UPL-004: 再試行状態も一緒にクリア
+    setLastVideoAttempt(null);
+    setVideoErrorMsg(null);
+    setLastImageAttempt(null);
+    setImageErrorMsg(null);
   };
 
   /**
@@ -222,6 +232,10 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       return;
     }
 
+    // UPL-004: 通信途絶などで失敗した時の再試行元として File を保持。
+    // 成功時にクリアするので、常に「直近失敗ぶんだけ」残る。
+    setLastVideoAttempt(file);
+    setVideoErrorMsg(null);
     setUploadingVideo(true);
     setError(null);
     setUploadProgress(0);
@@ -285,6 +299,9 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setUploadedVideoUrl(signData.publicUrl);
       setUploadedVideoAspect(aspect);
       setUploadingVideo(false);
+      // 成功したので再試行用の File と エラー文言はクリア
+      setLastVideoAttempt(null);
+      setVideoErrorMsg(null);
 
       // 3) サムネ自動抽出 + アップロード (失敗してもメイン処理は止めない)
       setExtractingThumb(true);
@@ -318,7 +335,15 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       setExtractingThumb(false);
       return;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "アップロードに失敗しました");
+      // UPL-004: 通信途絶 / タイムアウト / Storage エラー等を包括的に補足。
+      // videoErrorMsg にメッセージを積み、UI 側の「再試行」ボタンから
+      // 直近 lastVideoAttempt を再送できるようにする。
+      const msg =
+        e instanceof Error && e.message
+          ? e.message
+          : "アップロードに失敗しました (通信状態をご確認ください)";
+      setError(msg);
+      setVideoErrorMsg(msg);
     }
     setUploadingVideo(false);
   };
@@ -498,21 +523,93 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
     const failed = results.filter((r) => r.status === "error");
     if (failed.length > 0) {
       setError(
-        `${failed.length} 件のアップロードに失敗しました (成功: ${ok.length} 件)`
+        `${failed.length} 件のアップロードに失敗しました (成功: ${ok.length} 件)。下のリストの「再試行」ボタンからやり直せます。`
       );
     }
 
-    // クリーンアップ + サーバー state を再取得
-    setMultiJobs([]);
+    // UPL-004: 失敗ジョブは「再試行」ボタン付きで残す。成功分だけ削除。
+    const okIds = new Set(ok.map((r) => r.id));
+    setMultiJobs((prev) => prev.filter((j) => !okIds.has(j.id)));
     setMultiUploading(false);
     if (ok.length > 0) {
-      setShowForm(false);
-      resetFormState();
       router.refresh();
+      // 全件成功なら フォームを閉じる。失敗が残っていたらフォームを維持し
+      // 残ジョブを再試行できるようにする。
+      if (failed.length === 0) {
+        setShowForm(false);
+        resetFormState();
+      }
+    }
+  };
+
+  /**
+   * UPL-004: 複数ファイル並列アップロードで失敗した 1 ジョブを再試行する。
+   *
+   * - 対象 job を queued に戻して processOneJob を再実行
+   * - 成功したら 単体で /api/portfolio/batch (1件) に投稿してから
+   *   multiJobs から取り除く
+   * - 失敗ならエラー状態のまま UI に残す (ユーザーは再度リトライ可)
+   */
+  const retryMultiJob = async (jobId: string) => {
+    const job = multiJobs.find((j) => j.id === jobId);
+    if (!job) return;
+    // まず対象 job を queued に戻す
+    setMultiJobs((prev) =>
+      prev.map((j) =>
+        j.id === jobId
+          ? { ...j, status: "queued", progress: 0, errorMsg: undefined }
+          : j
+      )
+    );
+    const fresh: UploadJob = {
+      ...job,
+      status: "queued",
+      progress: 0,
+      errorMsg: undefined,
+    };
+    const result = await processOneJob(fresh);
+    if (result.status !== "done" || !result.videoUrl) return;
+
+    // 個別 INSERT (この 1 件だけ)
+    try {
+      const batchRes = await fetch("/api/portfolio/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: [
+            {
+              media_type: "video",
+              title:
+                result.file.name.replace(/\.[^.]+$/, "").slice(0, 120) ||
+                "無題の作品",
+              video_url: result.videoUrl,
+              video_platform: "mp4",
+              thumbnail_url: result.thumbUrl ?? null,
+            },
+          ],
+        }),
+      });
+      if (!batchRes.ok) {
+        const data = (await batchRes.json()) as { error?: string };
+        throw new Error(data.error ?? "投稿失敗");
+      }
+      // 成功: リストから消して残ジョブ数を更新
+      setMultiJobs((prev) => prev.filter((j) => j.id !== jobId));
+      router.refresh();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "投稿に失敗";
+      setMultiJobs((prev) =>
+        prev.map((j) =>
+          j.id === jobId ? { ...j, status: "error", errorMsg: msg } : j
+        )
+      );
     }
   };
 
   const handleImageUpload = async (file: File) => {
+    // UPL-004: 再試行用に対象 File を保持
+    setLastImageAttempt(file);
+    setImageErrorMsg(null);
     setUploadingImage(true);
     setError(null);
     const fd = new FormData();
@@ -525,11 +622,20 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
       const data = await res.json();
       if (data.error) {
         setError(data.error);
+        setImageErrorMsg(data.error);
       } else {
         setUploadedImageUrl(data.url);
+        setLastImageAttempt(null);
+        setImageErrorMsg(null);
       }
-    } catch {
-      setError("画像のアップロードに失敗しました");
+    } catch (e) {
+      // 通信途絶 / タイムアウトは fetch が TypeError を投げる
+      const msg =
+        e instanceof Error && e.message
+          ? `画像のアップロードに失敗しました (${e.message})`
+          : "画像のアップロードに失敗しました (通信状態をご確認ください)";
+      setError(msg);
+      setImageErrorMsg(msg);
     }
     setUploadingImage(false);
   };
@@ -770,6 +876,32 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                           </>
                         )}
                       </label>
+
+                      {/* UPL-004: 画像アップロード失敗時の 再試行 */}
+                      {!uploadingImage && imageErrorMsg && lastImageAttempt && (
+                        <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-red-700">
+                              アップロード失敗
+                            </p>
+                            <p
+                              className="truncate text-red-600/80"
+                              title={imageErrorMsg}
+                            >
+                              {lastImageAttempt.name}: {imageErrorMsg}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              void handleImageUpload(lastImageAttempt)
+                            }
+                            className="shrink-0 rounded-md border border-red-400 bg-white px-3 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                          >
+                            再試行
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -897,6 +1029,35 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                         )}
                       </label>
 
+                      {/* UPL-004: 単一ファイル動画アップロード失敗時の 再試行 */}
+                      {!uploadingVideo &&
+                        !multiUploading &&
+                        videoErrorMsg &&
+                        lastVideoAttempt && (
+                          <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-xs">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-red-700">
+                                アップロード失敗
+                              </p>
+                              <p
+                                className="truncate text-red-600/80"
+                                title={videoErrorMsg}
+                              >
+                                {lastVideoAttempt.name}: {videoErrorMsg}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleVideoUpload(lastVideoAttempt)
+                              }
+                              className="shrink-0 rounded-md border border-red-400 bg-white px-3 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                            >
+                              再試行
+                            </button>
+                          </div>
+                        )}
+
                       {/* 複数ファイル 並列アップロード時: ファイル毎プログレス */}
                       {multiJobs.length > 0 && (
                         <ul className="mt-3 space-y-1.5">
@@ -932,7 +1093,7 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                                 title={j.errorMsg ?? ""}
                               >
                                 {j.status === "error"
-                                  ? "エラー"
+                                  ? "失敗"
                                   : j.status === "done"
                                     ? "完了"
                                     : j.status === "thumb"
@@ -943,6 +1104,17 @@ export function PortfolioManager({ items }: { items: PortfolioItem[] }) {
                                           ? "準備中"
                                           : "待機"}
                               </span>
+                              {/* UPL-004: 失敗ジョブに再試行ボタン */}
+                              {j.status === "error" && (
+                                <button
+                                  type="button"
+                                  onClick={() => void retryMultiJob(j.id)}
+                                  disabled={multiUploading}
+                                  className="shrink-0 rounded-md border border-aimovie-ember-500/50 bg-white px-2 py-0.5 text-[11px] font-bold text-aimovie-ember-500 transition-colors hover:bg-aimovie-ember-500/10 disabled:opacity-40"
+                                >
+                                  再試行
+                                </button>
+                              )}
                             </li>
                           ))}
                         </ul>
@@ -1219,6 +1391,8 @@ function PortfolioCard({
   const [uploading, setUploading] = useState(false);
   const [togglingFeatured, setTogglingFeatured] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // UPL-004: サムネ変更の直近失敗ぶんの File を保持
+  const [lastAttempt, setLastAttempt] = useState<File | null>(null);
 
   // UPL-003: サムネ変更中もページ離脱警告
   useBeforeUnload(uploading);
@@ -1257,6 +1431,8 @@ function PortfolioCard({
   const platformLabel = (item.display_tag?.trim() || autoLabel) ?? null;
 
   const handleUpload = async (file: File) => {
+    // UPL-004: 直近失敗ぶんを保持 (再試行時に読む)
+    setLastAttempt(file);
     setUploading(true);
     setErrorMsg(null);
     const fd = new FormData();
@@ -1271,14 +1447,21 @@ function PortfolioCard({
         setErrorMsg(data.error);
       } else {
         const r = await updatePortfolioThumbnail(item.id, data.url);
-        if (r?.error) setErrorMsg(r.error);
-        else {
+        if (r?.error) {
+          setErrorMsg(r.error);
+        } else {
           setEditing(false);
+          setLastAttempt(null);
           onThumbnailUpdated();
         }
       }
-    } catch {
-      setErrorMsg("アップロードに失敗しました");
+    } catch (e) {
+      // 通信途絶 / タイムアウトを補足
+      const msg =
+        e instanceof Error && e.message
+          ? `アップロードに失敗しました (${e.message})`
+          : "アップロードに失敗しました (通信状態をご確認ください)";
+      setErrorMsg(msg);
     }
     setUploading(false);
   };
@@ -1352,8 +1535,25 @@ function PortfolioCard({
       {/* サムネ編集パネル(動画のみ) */}
       {!isImage && editing && (
         <div className="border-b border-ink/10 bg-paper-deep/40 p-4">
+          {/* UPL-004: エラー時は 再試行 ボタン付きで表示 */}
           {errorMsg && (
-            <p className="mb-2 text-xs text-red-600">{errorMsg}</p>
+            <div className="mb-2 flex items-center justify-between gap-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs">
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-red-700">アップロード失敗</p>
+                <p className="truncate text-red-600/80" title={errorMsg}>
+                  {errorMsg}
+                </p>
+              </div>
+              {lastAttempt && !uploading && (
+                <button
+                  type="button"
+                  onClick={() => void handleUpload(lastAttempt)}
+                  className="shrink-0 rounded-md border border-red-400 bg-white px-3 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+                >
+                  再試行
+                </button>
+              )}
+            </div>
           )}
           <input
             type="file"

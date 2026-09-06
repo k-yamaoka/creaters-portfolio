@@ -131,6 +131,8 @@ export function MessageThread({
   const [uploading, setUploading] = useState(false);
   // UPL-003: 添付画像アップロード中は「戻る/リロード」で警告
   useBeforeUnload(uploading);
+  // UPL-004: 直近失敗した添付ファイル (再試行ボタン用)
+  const [lastAttachment, setLastAttachment] = useState<File | null>(null);
 
   const templates = useMemo(() => templatesFor(senderRole), [senderRole]);
 
@@ -281,13 +283,12 @@ export function MessageThread({
     };
   }, [currentUserId, partnerId, mergeMessage]);
 
-  const handleFilePick = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    // 同じファイルを連続選択しても onChange が発火するように value をクリア
-    e.target.value = "";
-    if (!file) return;
+  /**
+   * 添付ファイル選択 or 再試行から呼ばれる共通アップロード処理。
+   * UPL-004: 通信途絶時は catch で拾って UI 側「再試行」ボタンを表示。
+   */
+  const uploadAttachment = async (file: File) => {
+    setLastAttachment(file);
     setError(null);
     setUploading(true);
     try {
@@ -303,11 +304,26 @@ export function MessageThread({
         return;
       }
       setAttachmentUrl(json.url);
-    } catch {
-      setError("アップロードに失敗しました");
+      setLastAttachment(null);
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.message
+          ? `アップロードに失敗しました (${e.message})`
+          : "アップロードに失敗しました (通信状態をご確認ください)";
+      setError(msg);
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleFilePick = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    // 同じファイルを連続選択しても onChange が発火するように value をクリア
+    e.target.value = "";
+    if (!file) return;
+    void uploadAttachment(file);
   };
 
   const handleSend = async () => {
@@ -475,10 +491,28 @@ export function MessageThread({
 
       {/* 入力 */}
       <div className="relative border-t border-ink/10 pt-4">
-        {error && (
+        {error && !(lastAttachment && !uploading) && (
           <p className="mb-2 text-xs text-red-500" role="alert">
             {error}
           </p>
+        )}
+        {/* UPL-004: 添付ファイル アップロード失敗時の 再試行 */}
+        {error && lastAttachment && !uploading && (
+          <div className="mb-2 flex items-center justify-between gap-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs" role="alert">
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-red-700">アップロード失敗</p>
+              <p className="truncate text-red-600/80" title={error}>
+                {lastAttachment.name}: {error}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void uploadAttachment(lastAttachment)}
+              className="shrink-0 rounded-md border border-red-400 bg-white px-3 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
+            >
+              再試行
+            </button>
+          </div>
         )}
 
         {/* テンプレポップオーバー */}
