@@ -55,6 +55,7 @@ import { TotalLikesBadge } from "@/components/creators/total-likes-badge";
 import { CreatorQrCard } from "@/components/creators/creator-qr-card";
 import { SocialLinkRow } from "@/components/creators/social-link-row";
 import { JsonLd } from "@/components/seo/json-ld";
+import { FeaturedWorkTile } from "@/components/creators/featured-work-tile";
 // SectionTabs はクリエイター詳細の上部からは撤去 (ユーザー判断: タブナビ不要)
 
 export default async function CreatorDetailPage({
@@ -375,30 +376,17 @@ export default async function CreatorDetailPage({
                 で再生する。リンクは保持 (クリックで詳細モーダル相当の動線を残す
                 ため #portfolio へスクロール)。 */}
             {mainWork && (mainWork.video_url || mainWork.thumbnail_url) && (
-              <Link
-                href="#portfolio"
-                className="group/main relative block aspect-video w-full shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md lg:w-[clamp(360px,38vw,460px)]"
-                aria-label="代表作を見る"
-              >
-                <VideoPreviewCard
-                  thumbnailUrl={mainWork.thumbnail_url}
-                  videoUrl={mainWork.video_url ?? ""}
-                  videoPlatform={mainWork.video_platform ?? "mp4"}
-                  alt={mainWork.title}
-                  sizes="(max-width: 1024px) 100vw, 480px"
-                  className="absolute inset-0 h-full w-full"
-                  autoPlay
-                  showPlayIcon={false}
-                />
-                <span className="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-pill bg-gray-900/85 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-sm">
-                  ★ 代表作
-                </span>
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/70 via-black/30 to-transparent px-3 pb-2 pt-8">
-                  <p className="line-clamp-1 text-xs font-bold text-white">
-                    {mainWork.title}
-                  </p>
-                </div>
-              </Link>
+              <FeaturedWorkTile
+                workId={mainWork.id}
+                videoUrl={mainWork.video_url}
+                thumbnailUrl={mainWork.thumbnail_url}
+                videoPlatform={mainWork.video_platform ?? "mp4"}
+                title={mainWork.title}
+                likeCount={mainWork.like_count}
+                creatorId={creator.id}
+                creatorDisplayName={displayName}
+                isAuthed={!!viewer}
+              />
             )}
             </div>
             {/* 2026-06-24: 旧 Hero CTA + 最低受注金額 横長バーは撤去。

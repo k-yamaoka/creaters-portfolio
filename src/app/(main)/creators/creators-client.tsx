@@ -344,6 +344,8 @@ export function CreatorsPageClient({
           creatorName={preview.creator.profiles.display_name}
           creatorHref={`/creators/${preview.creator.id}`}
           likeCount={preview.work.like_count}
+          workId={preview.work.id}
+          isAuthed={isAuthed}
           onClose={() => setPreview(null)}
         />
       )}

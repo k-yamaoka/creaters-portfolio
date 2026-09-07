@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { X, ArrowRight, Volume2, VolumeX, Heart } from "lucide-react";
 import { useDialogA11y } from "@/lib/use-dialog-a11y";
+import { ReportButton } from "@/components/reports/report-button";
 
 /**
  * クリック時に開く 100svh フルスクリーン動画モーダル。
@@ -34,6 +35,10 @@ export type FullscreenVideoModalProps = {
   workHref?: string;
   /** ライク数の表示 (任意) */
   likeCount?: number;
+  /** 通報ボタンを表示するための portfolio_item.id (RPT 系: 未指定なら通報ボタン非表示) */
+  workId?: string;
+  /** 通報ボタンの ログイン状態判定用 (未指定なら false 扱い = クリックで /login) */
+  isAuthed?: boolean;
   onClose: () => void;
 };
 
@@ -45,6 +50,8 @@ export function FullscreenVideoModal({
   creatorHref,
   workHref,
   likeCount,
+  workId,
+  isAuthed = false,
   onClose,
 }: FullscreenVideoModalProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -148,17 +155,32 @@ export function FullscreenVideoModal({
             </span>
           )}
         </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          aria-label="閉じる"
-          className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
-        >
-          <X size={18} strokeWidth={1.8} aria-hidden />
-        </button>
+        <div className="pointer-events-auto flex items-center gap-2">
+          {/* RPT: 通報ボタン (workId が渡された場合のみ) */}
+          {workId && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <ReportButton
+                targetType="portfolio_item"
+                targetId={workId}
+                targetTitle={title}
+                isAuthed={isAuthed}
+                variant="icon"
+                className="h-10 w-10 border border-white/20 bg-white/10 text-white backdrop-blur hover:bg-white/20 hover:text-white"
+              />
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            aria-label="閉じる"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur transition-colors hover:bg-white/20"
+          >
+            <X size={18} strokeWidth={1.8} aria-hidden />
+          </button>
+        </div>
       </div>
 
       {/* === Bottom bar: タイトル + クリエイター名 + CTAs === */}

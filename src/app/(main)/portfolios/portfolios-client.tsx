@@ -247,6 +247,8 @@ export function PortfoliosPageClient({
           creatorName={modalWork.creator_display_name}
           creatorHref={`/creators/${modalWork.creator_id}`}
           likeCount={modalWork.like_count}
+          workId={modalWork.id}
+          isAuthed={isAuthed}
           onClose={() => setModalWork(null)}
         />
       )}
