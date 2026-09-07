@@ -128,10 +128,9 @@ export async function AiNewsSection() {
         </RevealOnScroll>
 
         <p className="mt-6 text-[10px] text-ink/40">
-          出典: 各配信元の RSS/Atom フィード (OpenAI News / Google DeepMind / TechCrunch AI /
-          The Verge AI / VentureBeat AI / AI Business / ITmedia AI+ / AINOW / WIRED Japan /
-          Business Insider Japan / Zenn AI / PR TIMES ほか)。
-          掲載画像・タイトルの著作権は 各配信元に帰属します。
+          出典: 各配信元の RSS/Atom フィード (ITmedia AI+ / AINOW / WIRED Japan /
+          Business Insider Japan / Zenn AI / PR TIMES)。AI × 動画 関連の 日本語記事のみを
+          自動抽出しています。掲載画像・タイトルの著作権は 各配信元に帰属します。
           サムネイルは 表示用に 外部 URL を 参照するのみで、当サイトには 保存されません。
         </p>
       </div>

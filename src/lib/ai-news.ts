@@ -78,67 +78,15 @@ type RssSource = {
 };
 
 /**
- * 2026-09-07 (NEWS-001〜007): AI×動画 特化 12 ソース に再構成。
- *   全て 実在 RSS/Atom を curl 検証済 (2026-09-07)。Google News RSS は
- *   中継 URL の解決を Google 側でブロック → 復元不可能で撤去済み。
+ * 2026-09-07: 日本語 × AI×動画 特化 6 ソース に再構成 (ユーザー要件)。
+ *   英語ソース (OpenAI News / Google DeepMind / TechCrunch AI / The Verge AI
+ *   / VentureBeat AI / AI Business) は 撤去。母数が少なくても 「AI×動画」
+ *   関連 の 日本語記事のみ を掲載する方針。
  *
- * ソース選定基準:
- *   1. AI/動画生成 一次情報源 (Anthropic は RSS 未提供のため Google DeepMind
- *      + OpenAI を採用。将来 Anthropic RSS が出たら追加)
- *   2. 英語 AI 業界誌 (TechCrunch / The Verge / VentureBeat / AI Business)
- *   3. 日本語一次: PR TIMES + 日本語メディア (WIRED / ITmedia / AINOW /
- *      Business Insider Japan / Zenn AI)
- *
- * 全ソース requireKeywordFilter: true で AI×動画 の intersection のみ通す
+ * 全ソース filterMode: "strict" (デフォルト) = AI × 動画 intersection のみ通す
  *   (VIDEO_AI_PRODUCTS 単独 hit or AI_CORE ∩ VIDEO の 三層フィルタ)。
  */
 const RSS_SOURCES: RssSource[] = [
-  // ===== 一次情報源 (AI 開発元) =====
-  {
-    name: "OpenAI News",
-    url: "https://openai.com/news/rss.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-    // OpenAI は AI 専業 → 動画縛りなしで AI 記事全通し (母数不足の 8 件表示 未達 解消)
-    filterMode: "ai_only",
-  },
-  {
-    name: "Google DeepMind",
-    url: "https://deepmind.google/blog/rss.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-    filterMode: "ai_only",
-  },
-  // ===== 英語 AI 業界メディア =====
-  {
-    name: "TechCrunch AI",
-    url: "https://techcrunch.com/category/artificial-intelligence/feed/",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-    // AI カテゴリ RSS は 全記事 AI 前提 → ai_only で 動画縛り なし
-    filterMode: "ai_only",
-  },
-  {
-    name: "The Verge AI",
-    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-    filterMode: "ai_only",
-  },
-  {
-    name: "VentureBeat AI",
-    url: "https://feeds.feedburner.com/venturebeat/SZYF",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-    filterMode: "ai_only",
-  },
-  {
-    name: "AI Business",
-    url: "https://aibusiness.com/rss.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-    filterMode: "ai_only",
-  },
   // ===== 日本語 メディア =====
   {
     name: "ITmedia AI+",
@@ -874,15 +822,9 @@ export const getCachedAiNews = unstable_cache(
 /**
  * 蓄積済みの item のうち、strict フィルタに合致しないタイトルを削除する。
  *
- * 2026-09-03: PR TIMES 由来の 非動画 AI プレスリリースが LP を 占領する
- *   事故 のリカバリで導入。当時は 全ソース strict 前提だった。
- * 2026-09-07: 一次情報 (OpenAI / DeepMind) + AI 専業媒体 (TechCrunch AI /
- *   The Verge AI / VentureBeat AI / AI Business) を ai_only に切替えたため、
- *   purge 対象を 雑多ソース (PR TIMES / Zenn AI) に 限定する。それ以外は
- *   AI 前提の 一次/業界情報 として そのまま保持。
+ * 2026-09-07 (再改): 英語ソース + ai_only 化を 撤去し、全 6 ソース strict に
+ *   統一。過去 ai_only で 通過した 非動画 AI 記事も 全て 対象にして purge する。
  */
-const PURGE_TARGET_SOURCES = new Set(["PR TIMES", "Zenn AI"]);
-
 async function purgeIrrelevantItems(): Promise<number> {
   try {
     const supabase = getWriteClient();
@@ -891,12 +833,10 @@ async function purgeIrrelevantItems(): Promise<number> {
     ).toISOString();
     const { data } = await supabase
       .from("ai_news_items")
-      .select("id, title, source_name")
+      .select("id, title")
       .or(`published_at.gte.${cutoff},captured_at.gte.${cutoff}`);
     const bad = (data ?? []).filter(
-      (r) =>
-        PURGE_TARGET_SOURCES.has(r.source_name as string) &&
-        !titleMatchesKeywords(r.title as string, "strict")
+      (r) => !titleMatchesKeywords(r.title as string, "strict")
     );
     if (bad.length === 0) return 0;
     const { error } = await supabase
