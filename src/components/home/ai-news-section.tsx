@@ -36,20 +36,11 @@ function formatDate(iso: string | null): string {
   }
 }
 
-/**
- * Google News RSS の title は "記事タイトル - ソース名" の形式で返ってくる
- * ことが多い。末尾の "- 〇〇" を出典表示に、残りをタイトルに分離する。
- */
-function splitTitle(raw: string): { title: string; source: string | null } {
-  const m = raw.match(/^(.+?)\s+-\s+([^-]+)$/);
-  if (m) return { title: m[1].trim(), source: m[2].trim() };
-  return { title: raw.trim(), source: null };
-}
-
 function NewsCard({ item }: { item: AiNewsItem }) {
-  const { title, source } = splitTitle(item.title);
+  // 各ソース RSS の title は そのまま利用。source は RSS ソース名 (sourceName) を採用
+  const title = item.title.trim();
   const publishedLabel = formatDate(item.publishedAt);
-  const displaySource = source ?? item.sourceName;
+  const displaySource = item.sourceName;
 
   return (
     <a
@@ -137,8 +128,11 @@ export async function AiNewsSection() {
         </RevealOnScroll>
 
         <p className="mt-6 text-[10px] text-ink/40">
-          出典: Google News RSS フィード。掲載画像 ・ タイトルの著作権は各配信元に帰属します。
-          サムネイルは表示用に外部 URL を参照するのみで、当サイトには保存されません。
+          出典: 各配信元の RSS/Atom フィード (OpenAI News / Google DeepMind / TechCrunch AI /
+          The Verge AI / VentureBeat AI / AI Business / ITmedia AI+ / AINOW / WIRED Japan /
+          Business Insider Japan / Zenn AI / PR TIMES ほか)。
+          掲載画像・タイトルの著作権は 各配信元に帰属します。
+          サムネイルは 表示用に 外部 URL を 参照するのみで、当サイトには 保存されません。
         </p>
       </div>
     </section>

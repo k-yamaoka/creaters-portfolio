@@ -78,13 +78,60 @@ type RssSource = {
 };
 
 /**
- * 2026-07-03: Google News RSS は撤去。中継 URL の解決は Google 側で
- * 明示的にブロックされており (article page 400 / batch execute 429 →
- * google.com/sorry 誘導)、サーバサイドから復号する手段がない。
- * 代わりに 6 つの直接 RSS ソースで多様性を確保する。
+ * 2026-09-07 (NEWS-001〜007): AI×動画 特化 12 ソース に再構成。
+ *   全て 実在 RSS/Atom を curl 検証済 (2026-09-07)。Google News RSS は
+ *   中継 URL の解決を Google 側でブロック → 復元不可能で撤去済み。
+ *
+ * ソース選定基準:
+ *   1. AI/動画生成 一次情報源 (Anthropic は RSS 未提供のため Google DeepMind
+ *      + OpenAI を採用。将来 Anthropic RSS が出たら追加)
+ *   2. 英語 AI 業界誌 (TechCrunch / The Verge / VentureBeat / AI Business)
+ *   3. 日本語一次: PR TIMES + 日本語メディア (WIRED / ITmedia / AINOW /
+ *      Business Insider Japan / Zenn AI)
+ *
+ * 全ソース requireKeywordFilter: true で AI×動画 の intersection のみ通す
+ *   (VIDEO_AI_PRODUCTS 単独 hit or AI_CORE ∩ VIDEO の 三層フィルタ)。
  */
 const RSS_SOURCES: RssSource[] = [
-  // 全ソース requireKeywordFilter: true (AI × 動画 フィルタ一律適用)
+  // ===== 一次情報源 (AI 開発元) =====
+  {
+    name: "OpenAI News",
+    url: "https://openai.com/news/rss.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "Google DeepMind",
+    url: "https://deepmind.google/blog/rss.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  // ===== 英語 AI 業界メディア =====
+  {
+    name: "TechCrunch AI",
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "The Verge AI",
+    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "VentureBeat AI",
+    url: "https://feeds.feedburner.com/venturebeat/SZYF",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  {
+    name: "AI Business",
+    url: "https://aibusiness.com/rss.xml",
+    isGoogleNews: false,
+    requireKeywordFilter: true,
+  },
+  // ===== 日本語 メディア =====
   {
     name: "ITmedia AI+",
     url: "https://rss.itmedia.co.jp/rss/2.0/aiplus.xml",
@@ -98,81 +145,32 @@ const RSS_SOURCES: RssSource[] = [
     requireKeywordFilter: true,
   },
   {
-    name: "Zenn AI",
-    url: "https://zenn.dev/topics/ai/feed",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-  },
-  {
-    name: "WIRED",
+    name: "WIRED Japan",
     url: "https://wired.jp/feed/rss",
     isGoogleNews: false,
     requireKeywordFilter: true,
   },
   {
-    name: "ascii.jp",
-    url: "https://ascii.jp/rss.xml",
+    name: "Business Insider Japan",
+    url: "https://www.businessinsider.jp/feed",
     isGoogleNews: false,
     requireKeywordFilter: true,
   },
   {
-    name: "GIGAZINE",
-    url: "https://gigazine.net/news/rss_2.0/",
+    name: "Zenn AI",
+    url: "https://zenn.dev/topics/ai/feed",
     isGoogleNews: false,
     requireKeywordFilter: true,
   },
-  // 2026-07-07: Yahoo!ニュース Topics RSS 4 カテゴリを追加。
-  // 各カテゴリ 8 件の編集厳選。IT / 業界大手・エンタメで動画 AI 関連の
-  // トピックが拾える (例: 「AI俳優 新作長編映画で初主演へ」)。
-  {
-    name: "Yahoo!ニュース IT",
-    url: "https://news.yahoo.co.jp/rss/topics/it.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-  },
-  {
-    name: "Yahoo!ニュース 経済",
-    url: "https://news.yahoo.co.jp/rss/topics/business.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-  },
-  {
-    name: "Yahoo!ニュース 科学",
-    url: "https://news.yahoo.co.jp/rss/topics/science.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-  },
-  {
-    name: "Yahoo!ニュース エンタメ",
-    url: "https://news.yahoo.co.jp/rss/topics/entertainment.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
-  },
-  // 2026-07-07 追加:
-  // - PR TIMES: 企業プレスリリース。母数が大きく、AI×映像系の企業発表
-  //   (Sora 2 API 公開 / Runway 新機能 / AI 制作会社ローンチ 等) が拾える
-  // - Yahoo ライフ: 8 記事厳選 / 映画・エンタメ寄りの生活記事
+  // ===== 日本語 プレスリリース (企業一次) =====
   {
     name: "PR TIMES",
     url: "https://prtimes.jp/index.rdf",
     isGoogleNews: false,
     requireKeywordFilter: true,
-    // 2026-07-21: PR TIMES はジャンル雑多で最新 100 件程度の RSS を返す。
-    //   サンプルを増やすため perSourceLimit を 200 に拡張。
-    // 2026-09-03: filterMode: "ai_only" を撤去。実運用で PR TIMES 由来の
-    //   非動画 AI プレスリリース (工場 EXPO / タクシー配車 / 就活アプリ
-    //   / 外食サミット 等) が LP を占領する事故が発生したため、strict
-    //   (AI × 動画 の intersection) 一律に戻す。動画 AI プロダクト発表
-    //   (Sora / Veo / Runway ローンチ等) は VIDEO_AI_PRODUCTS 単独ヒット
-    //   で拾えるので実害は無い。
+    // PR TIMES はジャンル雑多で 最新 100 件程度の RSS。母数を増やすため 上限拡張
     perSourceLimit: 200,
     perSourceCandidate: 4,
-  },
-  {
-    name: "Yahoo!ニュース ライフ",
-    url: "https://news.yahoo.co.jp/rss/categories/life.xml",
-    isGoogleNews: false,
-    requireKeywordFilter: true,
   },
 ];
 
