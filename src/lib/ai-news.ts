@@ -99,12 +99,15 @@ const RSS_SOURCES: RssSource[] = [
     url: "https://openai.com/news/rss.xml",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    // OpenAI は AI 専業 → 動画縛りなしで AI 記事全通し (母数不足の 8 件表示 未達 解消)
+    filterMode: "ai_only",
   },
   {
     name: "Google DeepMind",
     url: "https://deepmind.google/blog/rss.xml",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    filterMode: "ai_only",
   },
   // ===== 英語 AI 業界メディア =====
   {
@@ -112,24 +115,29 @@ const RSS_SOURCES: RssSource[] = [
     url: "https://techcrunch.com/category/artificial-intelligence/feed/",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    // AI カテゴリ RSS は 全記事 AI 前提 → ai_only で 動画縛り なし
+    filterMode: "ai_only",
   },
   {
     name: "The Verge AI",
     url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    filterMode: "ai_only",
   },
   {
     name: "VentureBeat AI",
     url: "https://feeds.feedburner.com/venturebeat/SZYF",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    filterMode: "ai_only",
   },
   {
     name: "AI Business",
     url: "https://aibusiness.com/rss.xml",
     isGoogleNews: false,
     requireKeywordFilter: true,
+    filterMode: "ai_only",
   },
   // ===== 日本語 メディア =====
   {
@@ -864,13 +872,17 @@ export const getCachedAiNews = unstable_cache(
 );
 
 /**
- * 蓄積済みの item のうち、現在の strict フィルタに合致しなくなった
- * タイトル (=非動画 AI ニュース) を削除する。
+ * 蓄積済みの item のうち、strict フィルタに合致しないタイトルを削除する。
  *
- * 2026-09-03: PR TIMES ソースを ai_only → strict に絞ったのに伴い、
- * 過去に ai_only で通過した非動画 AI プレスリリースがそのまま LP を
- * 占領していた事故のリカバリ。以後の Cron で自己修復する。
+ * 2026-09-03: PR TIMES 由来の 非動画 AI プレスリリースが LP を 占領する
+ *   事故 のリカバリで導入。当時は 全ソース strict 前提だった。
+ * 2026-09-07: 一次情報 (OpenAI / DeepMind) + AI 専業媒体 (TechCrunch AI /
+ *   The Verge AI / VentureBeat AI / AI Business) を ai_only に切替えたため、
+ *   purge 対象を 雑多ソース (PR TIMES / Zenn AI) に 限定する。それ以外は
+ *   AI 前提の 一次/業界情報 として そのまま保持。
  */
+const PURGE_TARGET_SOURCES = new Set(["PR TIMES", "Zenn AI"]);
+
 async function purgeIrrelevantItems(): Promise<number> {
   try {
     const supabase = getWriteClient();
@@ -879,10 +891,12 @@ async function purgeIrrelevantItems(): Promise<number> {
     ).toISOString();
     const { data } = await supabase
       .from("ai_news_items")
-      .select("id, title")
+      .select("id, title, source_name")
       .or(`published_at.gte.${cutoff},captured_at.gte.${cutoff}`);
     const bad = (data ?? []).filter(
-      (r) => !titleMatchesKeywords(r.title as string, "strict")
+      (r) =>
+        PURGE_TARGET_SOURCES.has(r.source_name as string) &&
+        !titleMatchesKeywords(r.title as string, "strict")
     );
     if (bad.length === 0) return 0;
     const { error } = await supabase
