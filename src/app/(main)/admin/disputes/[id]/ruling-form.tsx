@@ -77,6 +77,14 @@ export function RulingForm({
   const router = useRouter();
   const [ruling, setRuling] = useState<RulingType | "">("");
   const [refundRate, setRefundRate] = useState<number>(0.5);
+
+  // RUL-032: ruling 切替時に refundRate をデフォルト (0.5) にリセットする。
+  //   前回選択した rate が別 ruling_type に持ち越されると、
+  //   admin が意図しない値で 送信してしまう リスクがあるため 明示リセット。
+  function selectRuling(next: RulingType) {
+    setRuling(next);
+    setRefundRate(0.5);
+  }
   const [summary, setSummary] = useState("");
   const [internalNote, setInternalNote] = useState(currentInternalNote);
   const [submitting, setSubmitting] = useState(false);
@@ -154,7 +162,7 @@ export function RulingForm({
                 name="ruling"
                 value={o.key}
                 checked={ruling === o.key}
-                onChange={() => setRuling(o.key)}
+                onChange={() => selectRuling(o.key)}
                 disabled={submitting}
                 className="mt-0.5 h-3 w-3 accent-indigo-600"
               />

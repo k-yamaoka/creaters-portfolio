@@ -50,6 +50,17 @@ const RULING_LABEL: Record<RulingType, string> = {
   as_is: "満額支払 (仕様どおり判断)",
 };
 
+// RUL-031: 通知メールの件名に付ける ruling_type 別 prefix。
+//   RPT (通報) 系の SUBJECT_PREFIX と同パターン。
+//   受信者が 件名一覧で 裁定内容を即座に把握できる。
+const SUBJECT_PREFIX_BY_RULING: Record<RulingType, string> = {
+  partial_refund: "【裁定/一部返金】",
+  full_refund: "【裁定/全額返金】",
+  reproduction: "【裁定/再制作】",
+  no_action: "【裁定/申告却下】",
+  as_is: "【裁定/満額支払】",
+};
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -225,7 +236,7 @@ export async function POST(
       await sendExternalNotification({
         userId: uid,
         kind: "message",
-        subject: `【アイムビ】運営裁定の結果通知 (${
+        subject: `${SUBJECT_PREFIX_BY_RULING[rulingType]}【アイムビ】運営裁定の結果通知 (${
           order?.title ?? "取引"
         })`,
         body: [
