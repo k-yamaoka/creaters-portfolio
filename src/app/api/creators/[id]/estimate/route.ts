@@ -6,8 +6,14 @@ import { formatPrice } from "@/lib/utils";
 /**
  * AI Gateway が返す 認可/請求 エラーを 日本語 に変換して 有意義な文言 に置換。
  * onError で 拾って streamText の flush 時に 生成結果に 差し込む。
+ *
+ * NOTE: process.env.ESTIMATE_DEBUG_RAW=1 のとき 生英語エラー を そのまま流す
+ * (原因特定用。本番でも 一時的に ON にして 切り分ける)。
  */
 function localizeGatewayError(msg: string): string {
+  if (process.env.ESTIMATE_DEBUG_RAW === "1") {
+    return `[DEBUG raw] ${msg}`;
+  }
   const low = msg.toLowerCase();
   if (low.includes("credit card")) {
     return "AI 見積もり サービスの 一時利用制限中です (支払い設定が 完了していません)。恐れ入りますが、下部の 「メッセージを送る」から クリエイターに 直接ご相談ください。";
