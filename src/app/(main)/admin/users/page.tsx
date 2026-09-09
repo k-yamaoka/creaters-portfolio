@@ -38,7 +38,18 @@ export default async function AdminUsersPage({
   if (role) query = query.eq("role", role);
   if (status === "active") query = query.eq("is_active", true);
   if (status === "inactive") query = query.eq("is_active", false);
-  if (q) query = query.or(`display_name.ilike.%${q}%,email.ilike.%${q}%`);
+  if (q) {
+    // ADM-016: PostgREST の .or() 内で 特殊文字 (, ( ) *) が 混入すると
+    //   フィルタ parse が崩れる (SQL injection ではないが 400 or 意図せぬ
+    //   拡張)。admin only とはいえ 明示的に 除去して 安全に。
+    //   LIKE の % _ は ワイルドカードとして 意図通り動作するため 残す。
+    const qSafe = q.replace(/[,()*]/g, "").trim();
+    if (qSafe) {
+      query = query.or(
+        `display_name.ilike.%${qSafe}%,email.ilike.%${qSafe}%`
+      );
+    }
+  }
 
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
