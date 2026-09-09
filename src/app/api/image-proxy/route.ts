@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isSafePublicUrl } from "@/lib/ssrf-guard";
 
 /**
  * 画像 CORS / hotlink 防止 フォールバック用のストリーミングプロキシ。
@@ -41,14 +42,20 @@ export async function GET(request: Request) {
     return badRequest("invalid url");
   }
 
+  // SEC-H1: SSRF ガード (私 IP / metadata endpoint / localhost 遮断 + DNS rebinding 対策)
+  if (!(await isSafePublicUrl(target))) {
+    return badRequest("target host not allowed", 400);
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
 
   let upstream: Response;
   try {
+    // redirect: "manual" で リダイレクト先も 再検証 (rebinding 対策)
     upstream = await fetch(target, {
       signal: controller.signal,
-      redirect: "follow",
+      redirect: "manual",
       headers: {
         // ホットリンク防止対策として、対象記事オリジンを Referer に
         Referer: parsed.origin + "/",
@@ -57,6 +64,25 @@ export async function GET(request: Request) {
         Accept: "image/*",
       },
     });
+    // リダイレクト時 は Location を SSRF check 通してから 手動追跡 (1 hop まで)
+    if (upstream.status >= 300 && upstream.status < 400) {
+      const loc = upstream.headers.get("location");
+      if (!loc) return badRequest("redirect without location", 502);
+      const nextUrl = new URL(loc, target).toString();
+      if (!(await isSafePublicUrl(nextUrl))) {
+        return badRequest("redirect target not allowed", 400);
+      }
+      upstream = await fetch(nextUrl, {
+        signal: controller.signal,
+        redirect: "manual",
+        headers: {
+          Referer: parsed.origin + "/",
+          "User-Agent":
+            "Mozilla/5.0 (compatible; Aimovie-NewsImgProxy/1.0; +https://aimovie-works.com)",
+          Accept: "image/*",
+        },
+      });
+    }
   } catch (e) {
     clearTimeout(timer);
     console.warn("[image-proxy] fetch failed", target, e);

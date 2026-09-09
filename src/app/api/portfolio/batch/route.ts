@@ -1,5 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAllowedVideoUrl } from "@/lib/validation";
+
+/**
+ * SEC-M3: image_url / thumbnail_url に許可する ホスト suffix。
+ *   自 Storage (Supabase public bucket) + Cloudinary + YouTube/Vimeo サムネ CDN のみ。
+ *   任意 URL 登録 (トラッカー / phishing 画像 ホスティング) を 遮断。
+ */
+const ALLOWED_IMAGE_HOSTS = [
+  "supabase.co",
+  "supabase.in",
+  "cloudinary.com",
+  "res.cloudinary.com",
+  "img.youtube.com",
+  "i.vimeocdn.com",
+  "i.ytimg.com",
+];
+
+function isAllowedImageUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase();
+    return ALLOWED_IMAGE_HOSTS.some(
+      (h) => host === h || host.endsWith(`.${h}`)
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * /api/portfolio/batch
@@ -63,6 +92,25 @@ function validate(items: unknown): BatchItem[] | { error: string } {
     if (mt === "image" && !image_url) {
       return { error: "画像アイテムには image_url が必要です" };
     }
+    // SEC-M3: URL は 許可ホスト/プラットフォームのみ。任意 URL 登録での
+    //   トラッカー / phishing 画像 ホスティングを 遮断。
+    if (video_url && !isAllowedVideoUrl(video_url)) {
+      return {
+        error: "video_url は YouTube / Vimeo / TikTok / Instagram / 自 Storage のみ許可されます",
+      };
+    }
+    if (image_url && !isAllowedImageUrl(image_url)) {
+      return {
+        error: "image_url は Supabase Storage / Cloudinary のみ許可されます",
+      };
+    }
+    const thumbnail_url =
+      typeof r.thumbnail_url === "string" ? r.thumbnail_url : null;
+    if (thumbnail_url && !isAllowedImageUrl(thumbnail_url)) {
+      return {
+        error: "thumbnail_url は Supabase Storage / Cloudinary / YouTube-Vimeo サムネ CDN のみ許可されます",
+      };
+    }
     const platform = r.video_platform;
     const video_platform: VideoPlatform =
       platform === "youtube" || platform === "vimeo" || platform === "other"
@@ -77,8 +125,7 @@ function validate(items: unknown): BatchItem[] | { error: string } {
       video_url,
       image_url,
       video_platform,
-      thumbnail_url:
-        typeof r.thumbnail_url === "string" ? r.thumbnail_url : null,
+      thumbnail_url,
     });
   }
   return out;

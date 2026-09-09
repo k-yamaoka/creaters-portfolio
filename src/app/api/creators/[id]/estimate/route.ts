@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { getCreatorById } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
  * AI Gateway が返す 認可/請求 エラーを 日本語 に変換して 有意義な文言 に置換。
@@ -41,6 +42,18 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  // SEC-M1: IP 単位 rate-limit (bot による AI Gateway credits 浪費対策)。
+  //   20 req / 60 秒 = ちょい試すには 十分、大量投擲は 遮断。
+  //   Upstash Redis があれば sliding window、無ければ in-memory bucket。
+  const ip = getClientIp(req.headers);
+  const rl = await checkRateLimit(`estimate:${ip}`, 20, 60);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "リクエストが集中しています。しばらく待って もう一度お試しください。" },
+      { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } }
+    );
+  }
+
   const { id } = await params;
   const creator = await getCreatorById(id);
   if (!creator) {

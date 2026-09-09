@@ -69,8 +69,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 一意ファイル名 (パストラバーサル安全: user.id とランダム値のみ)
-  const filename = `thumbnails/${user.id}/${Date.now()}-${Math.random()
+  // SEC-H3: Storage RLS policy (00092) は (foldername)[1] = auth.uid() を要求。
+  //   旧 "thumbnails/{uid}/..." だと [1]="thumbnails" で policy fail する。
+  //   "{uid}/thumbnails/..." に統一して RLS 通過 + サブフォルダで種別維持。
+  const filename = `${user.id}/thumbnails/${Date.now()}-${Math.random()
     .toString(36)
     .slice(2)}.${extKind === "jpeg" ? "jpg" : extKind}`;
 

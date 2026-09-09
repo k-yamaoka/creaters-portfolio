@@ -6,6 +6,7 @@ import {
   getDocKindFromExt,
   detectDocKindByMagic,
 } from "@/lib/upload-validation";
+import { stripImageMetadata } from "@/lib/image-sanitize";
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 // チャット添付は PNG / JPEG / PDF のみ許可
@@ -16,9 +17,10 @@ const ALLOWED_MIME = new Set([
 ]);
 
 // メッセージ添付ファイルのアップロード。
-// 既存の portfolio-videos バケットを共用し、messages/{user_id}/ 配下に置く。
+// 既存の portfolio-videos バケットを共用し、{user_id}/messages/ 配下に置く。
 // (専用バケットを切らないのは MVP の運用シンプル化が目的。URL はランダムなので
-//  unguessable で、portfolio thumbnails と同じ公開アクセスモデル)
+//  unguessable で、portfolio thumbnails と同じ公開アクセスモデル。
+//  SEC-H3: 00092 RLS policy 適合のため path prefix は uid 先頭)
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
   const {
@@ -86,13 +88,23 @@ export async function POST(request: NextRequest) {
   }
 
   // 一意ファイル名 (パストラバーサル安全: user.id とランダム値のみ)
-  const filename = `messages/${user.id}/${Date.now()}-${Math.random()
+  const filename = `${user.id}/messages/${Date.now()}-${Math.random()
     .toString(36)
     .slice(2)}.${kind}`;
 
+  // SEC-M2: 画像 (jpg/png) は EXIF/GPS メタデータ 除去。
+  //   チャット添付 は 相手に URL を送るだけ でも public bucket 経由で
+  //   誰でも GET できる → GPS 座標 等 の 個人特定情報を 残さない。
+  //   PDF は そのまま (メタデータ剥離は PDF library 要、優先度低)
+  let bodyBytes: Uint8Array | File = file;
+  if (kind === "jpg" || kind === "png") {
+    const rawBytes = new Uint8Array(await file.arrayBuffer());
+    bodyBytes = stripImageMetadata(rawBytes, kind === "jpg" ? "jpeg" : "png");
+  }
+
   const { error: uploadError } = await supabase.storage
     .from("portfolio-videos")
-    .upload(filename, file, {
+    .upload(filename, bodyBytes, {
       contentType: file.type,
       upsert: false,
       // MOD-028/029: 30 日 → 1 時間。チャット添付は削除・退会時の即時
