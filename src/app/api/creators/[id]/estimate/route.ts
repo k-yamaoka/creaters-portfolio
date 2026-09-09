@@ -3,6 +3,24 @@ import { streamText, convertToModelMessages, type UIMessage } from "ai";
 import { getCreatorById } from "@/lib/supabase/queries";
 import { formatPrice } from "@/lib/utils";
 
+/**
+ * AI Gateway が返す 認可/請求 エラーを 日本語 に変換して 有意義な文言 に置換。
+ * onError で 拾って streamText の flush 時に 生成結果に 差し込む。
+ */
+function localizeGatewayError(msg: string): string {
+  const low = msg.toLowerCase();
+  if (low.includes("credit card")) {
+    return "AI 見積もり サービスの 一時利用制限中です (支払い設定が 完了していません)。恐れ入りますが、下部の 「メッセージを送る」から クリエイターに 直接ご相談ください。";
+  }
+  if (low.includes("rate limit") || low.includes("429")) {
+    return "AI 見積もりの 利用が集中しています。しばらく待って もう一度お試しください。";
+  }
+  if (low.includes("unauthorized") || low.includes("401") || low.includes("api key")) {
+    return "AI 見積もり サービスの 認証エラーが発生しました。運営に お問い合わせください。";
+  }
+  return "AI 見積もりの 応答生成に失敗しました。しばらく待って もう一度お試しください。";
+}
+
 // Fluid Compute: AI 呼び出しは長尺になりうるので延長
 export const maxDuration = 60;
 
@@ -55,11 +73,24 @@ ${minPrice !== null ? `# 最低受注金額\n${formatPrice(minPrice)}〜` : "# �
 
   const modelMessages = await convertToModelMessages(messages);
   const result = streamText({
-    // AI Gateway 経由 (環境変数 AI_GATEWAY_API_KEY が必要)
+    // AI Gateway 経由 (環境変数 AI_GATEWAY_API_KEY が必要)。model 一覧は
+    // https://ai-gateway.vercel.sh/v1/models で 都度確認。
     model: "anthropic/claude-haiku-4.5",
     system: systemPrompt,
     messages: modelMessages,
+    // AIEST-003: streaming 中の エラーを 明示的に console + client 側に 流す
+    onError: ({ error }) => {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[estimate] streamText error:", message);
+    },
   });
 
-  return result.toUIMessageStreamResponse();
+  // toUIMessageStreamResponse は onError オプションで stream 内 error message を
+  //   カスタム文字列に 変換できる。デフォルトだと生の 英語エラーが流れて UX が悪い。
+  return result.toUIMessageStreamResponse({
+    onError: (error) => {
+      const raw = error instanceof Error ? error.message : String(error);
+      return localizeGatewayError(raw);
+    },
+  });
 }
