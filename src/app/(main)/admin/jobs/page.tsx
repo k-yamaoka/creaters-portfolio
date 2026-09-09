@@ -28,7 +28,11 @@ const STATUS_CLASS: Record<string, string> = {
 export default async function AdminJobsPage() {
   const admin = getSupabaseAdmin();
 
-  const { data: jobs } = await admin
+  // SCT-001: オープン案件を 最優先 表示。status=open を 先頭、他は 後ろに。
+  //   admin は open 案件に スカウトを送るのが 主 用途。closed/draft/cancelled
+  //   も 参考として残すが、JS 側で status ソート順を 明示制御 (open→closed→
+  //   draft→cancelled)。
+  const { data: rawJobs } = await admin
     .from("jobs")
     .select(
       `id, title, status, budget_min, budget_max, deadline, application_count,
@@ -40,6 +44,19 @@ export default async function AdminJobsPage() {
     )
     .order("created_at", { ascending: false })
     .limit(100);
+
+  const STATUS_ORDER: Record<string, number> = {
+    open: 0,
+    closed: 1,
+    draft: 2,
+    cancelled: 3,
+  };
+  const jobs = (rawJobs ?? []).slice().sort((a, b) => {
+    const sa = STATUS_ORDER[(a as { status: string }).status] ?? 9;
+    const sb = STATUS_ORDER[(b as { status: string }).status] ?? 9;
+    if (sa !== sb) return sa - sb;
+    return 0; // created_at desc は 既に SQL 側で 適用済
+  });
 
   // 各 job の招待数を集計
   const jobIds = (jobs ?? []).map((j) => (j as { id: string }).id);

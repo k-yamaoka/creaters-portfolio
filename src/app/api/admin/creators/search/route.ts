@@ -37,8 +37,11 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const tagsRaw = url.searchParams.get("tags") ?? "";
   const excludeJob = url.searchParams.get("exclude_invited_job");
+  // SCT-011: タグ 0 選択時は「全件表示」を期待 (admin が総なめする用途)。
+  //   default を 20 → 100 に拡張して 実運用の "全件" に近づける。
+  //   タグ絞込あり時は マッチ数が 小さいので 100 でも 負荷は 無視できる。
   const limit = Math.min(
-    Math.max(1, Number(url.searchParams.get("limit") ?? "20")),
+    Math.max(1, Number(url.searchParams.get("limit") ?? "100")),
     100
   );
 
