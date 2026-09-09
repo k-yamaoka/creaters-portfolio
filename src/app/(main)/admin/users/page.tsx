@@ -8,6 +8,7 @@ type SearchParams = Promise<{
   page?: string;
   role?: string;
   q?: string;
+  status?: string;
 }>;
 
 export default async function AdminUsersPage({
@@ -23,6 +24,11 @@ export default async function AdminUsersPage({
       ? params.role
       : null;
   const q = params.q?.trim() ?? "";
+  // ADM-004: 停止アカウント絞込。?status=active / inactive / (未指定=全て)
+  const status =
+    params.status === "active" || params.status === "inactive"
+      ? params.status
+      : null;
 
   let query = admin
     .from("profiles")
@@ -30,6 +36,8 @@ export default async function AdminUsersPage({
     .order("created_at", { ascending: false });
 
   if (role) query = query.eq("role", role);
+  if (status === "active") query = query.eq("is_active", true);
+  if (status === "inactive") query = query.eq("is_active", false);
   if (q) query = query.or(`display_name.ilike.%${q}%,email.ilike.%${q}%`);
 
   const from = (page - 1) * PAGE_SIZE;
@@ -42,6 +50,7 @@ export default async function AdminUsersPage({
     const sp = new URLSearchParams();
     if (p > 1) sp.set("page", String(p));
     if (role) sp.set("role", role);
+    if (status) sp.set("status", status);
     if (q) sp.set("q", q);
     const s = sp.toString();
     return s ? `/admin/users?${s}` : "/admin/users";
@@ -77,6 +86,16 @@ export default async function AdminUsersPage({
             <option value="creator">creator</option>
             <option value="client">client</option>
             <option value="admin">admin</option>
+          </select>
+          {/* ADM-004: 停止アカウント絞込 */}
+          <select
+            name="status"
+            defaultValue={status ?? ""}
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          >
+            <option value="">状態 全て</option>
+            <option value="active">利用中のみ</option>
+            <option value="inactive">停止中のみ</option>
           </select>
           <button
             type="submit"
