@@ -135,15 +135,28 @@ export async function POST(
       : "予算応相談";
 
   for (const c of newlyInvited) {
-    // notifications (in-app)
-    await admin.from("notifications").insert({
-      user_id: c.user_id,
-      type: "job_invitation",
-      title: "💌 運営からのおすすめ案件が届きました",
-      body: `「${job.title ?? "案件"}」への招待が届いています。ダッシュボードから内容をご確認ください。`,
-      link: `/dashboard/invitations`,
-      is_read: false,
-    });
+    // notifications (in-app) — SCT-025: エラー時 log のみで ループ継続
+    //   Supabase client は throw しないが insert error でも 他の creator の
+    //   処理を止めないため 明示的に error を確認して console.error に出す
+    try {
+      const { error: notifErr } = await admin.from("notifications").insert({
+        user_id: c.user_id,
+        type: "job_invitation",
+        title: "💌 運営からのおすすめ案件が届きました",
+        body: `「${job.title ?? "案件"}」への招待が届いています。ダッシュボードから内容をご確認ください。`,
+        link: `/dashboard/invitations`,
+        is_read: false,
+      });
+      if (notifErr) {
+        console.error(
+          "[admin/jobs/invite] notifications insert failed for",
+          c.id,
+          notifErr
+        );
+      }
+    } catch (e) {
+      console.error("[admin/jobs/invite] notifications insert threw for", c.id, e);
+    }
 
     // Email 通知
     try {

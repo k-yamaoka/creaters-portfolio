@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import { formatDateJP } from "@/lib/utils";
 import { InviteSection } from "./invite-section";
@@ -184,8 +185,24 @@ export default async function AdminJobDetailPage({
                 {invitationRows.map((inv) => (
                   <li
                     key={inv.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/60 px-3 py-2 text-xs"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-gray-100 bg-gray-50/60 px-3 py-2 text-xs"
                   >
+                    {/* SCT-040: avatar 表示。creator の 視覚識別を 向上 */}
+                    <div className="flex shrink-0 items-center">
+                      {inv.creator?.profiles?.avatar_url ? (
+                        <Image
+                          src={inv.creator.profiles.avatar_url}
+                          alt=""
+                          width={32}
+                          height={32}
+                          className="h-8 w-8 rounded-full border border-gray-200 object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-gray-100 text-[10px] font-bold text-gray-500">
+                          {(inv.creator?.profiles?.display_name ?? "-").slice(0, 1)}
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900">
                         {inv.creator?.profiles?.display_name ?? "-"}
