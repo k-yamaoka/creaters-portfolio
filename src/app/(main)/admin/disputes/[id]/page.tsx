@@ -246,6 +246,7 @@ export default async function AdminDisputeDetailPage({
               <Link
                 href={`/dashboard/orders/${d.order_id}`}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center rounded-md bg-gray-100 px-3 py-1.5 text-[11px] font-bold text-gray-700 hover:bg-gray-200"
               >
                 ユーザー側の取引画面を確認 (別タブ)
