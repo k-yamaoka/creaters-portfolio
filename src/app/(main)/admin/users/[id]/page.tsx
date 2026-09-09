@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { formatDateJP, formatPrice } from "@/lib/utils";
 import { UserActionsPanel } from "./user-actions-panel";
 
@@ -19,6 +20,12 @@ export default async function AdminUserDetailPage({
 }) {
   const { id: userId } = await params;
   const admin = getSupabaseAdmin();
+
+  // ADM-025: 実行中の admin 自身の user_id を取得 (自 suspend 防止用)
+  const supa = await createClient();
+  const {
+    data: { user: currentAdmin },
+  } = await supa.auth.getUser();
 
   const { data: profile } = await admin
     .from("profiles")
@@ -112,6 +119,14 @@ export default async function AdminUserDetailPage({
         userId={profile.id}
         isActive={profile.is_active !== false}
         isVerified={!!profile.is_verified}
+        targetRole={
+          profile.role === "admin" ||
+          profile.role === "creator" ||
+          profile.role === "client"
+            ? profile.role
+            : null
+        }
+        currentAdminUserId={currentAdmin?.id}
       />
 
       {/* Profile 基本情報 */}

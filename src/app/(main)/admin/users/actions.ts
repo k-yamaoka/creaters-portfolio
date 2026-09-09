@@ -62,6 +62,24 @@ async function logAccountAction(params: {
 export async function toggleUserActive(userId: string, isActive: boolean) {
   const { supabase, actorId } = await checkAdmin();
 
+  // ADM-025/026: suspend (isActive=false) の場合、対象が 自分 or 他 admin なら 拒否。
+  //   UI 側の disable と 二重防御。
+  if (isActive === false) {
+    if (userId === actorId) {
+      return { error: "自分自身は 停止できません" };
+    }
+    const { data: target } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    if (target?.role === "admin") {
+      return {
+        error: "他の 管理者アカウントは 停止できません",
+      };
+    }
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({ is_active: isActive })

@@ -11,16 +11,39 @@ type Props = {
   userId: string;
   isActive: boolean;
   isVerified: boolean;
+  /** 対象ユーザーの role (admin 保護判定用) */
+  targetRole?: "admin" | "creator" | "client" | null;
+  /** 実行者 admin 自身の user_id (自分自身の停止防止) */
+  currentAdminUserId?: string;
 };
 
-export function UserActionsPanel({ userId, isActive, isVerified }: Props) {
+export function UserActionsPanel({
+  userId,
+  isActive,
+  isVerified,
+  targetRole,
+  currentAdminUserId,
+}: Props) {
   const [pending, startTransition] = useTransition();
   const [msg, setMsg] = useState<{ type: "ok" | "err"; text: string } | null>(
     null
   );
 
+  // ADM-025/026: 自 admin / 他 admin の 停止を UI で 明示的にガード。
+  //   サーバー側 (users/actions.ts) にも 二重防御あり。
+  const isSelf = currentAdminUserId === userId;
+  const isTargetAdmin = targetRole === "admin";
+  const suspendBlocked = isSelf || isTargetAdmin;
+  const suspendBlockReason = isSelf
+    ? "自分自身は 停止できません"
+    : isTargetAdmin
+      ? "他の 管理者アカウントは 停止できません (別経路で 権限管理)"
+      : null;
+
   function handleActive() {
     const next = !isActive;
+    // suspend 方向は blocked user では 実行不可
+    if (!next && suspendBlocked) return;
     if (
       !confirm(
         next
@@ -80,8 +103,9 @@ export function UserActionsPanel({ userId, isActive, isVerified }: Props) {
         <button
           type="button"
           onClick={handleActive}
-          disabled={pending}
-          className={`rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 ${
+          disabled={pending || (isActive && suspendBlocked)}
+          title={isActive && suspendBlockReason ? suspendBlockReason : undefined}
+          className={`rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed ${
             isActive
               ? "border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
               : "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -89,6 +113,11 @@ export function UserActionsPanel({ userId, isActive, isVerified }: Props) {
         >
           {isActive ? "利用を停止する" : "利用を再開する"}
         </button>
+        {isActive && suspendBlockReason && (
+          <p className="w-full text-[11px] text-amber-700">
+            ⚠ {suspendBlockReason}
+          </p>
+        )}
 
         <button
           type="button"
