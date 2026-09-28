@@ -47,8 +47,11 @@ export default async function OrderDetailPage({
     `
     )
     .eq("id", id)
-    .single();
+    .maybeSingle();
 
+  // ERR-005: order が RLS で 見えない (他人の order) or 存在しない → notFound。
+  //   RLS (00097 viewer_owns_order helper) で 当事者以外 は 0 rows 返却済み。
+  //   セキュリティ観点で 「他人の order です」と 明示しない (情報 leak 防止)。
   if (!order) notFound();
 
   // 検収完了 (= delivered + escrow released) でレビュー対象
